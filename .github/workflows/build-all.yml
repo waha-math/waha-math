@@ -382,7 +382,19 @@ jobs:
           V="$(grep -oP 'versionName "\K[^"]+' platforms/android/app/build.gradle)"; TAG="v$V"
           APK="- أندرويد (موبايل وتابلت): waha-math.apk"
           [ -f rel/waha-math.apk ] || APK="- أندرويد: يُضاف waha-math.apk إلى هذا الإصدار بعد إضافة أسرار مفتاح التوقيع (SIGNING-AR.md)"
-          NOTES="واحة الرياضيات — النسخة $V (المرحلة الأولى: الوحدات 1 إلى 4، 27 درساً وأربع ورش)
+          SCOPE="$(python3 - <<'PY'
+          import glob, json, os
+          NAMES = {'m1': 'المرحلة الأولى', 'm2': 'المرحلة الثانية', 'm3': 'المرحلة الثالثة', 'm4': 'المرحلة الرابعة'}
+          def n(k, one, few, many): return f'{k} {few}' if 3 <= k <= 10 else f'{k} {many}' if k > 10 else f'{k} {one}'
+          out = []
+          for m in sorted(d for d in os.listdir('content') if d in NAMES):
+              us = sorted(glob.glob(f'content/{m}/u*/unit.json')); ls = sum(len(glob.glob(os.path.join(os.path.dirname(u), 'd*.json'))) for u in us)
+              ws = sum(1 for u in us if json.load(open(u, encoding='utf8')).get('workshop'))
+              out.append(f"{NAMES[m]}: {n(len(us), 'وحدة', 'وحدات', 'وحدةً')}، {n(ls, 'درس', 'دروس', 'درساً')}، {n(ws, 'ورشة', 'ورش', 'ورشةً')}")
+          print('؛ '.join(out))
+          PY
+          )"   # المحتوى يُعدّ من content عند البناء، فلا يتقادم النص (كان ثابتاً «الوحدات 1 إلى 4، 27 درساً» بعد اكتمال المرحلة الأولى)
+          NOTES="واحة الرياضيات — النسخة $V ($SCOPE)
           $APK
           - ويندوز: waha-math-setup-$V.exe (مثبّت)، أو waha-math-portable-$V.exe (يعمل بلا تثبيت)
           - الويب: https://waha-math.github.io/waha-math/ ، أو waha-math-web.zip (افتح index.html)
