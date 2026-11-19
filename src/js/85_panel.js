@@ -13,6 +13,9 @@ function maintNote(L, C, x) { const md = maintDue(L, C, x); if (md == null) retu
   return ` <span class="muted">صيانة ${d <= 0 ? 'اليوم' : 'بعد ' + nw(d, 'يوم واحد', 'يومين', 'أيام', 'يوماً')}</span>`; }
 function statusPill(L) { const p = PROG[L.id] || {};
   /* إحماء الحساب (الوحدات الحسابية المصغّرة، S2_نظام_التقييم): النطاق وما يُفعل به، لا رقم أمام الطفل */
+  /* التقييم الختامي للمرحلة 2 (الدرس الرابع من «بوّابة البنّائين»): المستوى بالعتبات، وما ينقصه */
+  if (L.id === 'm2.u10.d4' && p.done) { const R = finalM2(), LV = { master: ['good', '🌳 متقن'], adv: ['think', '🌿 متقدّم'], support: ['think', '🌱 يحتاج دعماً'], pending: ['think', 'ينتظر بطاقة المعايير'] }[R.level] || ['think', 'لم تكتمل الأجزاء'];
+    return `<span class="pill ${LV[0]}">${LV[1]}</span> <span class="muted">أ وأ2: ${R.score ?? '—'} من ${R.of} (العتبة ${Math.ceil(.85 * R.of)})${R.a2Paper ? '، أ2 بحكمكم على الورق' : ''} · المهمة: ${R.bDone ? R.b3 + ' معايير 🌳' + (R.b1 ? ' ومعيار 🌱' : '') : 'البطاقة لم تُملأ'} · الشارات ${R.badges} من 10${R.cert ? ' · <b>شهادة «بنّاء ماهر»</b>' : ''}</span>`; }
   /* والتشخيص الهندسي عند دخول م2: مفهوم م1 بلونه، ودرس م1 المقترح قبل وحدة م2 المتأثرة لما يحتاج بناءً */
   const dg = L.id === 'm2.u0.d0' && isObj(PROG['diag:m2']) ? PROG['diag:m2'] : null, DGC = { go: '🟢', help: '🟡', build: '🔴' };
   const dgTxt = dg ? '<br><span class="muted">التشخيص الهندسي' + (dg.short ? ' (المختصر لمن أنهى م1)' : '') + ': ' + Object.entries(dg.res).map(([k, v]) => DGC[v] + ' ' + k + (v === 'build' && dg.meta[k] && LDATA[dg.meta[k].m1] ? ' ← ' + esc(plain(LDATA[dg.meta[k].m1].title)) + ' قبل ' + esc(dg.meta[k].u) : '')).join(' · ') + '</span>' : '';
@@ -37,7 +40,7 @@ function statusPill(L) { const p = PROG[L.id] || {};
 /* حكم الكبير (المبدأ 12، D240؛ الفحص الخصم A01 وA02): من أجوبته الصريحة وحدها، بطول أسئلة البطاقة («نعم» في كلها)،
    ويُشتقّ من الأجوبة الحاضرة كلما عُرض، فـ«ليس بعد» بعد «نعم» يلغيه. وهو مصدرٌ مستقلّ لا يكتب إتقان التطبيق (cs.mastered) ولا يمحوه */
 const adultAnswers = L => { const n = L.adultCard.qs.length, a = isObj(PROG.adult) && Array.isArray(PROG.adult[L.id]) ? PROG.adult[L.id] : [];
-  return Array.from({ length: n }, (_, i) => a[i] === true ? true : a[i] === false ? false : null); };
+  return Array.from({ length: n }, (_, i) => a[i] === true ? true : a[i] === false ? false : L.adultCard.levels && Number.isInteger(a[i]) && a[i] >= 0 && a[i] <= 2 ? a[i] : null); };   /* levels: سلّم الأداء 🌱 0 · 🌿 1 · 🌳 2 (مهمة الأداء، S2_نظام_التقييم) */
 const adultSays = (L, C) => !!(L && L.adultCard && L.adultCard.concept === C && adultAnswers(L).every(x => x === true));
 /* ترحيل ما كتبه الحكم القديم في المفهوم نفسه (mastered وbyAdult معاً): يبقى إتقان التطبيق بدليله (عتبة فحصه) لا بالحكم */
 (function adultMigrate() { let ch = false;
@@ -47,8 +50,8 @@ const adultSays = (L, C) => !!(L && L.adultCard && L.adultCard.concept === C && 
     if (c.byAdult && !app) { delete c.mastered; if (!entry) c.deferred = true; } delete c.byAdult; }
   if (ch) saveProg(); })();
 function adultCardHTML(L) { const A = L.adultCard; const saved = adultAnswers(L);
-  return `<div class="talkcard"><b>${esc(plain(L.title))}: ${esc(A.title)}</b><p class="muted">${esc(G(A.how))}</p>${A.qs.map((q, i) => `<div class="aq"><span>${DG(i + 1)}. ${esc(G(q))}</span><span class="seg">
-    <button class="pick" data-ac="${esc(L.id)}" data-i="${i}" data-v="1" aria-pressed="${saved[i] === true}">نعم</button><button class="pick" data-ac="${esc(L.id)}" data-i="${i}" data-v="0" aria-pressed="${saved[i] === false}">ليس بعد</button></span></div>`).join('')}
+  return `<div class="talkcard"><b>${esc(plain(L.title))}: ${esc(A.title)}</b><p class="muted">${esc(G(A.how))}</p>${A.qs.map((q, i) => `<div class="aq"><span>${DG(i + 1)}. ${esc(G(q))}</span><span class="seg">${A.levels ? ['🌱 بدأ', '🌿 يتقدّم', '🌳 متقن'].map((t, v) => `<button class="pick" data-ac="${esc(L.id)}" data-i="${i}" data-lv="${v}" aria-pressed="${saved[i] === v}">${t}</button>`).join('') : `
+    <button class="pick" data-ac="${esc(L.id)}" data-i="${i}" data-v="1" aria-pressed="${saved[i] === true}">نعم</button><button class="pick" data-ac="${esc(L.id)}" data-i="${i}" data-v="0" aria-pressed="${saved[i] === false}">ليس بعد</button>`}</span></div>`).join('')}
     ${A.concept && adultSays(L, A.concept) ? '<span class="pill good">متقن بحكم الكبير</span>' : ''}</div>`; }
 /* حالة المفهوم في خريطة الإتقان: إتقان التطبيق وحكم الكبير مصدران، والعرض منهما */
 function conceptPill(L, C) { const c = ((PROG[L.id] || {}).cs || {})[C] || {}, adult = adultSays(L, C);
@@ -125,7 +128,7 @@ function openPanel() {
     const r = await kidDelete(id); if (r.why === 'tab') return;   /* فقد التبويب القفل: غطاؤه ظاهر، ولا أثر في الواجهة لعمليةٍ أُلغيت */
     if (r.why !== 'busy') KID_DEL_STATE = r.ok ? null : { id, why: r.why }; openPanel(); });   /* 'busy': حذفٌ آخر لم يكتمل، وحاله وسببه كما هما */
   $('#panel').querySelectorAll('[data-ac]').forEach(b => b.onclick = () => { const L = LDATA[b.dataset.ac]; if (!L || !L.adultCard) return;
-    const a = adultAnswers(L); a[+b.dataset.i] = b.dataset.v === '1'; PROG.adult = isObj(PROG.adult) ? PROG.adult : {}; PROG.adult[L.id] = a;
+    const a = adultAnswers(L); a[+b.dataset.i] = b.dataset.lv != null ? +b.dataset.lv : b.dataset.v === '1'; PROG.adult = isObj(PROG.adult) ? PROG.adult : {}; PROG.adult[L.id] = a;
     if (saveProg()) openPanel(); });
   $('#repBtn').onclick = () => weeklyReport();
   $('#slowBtn').onclick = () => { SET.slow = !SET.slow; saveSet(); openPanel(); };

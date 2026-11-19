@@ -9,7 +9,7 @@ export const json = p => JSON.parse(read(p));
 export function loadContent() {
   const units = [];
   for (const m of readdirSync(CONTENT_DIR).filter(d => /^m\d+$/.test(d)).sort())
-    for (const u of readdirSync(join(CONTENT_DIR, m)).filter(d => /^u\d+$/.test(d)).sort()) {
+    for (const u of readdirSync(join(CONTENT_DIR, m)).filter(d => /^u\d+$/.test(d)).sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)))) {   /* بالعدد: u10 بعد u9 لا بعد u1 */
       const dir = join(CONTENT_DIR, m, u); const unit = json(join(dir, 'unit.json'));
       unit.lessons = readdirSync(dir).filter(f => /^d\d+\.json$/.test(f)).sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1))).map(f => json(join(dir, f)));
       units.push(unit);

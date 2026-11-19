@@ -524,7 +524,7 @@ export function d240(lessons, code, MAKERS) {
     'foldShow', 'foldLab', 'halfScene', 'chaosHalf', 'recallSym', 'foldWays', 'lineWorked', 'chaosFold', 'gridLab', 'doubleShow', 'doubleWorked', 'chaosWing', 'chaosDbl', 'paintFold', 'recallMir',
     'doorHook', 'sticksAngle', 'turnShow', 'nameShow', 'cornerCompare', 'doorStraight', 'degreeDisc', 'clockTwins', 'cakeSlice', 'protIntro', 'protSteps', 'angDrawShow', 'estimateShow', 'compassIntro', 'compassTurns', 'angleCity', 'recallAngle', 'recallKinds', 'recallProt', 'recallTurn', 'recallRose',   /* S2-U3 */
     'chaosCake', 'frFoldStrip', 'partNames', 'readFrac', 'unitWhole', 'halfWays', 'bigSmall', 'lineIntro', 'spacesNotMarks', 'foldEqv', 'gridEqv', 'frCmpShow', 'wall12', 'cookieShare', 'partyCake', 'recallFrac',   /* S2-U8 */
-    'calcCheck', 'geoCheck',   /* إحماء الحساب والتشخيص الهندسي */
+    'calcCheck', 'geoCheck', 'finalCheck', 'finalResult',   /* إحماء الحساب والتشخيص الهندسي والتقييم الختامي */
     'chaosRect', 'drawLevels', 'tolShow', 'setSqShow', 'rectSteps', 'sasShow', 'circleParts', 'ringsShow', 'equiShow', 'sssShow', 'hexShow', 'flowerShow', 'recallComp',   /* S2-U9 */
     'arRibbonHook', 'stringAround', 'gridBorder', 'perimShow', 'tileCover', 'halfShow', 'rowsCols', 'lTwoWays', 'lPerimShow', 'sameTables', 'fenceOrTile', 'm2Show', 'recallPerim', 'recallArea',   /* S2-U7 */
     'tapeIntro', 'kmWalk', 'unitTable', 'convTable', 'mcSplit', 'cmpShow', 'addWorked', 'roundShow', 'refsShow', 'roomPlan', 'recallTape', 'recallConv', 'recallCalc', 'recallUnit',   /* S2-U6 */
@@ -635,9 +635,13 @@ export function d240(lessons, code, MAKERS) {
     if (L.review && L.review.length) { const per = {};
       L.review.forEach((it, i) => { if (!it.c || !(L.concepts || {})[it.c]) errors.push(`${L.id}: بند المراجعة[${i}] بلا مفهوم من مفاهيم الدرس (c) (المبدأ 14)`); else per[it.c] = (per[it.c] || 0) + 1; });
       for (const [C, n] of Object.entries(per)) if (n < 2) errors.push(`${L.id}: المفهوم ${C} له بند مراجعة واحد، فلا بند ثانٍ فورياً منه بعد الخطأ (المبدأ 14)`); }
+    // الاختبار الختامي لا يكرّر مسألةً من اختبار وحدةٍ في مرحلته (S2_نظام_التقييم، ثانياً: «لا يكرّر الاختبار الختامي أسئلة اختبارات الوحدات حرفياً»)
+    for (const st of L.flow) if (st.scene === 'finalCheck') { const stage = L.id.split('.')[0], TF = new Map();
+      for (const O of Object.values(lessons)) if (O.id.split('.')[0] === stage && O.test) for (const q of O.test.items) { const f = fact(q.item); if (f && !TF.has(f)) TF.set(f, O.id + ' ' + q.id); }
+      for (const q of st.checks || []) { const f = fact(q.item); if (f && TF.has(f)) errors.push(`${L.id}: بند الختامي ${q.id} (${f}) هو مسألة اختبار ${TF.get(f)} (S2_نظام_التقييم: لا يكرّر الختامي أسئلة الوحدات)`); } }
     // D239: اختيار حقيقي في كل درس
     /* إلا «إحماء الحساب» (الوحدات الحسابية المصغّرة): اختبار تخطٍّ بلا تمرين، والاختيار فيه لوحة الأرقام نفسها */
-    if (!L.flow.some(s => s.scene === 'calcCheck') && !(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);
+    if (!L.flow.some(s => ['calcCheck', 'finalCheck', 'finalResult'].includes(s.scene) || (s.s === 'explore' && L.id.startsWith('m2.u10.'))) && !(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);
   }
   /* التوأم (الفحص المستقل B): بند آخر بعد الحلّ المشترك أو الكشف، فمسألته غير مسألة أصله، وإلا كان جوابه ما كُشف للتوّ.
      ومسائل التوأم «معروضة» في الدرس (shownOf يزور كل ما في بيانات التمرين والعلاج واللعب)، فلا يقيسها إتقان ولا مراجعة ولا اختبار */

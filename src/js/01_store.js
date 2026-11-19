@@ -101,8 +101,10 @@ const V_LESSON = vRec({ done: bool, mastered: bool, deferred: bool, entry: bool,
 const V_DIAG_BAND = Pr(v => v === 'go' || v === 'help' || v === 'build');
 const V_PROG_TOP = { schema: Pr(v => v === SCHEMA),
   /* التشخيص الهندسي عند دخول م2: لون كل مفهوم من م1، ودرسه ووحدات م2 المتأثرة */
+  /* التقييم الختامي للمرحلة 2: المستوى والدرجة ومعايير 🌳 والشهادة */
+  'final:m2': vRec({ at: time, level: Pr(v => ['master', 'adv', 'support', 'pending', 'none'].includes(v)), score: Pr(v => isInt(v, -1, 99)), of: Pr(v => isInt(v, 0, 99)), b3: Pr(v => isInt(v, -1, 12)), cert: bool }, ['level']),
   'diag:m2': vRec({ at: time, short: bool, res: vMap(CONCEPT_ID, V_DIAG_BAND), meta: vMap(CONCEPT_ID, vRec({ m1: Pr(v => typeof v === 'string' && LESSON_ID.test(v)), u: Pr(v => typeof v === 'string' && v.length < 40) })) }, ['res']), srs: vMap(LESSON_ID, V_SRS), ws: vMap(UNIT_ID, int0),
-  streams: vMap(/^[a-z]{1,16}$/, vRec({ seen: bool, n: int0, ok: int0, day: time })), adult: vMap(LESSON_ID, vArr(Pr(v => v === true || v === false || v === null), 12)),
+  streams: vMap(/^[a-z]{1,16}$/, vRec({ seen: bool, n: int0, ok: int0, day: time })), adult: vMap(LESSON_ID, vArr(Pr(v => v === true || v === false || v === null || (Number.isInteger(v) && v >= 0 && v <= 2)), 12)),   // ونعم/ليس بعد، أو سلّم الأداء 0..2
   redo: vMap(LESSON_ID, time), review: Pr(v => typeof v === 'string' && LESSON_ID.test(v)), unlockAll: bool,
   /* مهمة البيت بإدخال (S2-U0): تقدير وقياس لكل شيء، وخيط الكوب، وقياس المراجعة */
   home: vMap(UNIT_ID, vRec({ at: time, items: vArr(vRec({ est: Pr(v => isInt(v, 0, 99)), cm: Pr(v => isInt(v, 0, 99)), mm: Pr(v => isInt(v, 0, 9)) }, ['est', 'cm', 'mm']), 6), cup: Pr(v => isInt(v, 0, 99)), n: vMap(/^[a-z][a-z0-9]{0,7}$/, Pr(v => isInt(v, 0, 999))), an: vMap(/^[a-z][a-z0-9]{0,7}$/, Pr(v => isInt(v, 0, 999))), again: vRec({ cm: Pr(v => isInt(v, 0, 99)), mm: Pr(v => isInt(v, 0, 9)), zero: Pr(v => v === 'start' || v === 'edge') }, ['cm', 'mm']) }, ['items'])) };

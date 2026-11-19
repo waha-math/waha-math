@@ -93,7 +93,7 @@ SCENES.calcCheck = async (c, L) => { const P = progOf(L.id); if (c.intro) await 
   const svg = newStage(230, { oasisOpacity: .25 }), T = calcTree(svg, 180, 200, band === 'go' ? 1 : band === 'help' ? .7 : .45); anim(T, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 600, fill: 'both' });
   await S(c.results[band]); };
 /* شجرة النتيجة: تكبر بالنطاق (مستويات لا أرقام أمام الطفل) */
-function calcTree(svg, x, y, k = 1) { const g = el('g', { transform: `translate(${x} ${y})` }, svg);
+function calcTree(svg, x, y, k = 1) { const g = el('g', {}, el('g', { transform: `translate(${x} ${y})` }, svg));   /* الحركة على الداخلية */
   el('rect', { x: -7, y: -70 * k, width: 14, height: 70 * k, rx: 5, fill: '#9a6b42' }, g);
   for (const [dx, dy, r] of [[0, -100, 46], [-36, -78, 34], [36, -78, 34], [-20, -120, 30], [22, -122, 30]]) el('circle', { cx: dx * k, cy: dy * k, r: r * k, fill: '#5aa469', opacity: .92 }, g);
   return g; }
