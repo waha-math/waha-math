@@ -25,7 +25,7 @@ def lesson(u, letter, title, hook1, checks, extra_lines, talk, icon='calc'):
        "flow":[{"s":"hook","scene":"lines","mat":{"prompt":"mat.01","show":[],"icon":True,"after":"mat.02","facts":[]},"lines":["hook.01","hook.02"]},
                {"s":"game","scene":"calcCheck","unitCalc":letter,"checks":[{"id":"c%d"%(i+1),"item":it} for i,it in enumerate(checks)],"results":{"go":"res.go","help":"res.help","build":"res.build"}},
                {"s":"wrap"}],
-       "wrap":{"art":"medal","lines":["wrap.01"]},
+       "wrap":{"art":"calcArt","lines":["wrap.01"]},
        "talk":talk}
     dump(ROOT+'/content/m2/%s/d0.json'%u, d)
 # أ قبل S2-U0: العدّ بالعشرات، والجمع والطرح البسيط، والنصف والضعف

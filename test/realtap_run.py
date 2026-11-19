@@ -46,7 +46,7 @@ LESSONS = ['m1.u1.d1', 'm1.u1.d2', 'm1.u1.d3', 'm1.u1.d4', 'm1.u1.d5', 'm1.u1.d6
            'm2.u5.d1', 'm2.u5.d2', 'm2.u5.d3', 'm2.u5.d4', 'm2.u5.d5',
            'm2.u6.d1', 'm2.u6.d2', 'm2.u6.d3', 'm2.u6.d4', 'm2.u6.d5', 'm2.u7.d1', 'm2.u7.d2', 'm2.u7.d3', 'm2.u7.d4', 'm2.u7.d5', 'm2.u7.d6', 'm2.u7.d7', 'm2.u7.d8',
            'm2.u8.d1', 'm2.u8.d2', 'm2.u8.d3', 'm2.u8.d4', 'm2.u8.d5', 'm2.u8.d6', 'm2.u8.d7', 'm2.u8.d8', 'm2.u8.d9',
-           'm2.u9.d1', 'm2.u9.d2', 'm2.u9.d3', 'm2.u9.d4', 'm2.u9.d5', 'm2.u9.d6', 'm2.u9.d7']
+           'm2.u0.d0', 'm2.u3.d0', 'm2.u6.d0', 'm2.u7.d0', 'm2.u8.d0', 'm2.u9.d1', 'm2.u9.d2', 'm2.u9.d3', 'm2.u9.d4', 'm2.u9.d5', 'm2.u9.d6', 'm2.u9.d7']
 if os.environ.get('ONLY'): LESSONS = [l for l in LESSONS if l in os.environ['ONLY'].split(',')]   # تشغيل جزئي أثناء التطوير
 # ما خرج من نافذة الشريط (القطار، الطريق) مخفيّ لا يُلمس: يُلمس زرّ التحريك نحوه حتى يظهر
 REVEAL = """(sel) => { const g = document.querySelector(sel); if (!g || getComputedStyle(g).visibility !== 'hidden') return null;
@@ -185,6 +185,13 @@ async def run(p, dev):
           else:
             for q in await pg.evaluate('() => window.__blot()'): await tap(q['x'], q['y']); await pg.wait_for_timeout(60)
           xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(60); continue
+        if k == 'numPad':   # إحماء الحساب: لمسات حقيقية على مفاتيح لوحة الأرقام ثم «تمّ»
+          await pg.wait_for_timeout(120); tried[k] = tried.get(k, 0) + 1
+          w = await pg.evaluate('() => window.__auto && window.__auto.want')
+          KEY = "(d) => { const e = document.querySelector('.numpad .npk[data-k=\"' + d + '\"]'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
+          for ch in str(w): xy = await pg.evaluate(KEY, ch); await tap(*xy); await pg.wait_for_timeout(50)
+          if await pg.evaluate('() => window.__npV') != str(w): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  keypad miss', w, st['scene'])
+          xy = await pg.evaluate(KEY, 'ok'); await tap(*xy); await pg.wait_for_timeout(60); continue
         if k in ('slide', 'compass', 'hex', 'paraC', 'consOrder', 'sas', 'sss'):   # S2-U9: لمسات حقيقية على زرّي الأداة (مثلّث الرسم والفرجار)، ورأس متوازي الأضلاع، وبطاقات الخطوات، ومدرّجي الزاوية والطول والقوسين
           await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
           STEPAT = "(s) => { const e = document.querySelector('#stage svg [data-step=\"' + s + '\"] circle'); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }"

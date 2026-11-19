@@ -107,7 +107,7 @@
   }
  ],
  "wrap": {
-  "art": "medal",
+  "art": "calcArt",
   "lines": [
    "wrap.01"
   ]

@@ -45,7 +45,7 @@ ITEM.calc = {
     else want = spec.want;
     /*T*/if (TESTHOOK && !(Number.isInteger(want) && want >= 0)) testBug('calc: الجواب عدد صحيح غير سالب: ' + JSON.stringify(spec));/*/T*/
     return { ...spec, want, tag: 'calc-' + (spec.op ? 'op' + ({ '+': 'add', '-': 'sub', 'x': 'mul', '/': 'div' })[spec.op] : spec.fn || (spec.seq ? 'seq' : spec.share ? 'share' : spec.round ? 'round' : 'phrase')) }; },
-  async ask(item, mode, tries) { const svg = calcStage(item.share ? 176 : 130);   /* مسرح قصير: لوحة الأرقام تحته على أقصر شاشة */
+  async ask(item, mode, tries) { const svg = calcStage(item.share ? 146 : 130);   /* مسرح قصير: لوحة الأرقام تحته على أقصر شاشة */
     if (item.op) calcLine(svg, [DG(item.a), CALC_OP[item.op][0], DG(item.b), '=', '؟']);
     else if (item.fn) calcPhrase(svg, `${labelText('calc.' + item.fn)} ${DG(item.n)}`);
     else if (item.seq) calcLine(svg, item.seq.flatMap((x, i) => (i ? [NUM_DIR() === 'rtl' ? '،' : ','] : []).concat([x == null ? '؟' : DG(x)])), 80, 32);
@@ -66,22 +66,23 @@ ITEM.calc = {
   praise: () => 'praiseCount', twin(item) { return item.twin || null; },
 };
 /* التوزيع بالتساوي: الكلّ أشياء في صفوف، والمجموعات أطباق فارغة تحتها */
-function calcShare(svg, [n, k], what) { const per = Math.min(10, n), rows = Math.ceil(n / per), sp = Math.min(28, 270 / per);
-  for (let i = 0; i < n; i++) { const r = Math.floor(i / per), c = i % per, x = 180 + (c - (Math.min(per, n - r * per) - 1) / 2) * sp; frThing(svg, what, x, 38 + r * 28, .45); }
-  const py = 38 + rows * 28 + 30, ps = Math.min(76, 280 / k); for (let j = 0; j < k; j++) { const x = 180 + (j - (k - 1) / 2) * ps; el('ellipse', { cx: x, cy: py, rx: ps * .42, ry: 14, fill: '#f4f0e6', stroke: '#9fb4c0', 'stroke-width': 2.5 }, svg); } }
+function calcShare(svg, [n, k], what) { const per = Math.min(10, n), rows = Math.ceil(n / per), sp = Math.min(27, 270 / per);
+  for (let i = 0; i < n; i++) { const r = Math.floor(i / per), c = i % per, x = 180 + (c - (Math.min(per, n - r * per) - 1) / 2) * sp; frThing(svg, what, x, 34 + r * 24, .4); }
+  const py = 34 + rows * 24 + 24, ps = Math.min(76, 280 / k); for (let j = 0; j < k; j++) { const x = 180 + (j - (k - 1) / 2) * ps; el('ellipse', { cx: x, cy: py, rx: ps * .42, ry: 11, fill: '#f4f0e6', stroke: '#9fb4c0', 'stroke-width': 2.5 }, svg); } }
 
 /* ================= المشهد: إحماء الحساب (بلا مساعدة ولا «أخطأت»، ثم الشجرة بالنطاق) =================
-   c.items: [{id, item}]، وc.lines: { go, help, build } جمل النتيجة؛ والنتيجة في تقدّم الدرس: calc = go | help | build */
+   c.checks: [{id, item}]، وc.results: { go, help, build } جمل النتيجة؛ والنتيجة في تقدّم الدرس: calc = go | help | build */
 SCENES.calcCheck = async (c, L) => { const P = progOf(L.id); if (c.intro) await S(c.intro);
   let ok = 0; const wrong = [];
-  for (const q of c.items) { const r = await runItem(q.item, 'test', { scene: 'calc' }); if (r.ok) ok++; else wrong.push(q.id); }
-  const n = c.items.length, f = ok / n, band = f >= .85 ? 'go' : f >= .6 ? 'help' : 'build';
+  for (const q of c.checks) { const r = await runItem(q.item, 'test', { scene: 'calc' }); if (r.ok) ok++; else wrong.push(q.id); }
+  const n = c.checks.length, f = ok / n, band = f >= .85 ? 'go' : f >= .6 ? 'help' : 'build';
   P.calc = band; P.score = ok; P.of = n; P.at = Date.now(); saveProg();
   logAttempt({ scene: 'calc', tag: 'result', ok: band === 'go', band, score: ok, of: n, wrongIds: wrong });
   const svg = newStage(230, { oasisOpacity: .25 }), T = calcTree(svg, 180, 200, band === 'go' ? 1 : band === 'help' ? .7 : .45); anim(T, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 600, fill: 'both' });
-  await S(c.lines[band]); if (band !== 'go' && c.lines.adult) await S(c.lines.adult); };
+  await S(c.results[band]); };
 /* شجرة النتيجة: تكبر بالنطاق (مستويات لا أرقام أمام الطفل) */
 function calcTree(svg, x, y, k = 1) { const g = el('g', { transform: `translate(${x} ${y})` }, svg);
   el('rect', { x: -7, y: -70 * k, width: 14, height: 70 * k, rx: 5, fill: '#9a6b42' }, g);
   for (const [dx, dy, r] of [[0, -100, 46], [-36, -78, 34], [36, -78, 34], [-20, -120, 30], [22, -122, 30]]) el('circle', { cx: dx * k, cy: dy * k, r: r * k, fill: '#5aa469', opacity: .92 }, g);
   return g; }
+WRAP_ART.calcArt = svg => { const g = calcTree(svg, 180, 230, 1); anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 200, fill: 'both' }); palmAt(svg, 330, 250, .8); palmAt(svg, 30, 250, .9); };

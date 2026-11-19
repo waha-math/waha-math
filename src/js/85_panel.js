@@ -12,6 +12,9 @@ const conceptName = (L, C) => (L.concepts || {})[C] || '';
 function maintNote(L, C, x) { const md = maintDue(L, C, x); if (md == null) return ''; const d = daysBetween(Date.now(), md);
   return ` <span class="muted">صيانة ${d <= 0 ? 'اليوم' : 'بعد ' + nw(d, 'يوم واحد', 'يومين', 'أيام', 'يوماً')}</span>`; }
 function statusPill(L) { const p = PROG[L.id] || {};
+  /* إحماء الحساب (الوحدات الحسابية المصغّرة، S2_نظام_التقييم): النطاق وما يُفعل به، لا رقم أمام الطفل */
+  if (p.calc) { const W = { go: ['good', 'جاهز للوحدة'], help: ['think', 'يبدأ الوحدة، ويُذكَّر بالحساب'], build: ['think', 'يحتاج بناءً: نشاط مع الكبار أسبوعاً ثم يعيد الإحماء'] }[p.calc] || ['think', p.calc];
+    return `<span class="pill ${W[0]}">${W[1]}</span> <span class="muted">${p.score} من ${p.of}${p.calc !== 'go' && L.talk ? ' · ' + esc(L.talk) : ''}</span>`; }
   const redo = isObj(PROG.redo) && PROG.redo[L.id] ? ' <span class="pill think">يُعاد: خطآن متتاليان في المراجعة</span>' : '';
   /* D252: إتقان مسار الشاشة «مدخل» عند الكبار حتى يُعاد الدرس بالأشياء الحقيقية، والنجمة للطفل كما هي */
   if (p.mastered) return (p.entry ? '<span class="pill think">أتقنه على الشاشة، مدخل</span> <span class="muted">يصير تأسيساً حين يُعاد بالأشياء</span>' : '<span class="pill good">متقن</span>') + redo;
