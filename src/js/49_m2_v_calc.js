@@ -70,6 +70,18 @@ function calcShare(svg, [n, k], what) { const per = Math.min(10, n), rows = Math
   for (let i = 0; i < n; i++) { const r = Math.floor(i / per), c = i % per, x = 180 + (c - (Math.min(per, n - r * per) - 1) / 2) * sp; frThing(svg, what, x, 34 + r * 24, .4); }
   const py = 34 + rows * 24 + 24, ps = Math.min(76, 280 / k); for (let j = 0; j < k; j++) { const x = 180 + (j - (k - 1) / 2) * ps; el('ellipse', { cx: x, cy: py, rx: ps * .42, ry: 11, fill: '#f4f0e6', stroke: '#9fb4c0', 'stroke-width': 2.5 }, svg); } }
 
+/* ================= التشخيص الهندسي عند دخول م2 (S2_نظام_التقييم، الجزء 1) =================
+   عشرة أسئلة ببنود م1 لمن يدخل م2 مباشرةً، والسؤالان 4 و8 وحدهما لمن أنهى م1 (شارة S1-U6). النتيجة خريطة لكل مفهوم لا درجة:
+   🟢 جاهز · 🟡 يحتاج تدعيماً (أخطأ في أحد بندي المفهوم) · 🔴 يحتاج بناء: درس م1 المقابل قبل الوحدة المتأثرة (اقتراحٌ في لوحة الكبار، لا قفل).
+   c.checks: [{id، c مفهوم م1، m1 درس المراجعة، u وحدات م2 المتأثرة، short لمن أنهى م1، item}] */
+SCENES.geoCheck = async (c, L) => { const grad = !!PROG['badge:m1.u6'], list = c.checks.filter(q => !grad || q.short);
+  if (c.intro) await S(c.intro);
+  const got = {}; for (const q of list) { const r = await runItem(q.item, 'test', { scene: 'diag' }); (got[q.c] = got[q.c] || []).push(!!r.ok); }
+  const res = {}; for (const [k, a] of Object.entries(got)) res[k] = a.every(Boolean) ? 'go' : a.some(Boolean) ? 'help' : 'build';
+  const meta = {}; for (const q of c.checks) meta[q.c] = { m1: q.m1, u: q.u };
+  PROG['diag:m2'] = { at: Date.now(), short: grad, res, meta }; saveProg();
+  logAttempt({ scene: 'diag', tag: 'result', ok: Object.values(res).every(v => v === 'go'), res, short: grad });
+  if (c.after) await S(c.after); };
 /* ================= المشهد: إحماء الحساب (بلا مساعدة ولا «أخطأت»، ثم الشجرة بالنطاق) =================
    c.checks: [{id, item}]، وc.results: { go, help, build } جمل النتيجة؛ والنتيجة في تقدّم الدرس: calc = go | help | build */
 SCENES.calcCheck = async (c, L) => { const P = progOf(L.id); if (c.intro) await S(c.intro);

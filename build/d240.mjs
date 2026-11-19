@@ -524,7 +524,7 @@ export function d240(lessons, code, MAKERS) {
     'foldShow', 'foldLab', 'halfScene', 'chaosHalf', 'recallSym', 'foldWays', 'lineWorked', 'chaosFold', 'gridLab', 'doubleShow', 'doubleWorked', 'chaosWing', 'chaosDbl', 'paintFold', 'recallMir',
     'doorHook', 'sticksAngle', 'turnShow', 'nameShow', 'cornerCompare', 'doorStraight', 'degreeDisc', 'clockTwins', 'cakeSlice', 'protIntro', 'protSteps', 'angDrawShow', 'estimateShow', 'compassIntro', 'compassTurns', 'angleCity', 'recallAngle', 'recallKinds', 'recallProt', 'recallTurn', 'recallRose',   /* S2-U3 */
     'chaosCake', 'frFoldStrip', 'partNames', 'readFrac', 'unitWhole', 'halfWays', 'bigSmall', 'lineIntro', 'spacesNotMarks', 'foldEqv', 'gridEqv', 'frCmpShow', 'wall12', 'cookieShare', 'partyCake', 'recallFrac',   /* S2-U8 */
-    'calcCheck',   /* إحماء الحساب */
+    'calcCheck', 'geoCheck',   /* إحماء الحساب والتشخيص الهندسي */
     'chaosRect', 'drawLevels', 'tolShow', 'setSqShow', 'rectSteps', 'sasShow', 'circleParts', 'ringsShow', 'equiShow', 'sssShow', 'hexShow', 'flowerShow', 'recallComp',   /* S2-U9 */
     'arRibbonHook', 'stringAround', 'gridBorder', 'perimShow', 'tileCover', 'halfShow', 'rowsCols', 'lTwoWays', 'lPerimShow', 'sameTables', 'fenceOrTile', 'm2Show', 'recallPerim', 'recallArea',   /* S2-U7 */
     'tapeIntro', 'kmWalk', 'unitTable', 'convTable', 'mcSplit', 'cmpShow', 'addWorked', 'roundShow', 'refsShow', 'roomPlan', 'recallTape', 'recallConv', 'recallCalc', 'recallUnit',   /* S2-U6 */

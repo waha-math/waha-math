@@ -13,8 +13,11 @@ function maintNote(L, C, x) { const md = maintDue(L, C, x); if (md == null) retu
   return ` <span class="muted">صيانة ${d <= 0 ? 'اليوم' : 'بعد ' + nw(d, 'يوم واحد', 'يومين', 'أيام', 'يوماً')}</span>`; }
 function statusPill(L) { const p = PROG[L.id] || {};
   /* إحماء الحساب (الوحدات الحسابية المصغّرة، S2_نظام_التقييم): النطاق وما يُفعل به، لا رقم أمام الطفل */
+  /* والتشخيص الهندسي عند دخول م2: مفهوم م1 بلونه، ودرس م1 المقترح قبل وحدة م2 المتأثرة لما يحتاج بناءً */
+  const dg = L.id === 'm2.u0.d0' && isObj(PROG['diag:m2']) ? PROG['diag:m2'] : null, DGC = { go: '🟢', help: '🟡', build: '🔴' };
+  const dgTxt = dg ? '<br><span class="muted">التشخيص الهندسي' + (dg.short ? ' (المختصر لمن أنهى م1)' : '') + ': ' + Object.entries(dg.res).map(([k, v]) => DGC[v] + ' ' + k + (v === 'build' && dg.meta[k] && LDATA[dg.meta[k].m1] ? ' ← ' + esc(plain(LDATA[dg.meta[k].m1].title)) + ' قبل ' + esc(dg.meta[k].u) : '')).join(' · ') + '</span>' : '';
   if (p.calc) { const W = { go: ['good', 'جاهز للوحدة'], help: ['think', 'يبدأ الوحدة، ويُذكَّر بالحساب'], build: ['think', 'يحتاج بناءً: نشاط مع الكبار أسبوعاً ثم يعيد الإحماء'] }[p.calc] || ['think', p.calc];
-    return `<span class="pill ${W[0]}">${W[1]}</span> <span class="muted">${p.score} من ${p.of}${p.calc !== 'go' && L.talk ? ' · ' + esc(L.talk) : ''}</span>`; }
+    return `<span class="pill ${W[0]}">${W[1]}</span> <span class="muted">${p.score} من ${p.of}${p.calc !== 'go' && L.talk ? ' · ' + esc(L.talk) : ''}</span>` + dgTxt; }
   const redo = isObj(PROG.redo) && PROG.redo[L.id] ? ' <span class="pill think">يُعاد: خطآن متتاليان في المراجعة</span>' : '';
   /* D252: إتقان مسار الشاشة «مدخل» عند الكبار حتى يُعاد الدرس بالأشياء الحقيقية، والنجمة للطفل كما هي */
   if (p.mastered) return (p.entry ? '<span class="pill think">أتقنه على الشاشة، مدخل</span> <span class="muted">يصير تأسيساً حين يُعاد بالأشياء</span>' : '<span class="pill good">متقن</span>') + redo;
