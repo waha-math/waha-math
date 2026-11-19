@@ -286,7 +286,7 @@ function flowerAt(parent, C, R, pat, o = {}) { const g = el('g', { 'pointer-even
 ITEM.flowerAxes = cpItem({ tLine: 'gen.cp.together.flower', hint: 'gen.cp.hint.flower', rLine: 'gen.cp.reveal.flower', rSay: it => S(numw(it.want), { num: true, append: true }), num: true, praise: 'praiseSym',
   make: s => ({ want: FLW_AX[s.pat], tag: 'flower-axes' }),
   draw(svg, item, tries) { const C = [180, 120]; flowerAt(svg, C, 88, item.pat); if (tries >= 3) { const m = helpG(svg); for (let k = 0; k < 6; k++) { const a = 90 + 30 * k, P1 = angP(C, a, 100), P2 = angP(C, a + 180, 100); geoLine(m, P1[0], P1[1], P2[0], P2[1], { color: css('--think'), w: 1.6, dash: '5 4' }); } } return {}; },
-  pick: (item, ctx) => { const np = numberPick(shuffle([...fillOpts(new Set([item.want, 6].concat(item.want === 6 ? [3] : [])), item.want, 1, 8)].slice(0, 3)), item.want, { west: true }); ctx.np = np; return np.p; },
+  pick: (item, ctx) => { const np = numberPick(shuffle([...fillOpts(new Set([item.want, 6].concat(item.want === 6 ? [3] : [])), item.want, 1, 8)].slice(0, 3)), item.want); ctx.np = np; return np.p; },   /* عددٌ يُعدّ لا طولٌ يُقاس: بأرقام الطفل (D229 (2)) */
   errOf: (it, k) => k === 6 && it.want !== 6 ? 'axesIgnoreColor' : 'axesOff' });
 
 /* ================= صور التعليل (reason pic kind cp*) ================= */

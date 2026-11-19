@@ -7,12 +7,12 @@
    الكسر [a، b]: a البسط وb المقام، ويُكتب بسطاً فوق خطّ فوق مقام. ما يُلمس 70 وحدة على الأقل (56 بكسلاً على أضيق شاشة)، فالتلوين على دائرة أو شبكة لا على شريط رفيع.
    ===================================================================== */
 const FRC = { cake: '#fff3df', edge: '#7a4a2a', shade: '#e9894a', shade2: '#c8392d', cream: '#f7d9a8', grid: '#e8d5b8', line: '#3d6b8c', ink: '#33454c', ok: '#2f9d6b' };
-/* الكسر مكتوباً: البسط فوق خطّ فوق المقام */
+/* الكسر مكتوباً: البسط فوق خطّ فوق المقام، بالأرقام التي اختارها الطفل (D229 (2): الكسر عددٌ لا قراءة أداة، فلا يُلزَم بأرقام المسطرة) */
 function fracText(parent, x, y, [a, b], o = {}) { const g = el('g', { 'pointer-events': 'none', 'data-frac': a + '/' + b }, parent), fs = o.fs || 22, col = o.color || FRC.ink, w = Math.max(String(a).length, String(b).length) * fs * .62 + 10;
-  const t1 = el('text', { x, y: y - 5, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, direction: 'ltr' }, g); t1.textContent = String(a);
+  const t1 = el('text', { x, y: y - 5, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, direction: 'ltr' }, g); t1.textContent = DG(a);
   geoLine(g, x - w / 2, y + 2, x + w / 2, y + 2, { color: col, w: 2.4 });
-  const t2 = el('text', { x, y: y + fs + 4, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, direction: 'ltr' }, g); t2.textContent = String(b); return g; }
-const fracIcon = f => `<svg viewBox="0 0 40 48" width="34" height="42" aria-hidden="true"><text x="20" y="19" text-anchor="middle" font-size="18" font-weight="800" fill="${FRC.ink}">${f[0]}</text><line x1="7" y1="24" x2="33" y2="24" stroke="${FRC.ink}" stroke-width="2.4"/><text x="20" y="43" text-anchor="middle" font-size="18" font-weight="800" fill="${FRC.ink}">${f[1]}</text></svg>`;
+  const t2 = el('text', { x, y: y + fs + 4, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, direction: 'ltr' }, g); t2.textContent = DG(b); return g; }
+const fracIcon = f => `<svg viewBox="0 0 40 48" width="34" height="42" aria-hidden="true"><text x="20" y="19" text-anchor="middle" font-size="18" font-weight="800" fill="${FRC.ink}">${DG(f[0])}</text><line x1="7" y1="24" x2="33" y2="24" stroke="${FRC.ink}" stroke-width="2.4"/><text x="20" y="43" text-anchor="middle" font-size="18" font-weight="800" fill="${FRC.ink}">${DG(f[1])}</text></svg>`;
 const frKey = f => f[0] + '_' + f[1], frVal = f => f[0] / f[1], frLine = f => `gen.fr.n.${f[0]}.${f[1]}`;
 const frOpt = f => [frKey(f), labelText('fr.' + f[0] + '.' + f[1]), fracIcon(f), frLine(f)];
 async function sayFrac(f, opt = {}) { return S(frLine(f), { append: true, ...opt }); }
@@ -114,7 +114,7 @@ ITEM.fracName = frItem({ tLine: 'gen.fr.together.nameF', hint: 'gen.fr.hint.name
   make: s => ({ want: s.f, tag: 'frac-name' }),
   opts: it => frOpts(it.f, [[it.f[1], it.f[0]]]),
   draw(svg, item, tries) { const t = el('text', { x: 180, y: 110, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: FRC.ink }, svg); t.textContent = labelText('fr.' + item.f[0] + '.' + item.f[1]);
-    if (tries >= 3) { const m = helpG(svg), t2 = el('text', { x: 180, y: 160, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think') }, m); t2.textContent = labelText('frDenIs') + ' ' + item.f[1] + ' · ' + labelText('frNumIs') + ' ' + item.f[0]; } return {}; },
+    if (tries >= 3) { const m = helpG(svg), t2 = el('text', { x: 180, y: 160, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think') }, m); t2.textContent = labelText('frDenIs') + ' ' + DG(item.f[1]) + ' · ' + labelText('frNumIs') + ' ' + DG(item.f[0]); } return {}; },
   errOf: (it, k) => { const [a, b] = frParse(k); return a === it.f[1] && b === it.f[0] ? 'fracFlip' : 'fracOff'; } });
 /* ================= ⑦ الوحدوي والواحد الصحيح (C222): ask: unit | whole | notUnit، opts الكسور ================= */
 ITEM.unitFrac = frItem({ tLine: 'gen.fr.together.unit', hint: 'gen.fr.hint.unit', rLine: it => 'gen.fr.reveal.unit.' + it.ask, rSay: it => sayFrac(it.want),
@@ -130,7 +130,7 @@ function halfGridAt(parent, rows, C = [180, 116], o = {}) { const H = rows.lengt
 ITEM.halfGrid = frItem({ tLine: 'gen.fr.together.half', hint: 'gen.fr.hint.half', rLine: it => 'gen.fr.reveal.half.' + it.want,
   make: s => { const [a, b] = halfCells(s.rows); return { want: a === b ? 'yes' : 'no', na: a, nb: b, tag: 'half-grid' }; },
   draw(svg, item) { return { G: halfGridAt(svg, item.rows) }; },
-  async together(item, ctx) { const m = helpG(ctx.svg); for (const [ch, col] of [['a', '#b35a1f'], ['b', '#2f7d4a']]) { const P = ctx.G.cells(ch); P.forEach(([x, y], i) => { const t = el('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: col, direction: 'ltr' }, m); t.textContent = String(i + 1); }); SFX.tick(); await S(numw(P.length), { num: true }); } },
+  async together(item, ctx) { const m = helpG(ctx.svg); for (const [ch, col] of [['a', '#b35a1f'], ['b', '#2f7d4a']]) { const P = ctx.G.cells(ch); P.forEach(([x, y], i) => { const t = el('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: col, direction: 'ltr' }, m); t.textContent = DG(i + 1); }); SFX.tick(); await S(numw(P.length), { num: true }); } },
   pick: item => choosePick([['yes', labelText('frYes'), '<i></i>', 'gen.fr.yes'], ['no', labelText('frNo'), '<i></i>', 'gen.fr.no']], item.want),
   errOf: it => it.want === 'yes' ? 'halfShape' : 'halfCount' });
 /* ================= ⑨ لوّن الكسر على الشبكة (C223، C227، إنتاج): cols، rows، f — أيّ مربعات بالعدد الصحيح ================= */
@@ -166,7 +166,7 @@ const FL = { x0: 50, x1: 310, y: 130 };
 function fracLine(parent, b, o = {}) { const g = el('g', { 'pointer-events': 'none' }, parent), X = i => FL.x0 + (FL.x1 - FL.x0) * i / b;
   el('rect', { x: FL.x0, y: FL.y - 10, width: FL.x1 - FL.x0, height: 20, rx: 4, fill: '#f7ead2', stroke: FRC.edge, 'stroke-width': 2 }, g);
   for (let i = 0; i <= b; i++) { geoLine(g, X(i), FL.y - 18, X(i), FL.y + 18, { color: FRC.edge, w: i === 0 || i === b ? 3.4 : 2.4 }); }
-  [[0, '0'], [b, '1']].forEach(([i, s]) => { const t = el('text', { x: X(i), y: FL.y + 44, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: FRC.ink }, g); t.textContent = s; });
+  [[0, DG(0)], [b, DG(1)]].forEach(([i, s]) => { const t = el('text', { x: X(i), y: FL.y + 44, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: FRC.ink }, g); t.textContent = s; });
   g.X = X; return g; }
 const fracArrow = (parent, x, col = FRC.shade2) => { const g = el('g', { 'pointer-events': 'none' }, parent); el('path', { d: `M${x} ${FL.y - 22} l-10 -18 h20 Z`, fill: col }, g); el('rect', { x: x - 3, y: FL.y - 62, width: 6, height: 24, fill: col }, g); return g; };
 async function frHops(svg, Ln, a, b) { const m = helpG(svg); for (let i = 0; i < a; i++) { const x1 = Ln.X(i), x2 = Ln.X(i + 1); el('path', { d: `M${x1} ${FL.y - 12} Q${(x1 + x2) / 2} ${FL.y - 46} ${x2} ${FL.y - 12}`, fill: 'none', stroke: css('--compass'), 'stroke-width': 3 }, m); badge(m, (x1 + x2) / 2, FL.y - 50, i + 1, css('--compass')); SFX.tick(); await S(numw(i + 1), { noGap: true, num: true }); } return m; }
@@ -199,9 +199,9 @@ function frStrips(svg, rows, o = {}) { const W = o.w || 260, H = o.h || 34, gap 
 ITEM.eqvFill = {
   make(spec) { const want = spec.f[0] * spec.m / spec.f[1]; /*T*/if (TESTHOOK && want % 1) testBug('eqvFill: لا كسر مكافئ');/*/T*/ return { ...spec, want, tag: 'eqv-fill' }; },
   async ask(item, mode, tries) { const svg = frStage(232), [A, B] = frStrips(svg, [[item.f[1], item.f[0]], [item.m, 0]], { y0: 60, h: 40, gap: 30, cx: 204, w: 250 });
-    fracText(svg, 40, 70, item.f, { fs: 16 }); const q = el('text', { x: 40, y: 150, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think') }, svg); q.textContent = '؟/' + item.m;
+    fracText(svg, 40, 70, item.f, { fs: 16 }); const q = el('text', { x: 40, y: 150, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think') }, svg); q.textContent = '؟/' + DG(item.m);
     if (tries >= 3) { const m = helpG(svg), x = A.box[0] + A.box[2] * (1 - item.f[0] / item.f[1]); geoLine(m, x, 52, x, 200, { color: css('--think'), w: 3, dash: '7 5' }); await S('gen.fr.together.eqv'); } else { await S(item.q, { noGap: true }); await sayFrac(item.f); }
-    const add = item.f[0] + item.m - item.f[1], np = numberPick(shuffle([...fillOpts(new Set([item.want].concat(add >= 1 && add <= item.m && add !== item.want ? [add] : [])), item.want, 1, item.m)].slice(0, 3)), item.want, { west: true }); return { ans: await np.p, ctx: { svg, B, np } }; },
+    const add = item.f[0] + item.m - item.f[1], np = numberPick(shuffle([...fillOpts(new Set([item.want].concat(add >= 1 && add <= item.m && add !== item.want ? [add] : [])), item.want, 1, item.m)].slice(0, 3)), item.want); return { ans: await np.p, ctx: { svg, B, np } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.f[0] + (item.m - item.f[1]) ? 'addSame' : k === item.f[0] ? 'eqvSameNum' : 'eqvOff' }; },
   onOk: numItem.onOk, onWrong: numItem.onWrong,
   async hint2() { await S('gen.fr.hint.eqv'); }, async together() {},
@@ -261,7 +261,7 @@ ITEM.setFrac = {
   async ask(item, mode, tries) { const Ly = setLay(item.n, item.f[1], 50), svg = frStage(Math.max(240, Ly.H + 70)), P = Ly.at(170, 36 + Ly.H / 2), G = P.map(([x, y]) => frThing(svg, item.what || 'cookie', x, y, .9));
     fracText(svg, 326, 44, item.f, { fs: 18 });
     if (tries >= 3) { await S('gen.fr.together.set'); await frGroups(svg, G, item.n / item.f[1], item.f[0]); } else { await S(item.q, { noGap: true }); await sayFrac(item.f); }
-    const np = numberPick(nearNums(item.want, item.n, 1), item.want, { west: true }); return { ans: await np.p, ctx: { svg, G, np } }; },
+    const np = numberPick(nearNums(item.want, item.n, 1), item.want); return { ans: await np.p, ctx: { svg, G, np } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.f[1] ? 'setDen' : k === item.n / item.f[1] && item.f[0] > 1 ? 'setOneGroup' : 'setOff' }; },
   onOk: numItem.onOk, onWrong: numItem.onWrong,
   async hint2() { await S('gen.fr.hint.set'); }, async together() {},
