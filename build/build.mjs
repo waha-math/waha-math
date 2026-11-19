@@ -34,7 +34,7 @@ export function stripHooks(js, dev) {
 /* الخطّان (D232، D256): يُضمَّنان دائماً من assets/fonts/ كـ @font-face بصيغة data:، بلا شبكة. يكتبهما tools/fonts/make_fonts.py مقتطَعَين
    (خط القراءة Waha Naskh من Scheherazade New، وخط العناوين Baloo Bhaijaan 2)، ويصف fonts.json الأوجه والحروف التي يغطّيها كل وجه.
    ويوقف البناءَ حرفٌ عربي أو لاتيني في المحتوى أو الكود لا يغطّيه خط القراءة، فلا يظهر للطفل بخط بديل */
-const TEXT_RANGES = [[0x20, 0x7E], [0xA0, 0xFF], [0x600, 0x6FF], [0x750, 0x77F], [0x8A0, 0x8FF], [0xFB50, 0xFDFF], [0xFE70, 0xFEFE], [0x2010, 0x2027]];
+const TEXT_RANGES = [[0x20, 0x7E], [0xA0, 0xFF], [0x600, 0x6FF], [0x750, 0x77F], [0x8A0, 0x8FF], [0xFB50, 0xFDFF], [0xFE70, 0xFEFE], [0x2010, 0x2027], [0x2200, 0x22FF], [0x25A0, 0x25FF]];   /* والرموز الرياضية والأشكال (≠ ÷ ◀ ▲…) في الشيفرة أيضاً: تُرسم في المسرح بخط القراءة فلا يغطّيها (كان ≠ في S2-U8 و◀ ▲ في S2-U9) */
 const FORMAT_CHARS = c => (c >= 0x200B && c <= 0x200F) || (c >= 0x2066 && c <= 0x2069) || c === 0xAD;
 export function embedFonts(head, texts) {
   const manPath = join(FONTS, 'fonts.json');
@@ -59,7 +59,7 @@ export function build({ dev = false } = {}) {
   /* «معي» بأعداد مسائلها (mat.avoid): لا تكون مشتّتاً مولَّداً في أسئلة الشاشة التي تخدمها (الفحص المستقل H1 (10أ)؛ nearNums وoptsWith وteenOpts) */
   for (const u of content.units) for (const Ls of u.lessons) for (const st of Ls.flow || []) if (st && st.mat && Array.isArray(st.mat.facts)) st.mat.avoid = [...matNums(st.mat.facts).nums].filter(n => n !== 10).sort((a, b) => a - b);
   const body = read(join(SRC, 'body.html')), tail = read(join(SRC, 'tail.html'));
-  const font = embedFonts(read(join(SRC, 'head.html')).replace('@@STYLES@@', read(join(SRC, 'styles.css'))), [JSON.stringify(content), modules, body, tail]);
+  const font = embedFonts(read(join(SRC, 'head.html')).replace('@@STYLES@@', read(join(SRC, 'styles.css'))), [JSON.stringify(content), modules.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`\\])\/\/[^\n]*/g, '$1'), body, tail]);   /* الشيفرة بلا تعليقاتها: ما يُرسم من رموزها (≠ و◀ و→…) يُفحص، وما في التعليقات لا يُرى */
   const js = stripHooks(modules, dev);
   if (/<\/script/i.test(js)) throw new Error('«</script» في كود src/js يُغلق السكربت قبل نهايته (مراجعة الخصم C-13)');
   /* «<» في نصّ المحتوى يُكتب \u003c (مراجعة الخصم C-13: «</script>» في جملةٍ كان يُغلق السكربت فيكسر التطبيق كله، ويمرّ من الفحص والبناء) */
