@@ -37,6 +37,13 @@ function stopIconInner(L) { const s = el('svg', { viewBox: '0 0 72 56' }); const
     plyfam: () => { polyAt(s, 'qKite', [24, 32], { s: .3, dots: false, fill: '#cfe6f5' }); polyAt(s, 'qTrap', [50, 34], { s: .2, dots: false, fill: '#f2d38a' }); },
     plyhex: () => { polyAt(s, 'r6', [36, 32], { s: .32, dots: false, fill: '#f2b84b' }); },
     plycut: () => { polyAt(s, 'cRect', [36, 32], { s: .36, dots: false, fill: '#f2d38a' }); geoLine(s, 18, 43, 54, 21, { color: PLY.cut, w: 2, dash: '4 3' }); },
+    /* S2-U9 */
+    cptools: () => { el('rect', { x: 8, y: 36, width: 56, height: 12, fill: '#f6e3a1', stroke: '#c9a54a', 'stroke-width': 1.6 }, s); for (let i = 0; i <= 6; i++) geoLine(s, 12 + i * 8, 36, 12 + i * 8, i % 2 ? 40 : 43, { color: '#7a5b1e', w: 1.2 }); geoLine(s, 14, 26, 56, 14, { color: '#e9894a', w: 5 }); el('path', { d: 'M56 14 l8 -2 l-5 6 Z', fill: '#3b3a36' }, s); },
+    cpsetsq: () => { geoLine(s, 6, 50, 66, 50, { color: '#24323a', w: 2.5 }); setSquareAt(s, 26, 50, 30, -38); geoLine(s, 26, 50, 26, 8, { color: '#2f9d6b', w: 2.4 }); },
+    cpsas: () => { el('polygon', { points: '10,50 62,50 30,14', fill: '#cfe6f5', stroke: '#24323a', 'stroke-width': 2.4 }, s); el('path', { d: angArc([10, 50], 14, 0, 61), fill: 'none', stroke: '#2f9d6b', 'stroke-width': 2.4 }, s); },
+    cpcircle: () => { el('circle', { cx: 36, cy: 36, r: 22, fill: '#fffdf6', stroke: '#8e6bbf', 'stroke-width': 2.8 }, s); geoLine(s, 36, 36, 58, 36, { color: '#c8392d', w: 2.6 }); el('circle', { cx: 36, cy: 36, r: 3, fill: '#24323a' }, s); },
+    cpcons: () => { el('path', { d: arcPath([14, 50], 44, 40, 80), fill: 'none', stroke: '#8e6bbf', 'stroke-width': 2 }, s); el('path', { d: arcPath([58, 50], 44, 100, 140), fill: 'none', stroke: '#2a5f94', 'stroke-width': 2 }, s); el('polygon', { points: polyStr([[14, 50], [58, 50], [36, 50 - 44 * Math.sqrt(3) / 2]]), fill: 'none', stroke: '#2f9d6b', 'stroke-width': 2.6 }, s); },
+    cpflower: () => { flowerAt(s, [36, 32], 26, 'alt'); },
     /* S2-U8 */
     frcake: () => { fracShape(s, { k: 'circle', n: 4, parts: [.4, .3, .2, .1], shade: [3] }, [36, 32], { r: 24 }); },
     frread: () => { fracShape(s, { k: 'circle', n: 8, shade: [0, 1, 2] }, [36, 32], { r: 24 }); },

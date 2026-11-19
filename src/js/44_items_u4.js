@@ -52,6 +52,7 @@ function reasonPic(svg, P) { const g = el('g', {}, svg);
     if (P.measure) for (let i = 0; i < R.n; i++) sideLabel(g, R, i); if (P.angles) for (let i = 0; i < R.n; i++) vertLabel(g, R, i); }
   else if (P.kind === 'axis') { rayFrame(g); const Sh = axShape({ k: P.k, sym: P.sym, rot: P.rot || 0 }), L = axLineOf(Sh, P);   /* S2-U5: شكل وخطّ عليه، ومطويّاً إن طُلب (fold) */
     const F = axFoldAt(g, { k: P.k, sym: P.sym, rot: P.rot || 0 }, [180, 118], L, { S: Sh }); if (P.fold) F.flat(); if (P.axes) axLinesAt(g, Sh, [180, 118], { r: 96 }); }
+  else if (/^cp/.test(P.kind)) cpReasonPic(g, P);   /* S2-U9 */
   else if (P.kind === 'frfig') { rayFrame(g); fracShape(g, P.fig, [180, 116], { r: 86 }); }   /* S2-U8 */
   else if (P.kind === 'frhalf') { rayFrame(g); halfGridAt(g, P.rows, [180, 116]); }
   else if (P.kind === 'frline') { rayFrame(g); const Ln = fracLine(g, P.b); fracArrow(g, Ln.X(P.a)); }

@@ -1,0 +1,145 @@
+{
+ "id": "m2.u9",
+ "title": "وَرْشَةُ الفِرْجَارِ",
+ "sub": "المَرْحَلَةُ الثَّانِيَةُ: البَنَّاؤُونَ",
+ "district": "وَرْشَةُ القَصْرِ",
+ "hosts": [
+  "circle",
+  "triangle",
+  "square"
+ ],
+ "hunt": [],
+ "workshop": {
+  "pieces": [
+   {
+    "k": "rtri",
+    "size": 60
+   },
+   {
+    "k": "square",
+    "size": 40
+   },
+   {
+    "k": "circle",
+    "size": 40
+   }
+  ],
+  "puzzles": [
+   {
+    "id": "tile",
+    "name": "gen.ws.p.tile",
+    "slots": [
+     {
+      "k": "square",
+      "x": 150,
+      "y": 150,
+      "size": 80
+     },
+     {
+      "k": "rtri",
+      "x": 110,
+      "y": 110,
+      "size": 40,
+      "rot": 180
+     },
+     {
+      "k": "rtri",
+      "x": 190,
+      "y": 110,
+      "size": 40,
+      "rot": 90
+     },
+     {
+      "k": "rtri",
+      "x": 110,
+      "y": 190,
+      "size": 40,
+      "rot": 270
+     },
+     {
+      "k": "rtri",
+      "x": 190,
+      "y": 190,
+      "size": 40
+     }
+    ],
+    "extra": {
+     "k": "circle",
+     "size": 40
+    }
+   },
+   {
+    "id": "rose",
+    "name": "gen.ws.p.rose",
+    "slots": [
+     {
+      "k": "circle",
+      "x": 150,
+      "y": 150,
+      "size": 44
+     },
+     {
+      "k": "circle",
+      "x": 150,
+      "y": 104,
+      "size": 44
+     },
+     {
+      "k": "circle",
+      "x": 150,
+      "y": 196,
+      "size": 44
+     },
+     {
+      "k": "circle",
+      "x": 110,
+      "y": 127,
+      "size": 44
+     },
+     {
+      "k": "circle",
+      "x": 190,
+      "y": 173,
+      "size": 44
+     }
+    ],
+    "extra": {
+     "k": "square",
+     "size": 44
+    }
+   },
+   {
+    "id": "lamp",
+    "name": "gen.ws.p.lamp",
+    "slots": [
+     {
+      "k": "circle",
+      "x": 150,
+      "y": 120,
+      "size": 70
+     },
+     {
+      "k": "rect",
+      "x": 150,
+      "y": 186,
+      "size": 24,
+      "w": 24,
+      "h": 56
+     },
+     {
+      "k": "rect",
+      "x": 150,
+      "y": 224,
+      "size": 80,
+      "w": 80,
+      "h": 20
+     }
+    ],
+    "extra": {
+     "k": "rtri",
+     "size": 40
+    }
+   }
+  ]
+ }
+}

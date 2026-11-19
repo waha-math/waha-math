@@ -44,7 +44,9 @@ LESSONS = ['m1.u1.d1', 'm1.u1.d2', 'm1.u1.d3', 'm1.u1.d4', 'm1.u1.d5', 'm1.u1.d6
            'm2.u3.d1', 'm2.u3.d2', 'm2.u3.d3', 'm2.u3.d4', 'm2.u3.d5', 'm2.u3.d6', 'm2.u3.d7', 'm2.u3.d8',
            'm2.u4.d1', 'm2.u4.d2', 'm2.u4.d3', 'm2.u4.d4', 'm2.u4.d5', 'm2.u4.d6', 'm2.u4.d7', 'm2.u4.d8',
            'm2.u5.d1', 'm2.u5.d2', 'm2.u5.d3', 'm2.u5.d4', 'm2.u5.d5',
-           'm2.u6.d1', 'm2.u6.d2', 'm2.u6.d3', 'm2.u6.d4', 'm2.u6.d5', 'm2.u7.d1', 'm2.u7.d2', 'm2.u7.d3', 'm2.u7.d4', 'm2.u7.d5', 'm2.u7.d6', 'm2.u7.d7', 'm2.u7.d8']
+           'm2.u6.d1', 'm2.u6.d2', 'm2.u6.d3', 'm2.u6.d4', 'm2.u6.d5', 'm2.u7.d1', 'm2.u7.d2', 'm2.u7.d3', 'm2.u7.d4', 'm2.u7.d5', 'm2.u7.d6', 'm2.u7.d7', 'm2.u7.d8',
+           'm2.u8.d1', 'm2.u8.d2', 'm2.u8.d3', 'm2.u8.d4', 'm2.u8.d5', 'm2.u8.d6', 'm2.u8.d7', 'm2.u8.d8', 'm2.u8.d9',
+           'm2.u9.d1', 'm2.u9.d2', 'm2.u9.d3', 'm2.u9.d4', 'm2.u9.d5', 'm2.u9.d6', 'm2.u9.d7']
 if os.environ.get('ONLY'): LESSONS = [l for l in LESSONS if l in os.environ['ONLY'].split(',')]   # تشغيل جزئي أثناء التطوير
 # ما خرج من نافذة الشريط (القطار، الطريق) مخفيّ لا يُلمس: يُلمس زرّ التحريك نحوه حتى يظهر
 REVEAL = """(sel) => { const g = document.querySelector(sel); if (!g || getComputedStyle(g).visibility !== 'hidden') return null;
@@ -183,6 +185,32 @@ async def run(p, dev):
           else:
             for q in await pg.evaluate('() => window.__blot()'): await tap(q['x'], q['y']); await pg.wait_for_timeout(60)
           xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(60); continue
+        if k in ('slide', 'compass', 'hex', 'paraC', 'consOrder', 'sas', 'sss'):   # S2-U9: لمسات حقيقية على زرّي الأداة (مثلّث الرسم والفرجار)، ورأس متوازي الأضلاع، وبطاقات الخطوات، ومدرّجي الزاوية والطول والقوسين
+          await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
+          STEPAT = "(s) => { const e = document.querySelector('#stage svg [data-step=\"' + s + '\"] circle'); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }"
+          if k in ('slide', 'compass', 'hex'):
+            key, vv, ww = {'slide': ('sq', '__slideV', '__slideWant'), 'compass': ('cd', '__cdV', '__cdWant'), 'hex': ('hx', '__hxV', '__hxWant')}[k]
+            for _ in range(30):
+              v, w = await pg.evaluate('() => [window.%s, window.%s]' % (vv, ww))
+              if v == w: break
+              q = await pg.evaluate(STEPAT, '%s:%d' % (key, 1 if v < w else -1)); await tap(q['x'], q['y']); await pg.wait_for_timeout(70)
+            if await pg.evaluate('() => window.%s !== window.%s' % (vv, ww)): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  %s miss' % k, st['scene'])
+          elif k == 'paraC':
+            w = await pg.evaluate('() => window.__pcWant'); q = await pg.evaluate('([r, u]) => window.__pcAt(r, u)', w); await tap(q['x'], q['y']); await pg.wait_for_timeout(90)
+            if await pg.evaluate('() => window.__pcCur') != ','.join(map(str, w)): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  parallelogram corner miss', st['scene'])
+          elif k == 'consOrder':
+            for i in await pg.evaluate('() => window.__coWant'): q = await pg.evaluate('(i) => window.__coAt(i)', i); await tap(q['x'], q['y']); await pg.wait_for_timeout(90)
+            await pg.wait_for_timeout(60); continue
+          else:
+            it = await pg.evaluate('() => window.__item'); want = [it['deg'], it['ac']] if k == 'sas' else [it['a'], it['b']]
+            for row, w in enumerate(want):
+              for _ in range(40):
+                v = await pg.evaluate('(i) => +document.querySelectorAll(".steppers .stp")[i].querySelector(".stpv").dataset.v', row)
+                if v == w: break
+                q = await pg.evaluate('([i, d]) => { const b = document.querySelectorAll(".steppers .stp")[i].querySelectorAll(".stpb")[d > 0 ? 1 : 0]; const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }', [row, 1 if v < w else -1]); await tap(q['x'], q['y']); await pg.wait_for_timeout(50)
+            got = await pg.evaluate('() => [...document.querySelectorAll(".steppers .stp .stpv")].map(e => +e.dataset.v)')
+            if got != want: tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  stepper miss', k, want, got, st['scene'])
+          xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(60); continue
         if k in ('lenOrder', 'fence', 'track'):   # S2-U6: لمسات حقيقية على بطاقات الأطوال بالترتيب، وقطع السور، وزرّي كل مقطع في المضمار
           await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
           if k == 'lenOrder':
@@ -217,7 +245,8 @@ async def run(p, dev):
           if k == 'axPts':
             want = await pg.evaluate('() => window.__axWant')
             for r, u in want: q = await pg.evaluate('([r, u]) => window.__axAt(r, u)', [r, u]); await tap(q['x'], q['y']); await pg.wait_for_timeout(120)
-            if await pg.evaluate('() => window.__axPlaced') != len(want): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  image points miss', st['scene'], want, await pg.evaluate('() => [window.__axPlaced, window.__item && window.__item.id, window.__item && JSON.stringify(window.__item.pts)]'))
+            moved = (await pg.evaluate(STATE))['n'] != st['n']   # في السرعة يبدأ البند التالي قبل الفحص فيُصفَّر العدّاد: يُحكم حينئذ بآخر محاولة في السجل
+            if (await pg.evaluate(LASTOK) is not True) if moved else (await pg.evaluate('() => window.__axPlaced') != len(want)): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  image points miss', st['scene'], want, await pg.evaluate('() => [window.__axPlaced, window.__item && window.__item.id, window.__item && JSON.stringify(window.__item.pts)]'))
             await pg.wait_for_timeout(60); continue
           if k == 'axHunt':
             want = await pg.evaluate('() => window.__axHuntWant')

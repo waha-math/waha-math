@@ -10,7 +10,8 @@
 // وفوق ذلك (D240 «لكل مفهوم بند تعرّف وبند إنتاج أو تعليل»): لكل مفهوم يتقنه التطبيق بند إنتاج أو تعليل واحد على الأقل، ولكل مفهوم
 // «تأسيس» في الدرس فحص إتقان (إلا «المدخل»)، ولكل درس اختيار حقيقي للطفل (D239).
 
-const PROD = new Set(['convMachine', 'lenOrder', 'fenceBuild', 'trackDesign', 'rectDraw', 'maxArea', 'fracColor', 'cellColor', 'linePlace', 'fracOrder', 'setColor',   /* S2-U8: يلوّن ويضع ويرتّب */   /* S2-U7: يرسم المستطيل، ويبحث عن أكبر أرض */   /* S2-U6: يضبط آلة التحويل، ويرتّب، ويبني السور، ويصمّم المضمار */
+const PROD = new Set(['convMachine', 'lenOrder', 'fenceBuild', 'trackDesign', 'rectDraw', 'maxArea', 'fracColor', 'cellColor', 'linePlace', 'fracOrder', 'setColor',
+  'squareSlide', 'sasBuild', 'paraComplete', 'compassDraw', 'sssBuild', 'consOrder', 'hexStep',   /* S2-U9: يرسم بمثلّث الرسم وبالمنقلة، ويكمل، ويضبط الفرجار، ويرتّب خطوات الإنشاء */   /* S2-U8: يلوّن ويضع ويرتّب */   /* S2-U7: يرسم المستطيل، ويبحث عن أكبر أرض */   /* S2-U6: يضبط آلة التحويل، ويرتّب، ويبني السور، ويصمّم المضمار */
   'axisHunt', 'ptImage', 'axisFind', 'designSym',   /* S2-U5: يجد المحاور بالطيّ، ويرسم الصورة، ويجد المحور، ويصمّم بمحاور */
   'rulerAlign', 'drawLen', 'gridPoint', 'midMark', 'rayDraw', 'paraDraw', 'perpTurn', 'angleMatch', 'angleDraw', 'polyFix', 'diagDraw', 'polyDraw',   /* S2-U4: يغلق الشكل ويقوّم ضلعه، ويرسم القطر، ويرسم المضلع على الشبكة */   /* S2-U3: يفتح الباب بانفتاح الزاوية، ويرسم الزاوية بالمنقلة */   /* S2-U2: يرسم الموازي ويدير المعامد */   /* S2-U0: يحرّك المسطرة حتى الصفر، ويرسم بطول معلوم */
   'reason', 'connect', 'completeRect', 'vertices', 'count', 'produce', 'fill', 'trace', 'buildTower', 'splitMake', 'buildTo', 'faceTap',
@@ -287,6 +288,25 @@ export const factOf = it => { const t = it.t;
   if (t === 'fracOrder') return `fo|${it.fs.map(f => f.join('/')).sort().join(',')}`;
   if (t === 'setFrac') return `sf|${it.n}|${it.f.join('/')}`;
   if (t === 'setColor') return `scol|${it.n}|${it.f.join('/')}`;
+  /* S2-U9: الرسم والإنشاء بمعطياته (أطوال القوسين بلا ترتيب، وأطوال المثلث مرتّبة، وخطوات الإنشاء بنوعها: ترتيبها المعروض لا يجعلها مسألة أخرى) */
+  if (t === 'levelPick') return `lv|${it.sit}`;
+  if (t === 'accCheck') return `acc|${it.kind}|${it.aim}|${it.drawn}`;
+  if (t === 'toolPick') return `tp|${it.task}`;
+  if (t === 'squareSlide') return `ss|${it.mode}|${it.p}`;
+  if (t === 'rectCheck') return `rcheck|${it.w}x${it.h}|${it.ang || 90}|${(it.sides || []).join(',')}`;
+  if (t === 'sasBuild') return `sas|${it.ab}|${it.ac}|${it.deg}`;
+  if (t === 'paraComplete') return `pc|${it.a}|${it.b}|${it.d}`;
+  if (t === 'circPart') return it.part === 'center' ? 'cpp|center' : `cpp|${it.part}|${it.rot ?? (it.part === 'radius' ? 35 : 160)}`;
+  if (t === 'radDia') return it.r ? `crd|r${it.r}` : `crd|d${it.d}`;
+  if (t === 'compassDraw') return it.r ? `cd|r${it.r}` : `cd|d${it.d}`;
+  if (t === 'transferPick') return `tf|${it.ab}|${[...it.opts].sort((a, b) => a - b).join(',')}`;
+  if (t === 'triExists') return `te|${[...it.s].sort((a, b) => b - a).join(',')}`;
+  if (t === 'sssBuild') return `sss|${it.base}|${[it.a, it.b].sort((a, b) => a - b).join(',')}`;
+  if (t === 'consOrder') return `co|${it.kind}`;
+  if (t === 'hexStep') return `hx|${it.r}`;
+  if (t === 'hexSide') return `hs|${it.r}`;
+  if (t === 'flowerAxes') return `fa|${it.pat}`;
+  if (t === 'reason' && it.pic && /^cp/.test(it.pic.kind)) return `cppic|${JSON.stringify(it.pic)}`;
   if (t === 'reason' && it.pic && /^fr/.test(it.pic.kind)) return `frpic|${it.pic.kind}|${JSON.stringify(it.pic.fig || it.pic.rows || [it.pic.a, it.pic.b, it.pic.n])}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'arrect') return `arrpic|${it.pic.w}x${it.pic.h}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'argrid') return `argpic|${it.pic.rows.join('/')}`;
@@ -426,6 +446,10 @@ export function d240(lessons, code, MAKERS) {
     tileCover: s => [`ac|${(s.rows || ['####', '###.', '##..']).join('/')}`], halfShow: s => [`ae|${(s.rows || ['b##c', '####', 'a##d']).join('/')}`], rowsCols: s => [`ra|${s.w || 4}x${s.h || 5}|cm`],
     lTwoWays: s => [`ca|${(s.rows || ['######', '######', '####..', '####..']).join('/')}`], lPerimShow: s => [`cp|${(s.l || ['######', '######', '####..', '####..']).join('/')}`, `cp|${(s.u || ['######', '######', '##..##', '##..##']).join('/')}`],
     sameTables: () => [], fenceOrTile: s => (s.sits || ['fence', 'tiles']).map(k => `pa|${k}|kind|cm`), m2Show: s => [`ra|${s.w || 3}x${s.h || 2}|m`],
+    /* S2-U9 */
+    tolShow: () => [69, 70, 71, 73].map(d => `acc|len|70|${d}`), rectSteps: s => [`rd|dims|${s.w || 7},${s.h || 4}`, `rcheck|${s.w || 7}x${s.h || 4}|90|`], sasShow: s => [`sas|${s.ab || 6}|${s.ac || 5}|${s.deg || 50}`],
+    circleParts: () => ['cpp|center', 'cpp|radius|35', 'cpp|diameter|160'], equiShow: s => [`sss|${s.side || 5}|${s.side || 5},${s.side || 5}`], sssShow: s => (s.sets || [[5, 4, 3], [7, 3, 2]]).map(x => `te|${[...x].sort((a, b) => b - a).join(',')}`),
+    hexShow: s => [`hx|${s.r || 4}`], recallComp: s => s.part ? [s.part === 'center' ? 'cpp|center' : `cpp|${s.part}|${s.part === 'radius' ? 35 : 160}`] : s.tri ? [`te|${[...s.tri].sort((a, b) => b - a).join(',')}`] : [],
     recallPerim: s => [`pg|${(s.rows || ['####', '####']).join('/')}`], recallArea: s => s.w ? [`ra|${s.w}x${s.h}|${s.unit || 'cm'}`] : [`ac|${(s.rows || ['###', '###']).join('/')}`],
     recallTape: s => [`tape|${s.len || 75}|cm`], recallConv: s => [`conv|${(s.v || [2, 'm']).join('')}|${s.to || 'cm'}`], recallCalc: s => [`lcalc|${(s.a || [1, 60]).join('.')}|${s.op || '+'}|${(s.b || [1, 50]).join('.')}`], recallUnit: s => (s.pics || ['ant', 'pencil', 'door', 'road']).map(k => `unit|${k}`),
     /* S2-U5 */
@@ -500,6 +524,7 @@ export function d240(lessons, code, MAKERS) {
     'foldShow', 'foldLab', 'halfScene', 'chaosHalf', 'recallSym', 'foldWays', 'lineWorked', 'chaosFold', 'gridLab', 'doubleShow', 'doubleWorked', 'chaosWing', 'chaosDbl', 'paintFold', 'recallMir',
     'doorHook', 'sticksAngle', 'turnShow', 'nameShow', 'cornerCompare', 'doorStraight', 'degreeDisc', 'clockTwins', 'cakeSlice', 'protIntro', 'protSteps', 'angDrawShow', 'estimateShow', 'compassIntro', 'compassTurns', 'angleCity', 'recallAngle', 'recallKinds', 'recallProt', 'recallTurn', 'recallRose',   /* S2-U3 */
     'chaosCake', 'frFoldStrip', 'partNames', 'readFrac', 'unitWhole', 'halfWays', 'bigSmall', 'lineIntro', 'spacesNotMarks', 'foldEqv', 'gridEqv', 'frCmpShow', 'wall12', 'cookieShare', 'partyCake', 'recallFrac',   /* S2-U8 */
+    'chaosRect', 'drawLevels', 'tolShow', 'setSqShow', 'rectSteps', 'sasShow', 'circleParts', 'ringsShow', 'equiShow', 'sssShow', 'hexShow', 'flowerShow', 'recallComp',   /* S2-U9 */
     'arRibbonHook', 'stringAround', 'gridBorder', 'perimShow', 'tileCover', 'halfShow', 'rowsCols', 'lTwoWays', 'lPerimShow', 'sameTables', 'fenceOrTile', 'm2Show', 'recallPerim', 'recallArea',   /* S2-U7 */
     'tapeIntro', 'kmWalk', 'unitTable', 'convTable', 'mcSplit', 'cmpShow', 'addWorked', 'roundShow', 'refsShow', 'roomPlan', 'recallTape', 'recallConv', 'recallCalc', 'recallUnit',   /* S2-U6 */
     'lakeHook', 'mirrorDist', 'pinFold', 'axPerpShow', 'checkWays', 'trapIntro', 'foldTable', 'regularAxes', 'slantAxes', 'axGridWorked', 'turnPaper', 'worldTour', 'nearLeaf', 'letterStyles', 'recallAxis', 'recallImg', 'recallCount', 'recallWorld',   /* S2-U5 */

@@ -72,6 +72,7 @@ function bagIcon(svg, r, x, y, sc = 1, maxW = 112) {
     sticks4: () => { for (const [x1, y1, x2, y2] of [[-30, -20, 30, -20], [30, -20, 30, 24], [30, 24, -30, 24], [-30, 24, -30, -20]]) geoLine(g, x1, y1, x2, y2, { color: '#c98f55', w: 7 }); },
     clock: () => { el('circle', { r: 40, fill: '#fffdf6', stroke: '#24323a', 'stroke-width': 4 }, g); geoLine(g, 0, 0, 0, -28, { color: '#24323a', w: 5 }); geoLine(g, 0, 0, 22, 0, { color: '#24323a', w: 5 }); },   /* S2-U3 */
     protractor: () => { protAt(g, [0, 26], 0, { R: 52, step: 90 }); },
+    compass: () => { cpCompassAt(g, [-28, 38], [28, 38]); }, setsq: () => { setSquareAt(g, -40, 34, 80, -68); },   /* S2-U9 */
     cake: () => { el('circle', { r: 40, fill: '#f2c98a', stroke: '#b9853d', 'stroke-width': 3 }, g); el('path', { d: 'M0 0 L40 0 A40 40 0 0 0 20 -34.6 Z', fill: '#e8a94f', stroke: '#fff', 'stroke-width': 2, transform: 'translate(8 -6)' }, g); },
     sticks2: () => { for (const [a, c] of [[-14, '#c9a46a'], [28, '#b88a4a']]) el('rect', { x: -46, y: -5, width: 92, height: 10, rx: 5, fill: c, stroke: '#8a6a4a', 'stroke-width': 1.5, transform: `rotate(${a})` }, g); },   /* S2-U2 */
     thread: () => { el('path', { d: 'M-46 16 Q-20 -30 0 6 Q20 40 46 -14', fill: 'none', stroke: '#8a6a4a', 'stroke-width': 4, 'stroke-linecap': 'round' }, g); el('circle', { cx: -46, cy: 16, r: 5, fill: '#8a6a4a' }, g); },
