@@ -757,6 +757,10 @@
   "cpStep.circle.measure": "الفَتْحَةُ عَلَى المِسْطَرَةِ",
   "cpStep.circle.pin": "المِسْمَارُ فِي المَرْكَزِ",
   "cpStep.circle.turn": "القَلَمُ يَدُورُ",
-  "cpStep.circle.check": "قِيَاسُ القُطْرِ"
+  "cpStep.circle.check": "قِيَاسُ القُطْرِ",
+  "padDel": "{اِمْسَحْ|اِمْسَحِي} رَقْمًا",
+  "calc.half": "نِصْفُ",
+  "calc.double": "ضِعْفُ",
+  "calc.quarter": "رُبْعُ"
  }
 }

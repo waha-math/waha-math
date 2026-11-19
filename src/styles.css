@@ -175,6 +175,11 @@ svg [tabindex]:focus:not(:focus-visible) { outline: none; }   /* المتصفح 
 .steppers .stp { display: grid; grid-template-columns: 64px 1fr 64px; align-items: center; gap: 6px; direction: ltr; }
 .steppers .stpb { min-height: 64px; padding: 0; text-align: center; font-size: 30px; line-height: 1; color: var(--compass); }
 .steppers .stpv { display: grid; justify-items: center; line-height: 1.1; } .steppers .stpv b { font-size: 34px; } .steppers .stpv small { font-size: 14px; color: var(--ink); opacity: .75; }
+.choices.numpad { grid-template-columns: repeat(5, 1fr); gap: 6px; direction: ltr; }   /* لوحة الأرقام (إحماء الحساب، م2): عشرة أرقام في صفّين، ثم المسح و«تمّ» */
+.numpad .npv { grid-column: 1 / -1; display: grid; place-items: center; min-height: 46px; font-size: 34px; font-weight: 800; border-radius: 14px; background: var(--paper); border: 2.5px dashed var(--line); letter-spacing: 2px; }
+.numpad .npv.empty { color: var(--muted); }
+.numpad .npk { min-height: 52px; padding: 0; font-size: 28px; } .numpad .npk b { font-size: 28px; }
+.numpad .npdel { grid-column: span 2; color: var(--compass); } .numpad .npok { grid-column: span 3; }
 .choices.nums .num { display: grid; justify-items: center; text-align: center; min-height: 72px; }
 .choices.nums .num b { font-size: 30px; line-height: 1.1; color: var(--compass); }
 .choices.nums .num span { font-size: 17px; }

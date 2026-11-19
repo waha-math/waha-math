@@ -524,6 +524,7 @@ export function d240(lessons, code, MAKERS) {
     'foldShow', 'foldLab', 'halfScene', 'chaosHalf', 'recallSym', 'foldWays', 'lineWorked', 'chaosFold', 'gridLab', 'doubleShow', 'doubleWorked', 'chaosWing', 'chaosDbl', 'paintFold', 'recallMir',
     'doorHook', 'sticksAngle', 'turnShow', 'nameShow', 'cornerCompare', 'doorStraight', 'degreeDisc', 'clockTwins', 'cakeSlice', 'protIntro', 'protSteps', 'angDrawShow', 'estimateShow', 'compassIntro', 'compassTurns', 'angleCity', 'recallAngle', 'recallKinds', 'recallProt', 'recallTurn', 'recallRose',   /* S2-U3 */
     'chaosCake', 'frFoldStrip', 'partNames', 'readFrac', 'unitWhole', 'halfWays', 'bigSmall', 'lineIntro', 'spacesNotMarks', 'foldEqv', 'gridEqv', 'frCmpShow', 'wall12', 'cookieShare', 'partyCake', 'recallFrac',   /* S2-U8 */
+    'calcCheck',   /* إحماء الحساب */
     'chaosRect', 'drawLevels', 'tolShow', 'setSqShow', 'rectSteps', 'sasShow', 'circleParts', 'ringsShow', 'equiShow', 'sssShow', 'hexShow', 'flowerShow', 'recallComp',   /* S2-U9 */
     'arRibbonHook', 'stringAround', 'gridBorder', 'perimShow', 'tileCover', 'halfShow', 'rowsCols', 'lTwoWays', 'lPerimShow', 'sameTables', 'fenceOrTile', 'm2Show', 'recallPerim', 'recallArea',   /* S2-U7 */
     'tapeIntro', 'kmWalk', 'unitTable', 'convTable', 'mcSplit', 'cmpShow', 'addWorked', 'roundShow', 'refsShow', 'roomPlan', 'recallTape', 'recallConv', 'recallCalc', 'recallUnit',   /* S2-U6 */
@@ -635,7 +636,8 @@ export function d240(lessons, code, MAKERS) {
       L.review.forEach((it, i) => { if (!it.c || !(L.concepts || {})[it.c]) errors.push(`${L.id}: بند المراجعة[${i}] بلا مفهوم من مفاهيم الدرس (c) (المبدأ 14)`); else per[it.c] = (per[it.c] || 0) + 1; });
       for (const [C, n] of Object.entries(per)) if (n < 2) errors.push(`${L.id}: المفهوم ${C} له بند مراجعة واحد، فلا بند ثانٍ فورياً منه بعد الخطأ (المبدأ 14)`); }
     // D239: اختيار حقيقي في كل درس
-    if (!(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);
+    /* إلا «إحماء الحساب» (الوحدات الحسابية المصغّرة): اختبار تخطٍّ بلا تمرين، والاختيار فيه لوحة الأرقام نفسها */
+    if (!L.flow.some(s => s.scene === 'calcCheck') && !(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);
   }
   /* التوأم (الفحص المستقل B): بند آخر بعد الحلّ المشترك أو الكشف، فمسألته غير مسألة أصله، وإلا كان جوابه ما كُشف للتوّ.
      ومسائل التوأم «معروضة» في الدرس (shownOf يزور كل ما في بيانات التمرين والعلاج واللعب)، فلا يقيسها إتقان ولا مراجعة ولا اختبار */

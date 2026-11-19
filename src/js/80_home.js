@@ -37,6 +37,8 @@ function stopIconInner(L) { const s = el('svg', { viewBox: '0 0 72 56' }); const
     plyfam: () => { polyAt(s, 'qKite', [24, 32], { s: .3, dots: false, fill: '#cfe6f5' }); polyAt(s, 'qTrap', [50, 34], { s: .2, dots: false, fill: '#f2d38a' }); },
     plyhex: () => { polyAt(s, 'r6', [36, 32], { s: .32, dots: false, fill: '#f2b84b' }); },
     plycut: () => { polyAt(s, 'cRect', [36, 32], { s: .36, dots: false, fill: '#f2d38a' }); geoLine(s, 18, 43, 54, 21, { color: PLY.cut, w: 2, dash: '4 3' }); },
+    /* إحماء الحساب (الوحدات الحسابية المصغّرة) */
+    calc: () => { for (let i = 0; i < 6; i++) el('rect', { x: 12 + (i % 3) * 17, y: 16 + Math.floor(i / 3) * 17, width: 14, height: 14, rx: 3, fill: i === 5 ? '#2f9d6b' : '#cfe6f5', stroke: '#2a5f94', 'stroke-width': 1.4 }, s); el('rect', { x: 12, y: 50, width: 48, height: 8, rx: 3, fill: '#f2d38a' }, s); },
     /* S2-U9 */
     cptools: () => { el('rect', { x: 8, y: 36, width: 56, height: 12, fill: '#f6e3a1', stroke: '#c9a54a', 'stroke-width': 1.6 }, s); for (let i = 0; i <= 6; i++) geoLine(s, 12 + i * 8, 36, 12 + i * 8, i % 2 ? 40 : 43, { color: '#7a5b1e', w: 1.2 }); geoLine(s, 14, 26, 56, 14, { color: '#e9894a', w: 5 }); el('path', { d: 'M56 14 l8 -2 l-5 6 Z', fill: '#3b3a36' }, s); },
     cpsetsq: () => { geoLine(s, 6, 50, 66, 50, { color: '#24323a', w: 2.5 }); setSquareAt(s, 26, 50, 30, -38); geoLine(s, 26, 50, 26, 8, { color: '#2f9d6b', w: 2.4 }); },
