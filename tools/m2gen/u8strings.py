@@ -13,7 +13,7 @@ def name(a,b):
         if a==2: return TWO[b]
         return FEW[a]+' '+PL[b]
     return FEWG[a]+(' مِنِ ' if DEN[b].startswith('ا') else ' مِنْ ')+DEN[b]   # المقام بلا اسم مفرد (9 و12): «ثمانية أجزاء من اثني عشر»
-fr=set(); OKD={2,3,4,5,6,8,10,12}
+fr=set(); OKD={2,3,4,5,6,8,9,10,12}   # 9: جواب «املأ المكافئ» يُقال في كشفه (ثلاثة أجزاء من تسعة)
 def walk(x):
     if isinstance(x,dict):
         t=x.get('t')
@@ -33,7 +33,7 @@ def walk(x):
                 fr.add((f[1],f[0]))
                 for g in [(f[0]+1,f[1]),(f[0],f[1]+1),(max(1,f[0]-1),f[1]),(f[0],max(2,f[1]-1)),(f[0],f[1]+2),(f[0]+2,f[1])]:
                     if g[0]<=g[1]+1 and g[1] in OKD: fr.add(g)
-            if t=='eqvFill': pass
+            if t=='eqvFill': fr.add((f[0]*x['m']//f[1], x['m']))   # الكسر المكافئ يُقال في الكشف (sayFrac([want, m]))
         if t=='lineRead':
             a,b=x['a'],x['b']; fr.add((a,b))
             for g in [(a+1,b),(a,b+1),(max(1,a-1),b),(a,max(2,b-1)),(a,b+2),(a+2,b)]:

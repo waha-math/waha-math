@@ -311,7 +311,9 @@ async def rev_cases(b):
     for i in range(1, n + (0 if ui == LASTU else 1)): P4['m1.u%d.d%d' % (ui, i)] = {'done': True, 'at': 1, 'mastered': True}
     if ui < LASTU: P4['badge:m1.u%d' % ui] = True
   ctx, pg, errs = await fresh(b, P4)
-  nl = await pg.evaluate("() => UNITS.map(u => u.lessons.length)"); check('REV', nl == NL, 'عدد دروس كل حيّ كما يفترضه فحص الحيّ الأخير', [nl])
+  # ومنذ المرحلة 2 ليس m1.u6 آخر الأحياء، ولا حيٌّ آخرُ له اختبار وحدة (الأخير «بوّابة البنّائين» بلا اختبار): يُختبر مسار «لا حيّ بعده» بقصر UNITS على م1 في الصفحة
+  nl = await pg.evaluate("() => UNITS.map(u => u.lessons.length)"); check('REV', nl[:LASTU] == NL, 'عدد دروس كل حيّ في م1 كما يفترضه فحص الحيّ الأخير', [nl[:LASTU]])
+  await pg.evaluate("(n) => { UNITS.splice(n); }", LASTU)
   r = await drive(pg, 'm1.u%d.d%d' % (LASTU, NL[-1]), test_ok=7)
   await gate_pass(pg); t = await pg.evaluate("() => document.querySelector('#panel').textContent")
   check('REV', r == 'done' and 'متقدّم مع دعم' in t and 'الحيّ التالي' not in t, 'آخر حيّ بـ7 صحيحة: «متقدّم مع دعم» بلا جملةٍ عن حيٍّ تالٍ', [r, t[t.find('متقدّم'):][:80] if 'متقدّم' in t else '']); await ctx.close()

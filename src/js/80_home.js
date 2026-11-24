@@ -57,7 +57,7 @@ function stopIconInner(L) { const s = el('svg', { viewBox: '0 0 72 56' }); const
     frset: () => { for (const [x, y] of [[20, 22], [36, 22], [52, 22], [20, 42], [36, 42], [52, 42]]) frThing(s, 'cookie', x, y, .38); el('rect', { x: 10, y: 12, width: 52, height: 20, rx: 6, fill: 'none', stroke: '#e9894a', 'stroke-width': 2 }, s); },
     /* S2-U7 */
     arperim: () => { el('rect', { x: 14, y: 14, width: 44, height: 34, fill: '#cfe6f5', stroke: '#c8392d', 'stroke-width': 3.5 }, s); },
-    arrectp: () => { el('rect', { x: 10, y: 18, width: 52, height: 28, fill: '#cfe6f5', stroke: '#24323a', 'stroke-width': 2 }, s); const t = el('text', { x: 36, y: 38, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: '#c8392d', direction: 'ltr' }, s); t.textContent = '2×(a+b)'; },
+    arrectp: () => { el('rect', { x: 14, y: 20, width: 44, height: 26, fill: '#cfe6f5', stroke: '#24323a', 'stroke-width': 2 }, s); el('rect', { x: 8, y: 14, width: 56, height: 38, rx: 4, fill: 'none', stroke: '#c8392d', 'stroke-width': 2.5, 'stroke-dasharray': '6 4' }, s); el('path', { d: 'M56 10 L64 14 L56 18', fill: 'none', stroke: '#c8392d', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, s); },   /* بلا أرقام ولا حروف لاتينية: الخريطة تُرى قبل درس الأرقام (D254 (4)) */
     artile: () => { for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) el('rect', { x: 14 + i * 15, y: 10 + j * 15, width: 14, height: 14, fill: '#f2d38a', stroke: '#b9862a', 'stroke-width': 1.2 }, s); },
     arrows: () => { for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) el('rect', { x: 8 + i * 13, y: 14 + j * 13, width: 13, height: 13, fill: j ? '#cfe6f5' : '#bfe0b5', stroke: '#9fc3dc', 'stroke-width': 1 }, s); const t = el('text', { x: 66, y: 40, 'text-anchor': 'end', 'font-size': 11, 'font-weight': 800, fill: '#2f9d6b', direction: 'ltr' }, s); t.textContent = '×'; },
     arcomp: () => { el('path', { d: 'M12 12 H60 V32 H36 V54 H12 Z', fill: '#cfe6f5', stroke: '#24323a', 'stroke-width': 2.5 }, s); geoLine(s, 12, 32, 36, 32, { color: '#c8392d', w: 1.6, dash: '3 3' }); },
@@ -65,7 +65,7 @@ function stopIconInner(L) { const s = el('svg', { viewBox: '0 0 72 56' }); const
     argarden: () => { el('rect', { x: 10, y: 12, width: 52, height: 38, fill: '#8fca7a', stroke: '#b9794e', 'stroke-width': 4 }, s); palmAt(s, 36, 46, .22); },
     /* S2-U6 */
     lentape: () => { tapeAt(s, { x: 14, y: 22, to: 20, pxcm: 2.4, label: 10 }); },
-    lenconv: () => { const t = el('text', { x: 36, y: 38, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: '#33454c', direction: 'ltr' }, s); t.textContent = '1m=100'; },
+    lenconv: () => { el('rect', { x: 8, y: 16, width: 56, height: 12, rx: 2, fill: '#f2d38a', stroke: '#9a7b2f', 'stroke-width': 1.5 }, s); for (let i = 1; i < 10; i++) el('line', { x1: 8 + i * 5.6, y1: 16, x2: 8 + i * 5.6, y2: i === 5 ? 26 : 22, stroke: '#9a7b2f', 'stroke-width': 1.2 }, s); el('path', { d: 'M36 32 V40 M31 36 L36 41 L41 36', fill: 'none', stroke: '#33454c', 'stroke-width': 2.2, 'stroke-linecap': 'round' }, s); for (let i = 0; i < 4; i++) el('rect', { x: 18 + i * 9, y: 44, width: 7, height: 10, rx: 1.5, fill: '#cfe6f5', stroke: '#33454c', 'stroke-width': 1.2 }, s); },   /* المتر وأقسامه بلا أرقام (D254 (4)) */
     lencalc: () => { el('rect', { x: 12, y: 10, width: 48, height: 40, rx: 6, fill: '#fffdf6', stroke: '#9fb4c0', 'stroke-width': 2 }, s); const t = el('text', { x: 36, y: 36, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: '#33454c' }, s); t.textContent = '+'; },
     lencity: () => { for (const [x, h] of [[18, 26], [32, 38], [48, 20]]) el('rect', { x: x - 6, y: 52 - h, width: 12, height: h, fill: '#f2d38a', stroke: '#b9794e', 'stroke-width': 1.5 }, s); geoLine(s, 8, 56, 64, 56, { color: '#c8392d', w: 2.2 }); },
     /* S2-U5 */
@@ -109,6 +109,8 @@ function stopIconInner(L) { const s = el('svg', { viewBox: '0 0 72 56' }); const
   if (special[ic[0]]) special[ic[0]]();
   else ic.forEach((k, i) => { const x = 36 + (i - (ic.length - 1) / 2) * (SOLIDC[k] ? 28 : 24);
     if (SOLIDC[k]) thingAt(s, { solid: k, size: 44 }, x, 28); else shapeAt(s, { type: k, size: 28, w: k === 'rect' ? 36 : k === 'triangle' ? 32 : undefined, h: k === 'rect' ? 22 : k === 'triangle' ? 28 : undefined, color: css(IDC[k]) }, x, 28); });
+  /* لا رقم مكتوب في الخريطة قبل درس الأرقام (D254 (4)): أرقام المسطرة والشريط في أيقونات م2 تُحذف، وتبقى تدريجاتها */
+  if (!digitsKnown()) s.querySelectorAll('text').forEach(t => { if (/[0-9٠-٩]/.test(t.textContent)) t.remove(); });
   return s.innerHTML; }
 const stopIcon = L => `<svg viewBox="0 0 72 56" aria-hidden="true">${stopIconInner(L)}</svg>`;
 const unitOpen = ui => ui === 0 || !!PROG['badge:' + UNITS[ui - 1].id] || !!PROG['support:' + UNITS[ui - 1].id] || !!PROG.unlockAll;   // «متقدّم مع دعم» يفتح الوحدة التالية (A-03، D266)
