@@ -282,7 +282,6 @@
      125
     ],
     "thing": "door",
-    "m": true,
     "twin": {
      "t": "tapeRead",
      "q": "pr.tape",
@@ -292,8 +291,7 @@
       106,
       150
      ],
-     "thing": "table",
-     "m": true
+     "thing": "table"
     }
    },
    {
@@ -361,8 +359,7 @@
       151,
       105
      ],
-     "thing": "door",
-     "m": true
+     "thing": "door"
     },
     {
      "t": "convFill",
@@ -564,7 +561,6 @@
     130
    ],
    "thing": "table",
-   "m": true,
    "c": "C186"
   }
  ],

@@ -222,6 +222,7 @@ async def run(p, dev):
           await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
           if k == 'lenOrder':
             for i in await pg.evaluate('() => window.__ordWant'): q = await pg.evaluate('(i) => window.__ordAt(i)', i); await tap(q['x'], q['y']); await pg.wait_for_timeout(90)
+            await pg.wait_for_timeout(120); xy = await pg.evaluate(DONE); await tap(*xy)   # «تمّ» بعد الأربع (مراجعة B لبوابة U6/U7، 8)
             await pg.wait_for_timeout(60); continue
           if k == 'fence':
             for i in await pg.evaluate('() => window.__fenceWant'): q = await pg.evaluate('(i) => window.__fenceAt(i)', i); await tap(q['x'], q['y']); await pg.wait_for_timeout(90)

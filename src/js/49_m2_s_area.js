@@ -53,6 +53,10 @@ function rectLab(parent, w, h, o = {}) { const k = Math.min((o.maxW || 220) / w,
 function arLab(g, x, y, txt, nx = 0, col = ARC.ink) { const w = 8.6 * String(txt).length + 6, t = el('text', { x: x + nx * (w / 2 + 4), y, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: col, direction: 'rtl' }, g); t.textContent = txt; return t; }
 const arStage = (H = 240) => { const svg = newStage(H, { oasis: false, ground: 0 }); plyFrame(svg, H - 28); return svg; };
 const arNums = (w, lo = 1) => nearNums(w, 99, lo);
+/* الخيارات الثلاثة: الجواب ومشتّتان من أخطاء حقيقية، ورتبة الجواب بينها عشوائية (المراجع B لبوابة U6/U7، 3: كان الأوسط أو الأكبر دائماً؛ والمراجع A، 13) */
+function rankMix(want, cands, lo = 1, hi = 99) { const c = [...new Set(cands.filter(v => Number.isInteger(v) && v !== want && v >= lo && v <= hi))], L = shuffle(c.filter(v => v < want)), G = shuffle(c.filter(v => v > want)), r = Math.floor(rand() * 3);
+  let pick = [...L.slice(0, r), ...G.slice(0, 2 - r)]; for (const v of [...L, ...G]) if (pick.length < 2 && !pick.includes(v)) pick.push(v);
+  for (const v of shuffle(nearNums(want, hi, lo))) if (pick.length < 2 && v !== want && !pick.includes(v)) pick.push(v); return shuffle([want, ...pick.slice(0, 2)]); }
 /* بند عددي عام: draw يرسم، want الجواب، errOf الخطأ؛ والحلّ المشترك together(svg، item) يرسم ما يساعد ثم يُسأل */
 const arItem = d => ({ ...numItem,
   make(spec) { const it = { ...spec, ...d.make(spec) }; it.nums = d.nums ? d.nums(it) : arNums(it.want); return it; },
@@ -60,13 +64,13 @@ const arItem = d => ({ ...numItem,
     if (tries >= 3) { await S(d.tLine); if (d.together) await d.together(item, ctx); } else await S(item.q);
     const np = numberPick(item.nums, item.want, { west: true }); return { ans: await np.p, ctx: { ...ctx, np } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: d.errOf(item, k) }; },
-  async hint2(item, r) { await S(d.hint); }, async together() {},
+  async hint2(item, r) { if (d.h2 && r && r.ctx && r.ctx.svg) await d.h2(item, r.ctx, r.ans); await S(d.hint); }, async together() {},   /* المستوى الثاني فعلٌ على المسرح ثم الجملة (المراجعان A-9 وB-5 لبوابة U6/U7) */
   async reveal(item, r) { if (d.show) await d.show(item, r.ctx); await S(d.rLine, { noGap: true }); await (d.area ? sayArea(item.want, item.unit || 'cm') : sayLenU(item.want, item.unit || 'cm')); },
   praise: () => 'praiseCount', twin(item) { return item.twin || null; } });
 /* المحيط يُمشى: شارات العدّ على الأضلاع، أو جمع الأطوال المكتوبة */
 /* والعدّ الجاري رقمٌ صغير بهالة بيضاء داخل الشكل عند كل قطعة، لا شارة: القطع القصيرة عند الأركان متقاربة (30 وحدة) فتتراكب الشارات (الفحص: ladder) */
 const runNum = (m, x, y, n) => { const t = el('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: css('--think'), stroke: '#fff', 'stroke-width': 3.5, 'paint-order': 'stroke', direction: 'ltr' }, m); t.textContent = String(n); return t; };
-async function walkSegs(svg, D, o = {}) { const m = helpG(svg); let tot = 0; for (const s of D.segs) { tot += s.len; const mx = (D.X(s.a[0]) + D.X(s.b[0])) / 2, my = (D.Y(s.a[1]) + D.Y(s.b[1])) / 2; geoLine(m, D.X(s.a[0]), D.Y(s.a[1]), D.X(s.b[0]), D.Y(s.b[1]), { color: ARC.perim, w: 5 }); if (o.badges) { const sg = o.out ? -1 : 1; runNum(m, mx - sg * s.dir[1] * 13, my + sg * s.dir[0] * 13, tot); SFX.tick(); await S(numw(tot), { noGap: true, num: true }); } else await sleep(FAST ? 10 : 220); } return m; }
+async function walkSegs(svg, D, o = {}) { const m = helpG(svg); let tot = 0; for (const [si, s] of D.segs.entries()) { if (o.upTo != null && si >= o.upTo) break; tot += s.len; const quiet = o.stopLast && si === D.segs.length - 1;   /* الحلّ المشترك يقف قبل الخطوة الأخيرة: آخر قطعة تُرسم بلا مجموعها (المراجع B لبوابة U6/U7، 6) */ const mx = (D.X(s.a[0]) + D.X(s.b[0])) / 2, my = (D.Y(s.a[1]) + D.Y(s.b[1])) / 2; geoLine(m, D.X(s.a[0]), D.Y(s.a[1]), D.X(s.b[0]), D.Y(s.b[1]), { color: ARC.perim, w: 5 }); if (o.badges && !quiet) { const sg = o.out ? -1 : 1; runNum(m, mx - sg * s.dir[1] * 13, my + sg * s.dir[0] * 13, tot); SFX.tick(); await S(numw(tot), { noGap: true, num: true }); } else await sleep(FAST ? 10 : 220); } return m; }
 
 /* ================= ① محيط مضلّع بأطوال أضلاعه (C200): k من مكتبة المضلعات، lens أطوال الأضلاع بالترتيب ================= */
 ITEM.perimSides = arItem({ tLine: 'gen.ar.together.sides', hint: 'gen.ar.hint.sides', rLine: 'gen.ar.reveal.perim',
@@ -75,26 +79,32 @@ ITEM.perimSides = arItem({ tLine: 'gen.ar.together.sides', hint: 'gen.ar.hint.si
     /* الطول خارج الضلع على عموده، أبعد من شارة الحلّ المشترك على منتصفه (15) بنصف امتداد النصّ في اتجاه العمود (الفحص: ladder) */
     item.lens.forEach((L, i) => { const s = R.sides[i]; if (!s) return; const a = R.P[i], b = R.P[(i + 1) % R.n], dl = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; let nx = (b[1] - a[1]) / dl, ny = -(b[0] - a[0]) / dl; if (nx * (s.mid[0] - R.cen[0]) + ny * (s.mid[1] - R.cen[1]) < 0) { nx = -nx; ny = -ny; }
       const txt = `${L} ${u}`, w = 8.6 * txt.length + 6, off = 19 + Math.abs(nx) * w / 2 + Math.abs(ny) * 10, t = el('text', { x: s.mid[0] + nx * off, y: s.mid[1] + ny * off + 6, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: ARC.ink, direction: 'rtl' }, svg); t.textContent = txt; }); return { R }; },
-  async together(item, ctx) { const m = helpG(ctx.svg), C = ctx.R.cen; let tot = 0; for (const [i, s] of ctx.R.sides.entries()) { tot += item.lens[i]; polyHl(ctx.R, 'side', i, ARC.perim); badge(m, s.mid[0], s.mid[1], tot, css('--think')); SFX.tick(); await S(numw(tot), { noGap: true, num: true }); } },   /* الشارة على منتصف الضلع، وطوله مكتوب أبعد منها (32) */
+  nums: it => { const mn = Math.min(...it.lens), mx = Math.max(...it.lens); return rankMix(it.want, [it.want - mn, it.want - mx, it.want + mn]); },   /* نسي ضلعاً، أو عدّ ضلعاً مرّتين */
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); let tot = 0; for (const i of [0, 1]) { const sd = ctx.R.sides[i]; if (!sd) break; tot += item.lens[i]; polyHl(ctx.R, 'side', i, ARC.perim); badge(m, sd.mid[0], sd.mid[1], tot, css('--think')); SFX.tick(); await sleep(FAST ? 10 : 350); } },
+  async together(item, ctx) { const m = helpG(ctx.svg), C = ctx.R.cen; let tot = 0; for (const [i, s] of ctx.R.sides.entries()) { tot += item.lens[i]; polyHl(ctx.R, 'side', i, ARC.perim); if (i === ctx.R.sides.length - 1) break; badge(m, s.mid[0], s.mid[1], tot, css('--think')); SFX.tick(); await S(numw(tot), { noGap: true, num: true }); } },   /* يقف قبل الضلع الأخير: آخر جمع للطفل */   /* الشارة على منتصف الضلع، وطوله مكتوب أبعد منها (32) */
   errOf: (it, k) => k < it.want ? 'perimMiss' : 'perimOff' });
 /* ================= ② المحيط على الشبكة (C200): rows، ومربع الشبكة سنتيمتر ================= */
 ITEM.perimGrid = arItem({ tLine: 'gen.ar.together.grid', hint: 'gen.ar.hint.grid', rLine: 'gen.ar.reveal.perim',
   make: s => ({ want: shpPerim(s.rows), area: shpArea(s.rows), tag: 'perim-grid' }),
   draw(svg, item) { return { D: shpDraw(svg, item.rows) }; },
-  async together(item, ctx) { await walkSegs(ctx.svg, ctx.D, { badges: true, out: true }); },   /* خارج الشكل: لا أطوال مكتوبة، والجسر بعرض مربع واحد لا يسع رقمين */
+  nums: it => rankMix(it.want, [it.area, it.want - 2, it.want + 2]),   /* عدّ المربعات (المساحة)، أو نسي ركناً أو عدّه مرّتين */
+  h2: async (item, ctx) => { await walkSegs(ctx.svg, ctx.D, { badges: true, out: true, upTo: 2 }); },
+  async together(item, ctx) { await walkSegs(ctx.svg, ctx.D, { badges: true, out: true, stopLast: true }); },   /* خارج الشكل: لا أطوال مكتوبة، والجسر بعرض مربع واحد لا يسع رقمين */
   show: async (item, ctx) => { await walkSegs(ctx.svg, ctx.D); },
   errOf: (it, k) => k === it.area ? 'perimArea' : 'perimOff' });
 /* ================= ③ محيط المربع والمستطيل (C201): w، h (والمربع sq)، unit ================= */
 ITEM.rectPerim = arItem({ tLine: 'gen.ar.together.rect', hint: 'gen.ar.hint.rect', rLine: 'gen.ar.reveal.perim',
   make: s => ({ want: 2 * (s.w + s.h), tag: 'rect-perim' + (s.sq ? '-sq' : '') }),
-  nums: it => { const s = new Set([it.want, it.w + it.h]); if (it.w * it.h !== it.want && it.w * it.h <= 99) s.add(it.w * it.h); return shuffle([...fillOpts(s, it.want, 1, 99)].slice(0, 3)); },
+  nums: it => rankMix(it.want, [it.w + it.h, it.w * it.h, 2 * it.w + it.h, it.w + 2 * it.h]),   /* نصف السور، أو المساحة، أو ثلاثة أضلاع */
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), L = ctx.L; geoLine(m, L.x0, L.y0, L.x0 + L.W, L.y0, { color: ARC.perim, w: 5 }); geoLine(m, L.x0 + L.W, L.y0, L.x0 + L.W, L.y0 + L.H, { color: ARC.perim, w: 5 }); hintCard(ctx.svg, 180, 214, `${item.w} + ${item.h} = ${item.w + item.h}`); await sleep(FAST ? 10 : 300); },   /* ضلعان من الأربعة: نصف السور */
   draw(svg, item) { return { L: rectLab(svg, item.w, item.h, { sq: item.sq, unit: item.unit }) }; },
   async together(item, ctx) { const m = helpG(ctx.svg), L = ctx.L, P = [[L.x0, L.y0], [L.x0 + L.W, L.y0], [L.x0 + L.W, L.y0 + L.H], [L.x0, L.y0 + L.H]]; let tot = 0; for (let i = 0; i < 4; i++) { const a = P[i], b = P[(i + 1) % 4]; tot += i % 2 ? item.h : item.w; geoLine(m, a[0], a[1], b[0], b[1], { color: ARC.perim, w: 5 }); const iy = Math.min(22, L.H / 4), ix = Math.min(22, L.W / 4), B4 = [[L.x0 + L.W * .75, L.y0 + iy], [L.x0 + L.W - ix, L.y0 + L.H * .75], [L.x0 + L.W * .25, L.y0 + L.H - iy], [L.x0 + ix, L.y0 + L.H * .25]][i]; badge(m, B4[0], B4[1], tot, css('--think'));   /* داخل المستطيل ومتخالفة، فلا تتراكب في المستطيل النحيل ولا تغطّي الأطوال المكتوبة */ SFX.tick(); await S(numw(tot), { noGap: true, num: true }); } },
   errOf: (it, k) => k === it.w + it.h ? 'perimHalf' : k === it.w * it.h ? 'perimArea' : 'perimOff' });
 /* ================= ④ الضلع المجهول من المحيط (C202): P، والمربع sq، أو l طول المستطيل ================= */
 ITEM.sideFromPerim = arItem({ tLine: 'gen.ar.together.side', hint: 'gen.ar.hint.side', rLine: 'gen.ar.reveal.side',
   make: s => ({ want: s.sq ? s.P / 4 : s.P / 2 - s.l, tag: 'side-perim' + (s.sq ? '-sq' : '') }),
-  nums: it => { const s = new Set([it.want]); if (it.sq) s.add(it.P / 2); else { s.add(it.P - it.l <= 99 ? it.P - it.l : it.P / 2); if (it.P % 4 === 0) s.add(it.P / 4); } return shuffle([...fillOpts(s, it.want, 1, 99)].slice(0, 3)); },
+  nums: it => rankMix(it.want, it.sq ? [it.P / 2, it.P - 4, it.want + 2] : [it.P - it.l, it.P / 2, it.P % 4 === 0 ? it.P / 4 : it.want + 2]),
+  h2: async (item, ctx) => { hintCard(ctx.svg, 180, 222, item.sq ? `؟ + ؟ + ؟ + ؟ = ${item.P}` : `${item.l} + ؟ + ${item.l} + ؟ = ${item.P}`); await sleep(FAST ? 10 : 300); },
   H: 250,
   draw(svg, item) { const w = item.sq ? item.P / 4 : item.l, h = item.sq ? item.P / 4 : item.P / 2 - item.l, L = rectLab(svg, w, h, { sq: item.sq, hideW: item.sq, hideH: !item.sq, showH: !item.sq, cy: 128, unit: item.unit }); const t = el('text', { x: 180, y: 34, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.perim, direction: 'rtl' }, svg); t.textContent = `${labelText('arPerim')} ${item.P} ${labelText(item.unit === 'm' ? 'lenM' : 'rulCm')}`; return { L }; },
   async together(item) { if (item.sq) await S('gen.ar.sqFour'); else { await S('gen.ar.halfP', { noGap: true }); await S(numw(item.P / 2), { num: true, append: true }); } },
@@ -103,26 +113,31 @@ ITEM.sideFromPerim = arItem({ tLine: 'gen.ar.together.side', hint: 'gen.ar.hint.
 ITEM.areaCount = arItem({ tLine: 'gen.ar.together.count', hint: 'gen.ar.hint.count', rLine: 'gen.ar.reveal.area', area: true,
   make: s => ({ want: shpArea(s.rows), per: shpPerim(s.rows), tag: 'area-count' }),
   draw(svg, item) { return { D: shpDraw(svg, item.rows) }; },
-  async together(item, ctx) { const m = helpG(ctx.svg), D = ctx.D; for (const [i, [x, y]] of D.p.full.entries()) { el('circle', { cx: D.X(x) + D.c / 2, cy: D.Y(y) + D.c / 2, r: 4, fill: css('--think') }, m); if (i === D.p.full.length - 1 || i % 4 === 3) { SFX.tick(); await S(numw(i + 1), { noGap: true, num: true }); } } },
+  nums: it => rankMix(it.want, [it.per, it.want - 1, it.want + 1]),
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), D = ctx.D, y0 = D.p.full.length ? D.p.full[0][1] : 0, row = D.p.full.filter(([, y]) => y === y0); row.forEach(([x, y]) => el('circle', { cx: D.X(x) + D.c / 2, cy: D.Y(y) + D.c / 2, r: 4, fill: css('--think') }, m)); SFX.tick(); await S(numw(row.length), { noGap: true, num: true }); },   /* الصفّ الأول معدوداً */
+  async together(item, ctx) { const m = helpG(ctx.svg), D = ctx.D, n = D.p.full.length; for (const [i, [x, y]] of D.p.full.entries()) { el('circle', { cx: D.X(x) + D.c / 2, cy: D.Y(y) + D.c / 2, r: 4, fill: css('--think') }, m); if (i % 4 === 3 && i < n - 4) { SFX.tick(); await S(numw(i + 1), { noGap: true, num: true }); } } },   /* يعدّ أربعاً أربعاً ويقف قبل آخرها */
   errOf: (it, k) => k === it.per ? 'areaPerim' : 'areaCountOff' });
 /* ================= ⑥ تقدير المساحة (C205): rows بأنصاف مربعات؛ الخيارات بعيدة بما يكفي ليكون التقدير حكماً ================= */
 ITEM.areaEst = arItem({ tLine: 'gen.ar.together.est', hint: 'gen.ar.hint.est', rLine: 'gen.ar.reveal.est', area: true,
   make: s => { const p = shpParse(s.rows); /*T*/if (TESTHOOK && p.half.length % 2) testBug('areaEst بعدد فردي من الأنصاف: ' + s.rows.join('|'));/*/T*/ return { want: shpArea(s.rows), full: p.full.length, over: p.full.length + p.half.length, tag: 'area-est' }; },
-  nums: it => shuffle([...fillOpts(new Set([it.want, it.full, it.over]), it.want, 1, 99)].slice(0, 3)),
+  nums: it => rankMix(it.want, [it.full, it.over, it.want + (it.over - it.want) * 2, it.want - (it.want - it.full) * 2]),
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), D = ctx.D; for (const h of D.p.half.slice(0, 2)) { const [cx, cy] = D.halfC(h); el('circle', { cx, cy, r: 5, fill: '#fff', stroke: css('--think'), 'stroke-width': 2.5 }, m); } hintCard(ctx.svg, 180, 222, labelText('arHalves2')); await sleep(FAST ? 10 : 300); },   /* نصفان يكمّلان مربعاً */
   draw(svg, item) { return { D: shpDraw(svg, item.rows) }; },
   async together(item, ctx) { const m = helpG(ctx.svg), D = ctx.D; for (const [x, y] of D.p.full) el('circle', { cx: D.X(x) + D.c / 2, cy: D.Y(y) + D.c / 2, r: 4, fill: css('--think') }, m); await S(numw(D.p.full.length), { num: true, append: true }); for (const h of D.p.half) { const [cx, cy] = D.halfC(h); el('circle', { cx, cy, r: 4, fill: '#fff', stroke: css('--think'), 'stroke-width': 2 }, m); } await S('gen.ar.halves'); },
   errOf: (it, k) => k === it.full ? 'estFull' : k === it.over ? 'estHalfAsWhole' : 'estOff' });
 /* ================= ⑦ مساحة المستطيل (C206): w، h، grid: full | edge | none، unit ================= */
 ITEM.rectArea = arItem({ tLine: 'gen.ar.together.rows', hint: 'gen.ar.hint.rows', rLine: 'gen.ar.reveal.area', area: true,
   make: s => ({ want: s.w * s.h, tag: 'rect-area-' + (s.grid || 'none') }),
-  nums: it => { const s = new Set([it.want, it.w + it.h]); if (2 * (it.w + it.h) !== it.want) s.add(2 * (it.w + it.h)); return shuffle([...fillOpts(s, it.want, 1, 99)].slice(0, 3)); },
+  nums: it => rankMix(it.want, [it.w + it.h, 2 * (it.w + it.h), it.w * (it.h - 1), it.w * (it.h + 1)]),
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), L = ctx.L; el('rect', { x: L.x0, y: L.y0, width: L.W, height: L.k, fill: css('--think'), opacity: .18 }, m); for (let i = 1; i < item.w; i++) geoLine(m, L.x0 + i * L.k, L.y0, L.x0 + i * L.k, L.y0 + L.k, { color: css('--think'), w: 1.4 }); badge(m, L.x0 - 16, L.y0 + L.k / 2, item.w, css('--think')); SFX.tick(); await S(numw(item.w), { noGap: true, num: true }); },   /* صفّ واحد معدوداً */
   draw(svg, item) { return { L: rectLab(svg, item.w, item.h, { grid: item.grid, sq: item.sq, showH: true, unit: item.unit }) }; },
-  async together(item, ctx) { const m = helpG(ctx.svg), L = ctx.L; for (let j = 0; j < item.h; j++) { el('rect', { x: L.x0, y: L.y0 + j * L.k, width: L.W, height: L.k, fill: css('--think'), opacity: .18 }, m); badge(m, L.x0 - 16 - (j % 2) * 30, L.y0 + (j + .5) * L.k, (j + 1) * item.w, css('--think'));   /* متعرّجة: الصفوف أقرب من الشارة */ SFX.tick(); await S(numw((j + 1) * item.w), { noGap: true, num: true }); } },
+  async together(item, ctx) { const m = helpG(ctx.svg), L = ctx.L; for (let j = 0; j < item.h; j++) { el('rect', { x: L.x0, y: L.y0 + j * L.k, width: L.W, height: L.k, fill: css('--think'), opacity: .18 }, m); if (j === item.h - 1) break; badge(m, L.x0 - 16 - (j % 2) * 30, L.y0 + (j + .5) * L.k, (j + 1) * item.w, css('--think'));   /* متعرّجة: الصفوف أقرب من الشارة */ SFX.tick(); await S(numw((j + 1) * item.w), { noGap: true, num: true }); } },
   errOf: (it, k) => k === it.w + it.h ? 'areaSum' : k === 2 * (it.w + it.h) ? 'areaPerim' : k === it.w ? 'areaRow' : 'areaOff' });
 /* ================= ⑧ الضلع المجهول من المساحة (C207): A، l ================= */
 ITEM.sideFromArea = arItem({ tLine: 'gen.ar.together.sideA', hint: 'gen.ar.hint.sideA', rLine: 'gen.ar.reveal.side',
   make: s => ({ want: s.A / s.l, tag: 'side-area' }),
-  nums: it => shuffle([...fillOpts(new Set([it.want, it.A - it.l]), it.want, 1, 99)].slice(0, 3)),
+  nums: it => rankMix(it.want, [it.A - it.l, it.want + 1, it.want - 1, it.A / 2]),
+  h2: async (item, ctx) => { hintCard(ctx.svg, 180, 222, `${item.l} × ؟ = ${item.A}`); await sleep(FAST ? 10 : 300); },
   H: 250,
   draw(svg, item) { const L = rectLab(svg, item.l, item.A / item.l, { grid: 'none', hideH: true, showH: true, cy: 130, unit: item.unit }); const t = el('text', { x: 180, y: 34, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ok, direction: 'rtl' }, svg); t.textContent = `${labelText('arArea')} ${item.A} ${labelText(item.unit === 'm' ? 'arM2' : 'arCm2')}`; return { L }; },
   async together(item, ctx) { const m = helpG(ctx.svg), L = ctx.L; for (let i = 1; i < item.l; i++) geoLine(m, L.x0 + i * L.k, L.y0, L.x0 + i * L.k, L.y0 + L.k, { color: css('--think'), w: 1.6 }); el('rect', { x: L.x0, y: L.y0, width: L.W, height: L.k, fill: css('--think'), opacity: .18 }, m); await S('gen.ar.rowOf', { noGap: true }); await S(numw(item.l), { num: true, append: true }); },
@@ -130,17 +145,19 @@ ITEM.sideFromArea = arItem({ tLine: 'gen.ar.together.sideA', hint: 'gen.ar.hint.
 /* ================= ⑨ مساحة الشكل المركّب (C208): rows بأطوال قطعه مكتوبة ================= */
 ITEM.compArea = arItem({ tLine: 'gen.ar.together.comp', hint: 'gen.ar.hint.comp', rLine: 'gen.ar.reveal.area', area: true, H: 250,
   make: s => { const p = shpParse(s.rows), big = p.W * p.H; return { want: shpArea(s.rows), big, tag: 'comp-area' }; },
-  nums: it => shuffle([...fillOpts(new Set([it.want, it.big]), it.want, 1, 99)].slice(0, 3)),
+  nums: it => rankMix(it.want, [it.big, it.big - it.want, it.want + (it.big - it.want)]),
+  h2: async (item, ctx) => { const D = ctx.D, m = helpG(ctx.svg), rows = item.rows; let y2 = 0; while (y2 + 1 < rows.length && rows[y2 + 1] === rows[0]) y2++; const xs = [...rows[0]].map((ch, i) => ch === '#' ? i : -1).filter(i => i >= 0); el('rect', { x: D.X(Math.min(...xs)), y: D.Y(0), width: xs.length * D.c, height: (y2 + 1) * D.c, fill: '#f2d38a', opacity: .7 }, m); SFX.tick(); await sleep(FAST ? 10 : 300); },   /* المستطيل الأول ملوّناً، بلا عدد */
   draw(svg, item) { const D = shpDraw(svg, item.rows, { grid: false, cellLines: false, labeled: true, at: [180, 128] }); shpLabels(svg, D); return { D }; },
   async together(item, ctx) { const D = ctx.D, m = helpG(ctx.svg); /* تقسيم إلى مستطيلات أفقية متصلة: صفّاً صفّاً، وكل صفّين متطابقين معاً */ const rows = item.rows; let y = 0, tot = 0, col = 0; const cols = ['#f2d38a', '#bfe0b5', '#e6c6e8'];
-    while (y < rows.length) { let y2 = y; while (y2 + 1 < rows.length && rows[y2 + 1] === rows[y]) y2++; const xs = [...rows[y]].map((ch, i) => ch === '#' ? i : -1).filter(i => i >= 0), x0 = Math.min(...xs), w = xs.length, h = y2 - y + 1; el('rect', { x: D.X(x0), y: D.Y(y), width: w * D.c, height: h * D.c, fill: cols[col++ % 3], opacity: .7 }, m); tot += w * h; badge(m, D.X(x0) + w * D.c / 2, D.Y(y) + h * D.c / 2, tot, css('--think')); SFX.tick(); await S(numw(tot), { noGap: true, num: true }); y = y2 + 1; } },
+    while (y < rows.length) { let y2 = y; while (y2 + 1 < rows.length && rows[y2 + 1] === rows[y]) y2++; const xs = [...rows[y]].map((ch, i) => ch === '#' ? i : -1).filter(i => i >= 0), x0 = Math.min(...xs), w = xs.length, h = y2 - y + 1; el('rect', { x: D.X(x0), y: D.Y(y), width: w * D.c, height: h * D.c, fill: cols[col++ % 3], opacity: .7 }, m); tot += w * h; y = y2 + 1; if (y >= rows.length) break; badge(m, D.X(x0) + w * D.c / 2, D.Y(y - h) + h * D.c / 2, tot, css('--think')); SFX.tick(); await S(numw(tot), { noGap: true, num: true }); } },   /* آخر جزء ملوّن بلا مجموعه */
   errOf: (it, k) => k === it.big ? 'compWhole' : k < it.want ? 'compPart' : 'compDouble' });
 /* ================= ⑩ محيط الشكل المركّب (C209): rows، hide أرقام القطع التي لا يُكتب طولها ================= */
 ITEM.compPerim = arItem({ tLine: 'gen.ar.together.compP', hint: 'gen.ar.hint.compP', rLine: 'gen.ar.reveal.perim', H: 250,
   make: s => { const segs = shpSegs(s.rows), w = segs.reduce((a, g) => a + g.len, 0), miss = w - (s.hide || []).reduce((a, i) => a + segs[i].len, 0); return { want: w, miss, tag: 'comp-perim' }; },
-  nums: it => shuffle([...fillOpts(new Set([it.want, it.miss]), it.want, 1, 99)].slice(0, 3)),
+  nums: it => rankMix(it.want, [it.miss, it.want - 2, it.want + 2]),
+  h2: async (item, ctx) => { await walkSegs(ctx.svg, ctx.D, { badges: true, upTo: 2 }); },
   draw(svg, item) { const D = shpDraw(svg, item.rows, { grid: false, cellLines: false, labeled: true, at: [180, 128] }); return { D, Lb: shpLabels(svg, D, { hide: item.hide }) }; },
-  async together(item, ctx) { ctx.Lb.remove(); ctx.Lb = shpLabels(ctx.svg, ctx.D); await walkSegs(ctx.svg, ctx.D, { badges: true }); },
+  async together(item, ctx) { ctx.Lb.remove(); ctx.Lb = shpLabels(ctx.svg, ctx.D); await walkSegs(ctx.svg, ctx.D, { badges: true, stopLast: true }); },
   show: async (item, ctx) => { ctx.Lb.remove(); shpLabels(ctx.svg, ctx.D); },
   errOf: (it, k) => k === it.miss ? 'compMissing' : 'perimOff' });
 /* ================= ⑪ محيط أم مساحة؟ (C211): sit موقف من الحياة، ask: kind (المفهوم) أو unit (الوحدة) ================= */
@@ -187,7 +204,7 @@ ITEM.rectDraw = {
     el('rect', { x: x0 - 10, y: y0 - rows * c - 10, width: cols * c + 20, height: rows * c + 20, rx: 10, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, g); for (let i = 0; i <= cols; i++) geoLine(g, ...P(i, 0), ...P(i, rows), { color: ARC.grid, w: 1.2 }); for (let j = 0; j <= rows; j++) geoLine(g, ...P(0, j), ...P(cols, j), { color: ARC.grid, w: 1.2 });
     el('circle', { cx: P(0, 0)[0], cy: P(0, 0)[1], r: 7, fill: css('--compass') }, g);
     const rect = el('rect', { fill: ARC.fill, stroke: ARC.edge, 'stroke-width': 3, opacity: 0 }, g), rd = el('text', { x: 180, y: 240, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ink, direction: 'rtl' }, svg); let cur = null;
-    const set = (r, u) => { if (r < 1 || u < 1) return; cur = [r, u]; const [ax, ay] = P(0, u); rect.setAttribute('x', ax); rect.setAttribute('y', ay); rect.setAttribute('width', r * c); rect.setAttribute('height', u * c); rect.setAttribute('opacity', .85); rd.textContent = item.need === 'dims' ? `${r} × ${u}` : item.need === 'perim' ? `${labelText('arPerim0')}: ${2 * (r + u)} ${labelText('rulCm')}` : `${labelText('arArea0')}: ${r * u} ${labelText('arCm2')}`; SFX.tick(); /*T*/window.__rdCur = cur;/*/T*/ };
+    const set = (r, u) => { if (r < 1 || u < 1) return; cur = [r, u]; const [ax, ay] = P(0, u); rect.setAttribute('x', ax); rect.setAttribute('y', ay); rect.setAttribute('width', r * c); rect.setAttribute('height', u * c); rect.setAttribute('opacity', .85); rd.textContent = item.need === 'dims' || NEUTRAL_ANS ? `${r} × ${u}` : item.need === 'perim' ? `${labelText('arPerim0')}: ${2 * (r + u)} ${labelText('rulCm')}` : `${labelText('arArea0')}: ${r * u} ${labelText('arCm2')}`; SFX.tick(); /*T*/window.__rdCur = cur;/*/T*/ };
     if (tries >= 3) { const m = helpG(svg), [w, h] = rdSol(item); geoLine(m, ...P(0, h), ...P(w, h), { color: css('--think'), w: 2, dash: '5 4' }); }
     await S(tries >= 3 ? (item.need === 'perim' ? 'gen.ar.together.drawP' : item.need === 'dims' ? 'gen.ar.together.drawD' : 'gen.ar.together.drawA') : item.q, { noGap: true }); if (item.need === 'dims') { await sayLen(item.val[0], 'cm'); await S('gen.cp.and', { noGap: true, append: true }); await sayLen(item.val[1], 'cm'); } else await (item.need === 'perim' ? sayLen(item.val, 'cm') : sayArea(item.val));   /* dims: الطول والعرض (S2-U9) */
     const input = fingerInput(svg, { map: e => { const p = svgPoint(svg, e); return [p.x, p.y]; }, down(q) { if (q[1] > y0 + 16) return false; set(Math.max(0, Math.min(cols, Math.round((q[0] - x0) / c))), Math.max(0, Math.min(rows, Math.round((y0 - q[1]) / c)))); }, move(q) { set(Math.max(0, Math.min(cols, Math.round((q[0] - x0) / c))), Math.max(0, Math.min(rows, Math.round((y0 - q[1]) / c)))); }, up() {} });
@@ -208,7 +225,7 @@ ITEM.maxArea = {
   make(spec) { const half = spec.fence / 2, w = Math.floor(half / 2); return { ...spec, want: w * (half - w), tag: 'max-area' }; },
   async ask(item, mode, tries) { const svg = newStage(270, { oasis: false, ground: 0 }), half = item.fence / 2, g = el('g', {}, svg); let w = 1;
     const land = el('g', {}, g), dm = el('text', { x: 180, y: 32, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ink, direction: 'ltr' }, svg), rd = el('text', { x: 180, y: 58, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ok, direction: 'rtl' }, svg), k = Math.min(150 / (half - 1), 18);
-    let reg = null; const draw = () => { land.innerHTML = ''; const h = half - w, x0 = 180 - w * k / 2, y0 = 146 - h * k / 2; el('rect', { x: x0, y: y0, width: w * k, height: h * k, fill: '#8fca7a', stroke: ARC.fence, 'stroke-width': 4 }, land); dm.textContent = `${w} × ${h}`; rd.textContent = `${labelText('arArea0')}: ${w * h} ${labelText('arM2')}`; /*T*/window.__maxW = w; window.__maxWant = Math.floor(half / 2);/*/T*/ if (reg) reg(); };
+    let reg = null; const draw = () => { land.innerHTML = ''; const h = half - w, x0 = 180 - w * k / 2, y0 = 146 - h * k / 2; el('rect', { x: x0, y: y0, width: w * k, height: h * k, fill: '#8fca7a', stroke: ARC.fence, 'stroke-width': 4 }, land); dm.textContent = `${w} × ${h}`; rd.textContent = NEUTRAL_ANS ? '' : `${labelText('arArea0')}: ${w * h} ${labelText('arM2')}`; /*T*/window.__maxW = w; window.__maxWant = Math.floor(half / 2);/*/T*/ if (reg) reg(); };
     const btns = [-1, 1].map(d => { const b = el('g', { role: 'button', tabindex: 0, 'aria-label': plain(labelText(d < 0 ? 'stepLess' : 'stepMore')), style: 'cursor:pointer', 'data-step': d }, svg), x = d < 0 ? 44 : 316; el('circle', { cx: x, cy: 146, r: 26, fill: '#eef6fb', stroke: css('--compass'), 'stroke-width': 2.5 }, b); const t = el('text', { x, y: 156, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: css('--compass'), 'pointer-events': 'none' }, b); t.textContent = d < 0 ? '−' : '+'; hitPad(b, 64);
       const go = () => { w = Math.max(1, Math.min(half - 1, w + d)); SFX.tick(); draw(); }; b.onclick = go; b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); go(); } }; return b; });
     const ft = el('text', { x: 180, y: 258, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: ARC.fence, direction: 'rtl' }, svg); ft.textContent = `${labelText('arFence')} ${item.fence} ${labelText('lenM')}`;

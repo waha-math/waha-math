@@ -49,6 +49,11 @@ const LEN_TH = {
   table: { u: 'm', draw: g => { el('rect', { x: -54, y: -18, width: 108, height: 10, rx: 2, fill: '#b9794e' }, g); for (const x of [-46, 40]) el('rect', { x, y: -8, width: 6, height: 46, fill: '#8a5a3a' }, g); } },
 };
 const lenThing = (parent, k, x, y, s = 1) => { const g = el('g', { transform: `translate(${x} ${y}) scale(${s})`, 'data-thing': k, 'pointer-events': 'none' }, parent); LEN_TH[k].draw(g); return g; };
+/* المستوى الثاني من التلميح فعلٌ على المسرح لا جملة فقط (المراجعان A وB لبوابة U6/U7، 9 و5): بطاقة تكتب الحقيقة التي يحتاجها الطفل الآن (التحويل، أو مجموع عمود، أو ما بقي) قرب ما تخصّه، وتبقى حتى يجيب */
+function hintCard(svg, x, y, txt, o = {}) { const m = helpG(svg), w = Math.max(90, 9.2 * String(txt).length + 26), g = el('g', { 'pointer-events': 'none' }, m);
+  el('rect', { x: x - w / 2, y: y - 19, width: w, height: 34, rx: 12, fill: '#fff', stroke: css('--think'), 'stroke-width': 2.5 }, g); const t = el('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': o.fs || 16, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, g); t.textContent = txt;
+  anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 300 }); return g; }
+const U_ = u => labelText(LEN_LB[u]);
 const lenStage = (H = 232) => { const svg = newStage(H, { oasis: false, ground: 0 }); plyFrame(svg, H - 28); return svg; };
 /* خيارات أطوال مسموعة: [مفتاح، نصّ، رمز، جملة] */
 const lenOpts = vals => vals.map(v => [lenKey(v), lenTxt(v), '<i></i>', lenLn(v)]);
@@ -62,7 +67,7 @@ ITEM.unitPick = {
     const k = await choosePick(LEN_U.map(u => [u, labelText(LEN_LB[u]), '<i></i>', 'gen.len.u.' + u]), item.want); return { ans: k, ctx: { svg } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: LEN_U.indexOf(k) > LEN_U.indexOf(item.want) ? 'unitBig' : 'unitSmall' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.len.hint.unit'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30, `${U_('mm')} < ${U_('cm')} < ${U_('m')} < ${U_('km')}`); await S('gen.len.hint.unit'); }, async together() {},
   async reveal(item) { await S('gen.len.reveal.unit.' + item.want); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -76,7 +81,7 @@ ITEM.tapeRead = {
   async ask(item, mode, tries) { const svg = lenStage(220), D = this.draw(item, svg);
     if (tries >= 3) { const m = helpG(svg), base = Math.floor(item.len / 10) * 10; await S('gen.len.together.tape'); thinkRing(m, [D.T.X(base), D.T.y + 22], 14); if (item.len % 10) el('path', { d: `M${D.T.X(base)} ${D.T.y - 4} Q${(D.T.X(base) + D.X2) / 2} ${D.T.y - 22} ${D.X2} ${D.T.y - 4}`, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, m); }
     else await S(item.q);
-    const vals = item.ch.map(n => item.m ? [n, 'mc'] : [n, 'cm']), k = await choosePick(lenOpts(vals), item.want); return { ans: k, ctx: { svg, D } }; },
+    const vals = item.ch.map(n => item.m ? [n, 'mc'] : [n, 'cm']), k = await choosePick(shuffle(lenOpts(vals)), item.want); return { ans: k, ctx: { svg, D } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.m ? 'mcSplit' : 'tapeOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { const m = helpG(r.ctx.svg); thinkRing(m, [r.ctx.D.X2, r.ctx.D.T.y + 8], 12); await S('gen.len.hint.tape'); await sleep(500); m.remove(); }, async together() {},
@@ -94,7 +99,7 @@ ITEM.convFill = {
   make(spec) { const w = lenConv(spec.v, spec.to); /*T*/if (TESTHOOK && (!spec.ch.includes(w) || w % 1)) testBug('convFill: الجواب ليس بين الخيارات ' + w);/*/T*/ return { ...spec, want: lenKey([w, spec.to]), wn: w, tag: 'conv-fill-' + spec.v[1] + '-' + spec.to }; },
   async ask(item, mode, tries) { const svg = lenStage(220), E = convEq(svg, item);
     if (tries >= 3) { convRule(svg, item.v[1], item.to); await S('gen.len.together.conv'); } else { await S(item.q, { noGap: true }); await S(lenLn(item.v), { append: true }); }
-    const k = await choosePick(lenOpts(item.ch.map(n => [n, item.to])), item.want); return { ans: k, ctx: { svg, E } }; },
+    const k = await choosePick(shuffle(lenOpts(item.ch.map(n => [n, item.to]))), item.want); return { ans: k, ctx: { svg, E } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const n = parseFloat(k), up = LEN_MM[item.v[1]] > LEN_MM[item.to]; return { ok: false, err: up ? (n < item.v[0] ? 'convDir' : 'convFactor') : (n > item.v[0] ? 'convDir' : 'convFactor') }; },
   onOk(item, r) { SFX.good(); r.ctx.E.t.textContent = lenTxt([item.wn, item.to]); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { const R2 = convRule(r.ctx.svg, item.v[1], item.to); await S(LEN_MM[item.v[1]] > LEN_MM[item.to] ? 'gen.len.hint.convMul' : 'gen.len.hint.convDiv'); await sleep(600); R2.m.remove(); }, async together() {},
@@ -118,7 +123,7 @@ ITEM.convMachine = {
     return { ans: op + f, ctx: { svg, outT } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k.startsWith(item.op) ? 'convFactor' : 'convDir' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.op === 'mul' ? 'gen.len.hint.convMul' : 'gen.len.hint.convDiv'); }, async together() {},
+  async hint2(item, r) { const big = item.op === 'mul' ? item.v[1] : item.to, small = item.op === 'mul' ? item.to : item.v[1]; if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30, `1 ${U_(big)} = ${LEN_MM[big] / LEN_MM[small]} ${U_(small)}`); await S(item.op === 'mul' ? 'gen.len.hint.convMul' : 'gen.len.hint.convDiv'); }, async together() {},
   async reveal(item, r) { const out = item.op === 'mul' ? item.v[0] * item.f : item.v[0] / item.f; r.ctx.outT.textContent = out + ' ' + labelText(LEN_LB[item.to]); await S(item.op === 'mul' ? 'gen.len.reveal.mul' : 'gen.len.reveal.div', { noGap: true }); await S('gen.len.f.' + item.f, { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -130,10 +135,10 @@ ITEM.mcConv = {
     const q = el('g', { transform: 'translate(86 100)' }, g); el('rect', { x: -62, y: -28, width: 124, height: 56, rx: 14, fill: '#fff', stroke: css('--think'), 'stroke-width': 2.5, 'stroke-dasharray': '6 4' }, q); const qt = el('text', { x: 0, y: 9, 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 800, fill: css('--think') }, q); qt.textContent = '؟';
     if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 182, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, m); t.textContent = `100 ${labelText('rulCm')} = 1 ${labelText('lenM')}`; await S('gen.len.together.mc'); }
     else { await S(item.q, { noGap: true }); await S(lenLn(from), { append: true }); }
-    const vals = item.dir === 'toMC' ? item.ch.map(p => [p, 'pair']) : item.ch.map(n => [n, 'cm']); const k = await choosePick(lenOpts(vals), item.want); return { ans: k, ctx: { svg, qt } }; },
+    const vals = item.dir === 'toMC' ? item.ch.map(p => [p, 'pair']) : item.ch.map(n => [n, 'cm']); const k = await choosePick(shuffle(lenOpts(vals)), item.want); return { ans: k, ctx: { svg, qt } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'mcSplit' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.len.hint.mc'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30, `100 ${U_('cm')} = 1 ${U_('m')}`); await S('gen.len.hint.mc'); }, async together() {},
   async reveal(item, r) { const v = item.dir === 'toMC' ? [item.cm, 'mc'] : [item.cm, 'cm']; r.ctx.qt.textContent = lenTxt(v); r.ctx.qt.setAttribute('font-size', 18); await S('gen.len.reveal.conv', { noGap: true }); await S(lenLn(v), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -149,7 +154,7 @@ ITEM.lenCompare = {
     const k = await choosePick([['a', lenTxt(item.a), '<i></i>', lenLn(item.a)], ['b', lenTxt(item.b), '<i></i>', lenLn(item.b)], ['eq', labelText('lenEq'), '<i></i>', 'gen.len.eq']], item.want); return { ans: k, ctx: { svg } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const big = item.a[0] > item.b[0] ? 'a' : item.b[0] > item.a[0] ? 'b' : 'eq'; return { ok: false, err: k === big ? 'cmpDigits' : 'cmpOff' }; },
   async onOk(item, r) { SFX.good(); lenBars(r.ctx.svg, [item.a, item.b], 150); await sleep(400); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.len.hint.cmp'); }, async together() {},
+  async hint2(item, r) { const big = LEN_MM[item.a[1]] >= LEN_MM[item.b[1]] ? item.a : item.b, small = big === item.a ? item.b : item.a; if (r && r.ctx && r.ctx.svg && big[1] !== small[1] && LEN_MM[big[1]] > LEN_MM[small[1]] && small[1] !== 'mc' && big[1] !== 'mc') hintCard(r.ctx.svg, 180, 30, `${big[0]} ${U_(big[1])} = ${lenMM(big) / LEN_MM[small[1]]} ${U_(small[1])}`); await S('gen.len.hint.cmp'); }, async together() {},   /* يحوّل الطول بالوحدة الأكبر إلى وحدة الآخر */
   async reveal(item, r) { lenBars(r.ctx.svg, [item.a, item.b], 150); await S('gen.len.reveal.cmp.' + item.want); },
   praise: () => 'praiseCompare', twin(item) { return item.twin || null; },
 };
@@ -162,13 +167,18 @@ ITEM.lenOrder = {
     if (tries >= 3) { const m = helpG(svg), u = item.vals.some(v => v[1] === 'mm') ? 'mm' : 'cm'; item.vals.forEach((v, i) => { const t = el('text', { x: ORD_XY[i][0], y: ORD_XY[i][1] + 44, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: css('--think'), direction: 'rtl' }, m); t.textContent = '= ' + (lenMM(v) / LEN_MM[u]) + ' ' + labelText(LEN_LB[u]); }); await S('gen.len.together.order'); }
     else await S(item.q);
     /*T*/window.__ordWant = item.want.split(',').map(Number); window.__ordAt = i => { const r = cards[i].getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };/*/T*/
-    await gate(new Promise(res => { const pick = i => { if (picked.includes(i) || picked.length >= cards.length) return; picked.push(i); SFX.tick(); badge(badges, ORD_XY[i][0] + 66, ORD_XY[i][1] - 26, picked.length, css('--compass')); cards[i].querySelector('rect').setAttribute('fill', '#eef6fb'); if (picked.length === cards.length) { AUTO_CLEAR(); res(); } };
+    /* لمسة على بطاقة مرقّمة تمحوها وما بعدها، والبند يُسلَّم بـ«تمّ» بعد الأربع (المراجع B لبوابة U6/U7، 8: لمسة خاطئة واحدة كانت تُسجَّل خطأً) */
+    const fill0 = cards.map(c => c.querySelector('rect').getAttribute('fill'));
+    await gate(new Promise(res => { let bar = null; const draw = () => { badges.innerHTML = ''; cards.forEach((c, i) => c.querySelector('rect').setAttribute('fill', fill0[i])); picked.forEach((i, n) => { badge(badges, ORD_XY[i][0] + 66, ORD_XY[i][1] - 26, n + 1, css('--compass')); cards[i].querySelector('rect').setAttribute('fill', '#eef6fb'); });
+        if (picked.length === cards.length && !bar) { bar = doneBtn(); bar.b.onclick = () => { if (picked.length !== cards.length) return; AUTO_CLEAR(); hush(); bar.bar.remove(); res(); }; } else if (picked.length < cards.length && bar) { bar.bar.remove(); bar = null; } };
+      const pick = i => { const at = picked.indexOf(i); if (at >= 0) picked.splice(at); else picked.push(i); SFX.tick(); draw(); };
       cards.forEach((g, i) => { g.onclick = () => pick(i); g.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); pick(i); } }; });
-      AUTO({ kind: 'lenOrder', ok: () => item.want.split(',').forEach(i => pick(+i)), wrong: () => [...item.want.split(',')].reverse().forEach(i => pick(+i)) }); }));
+      const fin = () => setTimeout(() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }, 0);
+      AUTO({ kind: 'lenOrder', ok: () => { item.want.split(',').forEach(i => pick(+i)); fin(); }, wrong: () => { [...item.want.split(',')].reverse().forEach(i => pick(+i)); fin(); } }); }));
     cards.forEach(g => { g.onclick = null; g.onkeydown = null; g.removeAttribute('role'); }); return { ans: picked.join(','), ctx: { svg, badges, cards } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const byNum = item.vals.map((v, i) => i).sort((i, j) => item.vals[i][0] - item.vals[j][0]).join(','); return { ok: false, err: k === byNum ? 'orderDigits' : 'orderOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.len.hint.order'); }, async together() {},
+  async hint2(item, r) { const u = item.vals.some(v => v[1] === 'mm') ? 'mm' : 'cm', i = item.vals.findIndex(v => v[1] !== u && v[1] !== 'mc'); if (r && r.ctx && r.ctx.svg && i >= 0) hintCard(r.ctx.svg, 180, 26, `${item.vals[i][0]} ${U_(item.vals[i][1])} = ${lenMM(item.vals[i]) / LEN_MM[u]} ${U_(u)}`); await S('gen.len.hint.order'); }, async together() {},   /* طولٌ واحد يُحوَّل، والباقي للطفل */
   async reveal(item, r) { r.ctx.badges.innerHTML = ''; item.want.split(',').forEach((i, n) => badge(r.ctx.badges, ORD_XY[+i][0] + 66, ORD_XY[+i][1] - 26, n + 1, LENC.ok)); await S('gen.len.reveal.order'); },
   praise: () => 'praiseOrder', twin(item) { return item.twin || null; },
 };
@@ -187,10 +197,10 @@ ITEM.lenCalc = {
   async ask(item, mode, tries) { const svg = newStage(212, { oasis: false, ground: 0 }), T = calcTable(svg, item, 30);
     if (tries >= 3) { await S(item.op === '-' ? 'gen.len.together.sub' : 'gen.len.together.add'); const m = helpG(svg), t = el('text', { x: 316, y: 120, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: css('--think'), direction: 'rtl' }, m); t.textContent = `100 ${labelText('rulCm')}`; const t2 = el('text', { x: 316, y: 140, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: css('--think'), direction: 'rtl' }, m); t2.textContent = `= 1 ${labelText('lenM')}`; }
     else await S(item.q);
-    const k = await choosePick(lenOpts(item.ch.map(p => [p, 'pair'])), item.want); return { ans: k, ctx: { svg, T } }; },
+    const k = await choosePick(shuffle(lenOpts(item.ch.map(p => [p, 'pair']))), item.want); return { ans: k, ctx: { svg, T } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const [m, c] = k.split('_').map(Number); if (c >= 100 && m * 100 + c === item.w) return { ok: false, err: 'noRegroup' }; if (item.op === '-') return { ok: false, err: 'subBorrow' }; return { ok: false, err: m * 100 + c === item.w - 100 ? 'lostCarry' : 'calcOff' }; },
   onOk(item, r) { SFX.good(); const [m, c] = mcNorm(item.w); r.ctx.T.r1.textContent = String(m); r.ctx.T.r2.textContent = String(c); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.op === '-' ? 'gen.len.hint.sub' : 'gen.len.hint.add'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const a = item.a[1], b = item.b[1]; hintCard(r.ctx.svg, 180, 26, item.op === '-' ? (a < b ? `${a} < ${b}: 1 ${U_('m')} = 100 ${U_('cm')}` : `${a} − ${b} = ${a - b} ${U_('cm')}`) : `${a} + ${b} = ${a + b} ${U_('cm')}`); } await S(item.op === '-' ? 'gen.len.hint.sub' : 'gen.len.hint.add'); }, async together() {},   /* عمود السنتيمترات وحده: مجموعه، أو أنّ الطرح يحتاج متراً */
   async reveal(item, r) { const [m, c] = mcNorm(item.w); r.ctx.T.r1.textContent = String(m); r.ctx.T.r2.textContent = String(c); await S('gen.len.reveal.calc', { noGap: true }); await S(lenLn([[m, c], 'pair']), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -203,10 +213,10 @@ ITEM.lenRound = {
     const cm = item.v[0] * 100 + item.v[1], px = X(cm); el('circle', { cx: px, cy: 130, r: 8, fill: '#c8392d' }, g); lenCard(g, px, 76, [[item.v[0], item.v[1]], 'pair'], { w: 128, h: 46, fs: 18 });
     if (tries >= 3) { const m = helpG(svg); for (const i of [0, 1, 2]) { const x = X((m0 + i) * 100); if (Math.abs(x - px) <= k) el('path', { d: `M${px} 142 Q${(px + x) / 2} 160 ${x} 142`, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, m); } await S('gen.len.together.round'); }
     else await S(item.q);
-    const k2 = await choosePick(lenOpts(item.ch.map(n => [n, 'm'])), item.want); return { ans: k2, ctx: { svg } }; },
+    const k2 = await choosePick(shuffle(lenOpts(item.ch.map(n => [n, 'm']))), item.want); return { ans: k2, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'roundOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.len.hint.round'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 26, `${labelText('lenMid')} 50 ${U_('cm')}`); await S('gen.len.hint.round'); }, async together() {},   /* المنتصف بين المترين: ما قبله للأقلّ وما بعده للأكثر */
   async reveal(item) { await S('gen.len.reveal.round', { noGap: true }); await S(lenLn([item.w, 'm']), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -218,7 +228,7 @@ ITEM.fenceBuild = {
   async ask(item, mode, tries) { const svg = newStage(290, { oasis: false, ground: 0 }), on = new Set(), g = el('g', {}, svg), W = 280, x0 = 40, k = W / item.goal;
     el('rect', { x: x0, y: 70, width: W, height: 22, rx: 4, fill: 'none', stroke: LENC.ink, 'stroke-width': 2, 'stroke-dasharray': '6 4' }, g); const gl = el('text', { x: 180, y: 56, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, g); gl.textContent = labelText('lenGoal') + ' ' + lenTxt([item.goal, 'mc']);
     const built = el('g', {}, g), tot = el('text', { x: 180, y: 122, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: LENC.bar, direction: 'rtl' }, g);
-    const redraw = () => { built.innerHTML = ''; let x = x0 + W, s = 0; [...on].sort((a, b) => a - b).forEach(i => { const w = item.pieces[i] * k; s += item.pieces[i]; el('rect', { x: Math.max(x - w, x0 - 40), y: 72, width: w, height: 18, fill: i % 2 ? '#b9794e' : '#d39a66', stroke: '#8a5a3a', 'stroke-width': 1.5 }, built); x -= w; }); tot.textContent = labelText('lenSum') + ' ' + lenTxt([s, 'mc']); tot.setAttribute('fill', s > item.goal ? '#c8392d' : LENC.bar); /*T*/window.__fenceSum = s;/*/T*/ return s; };
+    const redraw = () => { built.innerHTML = ''; let x = x0 + W, s = 0; [...on].sort((a, b) => a - b).forEach(i => { const w = item.pieces[i] * k; s += item.pieces[i]; el('rect', { x: Math.max(x - w, x0 - 40), y: 72, width: w, height: 18, fill: i % 2 ? '#b9794e' : '#d39a66', stroke: '#8a5a3a', 'stroke-width': 1.5 }, built); x -= w; }); tot.textContent = labelText('lenSum') + ' ' + lenTxt([s, 'mc']); tot.setAttribute('fill', s > item.goal && !NEUTRAL_ANS ? '#c8392d' : LENC.bar);   /* بلا لون حكم في الإتقان والاختبار (B-7) */ /*T*/window.__fenceSum = s;/*/T*/ return s; };
     const P = item.pieces.map((c, i) => { const [x, y] = FENCE_XY(i), pg = lenCard(svg, x, y, [c, 'mc'], { w: 112, h: 70, fs: 16 }); pg.setAttribute('role', 'button'); pg.setAttribute('tabindex', 0); pg.setAttribute('aria-label', plain(lenTxt([c, 'mc']))); pg.style.cursor = 'pointer';
       const tog = () => { if (on.has(i)) on.delete(i); else on.add(i); pg.querySelector('rect').setAttribute('fill', on.has(i) ? '#f2d38a' : '#fffdf6'); SFX.tick(); redraw(); }; pg.onclick = tog; pg.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); tog(); } }; return { pg, tog }; });
     redraw(); if (tries >= 3) { const i0 = item.pieces.findIndex((c, i) => item.okMask >> i & 1); P[i0].tog(); await S('gen.len.together.fence'); } else await S(item.q);
@@ -228,22 +238,22 @@ ITEM.fenceBuild = {
     return { ans: redraw(), ctx: { svg, redraw } }; },
   judge(item, s) { return s === item.goal ? { ok: true } : { ok: false, err: s > item.goal ? 'fenceOver' : 'fenceShort' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.len.hint.fence'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const got = typeof r.ans === 'number' ? r.ans : null; if (got != null && got !== item.goal) hintCard(r.ctx.svg, 180, 150, got < item.goal ? `${labelText('lenLeft')} ${lenTxt([item.goal - got, 'mc'])}` : `${labelText('lenOver')} ${lenTxt([got - item.goal, 'mc'])}`); } await S('gen.len.hint.fence'); }, async together() {},   /* ما بقي أو ما زاد على الهدف */
   async reveal(item) { await S('gen.len.reveal.fence'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 
 /* ================= ⑪ قدّر (C187، د4): thing، ch أطوال؛ الجواب أقربها إلى طوله الحقيقي (real بالسنتيمتر). المراجع الشخصية في الحلّ المشترك ================= */
 ITEM.estPick = {
-  make(spec) { const best = spec.ch.map(v => [v, Math.abs(Math.log(lenMM(v) / (spec.real * 10)))]).sort((a, b) => a[1] - b[1])[0][0]; return { ...spec, want: lenKey(best), tag: 'est-pick' }; },
+  make(spec) { const rmm = spec.real * LEN_MM[spec.realU || 'cm'], best = spec.ch.map(v => [v, Math.abs(Math.log(lenMM(v) / rmm))]).sort((a, b) => a[1] - b[1])[0][0]; return { ...spec, want: lenKey(best), tag: 'est-pick' }; },   /* real بوحدته realU (المراجع A لبوابة U6/U7، 1: كان سنتيمتراً دائماً والمحتوى كتبه بالمتر والملم) */
   async ask(item, mode, tries) { const svg = lenStage(220); lenThing(svg, item.thing, 196, 104, 1.2); const t = el('text', { x: 196, y: 186, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 700, fill: LENC.ink }, svg); t.textContent = labelText('len.th.' + item.thing);
     if (tries >= 3) { const m = helpG(svg); lenThing(m, item.ref || 'finger', 62, 104, .7); const tt = el('text', { x: 62, y: 166, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: css('--think'), direction: 'rtl' }, m); tt.textContent = labelText('len.ref.' + (item.ref || 'finger')); await S('gen.len.together.est'); await S('gen.len.ref.' + (item.ref || 'finger'), { append: true }); }
     else { await S(item.q, { noGap: true }); await S('gen.len.th.' + item.thing, { append: true }); }
-    const k = await choosePick(lenOpts(item.ch), item.want); return { ans: k, ctx: { svg } }; },
+    const k = await choosePick(shuffle(lenOpts(item.ch)), item.want); return { ans: k, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'estFar' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S('gen.len.hint.est'); await S('gen.len.ref.' + (item.ref || 'finger'), { append: true }); }, async together() {},
-  async reveal(item) { await S('gen.len.reveal.est', { noGap: true }); await S(lenLn([item.real, 'cm']), { append: true }); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg); lenThing(m, item.ref || 'finger', 62, 104, .7); } await S('gen.len.hint.est'); await S('gen.len.ref.' + (item.ref || 'finger'), { append: true }); }, async together() {},   /* الشيء المرجع مرسوماً بجانبه */
+  async reveal(item) { await S('gen.len.reveal.est', { noGap: true }); await S(lenLn([item.real, item.realU || 'cm']), { append: true }); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
 
@@ -264,7 +274,7 @@ ITEM.trackDesign = {
     return { ans: V.join(','), ctx: { svg } }; },
   judge(item, k) { const s = k.split(',').map(Number), sum = s.reduce((a, b) => a + b, 0); if (sum !== 1000) return { ok: false, err: 'trackSum' }; if (new Set(s).size !== s.length) return { ok: false, err: 'trackSame' }; return { ok: true }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.len.hint.track'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30 + (item.n || 4) * 64, `1 ${U_('km')} = 1000 ${U_('m')}`); await S('gen.len.hint.track'); }, async together() {},
   async reveal() { await S('gen.len.reveal.track'); },
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };

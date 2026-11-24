@@ -29,7 +29,9 @@ def rd(v,ch,q='pr.round'):
     w=v[0]+(1 if v[1]>=50 else 0); assert w in ch
     return {"t":"lenRound","q":q,"v":v,"ch":ch}
 def fb(goal,pieces,q='pr.fence'): return {"t":"fenceBuild","q":q,"fence":goal,"pieces":pieces}
-def ep(thing,real,ch,ref='finger',q='pr.est'): return {"t":"estPick","q":q,"thing":thing,"real":real,"ch":ch,"ref":ref}
+def ep(thing,real,ch,ref='finger',q='pr.est'):   # الطول الحقيقي بوحدة الخيار الصحيح (الأول): «5 كم» للنهر لا 5000 سم (المراجع A لبوابة U6/U7، 1)
+    n,u=ch[0]; assert real==n*{'mm':.1,'cm':1,'m':100,'km':100000}[u], (thing,real,ch)
+    return {"t":"estPick","q":q,"thing":thing,"real":n,"realU":u,"ch":ch,"ref":ref}
 def td(n=4,q='pr.track'): return {"t":"trackDesign","q":q,"n":n}
 
 dump(U+'/unit.json', {"id":"m2.u6","title":"المِسْطَرَةُ السِّحْرِيَّةُ","sub":"المَرْحَلَةُ الثَّانِيَةُ: البَنَّاؤُونَ","district":"حَيُّ المَسَافَاتِ","hosts":["rect","square","triangle"],"hunt":[],
@@ -92,16 +94,16 @@ d1={"id":"m2.u6.d1","title":"المِتْرُ وَالكِيلُومِتْرُ",
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(up('coin'),up('table')), tw(tr(90,[90,80,95]),tr(55,[55,65,50])), tw(cf([2,'m'],'cm',[20,200,2000]),cf([3,'km'],'m',[300,3000,30]))],
-  "challenge":[tw(tr(135,[135,153,125],thing='door',m=True),tr(160,[160,106,150],thing='table',m=True)), tw(cf([1,'m'],'mm',[100,1000,10]),cf([5,'m'],'cm',[50,500,5000])), tw(up('river'),up('phone'))]},
+  "challenge":[tw(tr(135,[135,153,125],thing='door'),tr(160,[160,106,150],thing='table')), tw(cf([1,'m'],'mm',[100,1000,10]),cf([5,'m'],'cm',[50,500,5000])), tw(up('river'),up('phone'))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":up('pencil'),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
-   "C186":[tr(115,[115,151,105],thing='door',m=True), cf([4,'km'],'m',[40,400,4000]), reason("ms.1",{"kind":"tape","len":100,"thing":"table"},["ms.1a","ms.1b","ms.1c"])],
+   "C186":[tr(115,[115,151,105],thing='door'), cf([4,'km'],'m',[40,400,4000]), reason("ms.1",{"kind":"tape","len":100,"thing":"table"},["ms.1a","ms.1b","ms.1c"])],
    "C187":[up('bus'), up('finger'), reason("ms.2",{"kind":"thing","thing":"room"},["ms.2a","ms.2b","ms.2c"])]},
   "recall":{"C186":{"scene":"recallTape","len":100,"thing":"table","lines":["ms.recall"]},"C187":{"scene":"recallUnit","pics":["ant","pencil","door","road"],"lines":["ms.recall2"]}},
   "remedial":{"C186":[tw(tr(80,[80,70,85]),cf([6,'m'],'cm',[60,600,6000]))],"C187":[tw(up('eraser'),up('car'))]},
   "mixed":{"lesson":"m2.u5.d2","concept":"C173","item":{"t":"axisCount","q":"pr.count","k":"qKite5","rot":25}},
   "ok":"ms.ok"},
- "review":[dict(up('trip'),c="C187"), dict(tr(65,[65,75,60]),c="C186"), dict(up('room'),c="C187"), dict(cf([7,'m'],'cm',[70,700,7000]),c="C186"), dict(up('nail'),c="C187"), dict(tr(140,[140,104,130],thing='table',m=True),c="C186")],
+ "review":[dict(up('trip'),c="C187"), dict(tr(65,[65,75,60]),c="C186"), dict(up('room'),c="C187"), dict(cf([7,'m'],'cm',[70,700,7000]),c="C186"), dict(up('nail'),c="C187"), dict(tr(140,[140,104,130],thing='table'),c="C186")],
  "wrap":{"art":"lenArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"أعطوه شريط القياس ليقيس الباب والطاولة بنفسه، وأمسكوا الطرف عند الصفر فقط. واسألوه قبل كل قياس: «بأيّ وحدة نقيس هذا؟ سم أم م؟»."}
 
@@ -155,7 +157,7 @@ d2={"id":"m2.u6.d2","title":"أُحَوِّلُ وَأُقَارِنُ","icon":[
   "challenge":[tw(lo([[1,'m'],[80,'cm'],[1200,'mm'],[95,'cm']]),lo([[2,'m'],[150,'cm'],[1800,'mm'],[210,'cm']])), tw(mc(408,'toMC',[[4,8],[40,8],[4,80]]),mc(605,'toCM',[605,650,6005])), tw(lc([1,'km'],[900,'m']),lc([300,'cm'],[3,'m']))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":lc([50,'cm'],[2,'m']),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
-   "C188":[cf([8,'m'],'cm',[80,800,8000]), cm_([70,'mm'],'cm'), reason("ms.1",{"kind":"conv","v":[1,"m"],"to":"cm"},["ms.1a","ms.1b","ms.1c"])],
+   "C188":[cf([8,'m'],'cm',[80,800,8000]), cm_([70,'mm'],'cm'), reason("ms.1",{"kind":"conv","v":[6,"m"],"to":"cm"},["ms.1a","ms.1b","ms.1c"])],
    "C189":[mc(195,'toMC',[[1,95],[19,5],[1,59]]), lc([2,'m'],[190,'cm']), lo([[90,'cm'],[1,'m'],[850,'mm'],[120,'cm']])]},
   "recall":{"C188":{"scene":"recallConv","v":[2,"m"],"to":"cm","lines":["ms.recall"]},"C189":{"scene":"recallConv","v":[3,"m"],"to":"cm","lines":["ms.recall2"]}},
   "remedial":{"C188":[tw(cf([9,'m'],'cm',[90,900,9000]),cm_([5,'km'],'m'))],"C189":[tw(mc(150,'toMC',[[1,50],[15,0],[1,5]]),lc([60,'mm'],[5,'cm']))]},
@@ -220,7 +222,7 @@ d3={"id":"m2.u6.d3","title":"أَجْمَعُ وَأَطْرَحُ الأَطْ�
   "remedial":{"C190":[tw(calc([1,70],[1,40],'+',[[3,10],[2,110],[2,10]]),calc([4,0],[1,30],'-',[[2,70],[3,30],[3,70]]))]},
   "mixed":{"lesson":"m2.u6.d2","concept":"C189","item":lc([7,'m'],[690,'cm'])},
   "ok":"ms.ok"},
- "review":[dict(calc([2,55],[1,65],'+',[[4,20],[3,120],[3,20]]),c="C190"), dict(rd([4,60],[4,5,46]),c="C190"), dict(calc([5,0],[1,25],'-',[[3,75],[4,25],[4,75]]),c="C190"), dict(fb(550,[200,180,170,100]),c="C190"), dict(calc([0,75],[0,48],'+',[[1,23],[0,123],[1,13]]),c="C190"), dict(rd([6,35],[6,7,63]),c="C190")],
+ "review":[dict(calc([3,45],[1,85],'+',[[5,30],[4,130],[4,30]]),c="C190"), dict(rd([4,60],[4,5,46]),c="C190"), dict(calc([5,0],[1,25],'-',[[3,75],[4,25],[4,75]]),c="C190"), dict(fb(550,[200,180,170,100]),c="C190"), dict(calc([0,75],[0,48],'+',[[1,23],[0,123],[1,13]]),c="C190"), dict(rd([6,35],[6,7,63]),c="C190")],
  "wrap":{"art":"lenArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"قيسوا مع الطفل خيطين، واجمعوا طوليهما، ثم ضعوهما طرفاً بطرف وقيسوا لتتحققوا. وإن كتب «3 م 120 سم» فاسألوه: «كم سنتيمتراً في المتر؟»."}
 
@@ -262,12 +264,12 @@ d4={"id":"m2.u6.d4","title":"قِيَاسُ مَدِينَتِي","icon":["lenci
  "flow":[
   {"s":"hook","scene":"refsShow","refs":["finger","pencil","door"],"lines":["rf.01","rf.02"]},
   {"s":"explore","scene":"roomPlan","w":[4,20],"h":[3,50],"mat":MAT(),"lines":["rp.01","rp.02","rp.03"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(ep('table',75,[[75,'cm'],[7,'m'],[7,'cm']]),tr(75,[75,85,70],q='pr.tape')), tw(ep('bus',1200,[[12,'m'],[12,'cm'],[120,'m']],ref='door'),ep('book',25,[[25,'cm'],[25,'mm'],[25,'m']],ref='finger'))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(ep('table',100,[[1,'m'],[10,'m'],[1,'cm']]),tr(75,[75,85,70],q='pr.tape')), tw(ep('bus',1200,[[12,'m'],[12,'cm'],[120,'m']],ref='door'),ep('book',25,[[25,'cm'],[25,'mm'],[25,'m']],ref='finger'))]},
   {"s":"game","scene":"items","mode":"practice","intro":"trk.01","items":[tw(td(),td(3,q='pr.track3'))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(ep('eraser',5,[[5,'cm'],[5,'m'],[50,'cm']],ref='finger'),ep('room',400,[[4,'m'],[4,'cm'],[40,'m']],ref='door')), tw(lo([[12,'m'],[25,'cm'],[2,'m'],[15,'cm']],q='pr.order'),lo([[1,'km'],[4,'m'],[75,'cm'],[300,'m']],q='pr.order')), tw(tr(95,[95,85,90],thing='table'),tr(125,[125,152,115],thing='door',m=True))],
-  "challenge":[tw(ep('ant',8,[[8,'mm'],[8,'cm'],[8,'m']],ref='finger'),ep('race',1000,[[1,'km'],[1,'m'],[100,'km']],ref='door')), tw(lo([[1500,'mm'],[1,'m'],[120,'cm'],[2,'m']],q='pr.order'),lo([[600,'m'],[1,'km'],[2000,'m'],[1500,'m']],q='pr.order')), tw(tr(180,[180,108,170],thing='table',m=True),tr(60,[60,50,65],thing='table'))]},
+  "challenge":[tw(ep('ant',.8,[[8,'mm'],[8,'cm'],[8,'m']],ref='finger'),ep('race',100000,[[1,'km'],[1,'m'],[100,'km']],ref='door')), tw(lo([[1500,'mm'],[1,'m'],[120,'cm'],[2,'m']],q='pr.order'),lo([[600,'m'],[1,'km'],[2000,'m'],[1500,'m']],q='pr.order')), tw(tr(180,[180,108,170],thing='table',m=True),tr(60,[60,50,65],thing='table'))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":ep('door',200,[[2,'m'],[20,'cm'],[20,'m']],ref='finger'),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
    "C187":[ep('phone',14,[[14,'cm'],[14,'mm'],[14,'m']],ref='finger'), ep('bed',200,[[2,'m'],[20,'cm'],[20,'m']],ref='door'), reason("ms.1",{"kind":"thing","thing":"door"},["ms.1a","ms.1b","ms.1c"])]},
@@ -275,7 +277,7 @@ d4={"id":"m2.u6.d4","title":"قِيَاسُ مَدِينَتِي","icon":["lenci
   "remedial":{"C187":[tw(ep('car',400,[[4,'m'],[4,'cm'],[40,'m']],ref='door'),ep('tree',600,[[6,'m'],[6,'cm'],[60,'m']],ref='door'))]},
   "mixed":{"lesson":"m2.u6.d3","concept":"C190","item":calc([3,45],[1,70],'+',[[5,15],[4,115],[4,15]])},
   "ok":"ms.ok"},
- "review":[dict(ep('coin',2,[[2,'mm'],[2,'cm'],[20,'cm']],ref='finger'),c="C187"), dict(ep('road',5000,[[5,'km'],[5,'m'],[500,'cm']],ref='door'),c="C187")],
+ "review":[dict(ep('coin',.2,[[2,'mm'],[2,'cm'],[20,'cm']],ref='finger'),c="C187"), dict(ep('road',500000,[[5,'km'],[5,'m'],[500,'cm']],ref='door'),c="C187")],
  "wrap":{"art":"lenArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اطلبوا منه التقدير قبل القياس دائماً: «كم تظنّ طول السرير؟» ثم يقيس بنفسه. وارسموا على الجدار علامة طول كل فرد في الأسرة بالسنتيمتر، وسجّلوها كل شهر."}
 
@@ -305,7 +307,7 @@ L5={
  "q.ruler":"كَمْ طُولُ القَلَمِ؟",
  "q.fence":"قِطَعُ سِلْكٍ لِسُورٍ طُولُهُ تِسْعَةُ أَمْتَارٍ: {اِخْتَرْ|اِخْتَارِي} قِطَعًا مَجْمُوعُهَا طُولُ السُّورِ تَمَامًا، ثُمَّ «تَمَّ».",
  "q.cmp":"أَيُّهُمَا أَطْوَلُ؟",
- "ts.10":"جَمَعَ طَالِبٌ مِتْرَيْنِ وَأَرْبَعِينَ سَنْتِيمِتْرًا وَمِتْرًا وَثَمَانِينَ، فَكَتَبَ: ثَلَاثَةُ أَمْتَارٍ وَمِئَةٌ وَعِشْرُونَ. مَا خَطَؤُهُ؟",
+ "ts.10":"جَمَعَ طَالِبٌ مِتْرًا وَخَمْسَةً وَأَرْبَعِينَ سَنْتِيمِتْرًا وَمِتْرَيْنِ وَخَمْسَةً وَسَبْعِينَ، فَكَتَبَ: ثَلَاثَةُ أَمْتَارٍ وَمِئَةٌ وَعِشْرُونَ. مَا خَطَؤُهُ؟",
  "ts.10a":"لَمْ يَنْقُلِ المِئَةَ سَنْتِيمِتْرٍ إِلَى الأَمْتَارِ.",
  "ts.10b":"أَخْطَأَ فِي جَمْعِ الأَمْتَارِ وَحْدَهَا.",
  "ts.10c":"كَانَ عَلَيْهِ أَنْ يَطْرَحَ بَدَلَ أَنْ يَجْمَعَ.",
@@ -334,12 +336,12 @@ d5={"id":"m2.u6.d5","title":"سَيِّدُ المِسْطَرَةِ","icon":["s
   "normal":[tw(up('race',q='q.unit'),up('book',q='q.unit')), tw(cm_([4,'m'],'cm',q='q.machine'),cm_([6000,'m'],'km',q='q.machine')), tw(lc([3,'km'],[2900,'m'],q='q.cmp'),lc([80,'mm'],[9,'cm'],q='q.cmp'))],
   "challenge":[tw(calc([4,15],[2,80],'-',[[1,35],[2,65],[2,35]],q='q.sub'),calc([2,75],[2,45],'+',[[5,20],[4,120],[4,20]],q='q.add')), tw(tr(105,[105,150,95],thing='door',m=True,q='q.tape'),tr(50,[50,55,45],q='q.tape')), tw(ep('door',200,[[2,'m'],[2,'cm'],[20,'m']],ref='finger',q='q.est'),ep('pencil',15,[[15,'cm'],[15,'m'],[150,'cm']],ref='finger',q='q.est'))]},
  "test":{"remedial":"ts.rem","stoneLine":"ts.stone","winLines":["ts.win1","ts.win2"],"items":[   # كما في المرجع (12): 2 الوحدة والتقدير، 2 التحويل، 1 الترتيب، 2 الجمع والطرح (أحدهما بإعادة التجميع)، 2 القياس (الشريط، والمسطرة من S2-U0)، 1 اكتشاف الخطأ، 1 مسألة حياتية، 1 التعليل مكان المفتوح
-   T(1,1,up('tree',q='q.unit')), T(2,4,ep('river',5000,[[5,'km'],[5,'m'],[50,'cm']],ref='door',q='q.est')),
-   T(3,2,cf([8,'km'],'m',[80,800,8000],q='q.conv')), T(4,2,cm_([90,'mm'],'cm',q='q.machine')),
+   T(1,1,up('tree',q='q.unit')), T(2,4,ep('river',500000,[[5,'km'],[5,'m'],[50,'cm']],ref='door',q='q.est')),
+   T(3,2,cf([8,'km'],'m',[80,800,8000],q='q.conv')), T(4,2,cm_([3,'m'],'mm',q='q.machine')),
    T(5,2,lo([[2,'m'],[180,'cm'],[2500,'mm'],[220,'cm']],q='q.order')),
-   T(6,3,calc([2,45],[1,75],'+',[[4,20],[3,120],[3,20]],q='q.add')), T(7,3,calc([5,10],[2,40],'-',[[2,70],[3,30],[3,70]],q='q.sub')),
+   T(6,3,calc([4,35],[2,85],'+',[[7,20],[6,120],[6,20]],q='q.add')), T(7,3,calc([6,15],[3,50],'-',[[2,65],[3,35],[3,65]],q='q.sub')),
    T(8,1,tr(40,[40,45,35],thing='table',q='q.tape')), T(9,1,{"t":"rulerRead","q":"q.ruler","b":9,"a":2,"brk":True,"thing":"pencil"}),
-   T(10,3,reason("ts.10",{"kind":"calc","a":[2,40],"b":[1,80],"op":"+"},["ts.10a","ts.10b","ts.10c"])),
+   T(10,3,reason("ts.10",{"kind":"calc","a":[1,45],"b":[2,75],"op":"+","res":[3,120]},["ts.10a","ts.10b","ts.10c"])),
    T(11,3,fb(900,[400,250,175,75,150],q='q.fence')),
    T(12,1,reason("ts.12",{"kind":"thing","thing":"pencil"},["ts.12a","ts.12b","ts.12c"]))]},
  "wrap":{"art":"medal","lines":["wrap.01"],"home":"wrap.home"},

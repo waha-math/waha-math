@@ -113,18 +113,19 @@
      "t": "estPick",
      "q": "pr.est",
      "thing": "table",
-     "real": 75,
+     "real": 1,
+     "realU": "m",
      "ch": [
       [
-       75,
-       "cm"
-      ],
-      [
-       7,
+       1,
        "m"
       ],
       [
-       7,
+       10,
+       "m"
+      ],
+      [
+       1,
        "cm"
       ]
      ],
@@ -145,7 +146,8 @@
      "t": "estPick",
      "q": "pr.est",
      "thing": "bus",
-     "real": 1200,
+     "real": 12,
+     "realU": "m",
      "ch": [
       [
        12,
@@ -166,6 +168,7 @@
       "q": "pr.est",
       "thing": "book",
       "real": 25,
+      "realU": "cm",
       "ch": [
        [
         25,
@@ -224,6 +227,7 @@
     "q": "pr.est",
     "thing": "eraser",
     "real": 5,
+    "realU": "cm",
     "ch": [
      [
       5,
@@ -243,7 +247,8 @@
      "t": "estPick",
      "q": "pr.est",
      "thing": "room",
-     "real": 400,
+     "real": 4,
+     "realU": "m",
      "ch": [
       [
        4,
@@ -335,6 +340,7 @@
     "q": "pr.est",
     "thing": "ant",
     "real": 8,
+    "realU": "mm",
     "ch": [
      [
       8,
@@ -354,7 +360,8 @@
      "t": "estPick",
      "q": "pr.est",
      "thing": "race",
-     "real": 1000,
+     "real": 1,
+     "realU": "km",
      "ch": [
       [
        1,
@@ -448,7 +455,8 @@
    "t": "estPick",
    "q": "pr.est",
    "thing": "door",
-   "real": 200,
+   "real": 2,
+   "realU": "m",
    "ch": [
     [
      2,
@@ -478,6 +486,7 @@
      "q": "pr.est",
      "thing": "phone",
      "real": 14,
+     "realU": "cm",
      "ch": [
       [
        14,
@@ -498,7 +507,8 @@
      "t": "estPick",
      "q": "pr.est",
      "thing": "bed",
-     "real": 200,
+     "real": 2,
+     "realU": "m",
      "ch": [
       [
        2,
@@ -557,7 +567,8 @@
      "t": "estPick",
      "q": "pr.est",
      "thing": "car",
-     "real": 400,
+     "real": 4,
+     "realU": "m",
      "ch": [
       [
        4,
@@ -577,7 +588,8 @@
       "t": "estPick",
       "q": "pr.est",
       "thing": "tree",
-      "real": 600,
+      "real": 6,
+      "realU": "m",
       "ch": [
        [
         6,
@@ -636,6 +648,7 @@
    "q": "pr.est",
    "thing": "coin",
    "real": 2,
+   "realU": "mm",
    "ch": [
     [
      2,
@@ -657,7 +670,8 @@
    "t": "estPick",
    "q": "pr.est",
    "thing": "road",
-   "real": 5000,
+   "real": 5,
+   "realU": "km",
    "ch": [
     [
      5,

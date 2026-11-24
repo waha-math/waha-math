@@ -36,7 +36,7 @@ def phrase(n,u):
         last=not r
         parts.append((H_CON if last else H_NOM)[h])
     if r:
-        parts.append(FEW[r][:-1]+'ٌ' if r<=10 else tens(r))
+        parts.append(FEW[r] if r<=10 else tens(r))   # مضاف إلى المعدود: «وَثَمَانِيَةُ سَنْتِيمِتْرَاتٍ» لا «وَثَمَانِيَةٌ» (المراجع A لبوابة U6/U7، 18)
     s=parts[0]+''.join(' '+wa(p) for p in parts[1:])
     if r==0: return s+' '+W['gen']
     return s+' '+(W['few'] if r<=10 else W['many'])
@@ -132,7 +132,7 @@ G.update({
  "gen.home.tileOk":"صَحِيحٌ: لِلْمُرَبَّعِ أَرْبَعَةُ مَحَاوِرَ، اثْنَانِ مِنْ مُنْتَصَفَاتِ الأَضْلَاعِ، وَقُطْرَانِ.",
  "gen.home.tileNo":"لِلْمُرَبَّعِ أَرْبَعَةُ مَحَاوِرَ: اثْنَانِ مِنْ مُنْتَصَفَاتِ الأَضْلَاعِ، وَقُطْرَانِ. {اِطْوِ|اِطْوِي} الوَرَقَةَ عَلَى قُطْرِهَا {لِتَرَى|لِتَرَيْ}.",
 })
-LB={"lenM":"م","lenKm":"كم","lenEq":"مُتَسَاوِيَانِ","lenGoal":"طُولُ السُّورِ:","lenSum":"المَجْمُوعُ:",
+LB={"lenM":"م","lenKm":"كم","lenEq":"مُتَسَاوِيَانِ","lenGoal":"طُولُ السُّورِ:","lenLeft":"بَقِيَ:","lenMid":"المُنْتَصَفُ:","lenOver":"زَادَ:","lenSum":"المَجْمُوعُ:",
  "len.th.ant":"نَمْلَةٌ","len.th.coin":"قِطْعَةُ نُقُودٍ","len.th.pencil":"قَلَمٌ","len.th.book":"كِتَابٌ","len.th.eraser":"مِمْحَاةٌ","len.th.door":"بَابٌ","len.th.doorW":"عَرْضُ البَابِ","len.th.room":"غُرْفَةٌ","len.th.bus":"حَافِلَةٌ","len.th.road":"طَرِيقٌ بَيْنَ مَدِينَتَيْنِ","len.th.race":"مِضْمَارُ سِبَاقٍ","len.th.finger":"إِصْبَعٌ","len.th.table":"طَاوِلَةٌ","len.th.seed":"بِذْرَةٌ","len.th.phone":"هَاتِفٌ","len.th.nail":"مِسْمَارٌ","len.th.bed":"سَرِيرٌ","len.th.car":"سَيَّارَةٌ","len.th.tree":"شَجَرَةٌ","len.th.river":"نَهْرٌ","len.th.trip":"رِحْلَةٌ إِلَى مَدِينَةٍ",
  "len.ex.mm":"نَمْلَةٌ","len.ex.cm":"قَلَمٌ","len.ex.m":"بَابٌ","len.ex.km":"طَرِيقٌ",
  "len.ref.finger":"1 سم تَقْرِيبًا","len.ref.pencil":"15 سم تَقْرِيبًا","len.ref.door":"2 م تَقْرِيبًا"}

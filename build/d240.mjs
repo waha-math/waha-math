@@ -15,7 +15,12 @@ const POLYS0 = loadPolys(new URL('../src/js/49_m2_poly.js', import.meta.url)), C
 const C = k => CANON[k] || k;   /* الشكل المشابه بعد الدوران والقلب والتكبير مسألة واحدة (build/shapes.mjs) */
 
 /* الشكل الذي تدور عليه مسألة من U4 أو U5 (مفتاحه بعد التشابه): ما رآه الطفل أو حلّه في الدرس بأي مهمة لا يكون صورة تعليل في تقييمه */
-const PIC1 = /^(plyis|plycnt|plyfix|qname|diagd|diagn|fam|pname|reg|concv|axn|trleg|parts|axis|pic)\|([^|]+)/, PIC2 = /^(tri|qopp|qchk)\|[^|]+\|([^|]+)/;
+/* الشكل على الشبكة (المحيط والمساحة في U7) بعد القلب والدوران، والمستطيل بضلعيه بلا ترتيب: الشكل المقلوب مسألة واحدة (D278 (1)؛ المراجع A لبوابة U6/U7، 3) */
+export const gridKey = rows => { let g = rows.map(r => [...r]); const W = Math.max(...g.map(r => r.length)); g = g.map(r => [...r, ...Array(W - r.length).fill('.')]); const outs = [];
+  const rot = m => m[0].map((_, x) => m.map(r => r[x]).reverse()), flip = m => m.map(r => [...r].reverse());
+  for (let i = 0; i < 4; i++) { outs.push(g.map(r => r.join('')).join('/'), flip(g).map(r => r.join('')).join('/')); g = rot(g); } return outs.sort()[0]; };
+const rectKey = (w, h) => `R${Math.min(w, h)}x${Math.max(w, h)}`;
+const PIC1 = /^(plyis|plycnt|plyfix|qname|diagd|diagn|fam|pname|reg|concv|axn|trleg|parts|axis|pic|pg|ac|ae|ca|cp|hg|rp|ra)\|([^|]+)/, PIC2 = /^(tri|qopp|qchk)\|[^|]+\|([^|]+)/;
 export const picOf = f => { const m = PIC1.exec(f) || PIC2.exec(f); return m ? m[2] : null; };
 
 const PROD = new Set(['convMachine', 'lenOrder', 'fenceBuild', 'trackDesign', 'rectDraw', 'maxArea', 'fracColor', 'cellColor', 'linePlace', 'fracOrder', 'setColor',
@@ -84,6 +89,9 @@ const mapCell = it => { const m = it.mark || {}; if (m.cell) return m.cell.join(
    الاكتشاف، وخانة الإتقان خانة العلاج): المسألة الخانة التي يلمسها الطفل وكيف يُعرف مكانها (أرض فارغة، أو فوق قطعة أو تحتها، بنوع القطعة)، أياً كانت الغرفة.
    وقطعة «ضع» بنوعها وخانتها (ويُفحص فوق ذلك حفظ الحلقة: انظر «ضع القطعة» في آخر الملف)؛ والطريق بالأشياء التي يمرّ بها بترتيبها، فوصفه الصحيح جملة واحدة في كل غرفة */
 const mapKey = it => { const m = it.mark || {}; const on = m.on && it.lay.items.find(i => (i.id || i.k) === m.on); return `${mapCell(it)}|${m.cell ? 'floor' : (m.rel || 'on') + ':' + (on ? on.k : '?')}`; };
+/* والمسألة العددية بجوابها وخياراتها: مجموعٌ آخر بالجواب نفسه والخيارات نفسها سؤالٌ حُفظ جوابه (المراجع A لبوابة U6/U7، 3 (ب)) */
+export const fact2Of = it => { if (it.t !== 'lenCalc' || !Array.isArray(it.a) || !Array.isArray(it.b)) return null; const cm = v => v[0] * 100 + v[1], r = it.op === '-' ? cm(it.a) - cm(it.b) : cm(it.a) + cm(it.b);
+  return `lres|${r}|${(it.ch || []).map(v => v.join('.')).sort().join(',')}`; };
 export const factOf = it => { const t = it.t;
   if (t === 'split') return `part|${it.n}|${s2(it.k, it.n - it.k)}`;
   if (t === 'eqPair') return `part|${it.n}|${s2(...(it.parts || []))}`;
@@ -263,16 +271,16 @@ export const factOf = it => { const t = it.t;
   if (t === 'trackDesign') return `track|${it.n || 4}`;
   /* S2-U7: المحيط والمساحة؛ الشكل على الشبكة بصفوفه، والمستطيل بطوليه (الشبكة لا تجعل السؤال جديداً) */
   if (t === 'perimSides') return `ps|${it.k}|${it.lens.join(',')}`;
-  if (t === 'perimGrid') return `pg|${it.rows.join('/')}`;
-  if (t === 'rectPerim') return `rp|${it.w}x${it.h}|${it.unit || 'cm'}`;
+  if (t === 'perimGrid') return `pg|${gridKey(it.rows)}`;
+  if (t === 'rectPerim') return `rp|${rectKey(it.w, it.h)}|${it.unit || 'cm'}`;
   if (t === 'sideFromPerim') return `sp|${it.P}|${it.l || 'sq'}|${it.unit || 'cm'}`;
   if (t === 'rectDraw') return `rd|${it.need}|${it.val}`;
-  if (t === 'areaCount') return `ac|${it.rows.join('/')}`;
-  if (t === 'areaEst') return `ae|${it.rows.join('/')}`;
-  if (t === 'rectArea') return `ra|${it.w}x${it.h}|${it.unit || 'cm'}`;
+  if (t === 'areaCount') return `ac|${gridKey(it.rows)}`;
+  if (t === 'areaEst') return `ae|${gridKey(it.rows)}`;
+  if (t === 'rectArea') return `ra|${rectKey(it.w, it.h)}|${it.unit || 'cm'}`;
   if (t === 'sideFromArea') return `sa|${it.A}|${it.l}|${it.unit || 'cm'}`;
-  if (t === 'compArea') return `ca|${it.rows.join('/')}`;
-  if (t === 'compPerim') return `cp|${it.rows.join('/')}`;
+  if (t === 'compArea') return `ca|${gridKey(it.rows)}`;
+  if (t === 'compPerim') return `cp|${gridKey(it.rows)}`;
   if (t === 'pOrA') return `pa|${it.sit}|${it.ask || 'kind'}|${it.unit || 'cm'}`;
   if (t === 'sameCmp') return `sc|${[it.a.join('x'), it.b.join('x')].sort().join(',')}|${it.ask}`;
   if (t === 'maxArea') return `mx|${it.fence}`;
@@ -284,7 +292,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'fracColor') return `fcol|${it.fig.k}|${it.f.join('/')}`;
   if (t === 'fracName') return `fnm|${it.f.join('/')}`;
   if (t === 'unitFrac') return `uf|${it.ask}|${it.opts.map(f => f.join('/')).sort().join(',')}`;
-  if (t === 'halfGrid') return `hg|${it.rows.join('/')}`;
+  if (t === 'halfGrid') return `hg|${gridKey(it.rows)}`;
   if (t === 'cellColor') return `cc|${it.cols}x${it.rows}|${it.f.join('/')}`;
   if (t === 'wholeRef') return `wr|${it.f.join('/')}`;
   if (t === 'lineRead') return `lr|${it.a}/${it.b}`;
@@ -316,12 +324,12 @@ export const factOf = it => { const t = it.t;
   if (t === 'flowerAxes') return `fa|${it.pat}`;
   if (t === 'reason' && it.pic && /^cp/.test(it.pic.kind)) return `cppic|${JSON.stringify(it.pic)}`;
   if (t === 'reason' && it.pic && /^fr/.test(it.pic.kind)) return `frpic|${it.pic.kind}|${JSON.stringify(it.pic.fig || it.pic.rows || [it.pic.a, it.pic.b, it.pic.n])}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'arrect') return `arrpic|${it.pic.w}x${it.pic.h}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'argrid') return `argpic|${it.pic.rows.join('/')}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'tape') return `tapepic|${it.pic.len}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'arrect') return `pic|${rectKey(it.pic.w, it.pic.h)}`;   /* صورة التعليل مستطيلٌ لم يُرَ في الدرس بأي مهمة (المراجع A لبوابة U6/U7، 3) */
+  if (t === 'reason' && it.pic && it.pic.kind === 'argrid') return `pic|${gridKey(it.pic.rows)}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'tape') return `tape|${it.pic.len}|cm`;
   if (t === 'reason' && it.pic && it.pic.kind === 'thing') return `thingpic|${it.pic.thing}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'conv') return `convpic|${it.pic.v.join('')}|${it.pic.to}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'calc') return `calcpic|${it.pic.a.join('.')}|${it.pic.op}|${it.pic.b.join('.')}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'conv') return `conv|${it.pic.v.join('')}|${it.pic.to}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'calc') return `lcalc|${it.pic.a.join('.')}|${it.pic.op}|${it.pic.b.join('.')}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'axis') return `pic|${it.pic.k ? C(it.pic.k) : it.pic.sym}`;   /* صورة التعليل: شكلٌ لم يُرَ في الدرس بأي مهمة (picOf) */
   if (t === 'reason' && it.pic && it.pic.kind === 'axgrid') return `axgpic|${JSON.stringify(it.pic.pts)}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'poly') return `pic|${C(it.pic.k)}`;
@@ -451,15 +459,15 @@ export function d240(lessons, code, MAKERS) {
     lineIntro: () => [], spacesNotMarks: s => [`lr|1/${s.b || 4}`], foldEqv: () => [], gridEqv: () => [], frCmpShow: s => (s.pairs || [[[3, 8], [5, 8]]]).map(([a, b]) => `fcmp|${[a.join('/'), b.join('/')].sort().join(',')}`), wall12: () => ['fcmp|2/3,3/4'],
     cookieShare: s => [`sf|${s.n || 12}|${s.a || 1}/${s.b || 4}`], partyCake: () => [], recallFrac: () => [],
     /* S2-U7 */
-    stringAround: () => [], gridBorder: s => [`pg|${(s.rows || ['####', '####', '##..']).join('/')}`], perimShow: s => s.sq ? [`rp|${s.w || 5}x${s.w || 5}|cm`] : [`rp|${s.w || 5}x${s.h || 3}|cm`].concat(s.area ? [`ra|${s.w || 5}x${s.h || 3}|cm`] : []),
-    tileCover: s => [`ac|${(s.rows || ['####', '###.', '##..']).join('/')}`], halfShow: s => [`ae|${(s.rows || ['b##c', '####', 'a##d']).join('/')}`], rowsCols: s => [`ra|${s.w || 4}x${s.h || 5}|cm`],
-    lTwoWays: s => [`ca|${(s.rows || ['######', '######', '####..', '####..']).join('/')}`], lPerimShow: s => [`cp|${(s.l || ['######', '######', '####..', '####..']).join('/')}`, `cp|${(s.u || ['######', '######', '##..##', '##..##']).join('/')}`],
-    sameTables: () => [], fenceOrTile: s => (s.sits || ['fence', 'tiles']).map(k => `pa|${k}|kind|cm`), m2Show: s => [`ra|${s.w || 3}x${s.h || 2}|m`],
+    stringAround: () => [], gridBorder: s => [`pg|${gridKey(s.rows || ['####', '####', '##..'])}`], perimShow: s => s.sq ? [`rp|${rectKey(s.w || 5, s.w || 5)}|cm`] : [`rp|${rectKey(s.w || 5, s.h || 3)}|cm`].concat(s.area ? [`ra|${rectKey(s.w || 5, s.h || 3)}|cm`] : []),
+    tileCover: s => [`ac|${gridKey(s.rows || ['####', '###.', '##..'])}`], halfShow: s => [`ae|${gridKey(s.rows || ['b##c', '####', 'a##d'])}`], rowsCols: s => [`ra|${rectKey(s.w || 4, s.h || 5)}|cm`],
+    lTwoWays: s => [`ca|${gridKey(s.rows || ['######', '######', '####..', '####..'])}`], lPerimShow: s => [`cp|${gridKey(s.l || ['######', '######', '####..', '####..'])}`, `cp|${gridKey(s.u || ['######', '######', '##..##', '##..##'])}`],
+    sameTables: () => [], fenceOrTile: s => (s.sits || ['fence', 'tiles']).map(k => `pa|${k}|kind|cm`), m2Show: s => [`ra|${rectKey(s.w || 3, s.h || 2)}|m`],
     /* S2-U9 */
     tolShow: () => [69, 70, 71, 73].map(d => `acc|len|70|${d}`), rectSteps: s => [`rd|dims|${s.w || 7},${s.h || 4}`, `rcheck|${s.w || 7}x${s.h || 4}|90|`], sasShow: s => [`sas|${s.ab || 6}|${s.ac || 5}|${s.deg || 50}`],
     circleParts: () => ['cpp|center', 'cpp|radius|35', 'cpp|diameter|160'], equiShow: s => [`sss|${s.side || 5}|${s.side || 5},${s.side || 5}`], sssShow: s => (s.sets || [[5, 4, 3], [7, 3, 2]]).map(x => `te|${[...x].sort((a, b) => b - a).join(',')}`),
     hexShow: s => [`hx|${s.r || 4}`], recallComp: s => s.part ? [s.part === 'center' ? 'cpp|center' : `cpp|${s.part}|${s.part === 'radius' ? 35 : 160}`] : s.tri ? [`te|${[...s.tri].sort((a, b) => b - a).join(',')}`] : [],
-    recallPerim: s => [`pg|${(s.rows || ['####', '####']).join('/')}`], recallArea: s => s.w ? [`ra|${s.w}x${s.h}|${s.unit || 'cm'}`] : [`ac|${(s.rows || ['###', '###']).join('/')}`],
+    recallPerim: s => [`pg|${gridKey(s.rows || ['####', '####'])}`], recallArea: s => s.w ? [`ra|${rectKey(s.w, s.h)}|${s.unit || 'cm'}`] : [`ac|${gridKey(s.rows || ['###', '###'])}`],
     recallTape: s => [`tape|${s.len || 75}|cm`], recallConv: s => [`conv|${(s.v || [2, 'm']).join('')}|${s.to || 'cm'}`], recallCalc: s => [`lcalc|${(s.a || [1, 60]).join('.')}|${s.op || '+'}|${(s.b || [1, 50]).join('.')}`], recallUnit: s => (s.pics || ['ant', 'pencil', 'door', 'road']).map(k => `unit|${k}`),
     /* S2-U5: الشكل بعد التشابه C() والخطّ (الرؤوس أو الزاوية)، والشبكة بمحورها ونقاطها */
     lakeHook: () => [], mirrorDist: s => [`img|v|5|${JSON.stringify([s.p || [2, 3]])}`], pinFold: s => [`axis|${C(s.k || 'qRect')}|*`], axPerpShow: s => [`img|v|5|${JSON.stringify([s.p || [2, 2]])}`],
@@ -561,7 +569,7 @@ export function d240(lessons, code, MAKERS) {
       if (!v || typeof v !== 'object') return;
       if (v.solid || v.type || v.sheet) put(v, tasks, where);
       let T = tasks;
-      if (typeof v.t === 'string') { for (const k of HOBJ(v)) if (!hobj.has(k)) hobj.set(k, where); { const nk = NEARK(v); if (nk) near.push({ ...nk, where, f: fact(v), t: v.t }); } items.set(norm(v), where); const f = fact(v); if (f && !facts.has(f) && !(nameOK && ASSESS_ONLY.test(f))) setF(f, where);   /* والترتيب في القطار ليس كالعدّ (الفحص المستقل A): «المس الخامسة» في التمرين ثم في المراجعة جوابه واحد؛ والمشهد الذي يعدّ القطار كله في الاكتشاف لا يسجّل مسائل */ T = [TASK[v.t] || 'cls']; for (const s of subjects(v)) { if (nameOK && s.name) names.set(s.name, where); if (s.sig) sigs[T[0]].set(s.sig, where); } }
+      if (typeof v.t === 'string') { for (const k of HOBJ(v)) if (!hobj.has(k)) hobj.set(k, where); { const nk = NEARK(v); if (nk) near.push({ ...nk, where, f: fact(v), t: v.t }); } items.set(norm(v), where); const f = fact(v); if (f && !facts.has(f) && !(nameOK && ASSESS_ONLY.test(f))) setF(f, where); { const f2 = fact2Of(v); if (f2 && !facts.has(f2)) setF(f2, where); }   /* والترتيب في القطار ليس كالعدّ (الفحص المستقل A): «المس الخامسة» في التمرين ثم في المراجعة جوابه واحد؛ والمشهد الذي يعدّ القطار كله في الاكتشاف لا يسجّل مسائل */ T = [TASK[v.t] || 'cls']; for (const s of subjects(v)) { if (nameOK && s.name) names.set(s.name, where); if (s.sig) sigs[T[0]].set(s.sig, where); } }
       if (typeof v.scene === 'string') { T = SCENE_T[v.scene] || ['cls']; for (const [m, ts] of SCENE_DRAWS[v.scene] || []) put(m, [ts], where + ' (يرسمه المشهد)');
         const addF = f => { if (f && !facts.has(f) && !ASSESS_ONLY.test(f)) setF(f, where + ' (يعرضه المشهد)'); };
         if (SCENE_FACTS[v.scene]) SCENE_FACTS[v.scene](v).forEach(addF);
@@ -604,18 +612,32 @@ export function d240(lessons, code, MAKERS) {
         else if (m) out.push(`${where}: يكاد يطابق ${m.where}${tag}: صورة الأحجام نفسها بنمط الرتب نفسه بنوعين («أيّها؟» و«رتّب»)، والقيم متقاربة (${nk.pv} و${m.pv}، الفرق ${nk.tol} على الأكثر)، فالصورة واحدة`); } }
       if (sh.items.has(norm(it))) out.push(`${where}: البند نفسه في ${sh.items.get(norm(it))}${tag}`);
       else if (fact(it) && sh.facts.has(fact(it))) out.push(`${where}: المسألة نفسها (${fact(it)}) في ${sh.facts.get(fact(it))}${tag}`);
+      else if (fact2Of(it) && sh.facts.has(fact2Of(it))) out.push(`${where}: الجواب نفسه بالخيارات نفسها (${fact2Of(it)}) في ${sh.facts.get(fact2Of(it))}${tag}`);
       /* ومشهد يُري محاور الشكل كلها (axis|K|*) يجيب عن كل «هل هذا الخطّ محور؟» عليه */
       else if (fact(it) && /^axis\|/.test(fact(it)) && sh.facts.has(fact(it).replace(/\|[^|]*$/, '|*'))) out.push(`${where}: محاور الشكل رُئيت كلها (${fact(it)}) في ${sh.facts.get(fact(it).replace(/\|[^|]*$/, '|*'))}${tag}`);
     }
     for (const o of out) (it.x240 ? notes : errors).push(`${L.id}: ${o}${it.x240 ? ' — مستثنى: ' + it.x240 : ''} (D240)`);
   }
   /* القياس المكتوب على الشكل يقول ما يقوله الشكل، والرؤوس في بنود العدّ والتسمية تُرى (build/shapes.mjs؛ مراجعة B لبوابة U4/U5، 1 و2) */
+  const LEN_TH_U = Object.fromEntries([...(code.match(/const LEN_TH = \{[\s\S]*?\n\};/) || [''])[0].matchAll(/^\s*(\w+): \{ u: '(\w+)'/gm)].map(m => [m[1], m[2]]));
   { const MEAS = new Set(['triKind', 'quadName', 'quadCheck', 'regularQ', 'trapLegs', 'quadOpp']), COUNT = new Set(['polyCount', 'polyName', 'polyIs', 'diagCount', 'diagDraw']), seen = new Set();
     const walk = (v, L) => { if (Array.isArray(v)) return v.forEach(x => walk(x, L)); if (!v || typeof v !== 'object') return;
       if (typeof v.t === 'string' && typeof v.k === 'string' && POLYS0[v.k] && POLYS0[v.k].p) { const key = v.t + '|' + v.k + '|' + (v.s || 1);
         if (!seen.has(key)) { seen.add(key);
           if (MEAS.has(v.t)) for (const m of measureProblems(POLYS0[v.k].p, v.s || 1)) errors.push(`${L.id}: ${v.t} على ${v.k}: ${m} (القياس المكتوب يخالف الشكل)`);
           if (COUNT.has(v.t) && !POLYS0[v.k].open && !POLYS0[v.k].curve) for (const [i, a] of flatVertices(POLYS0[v.k].p)) errors.push(`${L.id}: ${v.t} على ${v.k}: الرأس ${i} بزاوية ${a.toFixed(1)}، لا يُرى رأساً`); } }
+      /* التقدير: الخيار الأقرب إلى الطول الحقيقي بوحدة الشيء في LEN_TH (المراجع A لبوابة U6/U7، 1: «النهر 5 م» لأن الطول قُرئ بالسنتيمتر) */
+      if (v.t === 'estPick' && Array.isArray(v.ch)) { const MM = { mm: 1, cm: 10, m: 1000, km: 1e6 }, real = v.real * MM[v.realU || 'cm'], best = v.ch.map(c => [c, Math.abs(Math.log(c[0] * MM[c[1]] / real))]).sort((a, b) => a[1] - b[1])[0][0], u = LEN_TH_U[v.thing];
+        if (!u) errors.push(`${L.id}: estPick: الشيء ${v.thing} بلا وحدة في LEN_TH`); else if (best[1] !== u) errors.push(`${L.id}: estPick على ${v.thing}: الجواب ${best.join(' ')} بغير وحدة الشيء (${u})`); }
+      /* التوأم يُعطى بعد كشف جواب أصله: جوابه غير جواب أصله (المراجع B لبوابة U6/U7، 12) */
+      if (v.twin && typeof v.twin === 'object') { const cellsOf = r => { const C = new Set(); r.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') C.add(x + ',' + y); })); return C; }, per = r => { const C = cellsOf(r); let p = 0; for (const k of C) { const [x, y] = k.split(',').map(Number); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (!C.has((x + dx) + ',' + (y + dy))) p++; } return p; };
+        const ansOf = it => it.t === 'perimGrid' || it.t === 'compPerim' ? per(it.rows) : it.t === 'areaCount' || it.t === 'compArea' ? cellsOf(it.rows).size : it.t === 'rectPerim' ? 2 * (it.w + it.h) : it.t === 'rectArea' ? it.w * it.h : null;
+        const a1 = v.t === v.twin.t ? ansOf(v) : null, a2 = a1 == null ? null : ansOf(v.twin); if (a1 != null && a1 === a2) errors.push(`${L.id}: توأم ${v.t} جوابه جواب أصله (${a1})`); }
+      /* المحيط على الشبكة: لا شكل بثقب مغلق (المحيط «حول» الشكل، والحلّ المشترك يمشي الحدّ الخارجي وحده؛ المراجع A لبوابة U6/U7، 2) */
+      if (['perimGrid', 'compPerim', 'areaCount', 'compArea', 'areaEst'].includes(v.t) && Array.isArray(v.rows)) { const R = v.rows, H = R.length, W = Math.max(...R.map(r => r.length)), at = (y, x) => y >= 0 && y < H && x >= 0 && x < W ? (R[y][x] || '.') : 'out', seen2 = new Set(), st = [];
+        for (let y = -1; y <= H; y++) for (let x = -1; x <= W; x++) if (at(y, x) === 'out') st.push([y, x]);
+        while (st.length) { const [y, x] = st.pop(), k = y + ',' + x; if (seen2.has(k)) continue; seen2.add(k); for (const [dy, dx] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ny = y + dy, nx = x + dx; if (ny < -1 || ny > H || nx < -1 || nx > W) continue; const c = at(ny, nx); if ((c === '.' || c === 'out') && !seen2.has(ny + ',' + nx)) st.push([ny, nx]); } }
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (at(y, x) === '.' && !seen2.has(y + ',' + x)) { errors.push(`${L.id}: ${v.t}: الشكل بثقب مغلق عند الصف ${y + 1} (${R.join('/')})`); y = H; break; } }
       for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walk(x, L); };
     for (const L of Object.values(lessons)) if (/^m2\./.test(L.id)) walk(L, L); }
   for (const L of Object.values(lessons)) {
