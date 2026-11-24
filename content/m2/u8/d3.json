@@ -287,7 +287,7 @@
    "rows": [
     "aaaa",
     "abbb",
-    "bbbb"
+    "abbb"
    ]
   },
   "find": "ch.find",
@@ -332,9 +332,9 @@
       "kind": "frhalf",
       "rows": [
        "aaaa",
+       "aabb",
        "abbb",
-       "abbb",
-       "bbbb"
+       "abbb"
       ]
      },
      "opts": [

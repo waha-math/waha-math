@@ -179,7 +179,7 @@ L_3={
  "wrap.01":"قَسَمْنَا الأَرَاضِيَ بِالعَدْلِ: مَسَاحَاتٌ مُتَسَاوِيَةٌ بِأَشْكَالٍ مُخْتَلِفَةٍ!",
  "wrap.home":["chaos","مُهِمَّةُ البَيْتِ: عَلَى وَرَقِ المُرَبَّعَاتِ {لَوِّنْ|لَوِّنِي} نِصْفَ مُسْتَطِيلٍ بِشَكْلٍ لَا يَخْطُرُ عَلَى بَالِ أَحَدٍ، {وَعُدَّ|وَعُدِّي} المُرَبَّعَاتِ."],
 }
-HA=['aabb','aabb','aabb']; HB=['aaab','aabb','abbb']; HC=['aaaa','abbb','bbbb']; HD=['aaa','abb','abb']
+HA=['aabb','aabb','aabb']; HB=['aaab','aabb','abbb']; HC=['aaaa','abbb','abbb']; HD=['aaa','abb','abb']
 d3={"id":"m2.u8.d3","title":"النِّصْفُ لَهُ أَشْكَالٌ كَثِيرَةٌ","icon":["frhalf"],
  "concepts":{"C223":"النصف (والربع) بأشكال متعدّدة بشرط تساوي المساحة بعدّ المربعات، وبعض التقسيمات محاور تماثل وبعضها لا، والكلّ المرجعي عند المقارنة"},
  "bag":{"items":[{"icon":"gridPaper","label":"bagGrid"},{"icon":"pencils","label":"bagPens"}],"ask":"bag.ask","adult":"ورق مربعات وأقلام تلوين.","screenPath":"على الشاشة يرى الطفل المربع يُقسم نصفين بطرق كثيرة، ويعدّ المربعات ليحكم هل الجزآن نصفان، ويلوّن نصفاً أو ربعاً بأيّ شكل، ويقارن نصفي كعكتين مختلفتين؛ والرسم الحقيقي في مسار «معي»."},
@@ -193,7 +193,7 @@ d3={"id":"m2.u8.d3","title":"النِّصْفُ لَهُ أَشْكَالٌ كَ
   "normal":[tw(hg(HB),hg(['aabb','abbb','abbb'])), tw(cc(4,2,[1,4]),cc(4,3,[1,2])), tw(wr([1,2]),wr([1,4]))],
   "challenge":[tw(cc(3,2,[1,3]),cc(4,3,[1,3])), tw(hg(['abbbb','aabbb','aaabb','aaaab']),hg(['aaabb','aabbb','abbbb'])), tw(wr([1,3]),cc(4,3,[3,4]))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":hg(HC),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C223":[hg(HD), cc(4,2,[3,4]), wr([2,4]), reason("ms.1",{"kind":"frhalf","rows":['aaaa','abbb','abbb','bbbb']},["ms.1a","ms.1b","ms.1c"])]},
+ "mastery":{"concepts":{"C223":[hg(HD), cc(4,2,[3,4]), wr([2,4]), reason("ms.1",{"kind":"frhalf","rows":['aaaa','aabb','abbb','abbb']},["ms.1a","ms.1b","ms.1c"])]},
   "recall":{"C223":{"scene":"recallFrac","fig":C(4,k='grid',cols=2,rows=2,shade=[0,3]),"lines":["ms.recall"]}},
   "remedial":{"C223":[tw(hg(['ab','ab']),cc(2,2,[1,2]))]},
   "mixed":{"lesson":"m2.u8.d2","concept":"C221","item":fr(C(5,k='bar',shade=[0,1]))},

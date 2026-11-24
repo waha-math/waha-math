@@ -144,7 +144,7 @@
       "q": "pr.accL",
       "kind": "len",
       "aim": 50,
-      "drawn": 53
+      "drawn": 54
      }
     },
     {
@@ -152,7 +152,7 @@
      "q": "pr.accL",
      "kind": "len",
      "aim": 80,
-     "drawn": 78,
+     "drawn": 76,
      "twin": {
       "t": "accCheck",
       "q": "pr.accL",
@@ -172,7 +172,7 @@
       "q": "pr.accL",
       "kind": "len",
       "aim": 40,
-      "drawn": 42
+      "drawn": 44
      }
     }
    ]
@@ -222,7 +222,7 @@
      "q": "pr.accL",
      "kind": "len",
      "aim": 30,
-     "drawn": 32
+     "drawn": 34
     }
    }
   ],
@@ -275,7 +275,7 @@
    "q": "pr.accL",
    "kind": "len",
    "aim": 60,
-   "drawn": 62
+   "drawn": 64
   },
   "find": "ch.find",
   "after": "ch.after",
@@ -370,7 +370,7 @@
    "q": "pr.accL",
    "kind": "len",
    "aim": 85,
-   "drawn": 87,
+   "drawn": 89,
    "c": "C230"
   },
   {

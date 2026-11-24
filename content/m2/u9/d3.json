@@ -217,13 +217,13 @@
     "q": "pr.accA",
     "kind": "ang",
     "aim": 120,
-    "drawn": 118,
+    "drawn": 119,
     "twin": {
      "t": "accCheck",
      "q": "pr.accA",
      "kind": "ang",
      "aim": 40,
-     "drawn": 43
+     "drawn": 45
     }
    },
    {
@@ -304,7 +304,7 @@
      "q": "pr.accA",
      "kind": "ang",
      "aim": 60,
-     "drawn": 63
+     "drawn": 65
     },
     {
      "t": "reason",
@@ -492,7 +492,7 @@
    "q": "pr.accA",
    "kind": "ang",
    "aim": 80,
-   "drawn": 77,
+   "drawn": 76,
    "c": "C233"
   },
   {

@@ -227,7 +227,7 @@ ITEM.sssBuild = {
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
 /* ================= ⑭ رتّب خطوات الإنشاء (C237، C238، C239، C241): kind circle | copy | equi | sss | hex؛ يلمس الطفل البطاقات بالترتيب ================= */
-const CP_STEPS = { equi: ['ab', 'open', 'arcs', 'join'], sss: ['base', 'arc1', 'arc2', 'join'], hex: ['circle', 'keep', 'mark', 'join'], copy: ['line', 'open', 'move', 'arc'], circle: ['measure', 'pin', 'turn', 'check'] };
+const CP_STEPS = { equi: ['ab', 'open', 'arcs', 'join'], sss: ['base', 'arc1', 'arc2', 'join'], hex: ['circle', 'keep', 'mark', 'join'], copy: ['open', 'line', 'move', 'arc'], circle: ['measure', 'pin', 'turn', 'check'] };
 const CO_XY = [[262, 84], [98, 84], [262, 184], [98, 184]];
 ITEM.consOrder = {
   make(spec) { const st = CP_STEPS[spec.kind], shown = spec.shown || [2, 0, 3, 1]; return { ...spec, st, shown, want: st.map((s, i) => shown.indexOf(i)).join(','), tag: 'cons-order-' + spec.kind }; },
