@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نموذج المجسّمات والشبكات (م3، S3-U8) — خارج البناء</title>
+<!-- نموذج أولي لأكبر قطعة جديدة في م3 (خطة فتح المرحلة 3، البند 3): منشور مستطيل بثلاثة أوجه وظلّ، وشبكة تُطوى وتُفتح، وتدوير المنظر بالإصبع.
+     بلا WebGL: كل وجه رباعي في الفضاء يُطوى حول حرفه المشترك مع أبيه، ثم يُسقط ويُرسم بترتيب العمق (painter). ليس جزءاً من البناء. -->
+<style>
+  body { margin: 0; font-family: system-ui, sans-serif; background: #eef4f0; color: #22323a; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 10px; }
+  svg { width: 100%; height: auto; background: #fffdf6; border-radius: 16px; touch-action: none; display: block; }
+  .row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  button { min-height: 56px; min-width: 56px; padding: 0 14px; border-radius: 14px; border: 2px solid #c9d6cf; background: #fff; font-size: 17px; font-weight: 700; }
+  button.on { border-color: #7a2e3a; color: #7a2e3a; }
+  input[type=range] { flex: 1; min-height: 44px; }
+  .note { font-size: 14px; opacity: .75; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <svg id="sv" viewBox="0 0 360 300" role="img" aria-label="مجسّم وشبكته"></svg>
+  <div class="row">
+    <button id="bCube" class="on">مكعب</button>
+    <button id="bBox">منشور 3×2×1</button>
+    <button id="bBad">شبكة لا تصلح</button>
+    <button id="bPlay">اطوِ</button>
+  </div>
+  <div class="row"><input id="t" type="range" min="0" max="1000" value="1000" aria-label="الطيّ"></div>
+  <div class="note">اسحب على الرسم لتدوير المنظر. الشريط من الشبكة المسطّحة (0) إلى المجسّم المغلق (1).</div>
+</div>
+<script>
+const SV = document.getElementById('sv'), NS = 'http://www.w3.org/2000/svg';
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || SV).appendChild(e); return e; };
+/* متّجهات ثلاثية */
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], norm = a => mul(a, 1 / Math.hypot(...a));
+/* دوران نقطة p حول المستقيم المارّ بـ o باتجاه u (وحدة) بزاوية th (رودريغز) */
+function rotAbout(p, o, u, th) { const v = sub(p, o), c = Math.cos(th), s = Math.sin(th); return add(o, add(add(mul(v, c), mul(cross(u, v), s)), mul(u, dot(u, v) * (1 - c)))); }
+
+/* الشبكة: وجوه مستطيلة في المستوى z=0، كلٌّ منها {w,h} موضوع بجانب أبيه على حرف (side: 0 أعلى، 1 يمين، 2 أسفل، 3 يسار).
+   الوجه = أربعة رؤوس بالترتيب؛ والطيّ: كل وجه يدور حول حرفه مع أبيه بزاوية fold × t، ويحمل معه أبناءه. */
+function buildNet(spec) {
+  const F = [];
+  const place = (node, parent, side) => {
+    let P;
+    if (!parent) P = [[0, 0, 0], [node.w, 0, 0], [node.w, node.h, 0], [0, node.h, 0]];
+    else {   /* حرف الأب: من الرأس side إلى side+1، والوجه الجديد يمتدّ خارجه */
+      const A = parent.P[side], B = parent.P[(side + 1) % 4], e = norm(sub(B, A)), out = norm(cross(e, [0, 0, 1])), d = node.d;
+      /* out يشير خارج الأب لأن رؤوس الأب بعكس عقارب الساعة في إحداثيات y لأسفل */
+      P = [B, A, add(A, mul(out, d)), add(B, mul(out, d))];
+    }
+    const f = { P, parent, hinge: parent ? [P[0], P[1]] : null, fold: node.fold ?? Math.PI / 2, col: node.col, kids: [] };
+    if (parent) parent.kids.push(f); F.push(f);
+    for (const k of node.kids || []) place(k, f, k.side);
+    return f;
+  };
+  place(spec, null, 0); return F;
+}
+/* المكعب: صليب. الجذر القاعدة، وأربعة جوانب، والغطاء ابن الجانب الأعلى */
+const COL = { base: '#b5525f', side: '#c9707b', top: '#e3a3aa' };
+const NETS = {
+  cube: () => ({ w: 60, h: 60, col: COL.base, kids: [
+    { side: 0, d: 60, col: COL.side, kids: [{ side: 2, d: 60, col: COL.top }] },
+    { side: 1, d: 60, col: COL.side }, { side: 2, d: 60, col: COL.side }, { side: 3, d: 60, col: COL.side }] }),
+  box: () => ({ w: 90, h: 60, col: COL.base, kids: [   /* 3×2×1 بوحدة 30 */
+    { side: 0, d: 30, col: COL.side, kids: [{ side: 2, d: 60, col: COL.top }] },
+    { side: 1, d: 30, col: COL.side }, { side: 2, d: 30, col: COL.side }, { side: 3, d: 30, col: COL.side }] }),
+  bad: () => ({ w: 60, h: 60, col: COL.base, kids: [   /* ستة مربعات لكن وجهان يتراكبان عند الطيّ: لا تصلح شبكة */
+    { side: 0, d: 60, col: COL.side, kids: [{ side: 2, d: 60, col: COL.top }] },
+    { side: 1, d: 60, col: COL.side, kids: [{ side: 2, d: 60, col: COL.side }] }, { side: 2, d: 60, col: COL.side }] }),
+};
+let kind = 'cube', net = buildNet(NETS[kind]()), T = 1, yaw = -0.6, pitch = 0.55;
+/* الموضع بعد الطيّ: كل وجه يُطوى حول مفصله، ثم يُطبَّق عليه طيّ كل أسلافه (من الأقرب إلى الجذر) */
+function folded(t) {
+  return net.map(f => { let P = f.P.slice(); let g = f;
+    while (g.parent) { const [A, B] = g.hinge, u = norm(sub(B, A)); P = P.map(p => rotAbout(p, A, u, -g.fold * t)); g = g.parent; }
+    return { f, P }; });
+}
+/* الإسقاط: تدوير المنظر ثم إسقاط عمودي؛ وسط المجسّم في وسط المسرح */
+function project(Q) {
+  const all = Q.flatMap(q => q.P), c = mul(all.reduce(add, [0, 0, 0]), 1 / all.length);
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const V = p => { let [x, y, z] = sub(p, c); [x, z] = [x * cy - z * sy, x * sy + z * cy]; [y, z] = [y * cp - z * sp, y * sp + z * cp]; return [x, y, z]; };
+  return Q.map(q => { const W = q.P.map(V), n = norm(cross(sub(W[1], W[0]), sub(W[3], W[0]))); return { ...q, W, depth: W.reduce((s, w) => s + w[2], 0) / 4, n }; });
+}
+function draw() {
+  SV.innerHTML = ''; el('rect', { x: 0, y: 0, width: 360, height: 300, fill: '#fffdf6' });
+  const R = project(folded(T)).sort((a, b) => b.depth - a.depth), L = norm([-0.4, -0.7, -0.6]);
+  /* ظلّ خفيف تحت المجسّم */
+  el('ellipse', { cx: 180, cy: 262, rx: 90, ry: 12, fill: '#000', opacity: .08 });
+  for (const r of R) {
+    const lit = .72 + .28 * Math.abs(dot(r.n, L)), pts = r.W.map(w => `${(180 + w[0]).toFixed(1)},${(150 + w[1]).toFixed(1)}`).join(' ');
+    const g = el('g', {}); el('polygon', { points: pts, fill: r.f.col, 'fill-opacity': .92, stroke: '#4a1f27', 'stroke-width': 2, 'stroke-linejoin': 'round' }, g);
+    el('polygon', { points: pts, fill: '#fff', opacity: (1 - lit).toFixed(2) }, g);
+  }
+}
+/* التحكّم */
+const tIn = document.getElementById('t'); tIn.oninput = () => { T = tIn.value / 1000; draw(); };
+const pick = k => { kind = k; net = buildNet(NETS[k]()); ['bCube', 'bBox', 'bBad'].forEach(id => document.getElementById(id).classList.toggle('on', id === { cube: 'bCube', box: 'bBox', bad: 'bBad' }[k])); draw(); };
+document.getElementById('bCube').onclick = () => pick('cube'); document.getElementById('bBox').onclick = () => pick('box'); document.getElementById('bBad').onclick = () => pick('bad');
+document.getElementById('bPlay').onclick = () => { const from = T > .5 ? 1 : 0, to = 1 - from, t0 = performance.now(); const step = now => { const k = Math.min(1, (now - t0) / 1400), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; T = from + (to - from) * e; tIn.value = T * 1000; draw(); if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); };
+let drag = null; SV.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY, yaw, pitch]; SV.setPointerCapture(e.pointerId); });
+SV.addEventListener('pointermove', e => { if (!drag) return; yaw = drag[2] + (e.clientX - drag[0]) * .01; pitch = Math.max(-1.2, Math.min(1.2, drag[3] + (e.clientY - drag[1]) * .01)); draw(); });
+SV.addEventListener('pointerup', () => drag = null); SV.addEventListener('pointercancel', () => drag = null);
+draw();
+window.__proto = { set(k, t, y, p) { pick(k); T = t; tIn.value = t * 1000; if (y != null) yaw = y; if (p != null) pitch = p; draw(); } };
+</script>
+</body>
+</html>
