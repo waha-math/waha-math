@@ -39,7 +39,7 @@ const cpItem = d => ({
   async reveal(item, r) { if (d.show) await d.show(item, r.ctx); await S(typeof d.rLine === 'function' ? d.rLine(item) : d.rLine, { noGap: !!d.rSay }); if (d.rSay) await d.rSay(item); },
   praise: () => d.praise || 'praiseThink', twin(item) { return item.twin || null; } });
 const yesNo = want => choosePick([['yes', labelText('frYes'), '<i></i>', 'gen.fr.yes'], ['no', labelText('frNo'), '<i></i>', 'gen.fr.no']], want);
-async function cpNum(item, ctx, unit = 'cm') { const np = numberPick(nearNums(item.want, 30, 1), item.want, { west: true }); ctx.np = np; return np.p; }
+async function cpNum(item, ctx, unit = 'cm') { const np = numberPick(rankMix(item.want, [item.want - 1, item.want + 1, item.want * 2, Math.round(item.want / 2)], 1, 30), item.want, { west: true });   /* رتبة الجواب عشوائية (المراجع B لبوابة U8/U9، 7) */ ctx.np = np; return np.p; }
 
 /* ================= ① مستوى الرسم (C230): sit موقف؛ الجواب free | tools | cons ================= */
 const CP_SIT = { idea: 'free', map: 'free', rect: 'tools', angle: 'tools', copy: 'cons', equi: 'cons' };
@@ -158,7 +158,7 @@ ITEM.radDia = cpItem({ tLine: 'gen.cp.together.rd', hint: 'gen.cp.hint.rd', rLin
   make: s => ({ want: s.r ? 2 * s.r : s.d / 2, tag: s.r ? 'rad-to-dia' : 'dia-to-rad' }),
   draw(svg, item, tries) { const C = [180, 132], R = 76; circleFig(svg, C, R, item.r ? 'radius' : 'diameter', item.r ? CPC.bad : CPC.ok); const t = el('text', { x: 180, y: 38, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg); t.textContent = item.r ? `${labelText('cpPart.radius')}: ${item.r} ${labelText('rulCm')}` : `${labelText('cpPart.diameter')}: ${item.d} ${labelText('rulCm')}`;
     if (tries >= 3) { const m = helpG(svg); if (item.r) { const P1 = angP(C, 215, R); geoLine(m, C[0], C[1], P1[0], P1[1], { color: css('--think'), w: 4, dash: '7 4' }); } else { const Q = angP(C, 90, R); geoLine(m, C[0], C[1], Q[0], Q[1], { color: css('--think'), w: 4, dash: '7 4' }); } } return {}; },
-  pick: (item, ctx) => { const np = numberPick(shuffle([...fillOpts(new Set([item.want, item.r ? item.r : item.d]), item.want, 1, 30)].slice(0, 3)), item.want, { west: true }); ctx.np = np; return np.p; },
+  pick: (item, ctx) => { const np = numberPick(rankMix(item.want, [item.r ? item.r : item.d, item.want * 2, Math.round(item.want / 2), item.want + 1], 1, 30), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === (it.r || it.d) ? (it.r ? 'diaIsRad' : 'openIsDia') : 'rdOff' });
 /* ================= ⑩ ارسم الدائرة بالفرجار (C237، إنتاج): r أو d؛ يضبط الطفل الفتحة على المسطرة ثم «تمّ» فيدور القلم ================= */
 ITEM.compassDraw = {
@@ -274,7 +274,7 @@ ITEM.hexSide = cpItem({ tLine: 'gen.cp.together.hexS', hint: 'gen.cp.hint.hexS',
   make: s => ({ want: s.r, tag: 'hex-side' }),
   draw(svg, item, tries) { const C = [180, 132], H = hexInCircle(svg, C, 78); const Q = angP(C, 330, 78); geoLine(svg, C[0], C[1], Q[0], Q[1], { color: CPC.bad, w: 3.4 }); const t = el('text', { x: 180, y: 32, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg); t.textContent = `${labelText('cpPart.radius')}: ${item.r} ${labelText('rulCm')}`;
     if (tries >= 3) { const m = helpG(svg); el('polygon', { points: polyStr([C, H.P[5], H.P[0]]), fill: css('--think'), opacity: .25 }, m); } return {}; },
-  pick: (item, ctx) => { const np = numberPick(shuffle([...fillOpts(new Set([item.want, 2 * item.want]), item.want, 1, 30)].slice(0, 3)), item.want, { west: true }); ctx.np = np; return np.p; },
+  pick: (item, ctx) => { const np = numberPick(rankMix(item.want, [2 * item.want, Math.round(item.want / 2), item.want + 1], 1, 30), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === 2 * it.r ? 'hexSideDia' : 'hexSideOff' });
 /* ================= ⑰ محاور الزخرفة (C242): pat من FLW_PAT — ألوان البتلات الست ================= */
 const FLW_PAT = { all: [0, 0, 0, 0, 0, 0], alt: [0, 1, 0, 1, 0, 1], one: [1, 0, 0, 0, 0, 0], two: [1, 0, 0, 1, 0, 0], opp2: [0, 1, 0, 0, 1, 0], adj: [1, 1, 0, 0, 0, 0], adjB: [0, 0, 0, 1, 1, 0], half: [1, 1, 1, 0, 0, 0], skip: [1, 0, 1, 0, 0, 0], pairs: [1, 1, 0, 1, 1, 0], quad: [1, 1, 1, 1, 0, 0], five: [0, 1, 1, 1, 1, 1] };
@@ -286,7 +286,7 @@ function flowerAt(parent, C, R, pat, o = {}) { const g = el('g', { 'pointer-even
 ITEM.flowerAxes = cpItem({ tLine: 'gen.cp.together.flower', hint: 'gen.cp.hint.flower', rLine: 'gen.cp.reveal.flower', rSay: it => S(numw(it.want), { num: true, append: true }), num: true, praise: 'praiseSym',
   make: s => ({ want: FLW_AX[s.pat], tag: 'flower-axes' }),
   draw(svg, item, tries) { const C = [180, 120]; flowerAt(svg, C, 88, item.pat); if (tries >= 3) { const m = helpG(svg); for (let k = 0; k < 6; k++) { const a = 90 + 30 * k, P1 = angP(C, a, 100), P2 = angP(C, a + 180, 100); geoLine(m, P1[0], P1[1], P2[0], P2[1], { color: css('--think'), w: 1.6, dash: '5 4' }); } } return {}; },
-  pick: (item, ctx) => { const np = numberPick(shuffle([...fillOpts(new Set([item.want, 6].concat(item.want === 6 ? [3] : [])), item.want, 1, 8)].slice(0, 3)), item.want); ctx.np = np; return np.p; },   /* عددٌ يُعدّ لا طولٌ يُقاس: بأرقام الطفل (D229 (2)) */
+  pick: (item, ctx) => { const np = numberPick(rankMix(item.want, [6, 3, 0, 2, item.want + 1, item.want - 1], 0, 12), item.want); ctx.np = np; return np.p; },   /* عددٌ يُعدّ لا طولٌ يُقاس: بأرقام الطفل (D229 (2)) */
   errOf: (it, k) => k === 6 && it.want !== 6 ? 'axesIgnoreColor' : 'axesOff' });
 
 /* ================= صور التعليل (reason pic kind cp*) ================= */
