@@ -395,8 +395,9 @@
     "item": {
      "t": "diagDraw",
      "q": "q.diag",
-     "k": "qRhom2",
-     "rot": 30
+     "k": "i5c",
+     "rot": 30,
+     "count": true
     }
    },
    {

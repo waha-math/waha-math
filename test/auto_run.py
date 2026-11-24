@@ -37,6 +37,10 @@ SMALL = """() => { const out = []; for (const e of document.querySelectorAll('bu
   if (e instanceof SVGElement && getComputedStyle(e).cursor !== 'grab' && !e.onclick) continue;   /* عنصر SVG لم يصر هدفاً بعد (لا فعل له الآن) */   /* ما يختفي بعد الجواب (حركة خروج) ليس هدفاً */
   const need = (e.closest('#panel') || e.closest('.voice-note') || e.id === 'adultBtn') ? 44 : getComputedStyle(e).cursor === 'grab' ? 64 : 56; const m = Math.min(r.width, r.height);
   if (m < need - 0.5) out.push([e.id || (e.getAttribute('class') || e.tagName), Math.round(r.width), Math.round(r.height), need, (e.getAttribute('aria-label') || e.dataset.k || e.dataset.tool || e.dataset.step || '').slice(0, 30)]); } return out; }"""
+NEAR = """() => { const svg = document.querySelector('#stage svg'); if (!svg) return [];
+  const drawn = g => { let r = null; for (const c of g.querySelectorAll('circle,ellipse,rect,polygon,path,line,polyline,text')) { if (c.matches('rect.hit')) continue; const f = c.getAttribute('fill'), s = c.getAttribute('stroke'); if ((f === 'transparent' || f === 'none') && (!s || s === 'none') && c.tagName !== 'text') continue; const b = c.getBoundingClientRect(); if (!b.width && !b.height) continue; r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) } : { l: b.left, t: b.top, r: b.right, b: b.bottom }; } return r; };
+  const T = [...svg.querySelectorAll('*')].filter(e => e.onclick && !e.closest('[hidden]') && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity >= .5).map(e => { const r = drawn(e); return r && { e, x: (r.l + r.r) / 2, y: (r.t + r.b) / 2, w: r.r - r.l, h: r.b - r.t }; }).filter(t => t && Math.max(t.w, t.h) < 40);   /* أهداف نقطية فقط (نقطة، رأس، موضع صغير): المناطق المتلاصقة (قطاعات، بلاطات) كلٌّ منها هدف واسع؛ واختيار النقطة بالرفع (axPressPick، data-press) خارجه لأنه يُري الاختيار قبل الرفع */
+  const out = []; for (let i = 0; i < T.length; i++) for (let j = i + 1; j < T.length; j++) { const a = T[i], b = T[j]; if (a.e.contains(b.e) || b.e.contains(a.e)) continue; const d = Math.hypot(a.x - b.x, a.y - b.y); if (d < 40) out.push([(a.e.getAttribute('aria-label') || '').slice(0, 24) + '@' + Math.round(a.x) + ',' + Math.round(a.y), (b.e.getAttribute('aria-label') || '').slice(0, 24) + '@' + Math.round(b.x) + ',' + Math.round(b.y), Math.round(d)]); } return out; }"""   # مراجعة B، 22: هدفان متجاوران مركزاهما أقرب من 40 بكسلاً تلتبس بينهما الإصبع
 NONAME = """() => [...document.querySelectorAll('button, [role=button]')].filter(e => { const r = e.getBoundingClientRect(); return r.width && !e.closest('[hidden]') && getComputedStyle(e).visibility !== 'hidden' && !e.disabled && (e.tagName === 'BUTTON' || e.onclick) && !(e.getAttribute('aria-label') || '').trim() && !(e.textContent || '').trim(); }).map(e => e.id || e.getAttribute('class') || e.tagName)"""   # لكل هدف اسم مسموع لقارئ الشاشة
 # D255: مركز كل هدف يذهب إليه هو. «سُرق» إن أخذ اللمسَ هدفٌ آخر (إلا قطعة متماثلة في مكانها، data-twin)، و«حُجب» إن وقع على شيء ليس هدفاً، و«وُجّه خطأ» إن وجّهته منطقة مشتركة (route) إلى غيره
 # والأهداف الباهتة (الظلال بشفافية .22) أهدافٌ كغيرها، وتُلمس في مركز رسمها وقرب حوافّه الأربع حيث الرسم نفسه تحت الإصبع (الفحص المستقل B لبوابة S1-U4:
@@ -169,7 +173,7 @@ async def main():
     ONLY_SET = {x for x in ONLY if not x.startswith('ws:')}
     tw_seen = {}; prev_twin = False
     if ONLY: await pg.evaluate("() => { PROG.unlockAll = true; saveProg(); showHome(); }"); await pg.wait_for_timeout(300)
-    matd = {}; matq = [0]; small = {}; noname = {}; empty = {}; squeeze = {}; clipt = {}; coverb = {}; keyless = {}; knon = [0]; kasync = [0]; krace = [0]; kpress = [0]; kspace = [0]; kpan = [0]; taps = {}; leaks = []; failed_rev = {}; redo_seen = set(); replay_q = None; crashes = 0; seen_types = set(); deep = {}; failed_test = {}; shots = set(); report = []; lessons = 0
+    matd = {}; matq = [0]; small = {}; nearT = {}; noname = {}; empty = {}; squeeze = {}; clipt = {}; coverb = {}; keyless = {}; knon = [0]; kasync = [0]; krace = [0]; kpress = [0]; kspace = [0]; kpan = [0]; taps = {}; leaks = []; failed_rev = {}; redo_seen = set(); replay_q = None; crashes = 0; seen_types = set(); deep = {}; failed_test = {}; shots = set(); report = []; lessons = 0
     visits = 0   # MAXL يعدّ الدروس وحدها (لا المراجعة ولا الورشة)، وسقف الزيارات كلها 200 حارس من حلقة
     VCAP = int(os.environ.get('VCAP', '400'))   # سقف الزيارات: failreview يعيد كل درس ويمرّ بالمراجعات، و38 درساً تتجاوز 200 (Gate، 19 نوفمبر)
     while lessons < MAXL and visits < VCAP:
@@ -207,6 +211,7 @@ async def main():
         if a and a['n'] != last_n:
           for x in await pg.evaluate(SMALL): small.setdefault(tuple(x[:1]) + (a['kind'],), (sc, x))   # كل انتظار لفعل الطفل: أهدافه الآن
           for x in await pg.evaluate(NONAME): noname.setdefault((x, a['kind']), sc)
+          for x in await pg.evaluate(NEAR): nearT.setdefault((sc, a['kind'], x[0], x[1]), x[2])
           for x in await pg.evaluate(EMPTY): empty.setdefault((sc, a['kind'], x), 0)
           for x in await pg.evaluate(CLIPT): clipt.setdefault((sc, a['kind'], x), 0)
           for x in await pg.evaluate(COVERB): coverb.setdefault((sc, a['kind'], x), 0)
@@ -333,6 +338,7 @@ async def main():
     print('squeezed stages:', len(squeeze)); [print(' ', *k, v) for k, v in list(squeeze.items())[:30]]
     print('clipped texts:', len(clipt)); [print(' ', *k) for k in list(clipt)[:20]]
     print('covered badges:', len(coverb)); [print(' ', *k) for k in list(coverb)[:20]]
+    print('near targets:', len(nearT)); [print(' ', *k, v) for k, v in list(nearT.items())[:30]]
     if lessons and not kpress[0]: keyless.setdefault(('-', 'tap', 'لم يُضغط Enter حقيقي على أي هدف'), 0)   # فلا ينجح العدّاد فارغاً
     if lessons and kpress[0] > 1 and not kspace[0]: keyless.setdefault(('-', 'tap', 'لم تُضغط المسافة على أي هدف'), 0)
     if lessons and kpress[0] and not knon[0]: keyless.setdefault(('-', 'tap', 'لم يُضغط مفتاحٌ غير مفتاح الفعل على أي هدف'), 0)

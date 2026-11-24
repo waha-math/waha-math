@@ -58,7 +58,7 @@ def pdw(n,q=None): return {"t":"polyDraw","q":q or 'pr.draw%d'%n,"n":n}
 def mn(n,q=None): return {"t":"polyMino","q":q or 'pr.mino%d'%n,"n":n}
 # قطع الشكل: مواضع شارات العدّ في الحلّ المشترك تُحسب من الرؤوس نفسها (المكتبة في 49_m2_poly.js)
 def reg(n,R=70,a0=-90): return [[R*math.cos(math.radians(a0+i*360/n)), R*math.sin(math.radians(a0+i*360/n))] for i in range(n)]
-SHP={'r6':reg(6,70,0),'r8':reg(8,70,-67.5),'qSq':[[-50,-50],[50,-50],[50,50],[-50,50]],'qRect':[[-75,-40],[75,-40],[75,40],[-75,40]],'qPara':[[-50,-40],[80,-40],[50,40],[-80,40]],'qSq2':[[-40,-40],[40,-40],[40,40],[-40,40]],'qKite3':[[0.0,-67.9],[50.0,-39.0],[0.0,68.0],[-50.0,-39.0]],'qRhom3':[[-58.5,33.8],[19.5,33.8],[58.5,-33.8],[-19.5,-33.8]]}
+SHP={'r6':reg(6,70,0),'r8':reg(8,70,-67.5),'qSq':[[-50,-50],[50,-50],[50,50],[-50,50]],'qRect':[[-75,-40],[75,-40],[75,40],[-75,40]],'qPara':[[-50,-40],[80,-40],[50,40],[-80,40]],'qSq2':[[-40,-40],[40,-40],[40,40],[-40,40]],'qKite3':[[0.0,-67.9],[50.0,-39.0],[0.0,68.0],[-50.0,-39.0]],'qRhom3':[[-58.5,33.8],[19.5,33.8],[58.5,-33.8],[-19.5,-33.8]],'qPara4':[[-71.2,29.5],[60.8,29.5],[71.2,-29.5],[-60.8,-29.5]],'qRect3':[[-75,-25],[75,-25],[75,25],[-75,25]]}
 def parts(k,cuts):
     P=SHP[k]; n=len(P); cx=sum(p[0] for p in P)/n; cy=sum(p[1] for p in P)/n
     if cuts=='c': polys=[[P[i],P[(i+1)%n],[cx,cy]] for i in range(n)]; cl=[[i,'c'] for i in range(n)]
@@ -556,6 +556,10 @@ L7={
  "ms.2a":"قَائِمُ الزَّاوِيَةِ، لِأَنَّ فِيهِ رُكْنَ المُسْتَطِيلِ.",
  "ms.2b":"حَادُّ الزَّوَايَا، لِأَنَّ القَصَّ صَنَعَ زَاوِيَتَيْنِ صَغِيرَتَيْنِ.",
  "ms.2c":"مُنْفَرِجُ الزَّاوِيَةِ، لِأَنَّ القُطْرَ أَطْوَلُ الأَضْلَاعِ.",
+ "sb.01":"{رَكِّبْ|رَكِّبِي} مُرَبَّعًا مِنْ مُثَلَّثَيْنِ: أَيُّ قِطْعَةٍ تَمْلَأُ الفَرَاغَ؟ {اِلْمِسْهَا|اِلْمِسِيهَا}.",
+ "sb.02":"صَارَ مُرَبَّعًا! وَالمُثَلَّثَانِ قَائِمَانِ مُتَسَاوِيَا السَّاقَيْنِ، وَخَطُّ اللَّصْقِ قُطْرُ المُرَبَّعِ.",
+ "sb.03":"وَالآنَ مِنْ أَرْبَعَةِ مُثَلَّثَاتٍ: {اِلْمِسْ|اِلْمِسِي} كُلَّ قِطْعَةٍ لِتَذْهَبَ إِلَى مَكَانِهَا.",
+ "sb.04":"أَرْبَعَةُ مُثَلَّثَاتٍ صَنَعَتْ مُرَبَّعًا بِلَا فَرَاغٍ وَلَا تَرَاكُبٍ، وَخَطَّا اللَّصْقِ قُطْرَا المُرَبَّعِ.",
  "ms.recall":"نُفَكِّكُ الشَّكْلَ إِلَى قِطَعٍ، وَنُرَكِّبُ القِطَعَ شَكْلًا بِلَا فَرَاغٍ وَلَا تَرَاكُبٍ.",
  "ms.ok":"رَائِعٌ! {صِرْتَ تُفَكِّكُ|صِرْتِ تُفَكِّكِينَ} الأَشْكَالَ وَ{تُرَكِّبُهَا|تُرَكِّبِينَهَا}. {هَذِهِ نَجْمَتُكَ|هَذِهِ نَجْمَتُكِ}.",
  "wrap.01":"بَنَيْنَا مَدِينَةَ المُضَلَّعَاتِ قِطْعَةً قِطْعَةً!",
@@ -568,17 +572,18 @@ d7={"id":"m2.u4.d7","title":"مَدِينَةُ المُضَلَّعَاتِ","i
  "flow":[
   {"s":"hook","scene":"cutRect","lines":["cr.01","cr.02","cr.03"]},
   {"s":"explore","scene":"composeShow","order":["rect","para","kite","tri"],"mat":MAT(),"lines":["cs.01","cs.02"]},
+  {"s":"explore","scene":"sqBuild","lines":["sb.01","sb.02","sb.03","sb.04"]},
   {"s":"explore","scene":"trominoes","lines":["tm.01","tm.02"]},
   {"s":"game","scene":"polyCity","lines":["pc.00","pc.01","pc.02","pc.03"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(pcn('r6','c'),pcn('qSq','d2')), tw(qn('cPara',['para','rect','kite'],45,seam=[1,3],q='pr.comp'),qn('cKite2',['kite','para','rect'],180,seam=[1,3],q='pr.comp')), tw(pcn('qRect','d1'),pcn('r8','alt'))],
-  "challenge":[tw(mn(4),pcn('qSq2','d2')), tw(qn('cRect',['rect','kite','tri'],90,seam=[1,3],q='pr.comp'),qn('cTri3',['tri','kite','para'],90,seam=[[-45,0],[45,0]],q='pr.comp')), tw(pcn('qPara','d1'),pcn('qKite3','d1'))]},
+  "normal":[tw(pcn('r6','c'),pcn('qRhom3','d2')), tw(qn('cPara',['para','rect','kite'],45,seam=[1,3],q='pr.comp'),qn('cKite2',['kite','para','rect'],180,seam=[1,3],q='pr.comp')), tw(pcn('qRect','d1'),pcn('r8','alt'))],
+  "challenge":[tw(mn(4),pcn('qPara4','d2')), tw(qn('cRect',['rect','kite','tri'],90,seam=[1,3],q='pr.comp'),qn('cTri3',['tri','kite','para'],90,seam=[[-45,0],[45,0]],q='pr.comp')), tw(pcn('qPara','d1'),pcn('qKite3','d1'))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":{"t":"quadName","k":"cRect","seam":[1,3],"pick":['rect','tri','kite']},"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
    "C163":[pcn('r8','c'), qn('cTri2',['tri','kite','rect'],180,seam=[[-25,0],[23,0]],q='pr.comp'), reason("ms.2",{"kind":"poly","k":"cRect2","seam":[1,3]},["ms.2a","ms.2b","ms.2c"])]},
   "recall":{"C163":{"scene":"recallPoly","k":"cKite","lines":["ms.recall"]}},
-  "remedial":{"C163":[tw(pcn('qSq2','d1'),qn('cPara3',['para','rect','kite'],90,seam=[0,2],q='pr.comp'))]},
+  "remedial":{"C163":[tw(pcn('qRect3','d1'),qn('cPara3',['para','rect','kite'],90,seam=[0,2],q='pr.comp'))]},
   "mixed":{"lesson":"m2.u4.d6","concept":"C160","item":rg('r7',20)},
   "ok":"ms.ok"},
  "review":[dict(pcn('qRect','d2'),c="C163"), dict(qn('cPara2',['para','kite','tri'],90,seam=[0,2],q='pr.comp'),c="C163"), dict(pcn('qRhom3','d1'),c="C163"), dict(qn('cRect2',['rect','tri','kite'],30,seam=[1,3],q='pr.comp'),c="C163"), dict(pcn('qPara','d2'),c="C163")],
@@ -644,7 +649,7 @@ d8={"id":"m2.u4.d8","title":"سَيِّدُ المُضَلَّعَاتِ","icon"
    T(3,6,pn('i8c',[7,8,9],40,q='q.pname')), T(4,6,pn('i9',[8,9,10],15,q='q.pname')),
    T(5,2,tk('tIsoO4','side',250,q='q.side')), T(6,2,tk('tScaR3','ang',45,q='q.ang')),
    T(7,4,qn('qRhom7',['rhom','square','rect'],20,q='q.name')), T(8,5,qr('trap',['qKite','qTrap','qOther2'],'q.rd')), T(9,3,qo('qPara2','oppSide',1,45,q='q.opp')),
-   T(10,5,dd('qRhom2',30,q='q.diag')),
+   T(10,5,dict(dd('i5c',30,q='q.diag'),count=True)),   # «رسم قطر وعدّ الأقطار» (المرجع؛ المراجع A-32)
    T(11,6,rg('i6eA2',90,q='q.reg')),
    T(12,7,pcn('r6','alt',q='q.parts')),
    T(13,5,dict(reason("ts.13",{"kind":"poly","k":"qSq3","rot":20,"marks":True},["ts.13a","ts.13b","ts.13c"]),x240="سؤال المرجع المفتوح بنصّه (S2-U4، اختبار الوحدة: هل المربع مستطيل؟ برّر)، والمربّعات كلها شكل واحد"))]},

@@ -44,16 +44,31 @@ function axFoldAt(parent, spec, C, L, o = {}) { const S = o.S || axShape(spec), 
     async fold(ms = 800) { if (folded) return; folded = true; SFX.tick(); tint(true); await axTween(ms, t => { set(1 - 2 * t); Bw.setAttribute('opacity', 1 - .45 * t); }); },
     async open(ms = 500) { if (!folded) return; folded = false; await axTween(ms, t => { set(-1 + 2 * t); Bw.setAttribute('opacity', .55 + .45 * t); }); tint(false); },
     flat() { folded = true; tint(true); set(-1); Bw.setAttribute('opacity', .55); } }; }
-const axStage = (H = 250) => { const svg = newStage(H, { oasis: false, ground: 0 }); plyFrame(svg, H - 28); return svg; };
+const axStage = (H = 250) => { const svg = newStage(H, { oasis: false, ground: 0, clouds: false }); plyFrame(svg, H - 28); return svg; };
 const AX_C = [180, 122];
 const axYesNo = want => choosePick([['yes', labelText('axYes'), '<i></i>', 'gen.ax.yes'], ['no', labelText('axNo'), '<i></i>', 'gen.ax.no']], want);
 /* المحاور مرسومة خطوطاً متقطّعة (للحلّ والتذكّر) */
+/* اختيار نقطة من نقاط متجاورة على الشبكة (بينها 31 وحدة، نحو 25 بكسلاً على iPhone SE؛ مراجعة B، 9 و22): الحلقة تظهر على أقرب نقطة ما دامت الإصبع على الشاشة، وتتبعها بالسحب، والاختيار عند الرفع؛ فلا يُحسب على الطفل جارُ ما قصد. وبلوحة المفاتيح كل نقطة زرّ. T: [{ g, k, label, x, y }] بإحداثيات المسرح */
+function axPressPick(svg, T, opt = {}) { const oks = [].concat(opt.ok ?? []), reach = opt.reach || 44;
+  T.forEach(t => { t.g.dataset.press = 1; t.g.setAttribute('role', 'button'); t.g.setAttribute('tabindex', 0); if (t.label) t.g.setAttribute('aria-label', plain(G(t.label))); /*T*/if (TESTHOOK) t.g.dataset.ok = oks.includes(t.k);/*/T*/ });
+  const pv = el('circle', { r: 16, fill: 'none', stroke: AXC.img, 'stroke-width': 3.4, opacity: 0, 'pointer-events': 'none' }, svg), near = q => { let b = null, bd = 1e9; for (const t of T) { const d = Math.hypot(t.x - q[0], t.y - q[1]); if (d < bd) { b = t; bd = d; } } return bd <= reach ? b : null; };
+  return gate(new Promise(res => { let cur = null, over = false; const show = t => { cur = t; pv.setAttribute('opacity', t ? 1 : 0); if (t) { pv.setAttribute('cx', t.x); pv.setAttribute('cy', t.y); } };
+    const fin = t => { if (over) return; over = true; input.off(); pv.remove(); AUTO_CLEAR(); T.forEach(x => { x.g.onkeydown = null; }); /*T*/window.__actG = t.g;/*/T*/ res(t.k); };
+    const input = fingerInput(svg, { map: e => { const p = svgPoint(svg, e); return [p.x, p.y]; }, down(q) { const t = near(q); if (!t) return false; show(t); }, move(q) { show(near(q)); }, up(cancel) { const t = cur; show(null); if (!cancel && t) fin(t); } });
+    T.forEach(t => { t.g.onkeydown = e => { if (actKey(e)) { e.preventDefault(); fin(t); } }; });
+    const okT = T.find(t => oks.includes(t.k)) || T[0], badT = T.find(t => !oks.includes(t.k));
+    AUTO({ kind: 'tap', ok: () => fin(okT), wrong: () => fin(badT || okT) }); })); }
+/* المحور لا يخرج من إطار الورقة (المراجع A-31: محاور الثماني): يُقصّ الخطّ بمستطيل الإطار (x 20–340، y 14 حتى أسفل المسرح بـ 14) */
+function axClipLine(parent, C, u, R0) { const svg = parent.ownerSVGElement || parent, H = (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.height) || 250, B = [24, 18, 336, H - 18];
+  let t0 = -R0, t1 = R0; for (const [p, q] of [[-u[0], C[0] - B[0]], [u[0], B[2] - C[0]], [-u[1], C[1] - B[1]], [u[1], B[3] - C[1]]]) { if (Math.abs(p) < 1e-9) continue; const r = q / p; if (p < 0) t0 = Math.max(t0, r); else t1 = Math.min(t1, r); }
+  if (t1 - t0 < 20) { t0 = -R0; t1 = R0; }   /* مركز خارج الإطار: بلا قصّ */
+  return { x1: C[0] + u[0] * t0, y1: C[1] + u[1] * t0, x2: C[0] + u[0] * t1, y2: C[1] + u[1] * t1 }; }
 function axLinesAt(parent, S, C, o = {}) { const g = el('g', { 'pointer-events': 'none' }, parent), R0 = o.r || 104, angs = S.axes === 'all' ? [0, 30, 60, 90, 120, 150] : S.axes;
-  angs.forEach((ang, i) => { const a = ang * Math.PI / 180, u = [Math.cos(a), -Math.sin(a)]; el('line', { x1: C[0] - u[0] * R0, y1: C[1] - u[1] * R0, x2: C[0] + u[0] * R0, y2: C[1] + u[1] * R0, stroke: o.color || AXC.line, 'stroke-width': 3, 'stroke-dasharray': '9 6', 'stroke-linecap': 'round', opacity: o.dim ? .35 : 1 }, g); });
+  angs.forEach((ang, i) => { const a = ang * Math.PI / 180, u = [Math.cos(a), -Math.sin(a)]; el('line', { ...axClipLine(parent, C, u, R0), stroke: o.color || AXC.line, 'stroke-width': 3, 'stroke-dasharray': '9 6', 'stroke-linecap': 'round', opacity: o.dim ? .35 : 1 }, g); });
   return g; }
 async function axLinesOneByOne(parent, Sh, C, o = {}) { const g = el('g', { 'pointer-events': 'none' }, parent), R0 = o.r || 104; const angs = Sh.axes === 'all' ? [0, 45, 90, 135, 22.5, 67.5, 112.5, 157.5] : Sh.axes;
-  for (const [i, ang] of angs.entries()) { const a = ang * Math.PI / 180, u = [Math.cos(a), -Math.sin(a)]; const ln = el('line', { x1: C[0] - u[0] * R0, y1: C[1] - u[1] * R0, x2: C[0] + u[0] * R0, y2: C[1] + u[1] * R0, stroke: AXC.line, 'stroke-width': 3, 'stroke-dasharray': '9 6', 'stroke-linecap': 'round' }, g); SFX.tick();
-    if (o.count && Sh.axes !== 'all') { const p = [C[0] + u[0] * (R0 + 4), C[1] + u[1] * (R0 + 4)]; badge(g, Math.max(36, Math.min(324, p[0])), Math.max(30, Math.min(o.maxY || 220, p[1])), i + 1, AXC.line); await S(numw(i + 1), { noGap: true, num: true }); } else await sleep(FAST ? 20 : 260); }
+  for (const [i, ang] of angs.entries()) { const a = ang * Math.PI / 180, u = [Math.cos(a), -Math.sin(a)]; const ln = el('line', { ...axClipLine(parent, C, u, R0), stroke: AXC.line, 'stroke-width': 3, 'stroke-dasharray': '9 6', 'stroke-linecap': 'round' }, g); SFX.tick();
+    if (o.count && Sh.axes !== 'all') { const p = [C[0] + u[0] * (R0 + 4), C[1] + u[1] * (R0 + 4)]; badge(g, Math.max(40, Math.min(320, p[0])), Math.max(36, Math.min(o.maxY || 216, p[1])), i + 1, AXC.line);   /* داخل الإطار لا على حافته (المراجع A-31) */ await S(numw(i + 1), { noGap: true, num: true }); } else await sleep(FAST ? 20 : 260); }
   return g; }
 
 /* ================= ① هل الخط محور تماثل؟ (C171): يحكم الطفل ثم يُطوى الشكل فيتحقق. k أو sym، ang أو thru، rot ================= */
@@ -169,7 +184,7 @@ async function axGuide(parent, Gd, ax, a, p, o = {}) { const g = el('g', { 'poin
    (النقطة التي دورها محاطة)، فتُرسم القطع حين تكتمل أطرافها؛ ثم تنعكس المرآة على المحور لتتحقّق ================= */
 ITEM.ptImage = {
   make(spec) { const off = spec.pts.map((p, i) => i).filter(i => axST(spec.ax, spec.a, spec.pts[i])[0] !== 0); return { ...spec, off, want: off.map(i => axImg(spec.ax, spec.a, spec.pts[i])), tag: 'pt-image-' + spec.ax + (spec.segs ? '-fig' : '') }; },
-  async ask(item, mode, tries) { const svg = newStage(252, { oasis: false, ground: 0 }), Gd = axGrid(svg, item.ax, item.a), fig = axFigAt(svg, Gd, item.pts, item.segs);
+  async ask(item, mode, tries) { const svg = newStage(252, { oasis: false, ground: 0, clouds: false }), Gd = axGrid(svg, item.ax, item.a), fig = axFigAt(svg, Gd, item.pts, item.segs);
     const placed = item.pts.map((p, i) => item.off.includes(i) ? null : p), imgL = el('g', { 'pointer-events': 'none' }, svg), ring = el('circle', { r: 13, fill: 'none', stroke: css('--think'), 'stroke-width': 3, 'stroke-dasharray': '5 4', 'pointer-events': 'none' }, svg);
     let cur = 0, guide = null, done = false; const ans = [];
     const redraw = () => { imgL.innerHTML = ''; const imSegs = (item.segs || []).filter(([i, j]) => placed[i] && placed[j]); axFigAt(imgL, Gd, placed, imSegs, { color: AXC.img }); };
@@ -182,7 +197,10 @@ ITEM.ptImage = {
         if (ans.length && sameQ(q, ans[ans.length - 1])) { ans.pop(); cur--; placed[item.off[cur]] = null; SFX.tick(); redraw(); if (bar) { bar.bar.remove(); bar = null; } /*T*/window.__axPlaced = ans.length;/*/T*/ await focus(); return; }
         if (cur >= item.off.length) return; const i = item.off[cur]; placed[i] = q; ans.push(q); SFX.tick(); redraw(); cur++; /*T*/window.__axPlaced = ans.length;/*/T*/
         if (cur >= item.off.length) { await focus(); bar = doneBtn(); bar.b.onclick = () => { if (done || cur < item.off.length) return; done = true; AUTO_CLEAR(); hush(); input.off(); kg.remove(); bar.bar.remove(); res(); }; } else await focus(); };   /* AUTO_CLEAR: انتظار البند المنتهي لا يبقى لسائق الفحص (realtap: بقي فلمس نقاط البند السابق) */
-      const input = fingerInput(svg, { map: e => { const p = svgPoint(svg, e); return [p.x, p.y]; }, down(q) { if (q[1] > Gd.y0 + 20 || q[1] < Gd.y0 - Gd.rows * Gd.c - 20) return false; put(Gd.snap(q)); return false; }, move() {}, up() {} });
+      /* تُختار النقطة عند الرفع لا عند اللمس: ما دامت الإصبع على الشبكة تظهر النقطة التي ستوضع وخطّا صفّها وعمودها خارج الإصبع، فيُصحّح الطفل بالسحب قبل أن يرفع (مراجعة B، 9: المسافة بين النقاط دون 44 بكسلاً) */
+      const pv = el('g', { 'pointer-events': 'none' }, svg); let pq = null; const show = q => { if (pq && sameQ(q, pq)) return; pq = q; pv.innerHTML = ''; const [x, y] = Gd.P(...q), [xa, ya] = Gd.P(0, q[1]), [xb] = Gd.P(Gd.cols, q[1]), [, yb] = Gd.P(q[0], Gd.rows), [, yc] = Gd.P(q[0], 0);
+        geoLine(pv, xa, y, xb, y, { color: AXC.img, w: 2, dash: '3 4' }).setAttribute('opacity', .55); geoLine(pv, x, yb, x, yc, { color: AXC.img, w: 2, dash: '3 4' }).setAttribute('opacity', .55); el('circle', { cx: x, cy: y, r: 12, fill: 'none', stroke: AXC.img, 'stroke-width': 3 }, pv); };
+      const input = fingerInput(svg, { map: e => { const p = svgPoint(svg, e); return [p.x, p.y]; }, down(q) { if (done || q[1] > Gd.y0 + 20 || q[1] < Gd.y0 - Gd.rows * Gd.c - 20) return false; show(Gd.snap(q)); }, move(q) { show(Gd.snap(q)); }, up(cancel) { const q = pq; pq = null; pv.innerHTML = ''; if (!cancel && q) put(q); } });
       /* بلوحة المفاتيح: كل تقاطع خانة */
       var kg = el('g', { role: 'grid', 'aria-label': labelText('geoGrid') }, svg); for (let u = Gd.rows; u >= 0; u--) { const row = el('g', { role: 'row' }, kg); for (let r = 0; r <= Gd.cols; r++) { const [x, y] = Gd.P(r, u), b = el('g', { role: 'gridcell', tabindex: 0, 'aria-label': `${DG(r)}، ${DG(u)}` }, row); el('circle', { cx: x, cy: y, r: 10, fill: 'transparent', 'pointer-events': 'none' }, b); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); put([r, u]); } }; } }
       /*T*/window.__axAt = (r, u) => { const m = svg.getScreenCTM(), [x, y] = Gd.P(r, u); return { x: m.a * x + m.e, y: m.d * y + m.f }; }; window.__axWant = item.want; window.__axPlaced = 0;/*/T*/
@@ -203,14 +221,14 @@ ITEM.ptImage = {
 /* ================= ⑤ أين المحور؟ (C171، C172، إنتاج): نقطة p وصورتها p2. يلمس الطفل منتصف الواصل بينهما، فيُرسم المحور عمودياً عليه ================= */
 ITEM.axisFind = {
   make(spec) { const m = [(spec.p[0] + spec.p2[0]) / 2, (spec.p[1] + spec.p2[1]) / 2]; /*T*/if (TESTHOOK && (m[0] % 1 || m[1] % 1)) testBug('axisFind: المنتصف ليس على الشبكة');/*/T*/ return { ...spec, want: m.join(','), m, tag: 'axis-find' }; },
-  async ask(item, mode, tries) { const svg = newStage(252, { oasis: false, ground: 0 }), G0 = AXG, { p, p2: q } = item, dr = q[0] - p[0], du = q[1] - p[1], g0 = Math.abs(dr) && Math.abs(du) ? Math.min(Math.abs(dr), Math.abs(du)) : Math.max(Math.abs(dr), Math.abs(du));
+  async ask(item, mode, tries) { const svg = newStage(252, { oasis: false, ground: 0, clouds: false }), G0 = AXG, { p, p2: q } = item, dr = q[0] - p[0], du = q[1] - p[1], g0 = Math.abs(dr) && Math.abs(du) ? Math.min(Math.abs(dr), Math.abs(du)) : Math.max(Math.abs(dr), Math.abs(du));
     const Gd = axGrid(svg, 'none', 0, G0); const A = Gd.P(...p), B = Gd.P(...q); geoLine(svg, A[0], A[1], B[0], B[1], { color: AXC.guide, w: 3, dash: '7 5' });
     axFigAt(svg, Gd, [p], []); axFigAt(svg, Gd, [q], [], { color: AXC.img });
-    const T = []; for (let i = 1; i < g0; i++) { const r = p[0] + dr / g0 * i, u = p[1] + du / g0 * i, [x, y] = Gd.P(r, u), g = el('g', { 'data-k': r + ',' + u }, svg); el('circle', { cx: x, cy: y, r: 9, fill: '#fff', stroke: AXC.guide, 'stroke-width': 2.5 }, g); T.push({ g, k: r + ',' + u, label: labelText('axSpot') }); }
+    const T = []; for (let i = 1; i < g0; i++) { const r = p[0] + dr / g0 * i, u = p[1] + du / g0 * i, [x, y] = Gd.P(r, u), g = el('g', { 'data-k': r + ',' + u }, svg); el('circle', { cx: x, cy: y, r: 9, fill: '#fff', stroke: AXC.guide, 'stroke-width': 2.5 }, g); T.push({ g, k: r + ',' + u, label: labelText('axSpot') + ' ' + DG(i), x, y }); }
     if (tries >= 3) { const m = helpG(svg), half = g0 / 2, dl = Math.hypot(B[0] - A[0], B[1] - A[1]), nx = -(B[1] - A[1]) / dl, ny = (B[0] - A[0]) / dl;   /* الشارات متناوبة على جانبي الواصل، والوسطيّتان متقابلتان، فلا تتراكب حين الخطوة 28 بكسل (الفحص: ladder) */
       for (let i = 1; i <= half; i++) { const a1 = Gd.P(p[0] + dr / g0 * (i - .5), p[1] + du / g0 * (i - .5)), b1 = Gd.P(q[0] - dr / g0 * (i - .5), q[1] - du / g0 * (i - .5)), sg = i % 2 ? 1 : -1; badge(m, a1[0] + nx * 18 * sg, a1[1] + ny * 18 * sg, i, css('--think')); badge(m, b1[0] - nx * 18 * sg, b1[1] - ny * 18 * sg, i, AXC.img); } }
     await S(tries >= 3 ? 'gen.ax.together.find' : item.q);
-    const k = await tapOne(T, { ok: item.want, pad: 40 }); return { ans: k, ctx: { svg, Gd, A, B, T } }; },
+    const k = await axPressPick(svg, T, { ok: item.want }); return { ans: k, ctx: { svg, Gd, A, B, T } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'axMidOff' }; },
   async onOk(item, r) { SFX.good(); await axFindDraw(item, r); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { const m = helpG(r.ctx.svg); [item.p, item.p2].forEach(pt => { const [x, y] = r.ctx.Gd.P(...pt); thinkRing(m, [x, y], 16); }); await S('gen.ax.hint.find'); await sleep(600); m.remove(); }, async together() {},
@@ -230,8 +248,8 @@ function axVariant(kind, pts, a) { return pts.map(p => { const s = p[0] - a; if 
 function axShiftOf(pts, a) { const S0 = pts.map(p => p[0] - a), lo = Math.min(...S0), hi = Math.max(...S0); return pts.map(p => [p[0] - a - (lo + hi) + a, p[1]]); }
 ITEM.imageCheck = {
   make(spec) { const kinds = ['ok', ...spec.wrong]; return { ...spec, kinds, want: 'ok', tag: 'image-check-' + spec.wrong.join('-') }; },
-  async ask(item, mode, tries) { const svg = newStage(212, { oasis: false, ground: 0 }), order = shuffle(item.kinds), c = 15, panels = [];
-    order.forEach((kind, i) => { const g = el('g', { 'data-k': kind }, svg), x0 = AXI_X3[i] - 45, y0 = 160;
+  async ask(item, mode, tries) { const tall = innerHeight > innerWidth * 1.25, c = tall ? 20 : 15, svg = newStage(tall ? 300 : 212, { oasis: false, ground: 0, clouds: false }), order = shuffle(item.kinds), panels = [];   /* الشاشة الطويلة: لوحتان فوق وواحدة تحت، أكبر بالثلث (المراجع A-31) */
+    order.forEach((kind, i) => { const g = el('g', { 'data-k': kind }, svg), [cx, cy] = tall ? [[246, 137], [92, 137], [169, 285]][i] : [AXI_X3[i], 160], x0 = cx - 3 * c, y0 = cy;
       el('rect', { x: x0 - 9, y: y0 - 6 * c - 9, width: 6 * c + 18, height: 6 * c + 18, rx: 10, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, g);
       for (let k = 0; k <= 6; k++) { geoLine(g, x0 + k * c, y0, x0 + k * c, y0 - 6 * c, { color: '#d5e2ea', w: 1 }); geoLine(g, x0, y0 - k * c, x0 + 6 * c, y0 - k * c, { color: '#d5e2ea', w: 1 }); }
       const P = (r, u) => [x0 + r * c, y0 - u * c], a = 3; geoLine(g, ...P(a, 0), ...P(a, 6), { color: AXC.line, w: 2.6, dash: '6 4' });
@@ -251,12 +269,12 @@ ITEM.imageCheck = {
 /* ================= ⑦ اكتشف الخطأ (C176): شكل وصورته، وصورة نقطة واحدة (bad) في غير موضعها بـ off. يلمس الطفل النقطة الخطأ ================= */
 ITEM.imageError = {
   make(spec) { return { ...spec, want: String(spec.bad), tag: 'image-error' }; },
-  async ask(item, mode, tries) { const svg = newStage(252, { oasis: false, ground: 0 }), Gd = axGrid(svg, item.ax, item.a); axFigAt(svg, Gd, item.pts, item.segs);
+  async ask(item, mode, tries) { const svg = newStage(252, { oasis: false, ground: 0, clouds: false }), Gd = axGrid(svg, item.ax, item.a); axFigAt(svg, Gd, item.pts, item.segs);
     const im = item.pts.map((p, i) => { const q = axImg(item.ax, item.a, p); return i === item.bad ? [q[0] + item.off[0], q[1] + item.off[1]] : q; }); axFigAt(svg, Gd, im, item.segs, { color: AXC.img });
-    const T = im.map((q, i) => ({ q, i })).filter(({ i }) => axST(item.ax, item.a, item.pts[i])[0] !== 0).map(({ q, i }) => { const [x, y] = Gd.P(...q), g = el('g', { 'data-k': i }, svg); el('circle', { cx: x, cy: y, r: 13, fill: '#fff', opacity: .01 }, g); return { g, k: String(i), label: labelText('axSpot') }; });
+    const T = im.map((q, i) => ({ q, i })).filter(({ i }) => axST(item.ax, item.a, item.pts[i])[0] !== 0).map(({ q, i }) => { const [x, y] = Gd.P(...q), g = el('g', { 'data-k': i }, svg); el('circle', { cx: x, cy: y, r: 13, fill: '#fff', opacity: .01 }, g); return { g, k: String(i), label: labelText('axSpot') + ' ' + DG(i + 1), x, y }; });
     if (tries >= 3) { const m = helpG(svg); for (const { k } of T.slice(0, 2)) if (k !== item.want) { const q = im[+k]; thinkRing(m, Gd.P(...q), 15); } }   /* الحلّ المشترك: نقطتان صحيحتان محاطتان */
     await S(tries >= 3 ? 'gen.ax.together.err' : item.q);
-    const k = await tapOne(T, { ok: item.want, pad: 40 }); return { ans: k, ctx: { svg, Gd, im, T } }; },
+    const k = await axPressPick(svg, T, { ok: item.want }); return { ans: k, ctx: { svg, Gd, im, T } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'imgErrMiss' }; },
   async onOk(item, r) { SFX.good(); await axGuide(r.ctx.svg, r.ctx.Gd, item.ax, item.a, item.pts[item.bad]); okRing(r.ctx.svg, r.ctx.T.find(t => t.k === item.want).g, 4); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { await S('gen.ax.hint.err'); }, async together() {},
@@ -281,7 +299,7 @@ ITEM.trapLegs = {
 /* ================= ⑨ لغز المحاور (C174): ثلاثة أشكال، ولكلٍّ عدد محاوره؛ «لي n محوراً وأضلاعي متساوية» ================= */
 ITEM.axisRiddle = {
   make(spec) { const ok = spec.figs.filter(k => { const Sh = axShape({ k }), pr = polyProps(POLYS[k]); return Sh.axes.length === spec.n && (spec.eqSides ? pr.allEqL : true); }); /*T*/if (TESTHOOK && ok.length !== 1) testBug('axisRiddle: الجواب ليس واحداً ' + ok.join(','));/*/T*/ return { ...spec, want: ok[0], tag: 'axis-riddle' }; },
-  async ask(item, mode, tries) { const svg = newStage(222, { oasis: false, ground: 0 }), T = item.figs.map((k, i) => { const g = el('g', { 'data-k': k }, svg); el('rect', { x: AXI_X3[i] - 52, y: 26, width: 104, height: 170, rx: 14, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, g); const xs = POLYS[k].p.map(p => p[0]), w = Math.max(...xs) - Math.min(...xs), sc = Math.min(.55, 84 / w); polyAt(g, k, [AXI_X3[i], 111], { s: sc, dots: false }); return { g, k, label: labelText('plyShape') + ' ' + DG(i + 1) }; });
+  async ask(item, mode, tries) { const svg = newStage(222, { oasis: false, ground: 0, clouds: false }), T = item.figs.map((k, i) => { const g = el('g', { 'data-k': k }, svg); el('rect', { x: AXI_X3[i] - 52, y: 26, width: 104, height: 170, rx: 14, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, g); const xs = POLYS[k].p.map(p => p[0]), w = Math.max(...xs) - Math.min(...xs), sc = Math.min(.55, 84 / w); polyAt(g, k, [AXI_X3[i], 111], { s: sc, dots: false }); return { g, k, label: labelText('plyShape') + ' ' + DG(i + 1) }; });
     if (tries >= 3) { const m = helpG(svg); T.forEach((t, i) => { const Sh = axShape({ k: t.k, s: Math.min(.55, 84 / (Math.max(...POLYS[t.k].p.map(p => p[0])) - Math.min(...POLYS[t.k].p.map(p => p[0])))) }); axLinesAt(m, Sh, [AXI_X3[i], 111], { r: 52, dim: true }); }); }
     await S(tries >= 3 ? 'gen.ax.together.rd' : item.q); const k = await tapOne(T, { ok: item.want, pad: false }); return { ans: k, ctx: { svg, T } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'axRiddle' }; },
@@ -317,7 +335,7 @@ const AX_SYM = {
 const axSymReady = () => { if (!SYM.starfish) Object.assign(SYM, AX_SYM); };
 ITEM.worldPick = {
   make(spec) { axSymReady(); const isS = k => (SYM[k].lines === 'all' || SYM[k].lines.length > 0), want = spec.pics.filter(k => (spec.ask === 'no') !== isS(k)); /*T*/if (TESTHOOK && want.length !== 1) testBug('worldPick: الجواب ليس واحداً');/*/T*/ return { ...spec, want: want[0], tag: 'world-pick-' + (spec.ask || 'yes') }; },
-  async ask(item, mode, tries) { axSymReady(); const svg = newStage(222, { oasis: false, ground: 0 }), T = item.pics.map((k, i) => { const g = el('g', { 'data-k': k }, svg); el('rect', { x: AXI_X3[i] - 52, y: 26, width: 104, height: 170, rx: 14, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, g); symAt(g, k, AXI_X3[i], 111, .95); return { g, k, label: labelText('axPic') + ' ' + DG(i + 1) }; });
+  async ask(item, mode, tries) { axSymReady(); const svg = newStage(222, { oasis: false, ground: 0, clouds: false }), T = item.pics.map((k, i) => { const g = el('g', { 'data-k': k }, svg); el('rect', { x: AXI_X3[i] - 52, y: 26, width: 104, height: 170, rx: 14, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, g); symAt(g, k, AXI_X3[i], 111, .95); return { g, k, label: labelText('axPic') + ' ' + DG(i + 1) }; });
     if (tries >= 3) { const m = helpG(svg); T.forEach((t, i) => { const L = SYM[t.k].lines; if (L !== 'all' && L.length) axLinesAt(m, { axes: L }, [AXI_X3[i], 111], { r: 56, dim: true }); }); }
     await S(tries >= 3 ? 'gen.ax.together.world' : item.q); const k = await tapOne(T, { ok: item.want, pad: false }); return { ans: k, ctx: { svg, T } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: SYM[k] && SYM[k].near ? 'axNear' : 'worldSym' }; },
@@ -333,7 +351,7 @@ const dsgAxes = on => { const n = DSG.n, has = f => on.size > 0 && [...on].every
   return [['v', (r, c) => [r, n - 1 - c]], ['h', (r, c) => [n - 1 - r, c]], ['d', (r, c) => [c, r]], ['e', (r, c) => [n - 1 - c, n - 1 - r]]].filter(([, f]) => has(f)).map(([k]) => k); };
 ITEM.designSym = {
   make(spec) { return { ...spec, want: spec.need, tag: 'design-sym-' + spec.need }; },
-  async ask(item, mode, tries) { const svg = newStage(318, { oasis: false, ground: 0 }), { n, c, x0, y0 } = DSG, on = new Set(), cells = {};
+  async ask(item, mode, tries) { const svg = newStage(318, { oasis: false, ground: 0, clouds: false }), { n, c, x0, y0 } = DSG, on = new Set(), cells = {};
     el('rect', { x: x0 - 8, y: y0 - 8, width: n * c + 16, height: n * c + 16, rx: 10, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, svg);
     const axG = el('g', { 'pointer-events': 'none' }, svg), mid = x0 + n * c / 2, midY = y0 + n * c / 2;
     const guides = { v: [mid, y0 - 4, mid, y0 + n * c + 4], h: [x0 - 4, midY, x0 + n * c + 4, midY], d: [x0, y0, x0 + n * c, y0 + n * c], e: [x0 + n * c, y0, x0, y0 + n * c] };
@@ -363,24 +381,24 @@ async function axPredictNum(n, q = 'gen.ax.predict.count') { say(...lineOf(q), {
 async function axPredictYN(ok, q) { say(...lineOf(q), { free: true }); const k = await choosePick([['yes', labelText('yes'), PICKICON.yes, 'gen.opt.yes'], ['no', labelText('no'), PICKICON.no, 'gen.opt.no']], ok); hush(); logAttempt({ scene: 'explore', tag: 'axPredict', ok: k === ok }); return k; }
 async function axPredictAt(svg, spots, ok, q) { const m = el('g', {}, svg), T = spots.map((p, i) => { const g = el('g', { 'data-k': i }, m); el('circle', { cx: p[0], cy: p[1], r: 15, fill: '#fff', 'fill-opacity': .6, stroke: css('--think'), 'stroke-width': 2.5, 'stroke-dasharray': '5 4' }, g); return { g, k: i, label: labelText('plySpot') + ' ' + DG(i + 1) }; });
   const k = await predictTap(T, q); m.remove(); logAttempt({ scene: 'explore', tag: 'axPredict', ok: k === ok }); return k; }
-SCENES.lakeHook = async c => { const svg = newStage(250, { oasis: false, ground: 0 }), L = c.lines, W = 126;
+SCENES.lakeHook = async c => { const svg = newStage(250, { oasis: false, ground: 0, clouds: false }), L = c.lines, W = 126;
   el('rect', { x: 20, y: 14, width: 320, height: W - 14, rx: 12, fill: '#dff0fb' }, svg); el('rect', { x: 20, y: W, width: 320, height: 110, rx: 12, fill: '#7fb6d9' }, svg);
   const mt = g => { el('path', { d: 'M60 126 L140 40 L180 84 L220 30 L300 126 Z', fill: '#7d8f6a', stroke: '#fff', 'stroke-width': 2 }, g); el('path', { d: 'M205 46 L220 30 L236 48 L226 52 L220 44 L212 52 Z', fill: '#fff' }, g); el('circle', { cx: 92, cy: 60, r: 14, fill: '#f2c66d' }, g); };
   mt(el('g', {}, svg)); const im = el('g', { transform: `translate(0 ${2 * W}) scale(1 -1)`, opacity: .55 }, svg); mt(im);
   await S(L[0]); await axPredictAt(svg, [[180, W - 62], [180, W], [180, W + 62]], 1, 'gen.ax.predict.line'); const ln = el('line', { x1: 20, y1: W, x2: 340, y2: W, stroke: AXC.line, 'stroke-width': 3.6, 'stroke-dasharray': '10 6' }, svg); anim(ln, [{ opacity: 0 }, { opacity: 1 }], { duration: 500 }); SFX.tick(); await S(L[1]); };
 /* الاكتشاف (أ): نقطة أمام المرآة وصورتها، والبعدان متساويان */
-SCENES.mirrorDist = async c => { const svg = newStage(250, { oasis: false, ground: 0 }), L = c.lines, Gd = axGrid(svg, 'v', 5), p = c.p || [2, 3], q = axImg('v', 5, p);
+SCENES.mirrorDist = async c => { const svg = newStage(250, { oasis: false, ground: 0, clouds: false }), L = c.lines, Gd = axGrid(svg, 'v', 5), p = c.p || [2, 3], q = axImg('v', 5, p);
   el('rect', { x: Gd.P(5, 6)[0] - 4, y: Gd.P(5, 6)[1], width: 8, height: Gd.rows * Gd.c, fill: '#bfe0f2', opacity: .8, 'pointer-events': 'none' }, svg);
   axFigAt(svg, Gd, [p], []); await S(L[0]); await axPredictAt(svg, [q[0] - 2, q[0], Math.min(Gd.cols, q[0] + 2)].map(x => Gd.P(x, q[1])), 1, 'gen.ax.predict.img');   /* مواضع على بعد خانتين (مراجعة B، 10) */ axFigAt(svg, Gd, [q], [], { color: AXC.img }); SFX.pop(); await S(L[1]);
   const g1 = await axGuide(svg, Gd, 'v', 5, p, { count: false }); g1.remove(); const m = helpG(svg); const s = 5 - p[0]; for (let i = 1; i <= s; i++) { badge(m, Gd.P(p[0] + i - .5, p[1])[0], Gd.P(p[0], p[1])[1] - 16, i, css('--think')); badge(m, Gd.P(q[0] - i + .5, p[1])[0], Gd.P(p[0], p[1])[1] - 16, i, AXC.img); SFX.tick(); await sleep(FAST ? 20 : 260); }
   await S(L[2]); };
 /* الاكتشاف (ب): ورقة مطوية وثقب، فتظهر الصورة؛ وخط الطيّ هو المحور */
-SCENES.pinFold = async c => { const svg = newStage(250, { oasis: false, ground: 0 }), L = c.lines, F = axFoldAt(svg, { k: c.k || 'qRect' }, [180, 122], { at: [0, 0], ang: 90 }, { fill: GEO.paper, line: false });
-  const p = [48, -12]; el('circle', { cx: 180 + p[0], cy: 122 + p[1], r: 6, fill: AXC.pt }, svg); await S(L[0]); await F.fold(); const pin = el('circle', { cx: 180 + p[0], cy: 122 + p[1], r: 9, fill: 'none', stroke: AXC.line, 'stroke-width': 3 }, svg); SFX.pop(); await sleep(500); await F.open(); pin.remove();
+SCENES.pinFold = async c => { const svg = newStage(250, { oasis: false, ground: 0, clouds: false }), L = c.lines, F = axFoldAt(svg, { k: c.k || 'qRect' }, [180, 122], { at: [0, 0], ang: 90 }, { fill: GEO.paper, line: false });
+  const p = [62, -12]; el('circle', { cx: 180 + p[0], cy: 122 + p[1], r: 6, fill: AXC.pt }, svg); await S(L[0]); await F.fold(); const pin = el('circle', { cx: 180 + p[0], cy: 122 + p[1], r: 9, fill: 'none', stroke: AXC.line, 'stroke-width': 3 }, svg); SFX.pop(); await sleep(500); await F.open(); pin.remove();
   await axPredictAt(svg, [[180 - p[0], 122 + p[1]], [180, 122 + p[1]], [180 + p[0], 122 + p[1]]], 0, 'gen.ax.predict.hole');   /* الصورة، أو على خطّ الطيّ، أو مكان الثقب الأول */
   el('circle', { cx: 180 - p[0], cy: 122 + p[1], r: 6, fill: AXC.img }, svg);   /* النصف الأيسر هو الذي يُطوى فوق النقطة، فالثقب يظهر فيه */ await S(L[1]); F.line.setAttribute('opacity', 1); SFX.tick(); await S(L[2]); };
 /* الاكتشاف (ج): الواصل بين النقطة وصورتها عمودي على المحور ويقطعه في منتصفه */
-SCENES.axPerpShow = async c => { const svg = newStage(250, { oasis: false, ground: 0 }), L = c.lines, Gd = axGrid(svg, 'v', 5), p = c.p || [2, 2], q = axImg('v', 5, p); axFigAt(svg, Gd, [p], []); axFigAt(svg, Gd, [q], [], { color: AXC.img });
+SCENES.axPerpShow = async c => { const svg = newStage(250, { oasis: false, ground: 0, clouds: false }), L = c.lines, Gd = axGrid(svg, 'v', 5), p = c.p || [2, 2], q = axImg('v', 5, p); axFigAt(svg, Gd, [p], []); axFigAt(svg, Gd, [q], [], { color: AXC.img });
   await S(L[0]); const A = Gd.P(...p), B = Gd.P(...q); await axPredictAt(svg, [Gd.P(5, Math.max(0, p[1] - 2)), Gd.P(5, p[1]), Gd.P(5, Math.min(Gd.rows, p[1] + 2))], 1, 'gen.ax.predict.cross'); geoLine(svg, A[0], A[1], B[0], B[1], { color: AXC.guide, w: 3.2 }); SFX.tick();
   const M = Gd.P(5, p[1]); paperCornerAt(svg, M, 0, 34); await S(L[1]); ptAt(svg, M[0], M[1], '', { r: 6, color: AXC.ok }); await S(L[2]); };
 /* بطاقة طرق التحقق الثلاث: الطيّ، والمرآة، والورق الشفّاف */
@@ -406,12 +424,12 @@ SCENES.regularAxes = async c => { const L = c.lines; await S(L[0]); for (const k
 /* المحاور المائلة: المربع والمعيّن مدوَّرين، والقطران محوران */
 SCENES.slantAxes = async c => { const L = c.lines; for (const [i, [k, rot]] of (c.figs || [['qSq', 30], ['qRhom', 20]]).entries()) { const svg = axStage(), S0 = axShape({ k, rot }); el('polygon', { points: polyStr(S0.P.map(p => [p[0] + AX_C[0], p[1] + AX_C[1]])), fill: PLY.fill, stroke: PLY.edge, 'stroke-width': 4 }, svg); if (!i) await S(L[0]); await axLinesOneByOne(svg, S0, AX_C); await S(L[i + 1]); } };
 /* د3: ترميم النافذة بالعدّ (مثال محلول): النقاط تُعدّ إلى المحور وتُنقل */
-SCENES.axGridWorked = async c => { const svg = newStage(252, { oasis: false, ground: 0 }), L = c.lines, Gd = axGrid(svg, c.ax || 'v', c.a ?? 5); axFigAt(svg, Gd, c.pts, c.segs); await S(L[0]);
+SCENES.axGridWorked = async c => { const svg = newStage(252, { oasis: false, ground: 0, clouds: false }), L = c.lines, Gd = axGrid(svg, c.ax || 'v', c.a ?? 5); axFigAt(svg, Gd, c.pts, c.segs); await S(L[0]);
   const placed = c.pts.map(p => axST(c.ax || 'v', c.a ?? 5, p)[0] === 0 ? p : null), lay = el('g', {}, svg);
   for (const [i, p] of c.pts.entries()) { if (placed[i]) continue; const g = await axGuide(svg, Gd, c.ax || 'v', c.a ?? 5, p, { count: !lay.childNodes.length }); placed[i] = axImg(c.ax || 'v', c.a ?? 5, p); lay.innerHTML = ''; axFigAt(lay, Gd, placed, (c.segs || []).filter(([a, b]) => placed[a] && placed[b]), { color: AXC.img }); await sleep(FAST ? 20 : 500); g.remove(); }
   await S(L[1]); const w = await axMirrorCheck(svg, Gd, c.pts, c.segs); await S(L[2]); w.remove(); };
 /* المحور القطري: تدور الورقة حتى يصير المحور رأسياً */
-SCENES.turnPaper = async c => { const svg = newStage(252, { oasis: false, ground: 0 }), L = c.lines, holder = el('g', {}, svg), Gd = axGrid(holder, 'd', [3, 1], { c: 28, cols: 8, rows: 6, x0: 68, y0: 196 }); axFigAt(holder, Gd, c.pts || [[2, 3], [1, 4]], c.segs || [[0, 1]]);
+SCENES.turnPaper = async c => { const svg = newStage(252, { oasis: false, ground: 0, clouds: false }), L = c.lines, holder = el('g', {}, svg), Gd = axGrid(holder, 'd', [3, 1], { c: 28, cols: 8, rows: 6, x0: 68, y0: 196 }); axFigAt(holder, Gd, c.pts || [[2, 3], [1, 4]], c.segs || [[0, 1]]);
   await S(L[0]); const at = Gd.at; await axTween(1000, t => holder.setAttribute('transform', `rotate(${-45 * t} ${at[0]} ${at[1]})`)); SFX.tick(); await S(L[1]); await axTween(700, t => holder.setAttribute('transform', `rotate(${-45 * (1 - t)} ${at[0]} ${at[1]})`)); await S(L[2]); };
 /* د4: جولة في عالمنا: كل صورة تُطوى على محورها (أو لا ينطبق نصفاها) */
 SCENES.worldTour = async c => { axSymReady(); const L = c.lines; for (const [i, k] of (c.pics || ['butterfly', 'starfish', 'star8']).entries()) { const svg = axStage(), D = SYM[k]; if (D.lines !== 'all' && D.lines.length) { const F = symFoldAt(svg, k, 180, 122, 1.7, D.lines[0], 0, { lineR: 60, lineColor: AXC.line }); await S(L[i]); if (D.lines.length > 1 && i === (c.pics || ['butterfly', 'starfish', 'star8']).length - 1) await axPredictNum(D.lines.length);   /* التوقّع قبل الطيّ (مراجعة B، 17) */
@@ -419,12 +437,12 @@ SCENES.worldTour = async c => { axSymReady(); const L = c.lines; for (const [i, 
 /* الطبيعة تقريبية: ورقة الشجر تُطوى فلا ينطبق نصفاها تماماً */
 SCENES.nearLeaf = async c => { const svg = axStage(), L = c.lines, F = symFoldAt(svg, 'leaf', 180, 122, 1.7, 90, 0, { lineR: 60, lineColor: AXC.line }); await S(L[0]); await axPredictYN('no', 'gen.ax.predict.exact'); await F.fold(); await sleep(500); await S(L[1]); };
 /* الحرف بخطّين: الحكم بحسب شكل الخط */
-SCENES.letterStyles = async c => { axSymReady(); const L = c.lines; for (const [i, [a, b]] of (c.pairs || [['kufiBa', 'handBa']]).entries()) { const svg = newStage(222, { oasis: false, ground: 0 }); const Fs = [a, b].map((k, j) => { const x = j ? 92 : 268, card = el('g', {}, svg); el('rect', { x: x - 70, y: 22, width: 140, height: 178, rx: 14, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, card); return { k, card, F: symFoldAt(card, k, x, 111, 1.15, 90, 0, { lineR: 60, lineColor: AXC.line }) }; });   /* الهدف البطاقة بحرفها: لمس الحرف نفسه يختارها (مراجعة B، 3) */
+SCENES.letterStyles = async c => { axSymReady(); const L = c.lines; for (const [i, [a, b]] of (c.pairs || [['kufiBa', 'handBa']]).entries()) { const svg = newStage(222, { oasis: false, ground: 0, clouds: false }); const Fs = [a, b].map((k, j) => { const x = j ? 92 : 268, card = el('g', {}, svg); el('rect', { x: x - 70, y: 22, width: 140, height: 178, rx: 14, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, card); return { k, card, F: symFoldAt(card, k, x, 111, 1.15, 90, 0, { lineR: 60, lineColor: AXC.line }) }; });   /* الهدف البطاقة بحرفها: لمس الحرف نفسه يختارها (مراجعة B، 3) */
     await S(L[2 * i]); { const want = [a, b].findIndex(k => SYM[k].lines === 'all' || SYM[k].lines.length > 0), Tg = Fs.map((f, j) => ({ g: f.card, k: j, label: labelText('plyShape') + ' ' + DG(j + 1) })); const kk = await predictTap(Tg, 'gen.ax.predict.letter'); logAttempt({ scene: 'explore', tag: 'axPredict', ok: kk === want }); }
     for (const f of Fs) { await f.F.fold(); await sleep(200); } await S(L[2 * i + 1]); } };
 /* التذكّر */
 SCENES.recallAxis = async c => { const svg = axStage(), F = axFoldAt(svg, { k: c.k || 'tIsoA', rot: c.rot || 0 }, AX_C, { at: [0, 0], ang: c.ang ?? 90 }, {}); await sleep(300); await F.fold(); await S(c.lines[0]); };
-SCENES.recallImg = async c => { const svg = newStage(252, { oasis: false, ground: 0 }), Gd = axGrid(svg, c.ax || 'v', c.a ?? 5), pts = c.pts || [[2, 3]]; axFigAt(svg, Gd, pts, c.segs); axFigAt(svg, Gd, pts.map(p => axImg(c.ax || 'v', c.a ?? 5, p)), c.segs, { color: AXC.img }); for (const p of pts) await axGuide(svg, Gd, c.ax || 'v', c.a ?? 5, p); await S(c.lines[0]); };
+SCENES.recallImg = async c => { const svg = newStage(252, { oasis: false, ground: 0, clouds: false }), Gd = axGrid(svg, c.ax || 'v', c.a ?? 5), pts = c.pts || [[2, 3]]; axFigAt(svg, Gd, pts, c.segs); axFigAt(svg, Gd, pts.map(p => axImg(c.ax || 'v', c.a ?? 5, p)), c.segs, { color: AXC.img }); for (const p of pts) await axGuide(svg, Gd, c.ax || 'v', c.a ?? 5, p); await S(c.lines[0]); };
 SCENES.recallCount = async c => { const svg = axStage(), S0 = axShape({ k: c.k || 'qRect', rot: c.rot || 0 }); el('polygon', { points: polyStr(S0.P.map(p => [p[0] + AX_C[0], p[1] + AX_C[1]])), fill: PLY.fill, stroke: PLY.edge, 'stroke-width': 4 }, svg); axLinesAt(svg, S0, AX_C); await S(c.lines[0]); };
 SCENES.recallWorld = async c => { axSymReady(); const svg = axStage(), k = c.pic || 'butterfly', D = SYM[k]; symAt(svg, k, 180, 122, 1.7); if (D.lines !== 'all' && D.lines.length) axLinesAt(svg, { axes: D.lines }, [180, 122], { r: 92 }); await S(c.lines[0]); };
 WRAP_ART.axArt = svg => { const g = el('g', {}, svg); el('path', { d: 'M110 200 V110 L130 90 L150 110 V80 L180 50 L210 80 V110 L230 90 L250 110 V200 Z', fill: '#f2d38a', stroke: '#b9794e', 'stroke-width': 3 }, g); el('path', { d: 'M168 200 V160 A12 12 0 0 1 192 160 V200 Z', fill: '#8a6a4a' }, g); geoLine(g, 180, 40, 180, 212, { color: AXC.line, w: 3.2, dash: '9 6' }); anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 200, fill: 'both' }); palmAt(svg, 326, 250, .8); palmAt(svg, 34, 250, .9); };

@@ -27,7 +27,7 @@ STATE = """() => { const a = window.__auto; const q = s => document.querySelecto
     home: !q('#home').hidden, covers: [...document.querySelectorAll('.cover')].filter(c => !c.hidden).map(c => c.id) }; }"""
 # المركز المرئي لكل هدف: إطار ما يُرسم فيه (لا منطقة اللمس)، ومنتصف الخطّ للخطوط
 CENTRES = """(sel) => { const svg = document.querySelector('#stage svg'); if (!svg) return [];
-  const vis = g => g.onclick && +getComputedStyle(g).opacity >= .5 && getComputedStyle(g).pointerEvents !== 'none' && !g.closest('[hidden]');
+  const vis = g => (g.onclick || g.dataset.press) && +getComputedStyle(g).opacity >= .5 && getComputedStyle(g).pointerEvents !== 'none' && !g.closest('[hidden]');
   const box = g => { if (g.tagName === 'line') { const b = g.getBoundingClientRect(); return b; } let r = null;
     for (const c of g.querySelectorAll('circle,ellipse,rect,polygon,path,line,polyline')) { if (c.matches('rect.hit')) continue; const f = c.getAttribute('fill'), s = c.getAttribute('stroke'); if ((f === 'transparent' || f === 'none') && (!s || s === 'none')) continue;
       const b = c.getBoundingClientRect(); if (!b.width && !b.height) continue; r = r ? { left: Math.min(r.left, b.left), top: Math.min(r.top, b.top), right: Math.max(r.right, b.right), bottom: Math.max(r.bottom, b.bottom) } : { left: b.left, top: b.top, right: b.right, bottom: b.bottom }; }

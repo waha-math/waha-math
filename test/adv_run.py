@@ -189,7 +189,7 @@ async def speech_cases(b):
 FINDOK = """() => { const a = window.__auto; if (!a) return null; const k = a.kind; const vis = e => e && e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden';
   const c = e => { if (!e) return null; const r = e.getBoundingClientRect(); return r.width ? [r.left + r.width / 2, r.top + r.height / 2] : null; };
   if (['pick', 'num', 'card'].includes(k)) { const B = [...document.querySelectorAll('#stage .choices:not([data-done]) .pick')].filter(vis); return { n: a.n, kind: k, ok: c(B.find(b => b.dataset.ok === 'true')) }; }
-  if (k === 'tap') { const G = [...document.querySelectorAll('#stage svg [role=button]')].filter(g => g.onclick && g.dataset.ok === 'true'); return { n: a.n, kind: k, ok: c(G[0]) }; }
+  if (k === 'tap') { const G = [...document.querySelectorAll('#stage svg [role=button]')].filter(g => (g.onclick || g.dataset.press) && g.dataset.ok === 'true'); return { n: a.n, kind: k, ok: c(G[0]) }; }
   return { n: a.n, kind: k, ok: null }; }"""
 RUNST = """([lid, what]) => { const L = LDATA[lid]; CUR = L; FLOW++; show('lesson'); lockGo(); const P = progOf(lid); P.path = 'screen';
   const st = what === 'mastery' ? null : L.flow.find(s => s.scene === what || s.s === what); SCENE_NOW = what; window.__scene = lid + ':' + what; window.__fin = false;

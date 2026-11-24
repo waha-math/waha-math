@@ -227,7 +227,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'quadName') return `qname|${C(it.k)}`;
   if (t === 'quadCheck') return `qchk|${it.ask}|${C(it.k)}`;
   if (t === 'quadRiddle') return `qrd|${it.is}|${[...it.figs].map(C).sort().join(',')}`;
-  if (t === 'diagDraw') return `diagd|${C(it.k)}`;
+  if (t === 'diagDraw') return `${it.count ? 'diagn' : 'diagd'}|${C(it.k)}`;
   if (t === 'diagCount') return `diagn|${C(it.k)}`;
   if (t === 'famSlot') return `fam|${C(it.k)}`;
   if (t === 'polyName') return `pname|${C(it.k)}`;
@@ -440,7 +440,7 @@ export function d240(lessons, code, MAKERS) {
     diagShow: s => [s.k || 'qRect', ...(s.k2 ? [s.k2] : [])].flatMap(k => [`diagd|${C(k)}`, `diagn|${C(k)}`]), famBuild: () => ['qPara', 'qRect', 'qRhom2', 'qSq', 'qTrap', 'qKite'].map(k => `fam|${C(k)}`),
     polyNames: s => (s.keys || ['r5', 'r6', 'r8']).flatMap(k => [`pname|${C(k)}`, `plycnt|${C(k)}`]), regularShow: s => (s.keys || ['qSq', 'qRect', 'qRhom']).map(k => `reg|${C(k)}`),
     concaveShow: s => [`concv|${C(s.k || 'c5')}`], trominoes: () => ['mino|3'], composeShow: s => (s.order || ['rect', 'para', 'kite']).map(f => `qname|${C({ rect: 'cRect', para: 'cPara', kite: 'cKite', tri: 'cTri' }[f])}`),
-    cutRect: () => [`parts|${C('qRect2')}|[[0,2]]`],   /* المستطيل المرسوم 140×96 */
+    cutRect: () => [`parts|${C('qRect2')}|[[0,2]]`], sqBuild: () => [`parts|${C('qSq')}|[[0,2]]`, `parts|${C('qSq')}|[[0,2],[1,3]]`],   /* المستطيل المرسوم 140×96 */
     polyCity: () => ['qSq', 'qRect2', 'r6', 'r8', 'qKite'].flatMap(k => [`pname|${C(k)}`, `reg|${C(k)}`]),
     /* S2-U6 */
     tapeIntro: () => ['tape|85|cm'], kmWalk: () => [], unitTable: s => (s.pics || ['ant', 'pencil', 'door', 'road']).map(k => `unit|${k}`), convTable: () => ['conv|1m|cm', 'conv|2m|cm', 'conv|3m|cm', 'conv|1m|mm'],
@@ -538,7 +538,7 @@ export function d240(lessons, code, MAKERS) {
     'arRibbonHook', 'stringAround', 'gridBorder', 'perimShow', 'tileCover', 'halfShow', 'rowsCols', 'lTwoWays', 'lPerimShow', 'sameTables', 'fenceOrTile', 'm2Show', 'recallPerim', 'recallArea',   /* S2-U7 */
     'tapeIntro', 'kmWalk', 'unitTable', 'convTable', 'mcSplit', 'cmpShow', 'addWorked', 'roundShow', 'refsShow', 'roomPlan', 'recallTape', 'recallConv', 'recallCalc', 'recallUnit',   /* S2-U6 */
     'lakeHook', 'mirrorDist', 'pinFold', 'axPerpShow', 'checkWays', 'trapIntro', 'foldTable', 'regularAxes', 'slantAxes', 'axGridWorked', 'turnPaper', 'worldTour', 'nearLeaf', 'letterStyles', 'recallAxis', 'recallImg', 'recallCount', 'recallWorld',   /* S2-U5 */
-    'symShow', 'polyRules', 'polyParts', 'triMeasure', 'twoRight', 'adjOppShow', 'quadChecks', 'squareTilt', 'quadMaker', 'diagShow', 'famBuild', 'polyNames', 'regularShow', 'concaveShow', 'honeycomb', 'cutRect', 'composeShow', 'trominoes', 'polyCity', 'recallPoly', 'recallFam', 'homeNums',   /* S2-U4 */
+    'symShow', 'polyRules', 'polyParts', 'triMeasure', 'twoRight', 'adjOppShow', 'quadChecks', 'squareTilt', 'quadMaker', 'diagShow', 'famBuild', 'polyNames', 'regularShow', 'concaveShow', 'honeycomb', 'cutRect', 'composeShow', 'sqBuild', 'trominoes', 'polyCity', 'recallPoly', 'recallFam', 'homeNums',   /* S2-U4 */
     'crossHook', 'sticksLab', 'extendShow', 'distShow', 'cornerFold', 'perpShow', 'shoreShow', 'sidesShow', 'recallPair', 'recallShore', 'recallParaGrid', 'streetMap',   /* S2-U2 */
     'digitPairs', 'spanClash', 'tileRuler', 'mmZoom', 'rulerWorked', 'chaosRuler', 'recallRuler', 'recallTools', 'alignShow', 'mmRead', 'cardSteps', 'drawShow', 'stringShow', 'recallAlign', 'recallMm', 'recallDraw', 'recallString', 'homeMeasure',
     'treasureHook', 'pointShow', 'gridWalk', 'chaosGridPt', 'recallGridPt', 'recallFigs', 'figLab', 'zigHook', 'antEscape', 'chaosFig', 'tautString', 'segNameShow', 'chaosItem', 'recallSeg', 'recallRoads', 'ticksShow', 'foldStrip', 'recallTicks', 'recallMid', 'torchHook', 'rayOrderShow', 'recallRay', 'railHook', 'linesThrough', 'recallCol', 'roadMap', 'homeSeg'];   /* S2-U1: النقاط والخطوط رسوم لا مولّدات */   /* S2-U0: المسطرة وأدوات القياس رسوم لا مولّدات */   /* S1-U6 */   /* S1-U5: عناصر النمط رسومه لا مولّدات */   /* S1-U4: رسوم القياس والعدد لا مولّدات */

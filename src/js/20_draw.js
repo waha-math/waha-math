@@ -68,7 +68,7 @@ function springAt(parent, x, y, s = 1, { stones = 0, total = 6, level = 0 } = {}
 /* سماء وغيوم وكثبان ونخيل خافت خلف المشهد (أفق واحد، لا ثلاثة) */
 function backdrop(svg, H, opt = {}) {
   el('rect', { x: -360, y: 0, width: 1080, height: H, fill: 'url(#skyG)' }, svg);          // أعرض من الإطار: إن صغُر المسرح ليتّسع للأزرار ظهرت السماء على الجانبين لا فراغ
-  for (const [x, y, s] of [[60, 34, 1], [270, 22, .8], [190, 58, .6]]) { const c = el('g', { transform: `translate(${x} ${y}) scale(${s})`, opacity: .9 }, svg);
+  if (opt.clouds !== false) for (const [x, y, s] of [[60, 34, 1], [270, 22, .8], [190, 58, .6]]) {   /* clouds: false لمسارح الأشكال: لا تظهر سحابة في صندوق شفاف أو بطاقة (المراجع A-31) */ const c = el('g', { transform: `translate(${x} ${y}) scale(${s})`, opacity: .9 }, svg);
     el('rect', { x: -30, y: -8, width: 60, height: 18, rx: 9, fill: css('--cloud') }, c); el('circle', { cx: -6, cy: -10, r: 12, fill: css('--cloud') }, c); el('circle', { cx: 12, cy: -6, r: 9, fill: css('--cloud') }, c); }
   const ground = opt.ground ?? 26;
   if (opt.oasis !== false) { const o = opt.oasisOpacity ?? .4; dunes(svg, H - ground + 30, o); palmAt(svg, 30, H - ground + 2, .7, true).setAttribute('opacity', o); palmAt(svg, 336, H - ground + 4, .6, true).setAttribute('opacity', o); }
