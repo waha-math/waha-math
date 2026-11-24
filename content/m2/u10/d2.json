@@ -89,7 +89,7 @@
      "id": "f2",
      "item": {
       "t": "angleDraw",
-      "deg": 65,
+      "deg": 85,
       "from0": 20
      }
     },
@@ -99,7 +99,7 @@
       "t": "squareSlide",
       "q": "q.perp",
       "mode": "perp",
-      "p": 4
+      "p": 1
      }
     },
     {
@@ -107,7 +107,7 @@
      "item": {
       "t": "sssBuild",
       "q": "q.sss",
-      "base": 6,
+      "base": 8,
       "a": 6,
       "b": 6
      }

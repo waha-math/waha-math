@@ -679,8 +679,11 @@ export function d240(lessons, code, MAKERS) {
       for (const [C, n] of Object.entries(per)) if (n < 2) errors.push(`${L.id}: المفهوم ${C} له بند مراجعة واحد، فلا بند ثانٍ فورياً منه بعد الخطأ (المبدأ 14)`); }
     // الاختبار الختامي لا يكرّر مسألةً من اختبار وحدةٍ في مرحلته (S2_نظام_التقييم، ثانياً: «لا يكرّر الاختبار الختامي أسئلة اختبارات الوحدات حرفياً»)
     for (const st of L.flow) if (st.scene === 'finalCheck') { const stage = L.id.split('.')[0], TF = new Map();
-      for (const O of Object.values(lessons)) if (O.id.split('.')[0] === stage && O.test) for (const q of O.test.items) { const f = fact(q.item); if (f && !TF.has(f)) TF.set(f, O.id + ' ' + q.id); }
-      for (const q of st.checks || []) { const f = fact(q.item); if (f && TF.has(f)) errors.push(`${L.id}: بند الختامي ${q.id} (${f}) هو مسألة اختبار ${TF.get(f)} (S2_نظام_التقييم: لا يكرّر الختامي أسئلة الوحدات)`); } }
+      /* وD277 (3): «عشرون سؤالاً جديداً»: يُقارن بكل ما في دروس المرحلة (التمرين والتوائم والعلاج والمراجعة و«صحّح لفوضى» والاختبارات)، والدوران ليس فرقاً (D278 (1))، وبند التعليل بنصّ سؤاله (المراجع A لبوابة U8/U9/U10، 6) */
+      const keyOf = (it, O) => { const f = fact(it); if (it && it.t === 'reason' && O && O.lines && typeof it.q === 'string') { const ln = O.lines[it.q]; const tx = typeof ln === 'string' ? ln : ln && (ln.text || ln.t); if (tx) return 'rq|' + String(tx).replace(/[\u064B-\u0652\s{}|]/g, ''); } return f ? f.replace(/^pair\|([^|]*)\|[^|]*\|/, 'pair|$1||') : null; };
+      const walkAll = (v, O, where) => { if (Array.isArray(v)) return v.forEach(x => walkAll(x, O, where)); if (!v || typeof v !== 'object') return; if (typeof v.t === 'string') { const k = keyOf(v, O); if (k && !TF.has(k)) TF.set(k, where); } for (const [kk, x] of Object.entries(v)) if (!['lines', 'labels'].includes(kk)) walkAll(x, O, where); };
+      for (const O of Object.values(lessons)) if (O.id.split('.')[0] === stage && O.id !== L.id && !O.flow.some(s2 => s2.scene === 'finalCheck')) walkAll(O, O, O.id);
+      for (const q of st.checks || []) { const k = keyOf(q.item, L); if (k && TF.has(k)) errors.push(`${L.id}: بند الختامي ${q.id} (${k.slice(0, 60)}) رُئي في ${TF.get(k)} (D277 (3): الختامي أسئلة جديدة)`); } }
     // D239: اختيار حقيقي في كل درس
     /* إلا «إحماء الحساب» (الوحدات الحسابية المصغّرة): اختبار تخطٍّ بلا تمرين، والاختيار فيه لوحة الأرقام نفسها */
     if (!L.flow.some(s => ['calcCheck', 'finalCheck', 'finalResult'].includes(s.scene) || (s.s === 'explore' && L.id.startsWith('m2.u10.'))) && !(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);
