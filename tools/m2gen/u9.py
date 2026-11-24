@@ -51,7 +51,7 @@ def fa(pat,q='pr.flower'): return {"t":"flowerAxes","q":q,"pat":pat}
 dump(U+'/unit.json', {"id":"m2.u9","title":"وَرْشَةُ الفِرْجَارِ","sub":"المَرْحَلَةُ الثَّانِيَةُ: البَنَّاؤُونَ","district":"وَرْشَةُ القَصْرِ","hosts":["circle","triangle","square"],"hunt":[],
  "workshop":{"pieces":[{"k":"rtri","size":80},{"k":"square","size":80},{"k":"circle","size":44}],
   "puzzles":[
-   {"id":"tile","name":"gen.ws.p.tile","slots":[{"k":"rtri","x":117,"y":117,"size":66},{"k":"rtri","x":117,"y":117,"size":66,"rot":180},{"k":"square","x":183,"y":117,"size":66},{"k":"square","x":117,"y":183,"size":66},{"k":"rtri","x":183,"y":183,"size":66,"rot":90},{"k":"rtri","x":183,"y":183,"size":66,"rot":270}],"extra":{"k":"circle","size":40}},
+   {"id":"tile","name":"gen.ws.p.tile","slots":[{"k":"rtri","x":111,"y":117,"size":66},{"k":"rtri","x":117,"y":111,"size":66,"rot":180},{"k":"square","x":183,"y":117,"size":66},{"k":"square","x":117,"y":183,"size":66},{"k":"rtri","x":183,"y":183,"size":66,"rot":90},{"k":"rtri","x":189,"y":189,"size":66,"rot":270}],"extra":{"k":"circle","size":40}},
    {"id":"rose","name":"gen.ws.p.rose","slots":[{"k":"circle","x":150,"y":150,"size":44},{"k":"circle","x":194,"y":150,"size":44},{"k":"circle","x":172,"y":188,"size":44},{"k":"circle","x":128,"y":188,"size":44},{"k":"circle","x":106,"y":150,"size":44},{"k":"circle","x":128,"y":112,"size":44},{"k":"circle","x":172,"y":112,"size":44}],"extra":{"k":"square","size":44}},
    {"id":"lamp","name":"gen.ws.p.lamp","slots":[{"k":"circle","x":150,"y":120,"size":70},{"k":"rect","x":150,"y":186,"size":24,"w":24,"h":56},{"k":"rect","x":150,"y":224,"size":80,"w":80,"h":20}],"extra":{"k":"rtri","size":40}}]}})
 

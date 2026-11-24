@@ -40,3 +40,18 @@ export function canonMap(POLYS) {
   for (const k of K) { C[k] = k; for (const r of K) { if (r === k) break; if (C[r] === r && S[r].c === S[k].c && similar(S[r].s, S[k].s)) { C[k] = r; break; } } }
   return C;
 }
+/* ما تكتبه أداتا القياس على الشكل (السنتيمتر بنصف، والدرجة بالتقريب) يقول ما يقوله الشكل (مراجعة B لبوابة U4/U5، 1 و19):
+   ضلعان متساويان حقاً يُكتبان بطول واحد، وضلعان مختلفان بطولين؛ وزاوية قائمة حقاً تُكتب 90، وغيرها لا؛ وزاويتان متساويتان بدرجة واحدة */
+export function measureProblems(P, s = 1, PCM = 20) {
+  const S = sig(P), n = S.n, per = P.reduce((t, p, i) => t + Math.hypot(P[(i + 1) % n][0] - p[0], P[(i + 1) % n][1] - p[1]), 0) * s;
+  const L = S.len.map(x => x * per), cm = L.map(l => Math.round(l / PCM * 2 + 1e-6) / 2), A = S.ang, deg = A.map(a => Math.round(a)), out = [];
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    const eq = Math.abs(L[i] - L[j]) <= Math.max(L[i], L[j]) * .006 + .05, eqc = cm[i] === cm[j];
+    if (eq !== eqc) out.push(`الضلعان ${i} و${j}: ${L[i].toFixed(1)} و${L[j].toFixed(1)} بكسلاً يُكتبان ${cm[i]} و${cm[j]} سم`);
+    const ea = Math.abs(A[i] - A[j]) <= .6, ead = deg[i] === deg[j];
+    if (ea !== ead) out.push(`الزاويتان ${i} و${j}: ${A[i].toFixed(1)} و${A[j].toFixed(1)} تُكتبان ${deg[i]} و${deg[j]}`); }
+  A.forEach((a, i) => { if ((Math.abs(a - 90) <= .6) !== (deg[i] === 90)) out.push(`الزاوية ${i}: ${a.toFixed(1)} تُكتب ${deg[i]}`); });
+  return out;
+}
+/* في بنود العدّ والتسمية الرأس ملتقى ضلعين بزاوية تُرى: |180 − الزاوية| ≥ 15 (مراجعة B، 2: عشاريّ يبدو خماسياً بنقاط) */
+export function flatVertices(P, tol = 15) { const S = sig(P); return S.ang.map((a, i) => [i, a]).filter(([, a]) => Math.abs(180 - a) < tol); }

@@ -10,8 +10,8 @@
 // وفوق ذلك (D240 «لكل مفهوم بند تعرّف وبند إنتاج أو تعليل»): لكل مفهوم يتقنه التطبيق بند إنتاج أو تعليل واحد على الأقل، ولكل مفهوم
 // «تأسيس» في الدرس فحص إتقان (إلا «المدخل»)، ولكل درس اختيار حقيقي للطفل (D239).
 
-import { loadPolys, canonMap } from './shapes.mjs';
-const CANON = canonMap(loadPolys(new URL('../src/js/49_m2_poly.js', import.meta.url)));
+import { loadPolys, canonMap, measureProblems, flatVertices } from './shapes.mjs';
+const POLYS0 = loadPolys(new URL('../src/js/49_m2_poly.js', import.meta.url)), CANON = canonMap(POLYS0);
 const C = k => CANON[k] || k;   /* الشكل المشابه بعد الدوران والقلب والتكبير مسألة واحدة (build/shapes.mjs) */
 
 /* الشكل الذي تدور عليه مسألة من U4 أو U5 (مفتاحه بعد التشابه): ما رآه الطفل أو حلّه في الدرس بأي مهمة لا يكون صورة تعليل في تقييمه */
@@ -609,6 +609,15 @@ export function d240(lessons, code, MAKERS) {
     }
     for (const o of out) (it.x240 ? notes : errors).push(`${L.id}: ${o}${it.x240 ? ' — مستثنى: ' + it.x240 : ''} (D240)`);
   }
+  /* القياس المكتوب على الشكل يقول ما يقوله الشكل، والرؤوس في بنود العدّ والتسمية تُرى (build/shapes.mjs؛ مراجعة B لبوابة U4/U5، 1 و2) */
+  { const MEAS = new Set(['triKind', 'quadName', 'quadCheck', 'regularQ', 'trapLegs', 'quadOpp']), COUNT = new Set(['polyCount', 'polyName', 'polyIs', 'diagCount', 'diagDraw']), seen = new Set();
+    const walk = (v, L) => { if (Array.isArray(v)) return v.forEach(x => walk(x, L)); if (!v || typeof v !== 'object') return;
+      if (typeof v.t === 'string' && typeof v.k === 'string' && POLYS0[v.k] && POLYS0[v.k].p) { const key = v.t + '|' + v.k + '|' + (v.s || 1);
+        if (!seen.has(key)) { seen.add(key);
+          if (MEAS.has(v.t)) for (const m of measureProblems(POLYS0[v.k].p, v.s || 1)) errors.push(`${L.id}: ${v.t} على ${v.k}: ${m} (القياس المكتوب يخالف الشكل)`);
+          if (COUNT.has(v.t) && !POLYS0[v.k].open && !POLYS0[v.k].curve) for (const [i, a] of flatVertices(POLYS0[v.k].p)) errors.push(`${L.id}: ${v.t} على ${v.k}: الرأس ${i} بزاوية ${a.toFixed(1)}، لا يُرى رأساً`); } }
+      for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walk(x, L); };
+    for (const L of Object.values(lessons)) if (/^m2\./.test(L.id)) walk(L, L); }
   for (const L of Object.values(lessons)) {
     const M = L.mastery;
     if (M) { for (const [C, items] of Object.entries(M.concepts)) items.forEach((it, i) => check(L, it, `إتقان ${C}[${i}]`, [L], 'mastery'));

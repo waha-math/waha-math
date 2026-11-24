@@ -252,8 +252,10 @@ async def run(p, dev):
           if k == 'axPts':
             want = await pg.evaluate('() => window.__axWant')
             for r, u in want: q = await pg.evaluate('([r, u]) => window.__axAt(r, u)', [r, u]); await tap(q['x'], q['y']); await pg.wait_for_timeout(120)
+            placed_n = await pg.evaluate('() => window.__axPlaced')   # النقاط كلها موضوعة قبل «تمّ» (والبند يُسلَّم بها؛ مراجعة B لبوابة U4/U5، 9)
+            xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(150)
             moved = (await pg.evaluate(STATE))['n'] != st['n']   # في السرعة يبدأ البند التالي قبل الفحص فيُصفَّر العدّاد: يُحكم حينئذ بآخر محاولة في السجل
-            if (await pg.evaluate(LASTOK) is not True) if moved else (await pg.evaluate('() => window.__axPlaced') != len(want)): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  image points miss', st['scene'], want, await pg.evaluate('() => [window.__axPlaced, window.__item && window.__item.id, window.__item && JSON.stringify(window.__item.pts)]'))
+            if (await pg.evaluate(LASTOK) is not True) if moved else (placed_n != len(want)): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  image points miss', st['scene'], want, await pg.evaluate('() => [window.__axPlaced, window.__item && window.__item.id, window.__item && JSON.stringify(window.__item.pts)]'))
             await pg.wait_for_timeout(60); continue
           if k == 'axHunt':
             want = await pg.evaluate('() => window.__axHuntWant')
