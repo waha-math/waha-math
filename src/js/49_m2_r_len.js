@@ -82,7 +82,7 @@ ITEM.tapeRead = {
     if (tries >= 3) { const m = helpG(svg), base = Math.floor(item.len / 10) * 10; await S('gen.len.together.tape'); thinkRing(m, [D.T.X(base), D.T.y + 22], 14); if (item.len % 10) el('path', { d: `M${D.T.X(base)} ${D.T.y - 4} Q${(D.T.X(base) + D.X2) / 2} ${D.T.y - 22} ${D.X2} ${D.T.y - 4}`, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, m); }
     else await S(item.q);
     const vals = item.ch.map(n => item.m ? [n, 'mc'] : [n, 'cm']), k = await choosePick(shuffle(lenOpts(vals)), item.want); return { ans: k, ctx: { svg, D } }; },
-  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.m ? 'mcSplit' : 'tapeOff' }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; const n = parseInt(k, 10), sw = d => String(d).split('').sort().join(''); return { ok: false, err: item.m && n !== item.len && sw(n) === sw(item.len) ? 'mcSplit' : 'tapeOff' }; },   /* mcSplit حين تنقلب الأرقام وحدها (153 لـ 135)، وغيره خطأ قراءة (المراجع B لبوابة U6/U7، 14) */
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { const m = helpG(r.ctx.svg); thinkRing(m, [r.ctx.D.X2, r.ctx.D.T.y + 8], 12); await S('gen.len.hint.tape'); await sleep(500); m.remove(); }, async together() {},
   async reveal(item, r) { const m = helpG(r.ctx.svg); thinkRing(m, [r.ctx.D.X2, r.ctx.D.T.y + 8], 12); await S('gen.len.reveal.tape', { noGap: true }); await S(lenLn(item.m ? [item.len, 'mc'] : [item.len, 'cm']), { append: true }); },
