@@ -138,10 +138,12 @@
      "t": "maxArea",
      "q": "pr.max",
      "fence": 22,
+     "m2": true,
      "twin": {
       "t": "maxArea",
       "q": "pr.max",
-      "fence": 26
+      "fence": 26,
+      "m2": true
      }
     }
    ]

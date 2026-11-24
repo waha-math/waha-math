@@ -42,7 +42,10 @@ def pa(sit,ask='kind',unit=None,q=None):
     if unit: d['unit']=unit
     return d
 def sc(a,b,ask='area',q=None): return {"t":"sameCmp","q":q or ('pr.sameA' if ask=='area' else 'pr.sameP'),"a":a,"b":b,"ask":ask}
-def mx(fence,q='pr.max'): return {"t":"maxArea","q":q,"fence":fence}
+def mx(fence,q='pr.max',m2=False):   # m2: «م مربع» بعد د7 (C212)
+    d={"t":"maxArea","q":q,"fence":fence}
+    if m2: d['m2']=True
+    return d
 # أشكال على الشبكة (صفوف من الأعلى)
 L1=['######','######','####..','####..']; L2=['####','####','##..','##..','##..']; L3=['#####','#####','#####','##...']
 T1=['######','######','..##..','..##..']; U1=['######','######','##..##','##..##']; Z1=['###...','######','...###']
@@ -406,7 +409,7 @@ d6={"id":"m2.u7.d6","title":"المُحِيطُ وَالمَسَاحَةُ مَ�
   "remedial":{"C210":[tw(sc([3,5],[1,7]),sc([2,2],[1,6],ask='perim'))],"C211":[tw(pa('ribbon','unit'),pa('carpet','unit'))]},
   "mixed":{"lesson":"m2.u7.d5","concept":"C208","item":ca(['####.','#####','#####'])},
   "ok":"ms.ok"},
- "review":[dict(sc([4,6],[3,8]),c="C210"), dict(pa('walk','unit','m'),c="C211"), dict(sc([2,10],[6,4],ask='perim'),c="C210"), dict(pa('paint','unit','m'),c="C211")],
+ "review":[dict(sc([4,6],[3,8]),c="C210"), dict(pa('rope','unit'),c="C211"), dict(sc([2,10],[6,4],ask='perim'),c="C210"), dict(pa('cloth','unit'),c="C211")],
  "wrap":{"art":"areaArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اسألوه في كل عمل منزلي: «نحتاج شريطاً أم بلاطاً؟ محيط أم مساحة؟». وبخيط طوله ثابت شكّلوا معاً مستطيلات مختلفة على ورق مربعات وعدّوا مربعاتها."}
 
@@ -448,7 +451,7 @@ d7={"id":"m2.u7.d7","title":"خُطَّةُ الأَرْضِ","icon":["argarden"
   {"s":"hook","scene":"lines","lines":["hk.01"]},
   {"s":"explore","scene":"m2Show","w":3,"h":2,"mat":MAT(),"lines":["m2.01","m2.02","m2.03"]},
   {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(ra(8,5,'full',q='pr.areaM',unit='m'),rp(8,5,q='pr.perimM',unit='m')), tw(ra(7,4,'full',q='pr.areaM',unit='m'),rp(9,4,q='pr.perimM',unit='m'))]},
-  {"s":"game","scene":"items","mode":"practice","intro":"best.01","items":[tw(mx(22),mx(26))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"best.01","items":[tw(mx(22,m2=True),mx(26,m2=True))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(ra(6,3,'full',q='pr.areaM',unit='m'),ra(5,5,'full',q='pr.areaM',unit='m',sq=True)), tw(pa('tiles','unit','m'),pa('carpet','unit','m')), tw(rp(10,6,q='pr.perimM',unit='m'),rp(7,7,q='pr.perimM',unit='m',sq=True))],
