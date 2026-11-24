@@ -113,19 +113,19 @@
      "t": "estPick",
      "q": "pr.est",
      "thing": "table",
-     "real": 1,
-     "realU": "m",
+     "real": 75,
+     "realU": "cm",
      "ch": [
       [
-       1,
+       75,
+       "cm"
+      ],
+      [
+       7,
        "m"
       ],
       [
-       10,
-       "m"
-      ],
-      [
-       1,
+       7,
        "cm"
       ]
      ],
