@@ -364,7 +364,7 @@ function famTreeAt(parent, o = {}) { const g = el('g', {}, parent), box = {}; fo
 const FAM_BR = ['para', 'rect', 'rhom', 'square'], famRing = item => FAM_BR.includes(item.want) ? item.ok.filter(k => FAM_BR.includes(k)) : [item.want];
 ITEM.famSlot = {
   make(spec) { const pr = polyProps(POLYS[spec.k]); return { ...spec, want: pr.quad, ok: QTRUE[pr.quad].filter(k => FAM[k]), tag: 'fam-slot-' + pr.quad }; },
-  async ask(item, mode, tries) { const svg = newStage(296, { oasis: false, ground: 0 }); el('rect', { x: 20, y: 222, width: 120, height: 68, rx: 12, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, svg); const R = polyAt(svg, item.k, [80, 256], { s: .42, marks: true, dots: false, rot: item.rot || 0 }), F = famTreeAt(svg);
+  async ask(item, mode, tries) { const svg = newStage(296, { oasis: false, ground: 0 }); el('rect', { x: 12, y: 208, width: 144, height: 84, rx: 12, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, svg); const R = polyAt(svg, item.k, [84, 250], { s: .52, marks: true, dots: false, rot: item.rot || 0 }), F = famTreeAt(svg);   /* أكبر قليلاً: علامات التساوي والتوازي لا تتراكب (مراجعة بوابة U4/U5، 31) */
     if (tries >= 3) { const m = helpG(svg); for (const k of famRing(item)) thinkRing(m, FAM[k], 30); }   /* الحلّ المشترك: أماكن الفرع الموصول التي تصحّ فيها خصائصه، والأخصّ أدناها؛ لا يُحاط شبه المنحرف ولا الطائرة لغيرهما (D241: الشمول يُؤجَّل ولا يُعلَّم هنا) */
     say(...lineOf(tries >= 3 ? 'gen.poly.together.fam' : item.q), { free: true });
     const k = await tapOne(Object.keys(FAM).map(f => ({ g: F.box[f], k: f, label: labelText('ply.q.' + f) })), { ok: item.ok, pad: 56 }); hush(); return { ans: k, ctx: { svg, F, R } }; },
@@ -394,7 +394,7 @@ ITEM.regularQ = {
     const k = await choosePick(['reg', 'nL', 'nA'].map(x => plyOpt('reg', x)), item.ok); T.off(); return { ans: k, ctx: { svg, R } }; },
   judge(item, k) { if (item.ok.includes(k)) return { ok: true }; return { ok: false, err: k === 'reg' ? (item.ok.includes('nA') && !item.ok.includes('nL') ? 'regAngles' : 'regSides') : 'regReason' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { await plyHint2(r, item.ok === 'nA' ? 'ang' : 'len', 'gen.poly.hint.reg'); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, [].concat(item.ok).includes('nA') && ![].concat(item.ok).includes('nL') ? 'ang' : 'len', 'gen.poly.hint.reg'); }, async together() {},
   async reveal(item, r) { await S('gen.poly.reveal.reg.' + item.ok[0]); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -558,7 +558,7 @@ SCENES.polyNames = async c => { const L = c.lines; await S(L[0]); for (const k o
   logAttempt({ scene: c.s || 'explore', tag: 'polyNames', ok: true }); await S(L[1]); };
 /* المنتظم: ثلاثة أشكال تُقاس أضلاعها وزواياها. c.keys، lines: [مقدمة، (لكل شكل جملة)…، ختام] */
 SCENES.regularShow = async c => { const L = c.lines, K = c.keys || ['qSq', 'qRect', 'qRhom']; await S(L[0]);
-  for (const [i, k] of K.entries()) { const svg = plyStage(), R = polyAt(svg, k, [180, 118], {}), T = plyTools(svg, R, { ang: true }); await T.show('len'); await T.show('ang'); T.off(); await S(L[1 + i]); }
+  for (const [i, k] of K.entries()) { const svg = plyStage(), R = polyAt(svg, k, [180, 118], {}), T = plyTools(svg, R, { ang: true }); await axPredictYN(R.pr.regular ? 'yes' : 'no', 'gen.poly.predict.reg'); await T.show('len'); await T.show('ang'); T.off(); await S(L[1 + i]); }   /* توقّع قبل القياس (D244؛ مراجعة بوابة U4/U5، 13) */
   logAttempt({ scene: c.s || 'explore', tag: 'regularShow', ok: true }); await S(L[K.length + 1]); };
 /* المنبعج: يلمس الطفل الرأس المنبعج فيُرسم قوس زاويته الداخلية بنفسجياً، وقياسها أكبر من نصف دورة. lines: [مقدمة، المس الرأس، منعكسة، وما زال مضلعاً] */
 SCENES.concaveShow = async c => { const svg = plyStage(), L = c.lines, R = polyAt(svg, c.k || 'c5', [180, 118], {}), w = R.pr.A.findIndex(a => a > 180.5); await S(L[0]);

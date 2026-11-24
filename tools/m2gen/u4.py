@@ -407,9 +407,6 @@ L5={
  "pr.diagN":"كَمْ قُطْرًا لِهَذَا المُضَلَّعِ؟",
  "pr.fam":"أَيْنَ مَكَانُ هَذَا الرُّبَاعِيِّ فِي شَجَرَةِ العَائِلَةِ؟ {اِلْمِسْهُ|اِلْمِسِيهِ}.",
  "ch.find":"تَقُولُ فَوْضَى: المُرَبَّعُ لَيْسَ مُسْتَطِيلًا، لِأَنَّ اسْمَيْهِمَا مُخْتَلِفَانِ! مَا {رَأْيُكَ|رَأْيُكِ}؟",
- "ch.a":"المُرَبَّعُ مُسْتَطِيلٌ خَاصٌّ: لَهُ خَصَائِصُ المُسْتَطِيلِ.",
- "ch.b":"صَدَقَتْ: لِكُلِّ شَكْلٍ اسْمٌ وَاحِدٌ.",
- "ch.c":"المُرَبَّعُ لَيْسَ رُبَاعِيًّا، فَلَا يُقَارَنُ بِالمُسْتَطِيلِ.",
  "ch.after":["chaos","آه! المُرَبَّعُ مُسْتَطِيلٌ، وَلَهُ اسْمٌ أَخَصُّ."],
  "ch.right":"نَفْحَصُ الخَصَائِصَ وَاحِدَةً وَاحِدَةً، لَا الأَسْمَاءَ.",
  "ch.wrong":["chaos","الاِسْمَانِ المُخْتَلِفَانِ شَكْلَانِ مُخْتَلِفَانِ دَائِمًا."],
@@ -446,7 +443,7 @@ d5={"id":"m2.u4.d5","title":"شِبْهُ المُنْحَرِفِ وَالطَ�
  "practice":{"intro":"pr.intro",
   "normal":[tw(qn('qTrap',['trap','para','rect']),qn('qKite2',['kite','rhom','square'])), tw(dd('qPara2'),dd('i5')), tw(dn('qRect2'),dn('r6'))],
   "challenge":[tw(dn('i7'),dn('qKite')), tw(fs('qRect2',30),fs('qKite5',90)), tw(qn('qTrapR',['trap','rect','kite']),qn('qKite4',['kite','rhom','para'],90))]},
- "chaos":{"kind":"scene","scene":"chaosItem","item":{"t":"reason","pic":{"kind":"poly","k":"qSq","marks":True},"opts":[{"id":"ch.a","ok":True},{"id":"ch.b"},{"id":"ch.c"}]},"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
+ "chaos":{"kind":"scene","scene":"chaosItem","item":{"t":"famSlot","k":"qSq","q":"pr.fam"},"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
    "C156":[qn('qTrap6',['trap','para','kite'],20), qn('qKite3',['kite','rhom','trap'],200), reason("ms.3",{"kind":"poly","k":"qTrap4","marks":True},["ms.3a","ms.3b","ms.3c"])],
    "C157":[dd('qRect3',30), dn('r5'), reason("ms.4",{"kind":"poly","k":"i6","diag":[[0,3],[1,4]]},["ms.4a","ms.4b","ms.4c"])],
