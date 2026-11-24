@@ -99,7 +99,7 @@ ITEM.rectCheck = cpItem({ tLine: 'gen.cp.together.rect', hint: 'gen.cp.hint.rect
     el('polygon', { points: polyStr([A, B, C, D]), fill: '#eef6fb', stroke: CPC.ink, 'stroke-width': 3 }, svg); const s = item.sides || [item.w, item.h, item.w, item.h], u = labelText('rulCm');
     [[[(A[0] + B[0]) / 2, 210], s[0]], [[(B[0] + C[0]) / 2 + 30, (B[1] + C[1]) / 2], s[1]], [[(C[0] + D[0]) / 2, D[1] - 12], s[2]], [[(D[0] + A[0]) / 2 - 30, (D[1] + A[1]) / 2], s[3]]].forEach(([p, v]) => { const t = el('text', { x: p[0], y: p[1], 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg); t.textContent = `${v} ${u}`; });
     const ang = item.ang || 90, angs = [[A, ang], [B, 180 - ang], [C, ang], [D, 180 - ang]], m = tries >= 3 ? helpG(svg) : null;
-    angs.forEach(([p, v], i) => { const dx2 = i === 0 || i === 3 ? 14 : -14, dy2 = i < 2 ? -12 : 20; degText(m || svg, p[0] + dx2 * 1.6, p[1] + dy2, v, { size: 13, color: v === 90 ? CPC.ok : CPC.bad }); }); return {}; },
+    angs.forEach(([p, v], i) => { const dx2 = i === 0 || i === 3 ? 14 : -14, dy2 = i < 2 ? -12 : 20; degText(m || svg, p[0] + dx2 * 1.6, p[1] + dy2, v, { size: 13, color: m ? (v === 90 ? CPC.ok : CPC.bad) : CPC.ink }); }); return {}; },   /* اللون حكمٌ: في الحلّ المشترك وحده (المراجع B لبوابة U8/U9، 3) */
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.want === 'yes' ? 'rectMissed' : (it.ang || 90) !== 90 ? 'rectAngles' : 'rectSides' });
 /* ================= ⑥ مثلث بضلعين وزاوية بينهما (C233، إنتاج): ab القاعدة، ac الضلع الثاني (سم)، deg الزاوية عند أ ================= */
@@ -259,8 +259,8 @@ ITEM.hexStep = {
     const t = item.r, tap = b => b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     const fin = rulDone(() => { reg = null; btns.forEach(b => { b.onclick = null; b.onkeydown = null; b.removeAttribute('role'); }); });
     reg = () => AUTO({ kind: 'hex', ok: () => v === t ? rulDoneBtn().click() : tap(btns[v < t ? 1 : 0]), wrong: () => v === t ? tap(btns[t < 10 ? 1 : 0]) : rulDoneBtn().click() }); reg(); await fin;
-    tool.innerHTML = ''; const m2 = el('g', {}, svg), a = 2 * Math.asin(Math.min(1, v / (2 * item.r))), pts = []; for (let i = 0; i <= 6; i++) { const q = [C[0] + R * Math.cos(a * i), C[1] - R * Math.sin(a * i)]; pts.push(q); el('circle', { cx: q[0], cy: q[1], r: 5, fill: i === 6 && v !== item.r ? CPC.bad : CPC.arc }, m2); if (i) el('path', { d: arcPath(pts[i - 1], v * K, a * i * 180 / Math.PI + 60 - 25, a * i * 180 / Math.PI + 60 + 25), fill: 'none', stroke: CPC.arc, 'stroke-width': 2 }, m2); SFX.tick(); await sleep(FAST ? 5 : 180); }
-    if (v === item.r) el('polygon', { points: polyStr(pts.slice(0, 6)), fill: 'none', stroke: CPC.ok, 'stroke-width': 3 }, m2);
+    tool.innerHTML = ''; const m2 = el('g', {}, svg), a = 2 * Math.asin(Math.min(1, v / (2 * item.r))), pts = []; for (let i = 0; i <= 6; i++) { const q = [C[0] + R * Math.cos(a * i), C[1] - R * Math.sin(a * i)]; pts.push(q); el('circle', { cx: q[0], cy: q[1], r: 5, fill: i === 6 && v !== item.r && !NEUTRAL_ANS ? CPC.bad : CPC.arc }, m2); if (i) el('path', { d: arcPath(pts[i - 1], v * K, a * i * 180 / Math.PI + 60 - 25, a * i * 180 / Math.PI + 60 + 25), fill: 'none', stroke: CPC.arc, 'stroke-width': 2 }, m2); SFX.tick(); await sleep(FAST ? 5 : 180); }
+    if (v === item.r && !NEUTRAL_ANS) el('polygon', { points: polyStr(pts.slice(0, 6)), fill: 'none', stroke: CPC.ok, 'stroke-width': 3 }, m2);   /* بلا لون حكم في الإتقان والاختبار (المراجع B لبوابة U8/U9، 4) */
     return { ans: v, ctx: { svg } }; },
   judge(item, v) { return v === item.r ? { ok: true } : { ok: false, err: 'hexOpen' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
