@@ -20,7 +20,7 @@ const POLYS = {
   tIsoR: { p: [[-50, -50], [50, 50], [-50, 50]] }, tIsoR2: { p: [[0, -40], [80, 40], [-80, 40]] },
   tIsoO: { p: [[0, -22], [75, 30], [-75, 30]] }, tIsoO2: { p: [[0, -12], [90, 30], [-90, 30]] },
   tScaA: { p: [[20, -58], [75, 45], [-62, 40]] }, tScaA2: { p: [[-30, -55], [72, 40], [-58, 48]] },
-  tScaR: { p: [[-60, -45], [70, 45], [-60, 45]] }, tScaR2: { p: [[-55, -55], [45, 50], [-55, 50]] },
+  tScaR: { p: [[-60, -45], [70, 45], [-60, 45]] }, tScaR2: { p: [[-60, -28], [60, 28], [-60, 28]] },
   tScaO: { p: [[-80, 40], [60, 40], [100, -35]] }, tScaO2: { p: [[-95, 35], [25, 35], [60, -35]] },
   /* رباعيات */
   qSq: { p: [[-50, -50], [50, -50], [50, 50], [-50, 50]] }, qSq2: { p: [[-40, -40], [40, -40], [40, 40], [-40, 40]] },
@@ -29,6 +29,47 @@ const POLYS = {
   qRhom: { p: [[0, -55], [75, 0], [0, 55], [-75, 0]] }, qRhom2: { p: [[-80, -40], [20, -40], [80, 40], [-20, 40]] },
   qTrap: { p: [[-40, -40], [40, -40], [85, 40], [-85, 40]] }, qTrap2: { p: [[-30, -40], [60, -40], [85, 40], [-85, 40]] }, qTrapR: { p: [[-75, -40], [25, -40], [75, 40], [-75, 40]] },
   qKite: { p: [[0, -60], [45, -20], [0, 60], [-45, -20]] }, qKite2: { p: [[-65, 0], [0, -38], [80, 0], [0, 38]] },
+  /* أبعادٌ أخرى للنوع نفسه (الفحص المستقل لبوابة S2-U4/U5 (2): الدوران وحده لا يجعل المسألة جديدة، فالقياسات والجواب هي نفسها) */
+  tIsoO3: { p: [[-75, 31.5], [75, 31.5], [0, -31.5]] }, tIsoA3: { p: [[-58, 34.6], [58, 34.6], [0, -34.6]] },
+  tScaO3: { p: [[-75, 13.7], [75, 13.7], [27.5, -13.7]] }, tScaR3: { p: [[-65, -21], [65, 21], [-65, 21]] },
+  qSq3: { p: [[-45, -45], [45, -45], [45, 45], [-45, 45]] }, qRect3: { p: [[-75, -25], [75, -25], [75, 25], [-75, 25]] }, qRect4: { p: [[-42, -50], [42, -50], [42, 50], [-42, 50]] },
+  qPara3: { p: [[-81.2, 21.2], [38.8, 21.2], [81.2, -21.2], [-38.8, -21.2]] }, qPara4: { p: [[-71.2, 29.5], [60.8, 29.5], [71.2, -29.5], [-60.8, -29.5]] },
+  qRhom3: { p: [[-58.5, 33.8], [19.5, 33.8], [58.5, -33.8], [-19.5, -33.8]] }, qRhom4: { p: [[-71.1, 25.2], [8.9, 25.2], [71.1, -25.2], [-8.9, -25.2]] },
+  qKite3: { p: [[0, -54.3], [35, -41.6], [0, 54.4], [-35, -41.6]] }, qKite4: { p: [[0, -50.2], [50, -21.3], [0, 50.2], [-50, -21.3]] },
+  qTrap3: { p: [[-35, -46.7], [35, -46.7], [60, 46.7], [-60, 46.7]] }, qTrap4: { p: [[-50, -40], [45, -40], [80, 40], [-70, 40]] }, i7b: { p: [[-10, -60], [60, -35], [75, 25], [25, 60], [-45, 52], [-80, 0], [-55, -45]] },
+  tIsoA4: { p: [[-22, 47.6], [22, 47.6], [-0, -47.6]] },
+  tScaA4: { p: [[-60, 43.9], [60, 43.9], [44.5, -43.9]] },
+  qRhom7: { p: [[-67.8, 28.8], [12.2, 28.8], [67.8, -28.8], [-12.2, -28.8]] },
+  qTrap5: { p: [[-45, -20], [45, -20], [85, 20], [-85, 20]] },
+  qTrap7: { p: [[-25, -35.2], [25, -35.2], [80, 35.2], [-80, 35.2]] },
+  qTrap6: { p: [[-5, -40], [75, -40], [65, 40], [-75, 40]] },
+  i8c: { p: [[-30, -60], [35, -55], [70, -15], [60, 35], [20, 60], [-35, 55], [-70, 20], [-65, -30]] }, r12: { p: polyReg(12, 66, -75) },
+  tIsoA5: { p: [[0, -39.3], [55, 39.3], [-55, 39.3]] },
+  nCurve5: { p: [[0, -55], [62, -12], [40, 52], [-40, 52], [-62, -12]], curve: [1, 20] },
+  nOpen6: { p: [[-60, -20], [-20, -60], [40, -50], [70, 0], [40, 55], [-30, 55]], open: true },
+  nCross3: { p: [[-35, -60], [35, 60], [35, -60], [-35, 60]] },
+  nStar2: { p: polyReg(7, 66).map((_, i, a) => a[(i * 3) % 7]) },
+  i5c: { p: [[-20, -60], [60, -30], [50, 45], [-35, 55], [-70, -5]] },
+  tScaA5: { p: [[-65, 36.3], [65, 36.3], [38.6, -36.3]] },
+  tScaA6: { p: [[-62.5, 57.5], [62.5, 57.5], [52.4, -57.5]] },
+  tScaO5: { p: [[-70, 24.6], [70, 24.6], [35.5, -24.6]] },
+  tScaR5: { p: [[-50, -43.5], [50, 43.5], [-50, 43.5]] },
+  qRhom8: { p: [[-76.3, 16.9], [3.7, 16.9], [76.3, -16.9], [-3.7, -16.9]] },
+  qPara6: { p: [[-79.7, 24.9], [54.3, 24.9], [79.7, -24.9], [-54.3, -24.9]] },
+  qTrap8: { p: [[-12, -47], [12, -47], [50, 47], [-50, 47]] },
+  cTri3: { p: [[45, 0], [-45, -44], [-45, 44]] },
+  cKite2: { p: [[-45, 36], [45, 36], [-9, -36], [-45, -9]] },
+  cPara3: { p: [[-45, 0], [-45, -30], [45, 0], [45, 30]] },
+  tIsoO5: { p: [[0, -21.7], [75, 21.7], [-75, 21.7]] },
+  i7c: { p: [[6.9, -65.6], [37, -36.5], [66.2, 22.6], [30.5, 49.3], [-33.6, 54.4], [-47.3, 16.2], [-48.4, -47.7]] },
+  i9b: { p: [[7.1, -67.6], [31.3, -46.4], [63.8, -4.5], [63.9, 28.5], [12.6, 50.5], [-16, 64], [-54.8, 24.4], [-69.8, -4.9], [-30.2, -44.8]] },
+  i10: { p: [[7.3, -69.6], [29, -50.2], [64.6, -13.7], [50.9, 10.8], [35, 60.6], [6.3, 59.7], [-42.8, 47.6], [-49.3, 22], [-62.1, -27.7], [-38.8, -43.1]] },
+  i6eA2: { p: [[-36, -56], [36, -56], [64, -7.5], [28, 54.8], [-28, 54.8], [-64, -7.5]] },
+  tScaO4: { p: [[-70, 24], [70, 24], [20.3, -24]] }, tIsoO4: { p: [[-80, 13.8], [80, 13.8], [0, -13.8]] },
+  qPara5: { p: [[-70.5, 27.6], [27.5, 27.6], [70.5, -27.6], [-27.5, -27.6]] }, qRhom5: { p: [[-77.6, 22.3], [6.4, 22.3], [77.6, -22.3], [-6.4, -22.3]] }, qRhom6: { p: [[-44.6, 37.4], [31.4, 37.4], [44.6, -37.4], [-31.4, -37.4]] },
+  qKite5: { p: [[0, -68.6], [30, -43.4], [0, 68.6], [-30, -43.4]] },
+  i9: { p: [[0, -62], [42, -48], [66, -12], [60, 30], [30, 58], [-12, 62], [-50, 40], [-68, 2], [-48, -40]] },
+  nOpen5: { p: [[-60, -40], [60, -40], [75, 40], [-75, 40], [-62, -25]], open: true }, nCurve4: { p: [[-35, -55], [35, -55], [70, 0], [35, 55], [-35, 55], [-70, 0]], curve: [2, 22] }, nCross2: { p: [[-60, -50], [60, 50], [60, -30], [-60, 30]] },
   qOther: { p: [[-60, -30], [50, -52], [78, 40], [-42, 50]] }, qOther2: { p: [[-70, -20], [30, -55], [60, 45], [-30, 35]] },
   /* مضلعات أكثر أضلاعاً: منتظمة، وغير منتظمة */
   r5: { p: polyReg(5) }, r6: { p: polyReg(6, 70, 0) }, r7: { p: polyReg(7) }, r8: { p: polyReg(8, 70, -67.5) }, r9: { p: polyReg(9) }, r10: { p: polyReg(10, 72, -72) },
@@ -105,7 +146,7 @@ function polyMarks(g, R, which) { const W = which === true ? ['eq', 'par', 'righ
 const cmOf = l => Math.round(l / PCM * 2) / 2;
 function sideLabel(parent, R, i, col = css('--compass')) { const s = R.sides[i]; if (!s || s.dataset.shown) return; s.dataset.shown = 1; const P = R.P, a = P[i], b = P[(i + 1) % R.n], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, dx = mx - R.cen[0], dy = my - R.cen[1], d = Math.hypot(dx, dy) || 1;
   const x = mx + dx / d * 22, y = my + dy / d * 22 + 5, g = el('g', { 'pointer-events': 'none', 'data-len': i }, parent); el('rect', { x: x - 26, y: y - 15, width: 52, height: 21, rx: 6, fill: '#fff', stroke: col, 'stroke-width': 1.5 }, g);
-  const t = el('text', { x, y: y + 1, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: col }, g); t.textContent = String(cmOf(R.pr.L[i])).replace('.', '٫') + ' ' + labelText('rulCm'); return g; }
+  const t = el('text', { x, y: y + 1, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: col }, g); t.textContent = String(cmOf(R.pr.L[i])).replace('٫', '.') + ' ' + labelText('rulCm'); return g; }
 function vertLabel(parent, R, i, col = css('--think')) { const v = R.verts[i]; if (!v || v.dataset.shown) return; v.dataset.shown = 1; const p = R.P[i], dx = R.cen[0] - p[0], dy = R.cen[1] - p[1], d = Math.hypot(dx, dy) || 1, a = R.pr.A[i];
   if (Math.abs(a - 90) <= .6) { const A = R.P[(i + R.n - 1) % R.n], B = R.P[(i + 1) % R.n], la = Math.hypot(A[0] - p[0], A[1] - p[1]), lb = Math.hypot(B[0] - p[0], B[1] - p[1]), s = 13, ua = [(A[0] - p[0]) / la * s, (A[1] - p[1]) / la * s], ub = [(B[0] - p[0]) / lb * s, (B[1] - p[1]) / lb * s]; el('path', { d: `M${p[0] + ua[0]} ${p[1] + ua[1]} L${p[0] + ua[0] + ub[0]} ${p[1] + ua[1] + ub[1]} L${p[0] + ub[0]} ${p[1] + ub[1]}`, fill: 'none', stroke: col, 'stroke-width': 2.6, 'pointer-events': 'none' }, parent); }
   else { const A = R.P[(i + R.n - 1) % R.n], B = R.P[(i + 1) % R.n], a1 = Math.atan2(-(A[1] - p[1]), A[0] - p[0]) * 180 / Math.PI, a2 = Math.atan2(-(B[1] - p[1]), B[0] - p[0]) * 180 / Math.PI; let s0 = a1, s1 = a2; if ((((s1 - s0) % 360) + 360) % 360 > 180.5 !== a > 180.5) [s0, s1] = [a2, a1]; el('path', { d: angArc(p, 18, s0, s0 + a), fill: 'none', stroke: a > 180.5 ? PLY.rx : col, 'stroke-width': 3, 'pointer-events': 'none' }, parent); }
@@ -122,6 +163,26 @@ function plyTools(svg, R, o = {}) { const used = { len: false, ang: false }, gs 
     g.onclick = g.__go = async () => { if (used[k]) return; used[k] = true; g.setAttribute('opacity', .45); SFX.tick(); for (let i = 0; i < R.n; i++) { if (k === 'len') { if (R.sides[i]) sideLabel(layer, R, i); } else vertLabel(layer, R, i); await sleep(FAST ? 10 : 160); } if (o.after) o.after(k); }; gs.push(g); return g; };
   if (o.len !== false) mk('len', 48, 44); if (o.ang) mk('ang', 48, o.len === false ? 44 : 100);
   return { used, layer, off: () => gs.forEach(g => { g.onclick = null; g.removeAttribute('role'); g.setAttribute('opacity', .2); }), show: k => { const g = gs.find(x => x.dataset.tool === k); return g && g.__go(); } }; }   /* show بعد off (الحلّ المشترك والكشف): onclick صار null، فيُستدعى العمل المحفوظ (S2-U5 د2: trapLegs) */
+
+/* المستوى الثاني في U4 حركةُ أداة على الشكل نفسه قبل الجملة (D240: «والثاني حركة أداة إلزامية»؛ مراجعة بوابة U4/U5، 11):
+   قياس ضلعين أو كل الأضلاع، وقياس أكبر زاوية أو كل الزوايا، وترقيم الرؤوس للعدّ، وتتبّع الأضلاع واحداً واحداً، وإضاءة رأسين أو ضلعين.
+   الحركة تُرسم على مسرح المحاولة السابقة، ثم تُعاد المحاولة على مسرح جديد */
+async function plyHint2(r, acts, line) { const c = r && r.ctx, R = c && c.R, svg = c && c.svg, w = ms => sleep(FAST ? 10 : ms);
+  if (R && R.n && svg) { const lay = el('g', { 'pointer-events': 'none' }, svg);
+    for (const a of [].concat(acts || [])) {
+      if (a === 'len2') { for (let i = 0; i < Math.min(2, R.n); i++) { sideLabel(lay, R, i); SFX.tick(); await w(450); } }
+      else if (a === 'len') { for (let i = 0; i < R.n; i++) { sideLabel(lay, R, i); SFX.tick(); await w(300); } }
+      else if (a === 'ang1') { const A = R.pr.A || [], i = A.indexOf(Math.max(...A)); vertLabel(lay, R, Math.max(0, i)); SFX.tick(); await w(500); }
+      else if (a === 'ang0') { vertLabel(lay, R, 0); SFX.tick(); await w(500); }
+      else if (a === 'ang') { for (let i = 0; i < R.n; i++) { vertLabel(lay, R, i); SFX.tick(); await w(300); } }
+      else if (a === 'count') { for (let i = 0; i < R.n; i++) { const p = R.P[i], dx = p[0] - R.cen[0], dy = p[1] - R.cen[1], d = Math.hypot(dx, dy) || 1, q = [p[0] + 18 * dx / d, p[1] + 18 * dy / d];
+          el('circle', { cx: q[0], cy: q[1], r: 11, fill: '#fff', stroke: css('--think'), 'stroke-width': 2 }, lay); const t = el('text', { x: q[0], y: q[1] + 5, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: GEO.ink }, lay); t.textContent = DG(i + 1); SFX.tick(); await w(380); } }
+      else if (a === 'trace') { for (let i = 0; i < R.n; i++) { if (R.sides[i]) { polyHl(R, 'side', i, css('--think')); SFX.tick(); } await w(380); } }
+      else if (a && a.vtx) { for (const i of a.vtx) { polyHl(R, 'vtx', ((i % R.n) + R.n) % R.n, css('--think')); await w(350); } }
+      else if (a && a.side) { for (const i of a.side) { polyHl(R, 'side', ((i % R.n) + R.n) % R.n, css('--think')); await w(350); } }
+      else if (a && a.diagFrom != null) { const o = R.P[a.diagFrom]; for (let k = 2; k < R.n - 1; k++) { const q = R.P[(a.diagFrom + k) % R.n]; el('line', { x1: o[0], y1: o[1], x2: q[0], y2: q[1], stroke: css('--think'), 'stroke-width': 3, 'stroke-dasharray': '6 5' }, lay); SFX.tick(); await w(380); } }
+      else if (a && a.ring) { thinkRing(lay, a.ring, 18); await w(400); } } }
+  if (line) await S(line); }
 
 /* ---------- مسرح البنود: إطار وشكل في وسطه ---------- */
 const plyStage = (H = 232) => { const svg = newStage(H, { oasis: false, ground: 0 }); plyFrame(svg, H - 28); return svg; };
@@ -147,7 +208,7 @@ ITEM.polyIs = {
     await S('gen.poly.why'); const w = await choosePick(['open', 'curve', 'cross'].map(k => plyOpt('why', k)), item.want === 'yes' ? null : item.want); return { ans: w, ctx: { svg, R } }; },
   judge(item, a) { if (a === item.want) return { ok: true }; return { ok: false, err: item.want === 'yes' ? 'polyNotIs' : a === 'yes' ? (item.want === 'curve' ? 'polyCurve' : item.want === 'open' ? 'polyOpen' : 'polyCross') : 'polyReason' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.poly.hint.is'); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, 'trace', 'gen.poly.hint.is'); }, async together() {},
   async reveal(item) { await S('gen.poly.reveal.' + item.want); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -162,7 +223,7 @@ ITEM.polyCount = { ...numItem,
     const np = numberPick(item.nums, item.want); return { ans: await np.p, ctx: { svg, R, np, aid } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'polyCountOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S('gen.poly.hint.count'); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, 'count', 'gen.poly.hint.count'); }, async together() {},
   async reveal(item, r) { await S('gen.poly.reveal.count', { noGap: true }); await S(numw(item.want), { num: true }); },
   praise: () => 'praiseCount', twin(item) { return item.twin || null; },
 };
@@ -185,7 +246,7 @@ ITEM.polyFix = {
     return { ans: { a: k, b: null }, ctx: { svg, R } }; },
   judge(item, r) { if (item.kind === 'open') { const E = [0, POLYS[item.k].p.length - 1]; return E.includes(r.a) && E.includes(r.b) && r.a !== r.b ? { ok: true } : { ok: false, err: 'polyFixEnd' }; } return r.a === POLYS[item.k].curve[0] ? { ok: true } : { ok: false, err: 'polyFixSide' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.kind === 'open' ? 'gen.poly.hint.fixOpen' : 'gen.poly.hint.fixCurve'); }, async together() {},
+  async hint2(item, r) { const R = r && r.ctx && r.ctx.R, sh = POLYS[item.k] || {}; await plyHint2(r, item.kind === 'open' ? (R && R.n ? [{ ring: R.P[0] }, { ring: R.P[R.n - 1] }] : []) : sh.curve ? [{ side: [sh.curve[0]] }] : 'trace', item.kind === 'open' ? 'gen.poly.hint.fixOpen' : 'gen.poly.hint.fixCurve'); }, async together() {},
   async reveal(item, r) { const R = r.ctx.R; if (item.kind === 'open') { const a = R.P[0], b = R.P[R.P.length - 1]; geoLine(r.ctx.svg, a[0], a[1], b[0], b[1], { color: PLY.hl, w: 4 }); } else polyHl(R, 'side', POLYS[item.k].curve[0], css('--think')); await S(item.kind === 'open' ? 'gen.poly.reveal.fixOpen' : 'gen.poly.reveal.fixCurve'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -201,7 +262,7 @@ ITEM.triKind = {
   judge(item, a) { if (a.side !== undefined && !TTRUE[item.side].includes(a.side)) return { ok: false, err: item.side === 'iso' && a.side === 'eq' ? 'triIsoEq' : 'triSideType' };
     if (a.ang !== undefined && a.ang !== item.ang) return { ok: false, err: item.ang === 'obtuse' && a.ang === 'acute' ? 'triObtuseMiss' : 'triAngType' }; return { ok: true }; },
   async onOk(item, r) { SFX.good(); if (r.ans.side && r.ans.side !== item.side) await S('gen.poly.exact.eq'); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.by === 'ang' ? 'gen.poly.hint.triA' : 'gen.poly.hint.triS'); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, item.by === 'ang' ? 'ang1' : item.by === 'both' ? ['len', 'ang1'] : 'len', item.by === 'ang' ? 'gen.poly.hint.triA' : 'gen.poly.hint.triS'); }, async together() {},
   async reveal(item, r) { polyMarks(r.ctx.R.g, r.ctx.R, true); if (item.by !== 'ang') await S('gen.poly.ts.' + item.side); if (item.by !== 'side') await S('gen.poly.ta.' + item.ang); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -218,7 +279,7 @@ ITEM.quadOpp = {
     const k = await tapOne(T, { ok: item.want, pad: 40 }); hush(); polyHl(R, side ? 'side' : 'vtx', k); return { ans: k, ctx: { svg, R } }; },
   judge(item, k) { return [].concat(item.want).includes(k) ? { ok: true } : { ok: false, err: 'quadAdjOpp' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.ask === 'oppAng' ? 'gen.poly.hint.oppA' : 'gen.poly.hint.oppS'); }, async together() {},
+  async hint2(item, r) { const i = item.i || 0, ang = /Ang|N$/.test(item.ask); await plyHint2(r, ang ? [{ side: [i - 1, i] }] : [{ vtx: [i, i + 1] }], ang ? 'gen.poly.hint.oppA' : 'gen.poly.hint.oppS'); }, async together() {},
   async reveal(item, r) { const R = r.ctx.R; if (item.ask === 'oppAng') thinkRing(r.ctx.svg, R.P[item.want], 16); else if (item.ask === 'oppSide' || item.ask === 'adjSide') [].concat(item.want).forEach(j => polyHl(R, 'side', j, css('--think'))); await S('gen.poly.reveal.' + item.ask); },
   praise: () => 'praiseLook', twin(item) { return item.twin || null; },
 };
@@ -232,7 +293,7 @@ ITEM.quadName = {
     const k = await choosePick(shuffle(item.pick).map(o => plyOpt('q', o)), item.ok); if (T) T.off(); return { ans: k, ctx: { svg, R } }; },   /* مخلوطة: الجواب لا يثبت في موضع */
   judge(item, k) { return item.ok.includes(k) ? { ok: true } : { ok: false, err: PLY_ERR.quad(item.want, k) }; },
   async onOk(item, r) { SFX.good(); if (r.ans !== item.want) await S('gen.poly.exact.' + item.want); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.poly.hint.quad'); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, ['len', 'ang0'], 'gen.poly.hint.quad'); }, async together() {},
   async reveal(item, r) { polyMarks(r.ctx.R.g, r.ctx.R, true); await S('gen.poly.q.' + item.want); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -244,7 +305,7 @@ ITEM.quadCheck = { ...numItem,
     const np = numberPick(item.nums, item.want); const k = await np.p; if (T) T.off(); return { ans: k, ctx: { svg, R } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.ask === 'par' ? 'quadParCount' : 'quadRightCount' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S('gen.poly.hint.' + item.ask); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, item.ask === 'right' ? 'ang0' : [{ side: [0, 2] }], 'gen.poly.hint.' + item.ask); }, async together() {},
   async reveal(item, r) { polyMarks(r.ctx.R.g, r.ctx.R, [item.ask === 'par' ? 'par' : 'right']); await S('gen.poly.reveal.' + item.ask, { noGap: true }); await S(numw(item.want), { num: true }); },
   praise: () => 'praiseLook', twin(item) { return item.twin || null; },
 };
@@ -274,7 +335,7 @@ ITEM.diagDraw = {
     return { ans: { a, b }, ctx: { svg, R } }; },
   judge(item, r) { const d = Math.abs(r.a - r.b); return d !== 1 && d !== item.n - 1 ? { ok: true } : { ok: false, err: 'diagSide' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.poly.hint.diag'); }, async together() {},
+  async hint2(item, r) { const R = r && r.ctx && r.ctx.R, n = R ? R.n : 0; await plyHint2(r, n > 3 ? [{ vtx: [0] }, { vtx: Array.from({ length: n - 3 }, (_, k) => k + 2) }] : [], 'gen.poly.hint.diag'); }, async together() {},
   async reveal(item, r) { const R = r.ctx.R, a = r.ans.a, b = (a + 2) % item.n; geoLine(r.ctx.svg, R.P[a][0], R.P[a][1], R.P[b][0], R.P[b][1], { color: css('--think'), w: 3.6 }); await S('gen.poly.reveal.diag'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -290,7 +351,7 @@ ITEM.diagCount = { ...numItem,
     const np = numberPick(item.nums, item.want); return { ans: await np.p, ctx: { svg, R } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'diagCount' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.poly.hint.diagN'); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, [{ diagFrom: 0 }], 'gen.poly.hint.diagN'); }, async together() {},
   async reveal(item, r) { const R = r.ctx.R; for (const [a, b] of diagsOf(R.n)) geoLine(r.ctx.svg, R.P[a][0], R.P[a][1], R.P[b][0], R.P[b][1], { color: css('--think'), w: 2.6 }); await S('gen.poly.reveal.count', { noGap: true }); await S(numw(item.want), { num: true }); },
   praise: () => 'praiseCount', twin(item) { return item.twin || null; },
 };
@@ -300,15 +361,16 @@ const FAM_UP = { rect: 'para', rhom: 'para', square: ['rect', 'rhom'] };
 function famTreeAt(parent, o = {}) { const g = el('g', {}, parent), box = {}; for (const [a, b] of [['para', 'rect'], ['para', 'rhom'], ['rect', 'square'], ['rhom', 'square']]) geoLine(g, FAM[a][0], FAM[a][1] + 22, FAM[b][0], FAM[b][1] - 22, { color: css('--line'), w: 2.4 });
   for (const [k, [x, y]] of Object.entries(FAM)) { const b = el('g', { 'data-fam': k }, g); el('rect', { x: x - 48, y: y - 22, width: 96, height: 44, rx: 10, fill: o.fill && o.fill[k] ? '#e3f3ea' : '#fff', stroke: css('--line'), 'stroke-width': 2 }, b); const t = el('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: GEO.ink, 'pointer-events': 'none' }, b); t.textContent = labelText('ply.q.' + k); box[k] = b; }
   return { g, box }; }
+const FAM_BR = ['para', 'rect', 'rhom', 'square'], famRing = item => FAM_BR.includes(item.want) ? item.ok.filter(k => FAM_BR.includes(k)) : [item.want];
 ITEM.famSlot = {
   make(spec) { const pr = polyProps(POLYS[spec.k]); return { ...spec, want: pr.quad, ok: QTRUE[pr.quad].filter(k => FAM[k]), tag: 'fam-slot-' + pr.quad }; },
   async ask(item, mode, tries) { const svg = newStage(296, { oasis: false, ground: 0 }); el('rect', { x: 20, y: 222, width: 120, height: 68, rx: 12, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, svg); const R = polyAt(svg, item.k, [80, 256], { s: .42, marks: true, dots: false, rot: item.rot || 0 }), F = famTreeAt(svg);
-    if (tries >= 3) { const m = helpG(svg); for (const k of item.ok) thinkRing(m, FAM[k], 30); }   /* الحلّ المشترك: كل مكان تصحّ فيه خصائصه محاط، والأخصّ أدناها */
+    if (tries >= 3) { const m = helpG(svg); for (const k of famRing(item)) thinkRing(m, FAM[k], 30); }   /* الحلّ المشترك: أماكن الفرع الموصول التي تصحّ فيها خصائصه، والأخصّ أدناها؛ لا يُحاط شبه المنحرف ولا الطائرة لغيرهما (D241: الشمول يُؤجَّل ولا يُعلَّم هنا) */
     say(...lineOf(tries >= 3 ? 'gen.poly.together.fam' : item.q), { free: true });
     const k = await tapOne(Object.keys(FAM).map(f => ({ g: F.box[f], k: f, label: labelText('ply.q.' + f) })), { ok: item.ok, pad: 56 }); hush(); return { ans: k, ctx: { svg, F, R } }; },
   judge(item, k) { return item.ok.includes(k) ? { ok: true } : { ok: false, err: 'famSlot' }; },
-  async onOk(item, r) { SFX.good(); okRing(r.ctx.svg, r.ctx.F.box[r.ans], 3); if (r.ans !== item.want) await S('gen.poly.exactPlace.' + item.want); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.poly.hint.fam'); }, async together() {},
+  async onOk(item, r) { SFX.good(); okRing(r.ctx.svg, r.ctx.F.box[r.ans], 3); if (r.ans !== item.want) await S((r.ans === 'trap' ? 'gen.poly.exactPlaceT.' : r.ans === 'kite' ? 'gen.poly.exactPlaceK.' : 'gen.poly.exactPlace.') + item.want); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { const b = r && r.ctx && r.ctx.F && r.ctx.F.box && r.ctx.F.box.para; if (b) { try { okRing(r.ctx.svg, b, 6); await sleep(FAST ? 10 : 500); } catch (e) {} } await S('gen.poly.hint.fam'); }, async together() {},
   async reveal(item, r) { okRing(r.ctx.svg, r.ctx.F.box[item.want], 3); await S('gen.poly.q.' + item.want); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -320,7 +382,7 @@ ITEM.polyName = {
     const k = await choosePick(shuffle(item.pick).map(n => plyOpt('n', String(n))), String(item.want)); return { ans: +k, ctx: { svg, R, aid } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'polyNameN' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.poly.hint.name'); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, 'count', 'gen.poly.hint.name'); }, async together() {},
   async reveal(item) { await S('gen.poly.n.' + item.want); },
   praise: () => 'praiseCount', twin(item) { return item.twin || null; },
 };
@@ -332,7 +394,7 @@ ITEM.regularQ = {
     const k = await choosePick(['reg', 'nL', 'nA'].map(x => plyOpt('reg', x)), item.ok); T.off(); return { ans: k, ctx: { svg, R } }; },
   judge(item, k) { if (item.ok.includes(k)) return { ok: true }; return { ok: false, err: k === 'reg' ? (item.ok.includes('nA') && !item.ok.includes('nL') ? 'regAngles' : 'regSides') : 'regReason' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.poly.hint.reg'); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, item.ok === 'nA' ? 'ang' : 'len', 'gen.poly.hint.reg'); }, async together() {},
   async reveal(item, r) { await S('gen.poly.reveal.reg.' + item.ok[0]); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -349,7 +411,7 @@ ITEM.concaveTap = {
     const k = await tapOne(R.verts.map((g, i) => ({ g, k: i, label: labelText('plyVertex') + ' ' + DG(i + 1) })), { ok: item.want, pad: 40 }); hush(); return { ans: k, ctx: { svg, R } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'concaveVtx' }; },
   onOk(item, r) { SFX.good(); if (r.ctx.R) vertLabel(r.ctx.svg, r.ctx.R, item.want); else okRing(r.ctx.svg, r.ctx.Rs[r.ans].g, 4); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.poly.hint.concave'); }, async together() {},
+  async hint2(item, r) { await plyHint2(r, item.figs ? [] : 'ang', 'gen.poly.hint.concave'); }, async together() {},
   async reveal(item, r) { if (r.ctx.R) vertLabel(r.ctx.svg, r.ctx.R, item.want); else okRing(r.ctx.svg, r.ctx.Rs[item.want].g, 4); await S('gen.poly.reveal.concave'); },
   praise: () => 'praiseLook', twin(item) { return item.twin || null; },
 };
@@ -477,7 +539,11 @@ SCENES.diagShow = async c => { const svg = plyStage(), L = c.lines, R = polyAt(s
   const D = [];
   for (const [j, [a, b]] of [[0, 2], [1, 3]].entries()) { S(L[j ? 2 : 0], { free: true }); await tapOne(V([]), { ok: a, pad: 40, bad: b }); hush(); polyHl(R, 'vtx', a); await tapOne(V([a]), { ok: b, pad: 40 }); hush(); polyHl(R, 'vtx', b);
     D.push(geoLine(svg, R.P[a][0], R.P[a][1], R.P[b][0], R.P[b][1], { color: j ? CRS.a : CRS.b, w: 3.6 })); SFX.tick(); if (!j) await S(L[1]); }
-  await S(L[3]); if (L[4]) { for (const [a, b] of [[0, 2], [1, 3]]) { const l = Math.hypot(R.P[b][0] - R.P[a][0], R.P[b][1] - R.P[a][1]), m = [(R.P[a][0] * .62 + R.P[b][0] * .38), (R.P[a][1] * .62 + R.P[b][1] * .38)], g = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: m[0] - 26, y: m[1] - 14, width: 52, height: 21, rx: 6, fill: '#fff', stroke: css('--compass') }, g); const t = el('text', { x: m[0], y: m[1] + 2, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: css('--compass') }, g); t.textContent = String(cmOf(l)).replace('.', '٫') + ' ' + labelText('rulCm'); await sleep(FAST ? 10 : 400); } await S(L[4]); }
+  await S(L[3]); if (L[4]) { for (const [a, b] of [[0, 2], [1, 3]]) { const l = Math.hypot(R.P[b][0] - R.P[a][0], R.P[b][1] - R.P[a][1]), m = [(R.P[a][0] * .62 + R.P[b][0] * .38), (R.P[a][1] * .62 + R.P[b][1] * .38)], g = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: m[0] - 26, y: m[1] - 14, width: 52, height: 21, rx: 6, fill: '#fff', stroke: css('--compass') }, g); const t = el('text', { x: m[0], y: m[1] + 2, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: css('--compass') }, g); t.textContent = String(cmOf(l)).replace('٫', '.') + ' ' + labelText('rulCm'); await sleep(FAST ? 10 : 400); } await S(L[4]); 
+  /* وقطرا المعيّن يُقاسان أيضاً: غير متساويين (المرجع S2-U4: «وهل يتساوى القطران في المستطيل؟ في المعيّن؟»؛ مراجعة بوابة U4/U5، 32) */
+  if (c.k2 && L[5]) { const s2 = plyStage(), R2 = polyAt(s2, c.k2, [180, 118], {}); for (const [j, [a, b]] of [[0, 2], [1, 3]].entries()) { geoLine(s2, R2.P[a][0], R2.P[a][1], R2.P[b][0], R2.P[b][1], { color: j ? CRS.a : CRS.b, w: 3.6 });
+      const l = Math.hypot(R2.P[b][0] - R2.P[a][0], R2.P[b][1] - R2.P[a][1]), m = [(R2.P[a][0] * .7 + R2.P[b][0] * .3), (R2.P[a][1] * .7 + R2.P[b][1] * .3) - 12], g = el('g', { 'pointer-events': 'none' }, s2); el('rect', { x: m[0] - 26, y: m[1] - 14, width: 52, height: 21, rx: 6, fill: '#fff', stroke: css('--compass') }, g); const t = el('text', { x: m[0], y: m[1] + 2, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: css('--compass') }, g); t.textContent = String(cmOf(l)) + ' ' + labelText('rulCm'); SFX.tick(); await sleep(FAST ? 10 : 450); }
+    await S(L[5]); } }
   logAttempt({ scene: c.s || 'explore', tag: 'diagShow', ok: true }); };
 /* شجرة العائلة تُبنى: كل شكل يُلمس فيذهب إلى مكانه، ثم «هل المربع مستطيل؟» بفحص الخصائص. lines: [مقدمة، (لكل شكل جملة)…، السؤال، الفحص، ختام] */
 SCENES.famBuild = async c => { const svg = newStage(296, { oasis: false, ground: 0 }), L = c.lines, F = famTreeAt(svg); Object.values(F.box).forEach(b => b.setAttribute('opacity', .25)); await S(L[0]);
@@ -516,16 +582,17 @@ const COMPOSE = { rect: { k: 'cRect', seam: [1, 3] }, para: { k: 'cPara', seam: 
 /* خطّ اللصق: طرفاه رأسان (رقمان) أو نقطتان بإحداثيات الشكل */
 function seamAt(svg, R, seam, C, rot = 0, s = 1) { const pt = x => typeof x === 'number' ? R.P[x] : polyXf([x], C, rot, s)[0], A = pt(seam[0]), B = pt(seam[1]); return geoLine(svg, A[0], A[1], B[0], B[1], { color: PLY.cut, w: 2.6, dash: '7 5' }); }
 /* مثلثان قائمان متطابقان (ضلعا القائمة 100 و60) يُلصقان بضلعين متساويين: على الوتر مستطيلاً أو طائرة ورقية، وعلى الضلع الطويل متوازي أضلاع أو مثلثاً متساوي الساقين */
-Object.assign(POLYS, { cRect: { p: [[-50, -30], [50, -30], [50, 30], [-50, 30]] }, cPara: { p: [[-50, 60], [-50, 0], [50, -60], [50, 0]] }, cKite: { p: [[-50, -44], [50, -44], [2.94, 44.24], [-50, 16]] }, cTri: { p: [[-30, -60], [70, 0], [-30, 60]] } });
+Object.assign(POLYS, { cRect2: { p: [[-60, -25], [60, -25], [60, 25], [-60, 25]] }, cPara2: { p: [[0, -24], [80, -24], [0, 24], [-80, 24]] }, cTri2: { p: [[-25, -80], [23, 0], [-25, 80]] },
+  cRect: { p: [[-50, -30], [50, -30], [50, 30], [-50, 30]] }, cPara: { p: [[-50, 60], [-50, 0], [50, -60], [50, 0]] }, cKite: { p: [[-50, -44], [50, -44], [2.94, 44.24], [-50, 16]] }, cTri: { p: [[-30, -60], [70, 0], [-30, 60]] } });
 SCENES.composeShow = async c => { const L = c.lines; await S(L[0]); for (const f of c.order || ['rect', 'para', 'kite']) { const svg = plyStage(), C = COMPOSE[f], R = polyAt(svg, C.k, [180, 118], { dots: false }); seamAt(svg, R, C.seam, [180, 118]);
     const hot = plyHot(svg, 26, 20, 308, 192); await tapOne([{ g: hot, k: f, label: labelText('plyShape') }], { ok: f, pad: false, pulse: false }); hot.remove(); polyMarks(R.g, R, true); SFX.tick(); await S('gen.poly.comp.' + f); }
   logAttempt({ scene: c.s || 'explore', tag: 'composeShow', ok: true }); await S(L[1]); };
 /* ثلاثة مربعات: يلمس الطفل موضعاً للمربع الثالث بجانب اثنين متجاورين، فيظهر الشكل في صندوق «مستقيم» أو «زاوية». lines: [الدعوة، الأشكال اثنان] */
 SCENES.trominoes = async c => { const svg = plyStage(), L = c.lines, cc = 34, O = [146, 70], bins = { I: [], L: [] }; minoAt(svg, [[0, 0], [1, 0]], O[0], O[1], cc);
   const spots = [[-1, 0, 'I'], [2, 0, 'I'], [0, -1, 'L'], [1, -1, 'L'], [0, 1, 'L'], [1, 1, 'L']], gs = spots.map(([a, b]) => { const g = el('g', {}, svg); el('rect', { x: O[0] + a * cc + 3, y: O[1] + b * cc + 3, width: cc - 6, height: cc - 6, rx: 4, fill: 'none', stroke: css('--think'), 'stroke-width': 2, 'stroke-dasharray': '4 3' }, g); return g; });
-  const box = (k, x) => { el('rect', { x: x - 60, y: 150, width: 120, height: 60, rx: 10, fill: '#fff', stroke: css('--line'), 'stroke-width': 2 }, svg); const t = el('text', { x, y: 204, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: GEO.ink, 'pointer-events': 'none' }, svg); t.textContent = labelText(k === 'I' ? 'plyMinoI' : 'plyMinoL'); }; box('I', 260); box('L', 100);
+  const box = (k, x) => { el('rect', { x: x - 60, y: 150, width: 120, height: 60, rx: 10, fill: '#fff', stroke: css('--line'), 'stroke-width': 2 }, svg); const t = el('text', { x, y: 204, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: GEO.ink, 'pointer-events': 'none' }, svg); t.textContent = labelText(k === 'I' ? 'plyMinoI' : 'plyMinoL'); };   /* الصندوق يظهر حين يُوجد أول شكل من نوعه: عدد الأشكال لا يُرى قبل المحاولة (D244) */
   S(L[0], { free: true }); const left = new Set(gs.keys()); while (left.size) { const k = await tapOne([...left].map(i => ({ g: gs[i], k: i, label: labelText('plySpot') })), { ok: [...left], pad: 36 }); if (left.size === 6) hush(); left.delete(k); gs[k].remove(); const [a, b, t] = spots[k];
-    const tmp = minoAt(svg, [[a, b]], O[0], O[1], cc, '#f2b84b'); await sleep(FAST ? 10 : 300); tmp.remove(); bins[t].push(k); const n = bins[t].length - 1; minoAt(svg, t === 'I' ? [[0, 0], [1, 0], [2, 0]] : [[0, 0], [1, 0], [0, 1]], (t === 'I' ? 216 : 74) + (n % 3) * 4, 160 + (n % 3) * 3, 11, '#6c7fa8'); SFX.tick(); }
+    const tmp = minoAt(svg, [[a, b]], O[0], O[1], cc, '#f2b84b'); await sleep(FAST ? 10 : 300); tmp.remove(); if (!bins[t].length) box(t, t === 'I' ? 260 : 100); bins[t].push(k); const n = bins[t].length - 1; minoAt(svg, t === 'I' ? [[0, 0], [1, 0], [2, 0]] : [[0, 0], [1, 0], [0, 1]], (t === 'I' ? 216 : 74) + (n % 3) * 4, 160 + (n % 3) * 3, 11, '#6c7fa8'); SFX.tick(); }
   logAttempt({ scene: c.s || 'explore', tag: 'trominoes', ok: true }); await S(L[1]); };
 /* مدينة المضلعات (مشروع د7): صورة فيها نافذة وباب وبلاطة ولافتة وطائرة ورقية؛ يختار الطفل ثلاثة، ولكلٍّ يسمّيه بعدد أضلاعه ثم يحكم: منتظم أم لا. lines: [المقدمة، دعوة الاختيار، بعد كل شيء، ختام] */
 const CITY_POLY = { window: { k: 'qSq', at: [292, 70], s: .5 }, door: { k: 'qRect2', at: [196, 80], s: .45 }, tile: { k: 'r6', at: [92, 74], s: .5 }, sign: { k: 'r8', at: [270, 176], s: .48 }, kite: { k: 'qKite', at: [130, 176], s: .48 } };

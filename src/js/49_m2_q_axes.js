@@ -72,7 +72,7 @@ ITEM.axisIs = {
 
 /* ================= ② كم محور تماثل؟ (C173، C174): k أو sym، rot. الدائرة: محاورها لا تنتهي ================= */
 ITEM.axisCount = {
-  make(spec) { const Sh = axShape(spec), n = Sh.axes === 'all' ? -1 : Sh.axes.length; return { ...spec, want: n, nums: n < 0 ? null : nearNums(n, 10, 0), tag: 'axis-count' + (n < 0 ? '-all' : '') }; },
+  make(spec) { const Sh = axShape(spec), n = Sh.axes === 'all' ? -1 : Sh.axes.length; return { ...spec, want: n, nums: n < 0 ? null : nearNums(n, Math.max(10, n + 2), 0), tag: 'axis-count' + (n < 0 ? '-all' : '') }; },
   async ask(item, mode, tries) { const svg = axStage(), Sh = axShape(item); let aid = null;
     const F = Sh.sym ? symAt(svg, item.sym, AX_C[0], AX_C[1], 1.7, item.rot || 0) : Sh.circle ? el('circle', { cx: AX_C[0], cy: AX_C[1], r: Sh.circle, fill: PLY.fill, stroke: PLY.edge, 'stroke-width': 4 }, svg) : el('polygon', { points: polyStr(Sh.P.map(p => [p[0] + AX_C[0], p[1] + AX_C[1]])), fill: PLY.fill, stroke: PLY.edge, 'stroke-width': 4, 'stroke-linejoin': 'round' }, svg);
     if (tries >= 3 && Sh.axes !== 'all') { await S('gen.ax.together.count'); aid = await axLinesOneByOne(svg, Sh, AX_C, { count: true }); }
@@ -82,7 +82,12 @@ ITEM.axisCount = {
   judge(item, k) { if (k === item.want) return { ok: true }; const sh = item.k && POLYS[item.k] ? polyProps(POLYS[item.k]) : {};
     return { ok: false, err: item.want < 0 ? 'axCircleOne' : sh.quad === 'rect' && k === 4 ? 'axDiagRect' : sh.quad === 'para' && k > 0 ? 'axParaHas' : sh.quad === 'trap' && item.want === 0 && k > 0 ? 'axTrapAll' : 'axCountOff' }; },
   onOk(item, r) { SFX.good(); markNum(r, r.ans, 'ok'); }, onWrong(item, r) { SFX.soft(); markNum(r, r.ans, 'no'); },
-  async hint2(item, r) { if (r.ctx.Sh.axes === 'all') { const g = axLinesAt(r.ctx.svg, r.ctx.Sh, AX_C, { dim: true }); await sleep(1400); g.remove(); return; } await S('gen.ax.hint.count'); }, async together() {},
+  /* المستوى الثاني بحسب جهة الخطأ (مراجعة بوابة U4/U5، 10): من زاد عدّ قطراً لا ينطبق عليه النصفان، فيُرسم القطر ويُسأل عن الطيّ؛ ومن نقص يُسأل عن المائل؛
+     والدائرة: ثلاثة محاور ثم «هل تنتهي؟» (لا تُرسم المحاور كلها فيُكشف الجواب) */
+  async hint2(item, r, err) { const Sh = r.ctx.Sh;
+    if (Sh.axes === 'all') { const g = axLinesAt(r.ctx.svg, { axes: [0, 60, 120] }, AX_C, { dim: true }); await S('gen.ax.hint.countAll'); g.remove(); return; }
+    if (r.ans > item.want) { const P = Sh.P; if (P && P.length >= 4) { const g = el('line', { x1: AX_C[0] + P[0][0], y1: AX_C[1] + P[0][1], x2: AX_C[0] + P[2][0], y2: AX_C[1] + P[2][1], stroke: css('--think'), 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, r.ctx.svg); await S('gen.ax.hint.countOver'); g.remove(); return; } await S('gen.ax.hint.countOver'); return; }
+    await S('gen.ax.hint.count'); }, async together() {},
   async reveal(item, r) { if (!r.ctx.aid) await axLinesOneByOne(r.ctx.svg, r.ctx.Sh, AX_C); if (item.want < 0) { await S('gen.ax.reveal.all'); return; } await S('gen.ax.reveal.count', { noGap: true }); await S(numw(item.want), { num: true }); },
   praise: () => 'praiseCount', twin(item) { return item.twin || null; },
 };
@@ -282,16 +287,19 @@ ITEM.axisRiddle = {
 const axSymP = (g, d, fill) => el('path', { d, fill, stroke: '#fff', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }, g);
 const AX_SYM = {
   starfish: { lines: [90, 18, 162, 54, 126], draw: g => { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 17 : 44; d += (i ? 'L' : 'M') + (r * Math.cos(a)).toFixed(1) + ' ' + (r * Math.sin(a)).toFixed(1); } axSymP(g, d + 'Z', '#ee8a5a'); el('circle', { r: 6, fill: '#f6c08a' }, g); } },
-  star8: { lines: [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5], draw: g => { for (const r0 of [0, 45]) el('rect', { x: -30, y: -30, width: 60, height: 60, transform: `rotate(${r0})`, fill: r0 ? '#3d7cc0' : '#2f9d6b', stroke: '#fff', 'stroke-width': 2.5 }, g); el('circle', { r: 14, fill: '#f6e7c8', stroke: '#fff', 'stroke-width': 2 }, g); } },
+  star8: { lines: [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5], draw: g => { let d = ''; for (let i = 0; i < 16; i++) { const t = i * Math.PI / 8, r = i % 2 ? 32.5 : 42.4; d += (i ? 'L' : 'M') + (r * Math.cos(t)).toFixed(1) + ' ' + (r * Math.sin(t)).toFixed(1); } axSymP(g, d + 'Z', '#2f9d6b'); el('circle', { r: 14, fill: '#f6e7c8', stroke: '#fff', 'stroke-width': 2 }, g); } },   /* نجمة بلون واحد: المربّعان الملوّنان لهما أربعة محاور (مراجعة بوابة U4/U5، 15) */
   flagH3: { lines: [0, 90], draw: g => { [['#c8392d', -30], ['#fff', -10], ['#c8392d', 10]].forEach(([f, y]) => el('rect', { x: -46, y, width: 92, height: 20, fill: f, stroke: '#9fb4c0', 'stroke-width': 1 }, g)); } },
   flagX: { lines: [0, 90], draw: g => { el('rect', { x: -46, y: -30, width: 92, height: 60, fill: '#2f6fb0' }, g); el('rect', { x: -46, y: -7, width: 92, height: 14, fill: '#fff' }, g); el('rect', { x: -7, y: -30, width: 14, height: 60, fill: '#fff' }, g); } },
   flagV2: { lines: [0], draw: g => { el('rect', { x: -46, y: -30, width: 46, height: 60, fill: '#2f9d6b' }, g); el('rect', { x: 0, y: -30, width: 46, height: 60, fill: '#f2b33d' }, g); } },
   flagCross: { lines: [0, 90, 45, 135], draw: g => { el('rect', { x: -32, y: -32, width: 64, height: 64, fill: '#c8392d' }, g); el('rect', { x: -32, y: -7, width: 64, height: 14, fill: '#fff' }, g); el('rect', { x: -7, y: -32, width: 14, height: 64, fill: '#fff' }, g); } },
   flagDiag: { lines: [], draw: g => { el('path', { d: 'M-46 -30 H46 L-46 30 Z', fill: '#3d7cc0' }, g); el('path', { d: 'M46 -30 V30 H-46 Z', fill: '#f2b33d' }, g); } },
+  flagDisc: { lines: [0, 90], draw: g => { el('rect', { x: -46, y: -30, width: 92, height: 60, fill: '#fff', stroke: '#9fb4c0', 'stroke-width': 1 }, g); el('circle', { cx: 0, cy: 0, r: 18, fill: '#c8392d' }, g); } },
+  flagTri: { lines: [0], draw: g => { el('rect', { x: -46, y: -30, width: 92, height: 60, fill: '#2f9d6b' }, g); el('path', { d: 'M-46 -30 L0 0 L-46 30 Z', fill: '#c8392d' }, g); } },
+  flagSq: { lines: [0, 90, 45, 135], draw: g => { el('rect', { x: -32, y: -32, width: 64, height: 64, fill: '#2f6fb0' }, g); el('path', { d: 'M0 -26 L26 0 L0 26 L-26 0 Z', fill: '#f2b33d' }, g); } },
   /* حرف بخط هندسي (كوفي مربع): متماثل؛ وبخط اليد: غير متماثل. الحكم بحسب شكل الخط المعروض */
   kufiBa: { lines: [90], draw: g => { axSymP(g, 'M-40 -18 H-26 V8 H26 V-18 H40 V22 H-40 Z', '#33454c'); el('rect', { x: -6, y: 30, width: 12, height: 12, fill: '#33454c' }, g); } },
   handBa: { lines: [], draw: g => { el('path', { d: 'M-42 -14 C-46 14 -30 24 0 24 C24 24 40 18 44 -10', fill: 'none', stroke: '#33454c', 'stroke-width': 10, 'stroke-linecap': 'round' }, g); el('circle', { cx: -4, cy: 40, r: 6, fill: '#33454c' }, g); } },
-  kufiHa: { lines: [90, 0], draw: g => { axSymP(g, 'M-30 -30 H30 V30 H-30 Z M-14 -14 V14 H14 V-14 Z', '#33454c'); } },
+  kufiHa: { lines: [90, 0, 45, 135], draw: g => { axSymP(g, 'M-30 -30 H30 V30 H-30 Z M-14 -14 V14 H14 V-14 Z', '#33454c'); } },
   handHa: { lines: [], draw: g => { el('path', { d: 'M-8 -34 C-30 -20 -36 12 -14 26 C8 38 34 22 30 0 C26 -18 6 -20 -4 -6', fill: 'none', stroke: '#33454c', 'stroke-width': 10, 'stroke-linecap': 'round' }, g); } },
   kufiAlif: { lines: [90, 0], draw: g => el('rect', { x: -7, y: -40, width: 14, height: 80, fill: '#33454c' }, g) },
   handAlif: { lines: [], draw: g => el('path', { d: 'M4 -42 C10 -20 6 10 -2 40', fill: 'none', stroke: '#33454c', 'stroke-width': 11, 'stroke-linecap': 'round' }, g) },
@@ -340,24 +348,31 @@ ITEM.designSym = {
 
 /* ================= المشاهد ================= */
 /* الإشعال: جبل وصورته في البحيرة، وخط الماء بينهما */
+/* توقّع الطفل قبل النتيجة في كل اكتشاف (D244: «لا يُسمّى مشهد اكتشافاً إلا إذا سبقت النتيجةَ محاولةٌ أو توقّعٌ من الطفل»؛ مراجعة بوابة U4/U5، 13):
+   عددٌ قبل رسم المحاور، ولمسةٌ لموضع الخطّ أو الصورة أو الثقب، ونعم/لا قبل الطيّ. لا حكم على التوقّع: يُسجَّل، ثم يرى الطفل */
+async function axPredictNum(n, q = 'gen.ax.predict.count') { say(...lineOf(q), { free: true }); const np = numberPick(nearNums(n, Math.max(10, n + 2), 0), n); const a = await np.p; hush(); np.box.remove(); logAttempt({ scene: 'explore', tag: 'axPredict', ok: a === n }); return a; }
+async function axPredictYN(ok, q) { say(...lineOf(q), { free: true }); const k = await choosePick([['yes', labelText('yes'), PICKICON.yes, 'gen.opt.yes'], ['no', labelText('no'), PICKICON.no, 'gen.opt.no']], ok); hush(); logAttempt({ scene: 'explore', tag: 'axPredict', ok: k === ok }); return k; }
+async function axPredictAt(svg, spots, ok, q) { const m = el('g', {}, svg), T = spots.map((p, i) => { const g = el('g', { 'data-k': i }, m); el('circle', { cx: p[0], cy: p[1], r: 15, fill: '#fff', 'fill-opacity': .6, stroke: css('--think'), 'stroke-width': 2.5, 'stroke-dasharray': '5 4' }, g); return { g, k: i, label: labelText('plySpot') + ' ' + DG(i + 1) }; });
+  const k = await predictTap(T, q); m.remove(); logAttempt({ scene: 'explore', tag: 'axPredict', ok: k === ok }); return k; }
 SCENES.lakeHook = async c => { const svg = newStage(250, { oasis: false, ground: 0 }), L = c.lines, W = 126;
   el('rect', { x: 20, y: 14, width: 320, height: W - 14, rx: 12, fill: '#dff0fb' }, svg); el('rect', { x: 20, y: W, width: 320, height: 110, rx: 12, fill: '#7fb6d9' }, svg);
   const mt = g => { el('path', { d: 'M60 126 L140 40 L180 84 L220 30 L300 126 Z', fill: '#7d8f6a', stroke: '#fff', 'stroke-width': 2 }, g); el('path', { d: 'M205 46 L220 30 L236 48 L226 52 L220 44 L212 52 Z', fill: '#fff' }, g); el('circle', { cx: 92, cy: 60, r: 14, fill: '#f2c66d' }, g); };
   mt(el('g', {}, svg)); const im = el('g', { transform: `translate(0 ${2 * W}) scale(1 -1)`, opacity: .55 }, svg); mt(im);
-  await S(L[0]); const ln = el('line', { x1: 20, y1: W, x2: 340, y2: W, stroke: AXC.line, 'stroke-width': 3.6, 'stroke-dasharray': '10 6' }, svg); anim(ln, [{ opacity: 0 }, { opacity: 1 }], { duration: 500 }); SFX.tick(); await S(L[1]); };
+  await S(L[0]); await axPredictAt(svg, [[180, W - 46], [180, W], [180, W + 46]], 1, 'gen.ax.predict.line'); const ln = el('line', { x1: 20, y1: W, x2: 340, y2: W, stroke: AXC.line, 'stroke-width': 3.6, 'stroke-dasharray': '10 6' }, svg); anim(ln, [{ opacity: 0 }, { opacity: 1 }], { duration: 500 }); SFX.tick(); await S(L[1]); };
 /* الاكتشاف (أ): نقطة أمام المرآة وصورتها، والبعدان متساويان */
 SCENES.mirrorDist = async c => { const svg = newStage(250, { oasis: false, ground: 0 }), L = c.lines, Gd = axGrid(svg, 'v', 5), p = c.p || [2, 3], q = axImg('v', 5, p);
   el('rect', { x: Gd.P(5, 6)[0] - 4, y: Gd.P(5, 6)[1], width: 8, height: Gd.rows * Gd.c, fill: '#bfe0f2', opacity: .8, 'pointer-events': 'none' }, svg);
-  axFigAt(svg, Gd, [p], []); await S(L[0]); axFigAt(svg, Gd, [q], [], { color: AXC.img }); SFX.pop(); await S(L[1]);
+  axFigAt(svg, Gd, [p], []); await S(L[0]); await axPredictAt(svg, [q[0] - 1, q[0], q[0] + 1].map(x => Gd.P(x, q[1])), 1, 'gen.ax.predict.img'); axFigAt(svg, Gd, [q], [], { color: AXC.img }); SFX.pop(); await S(L[1]);
   const g1 = await axGuide(svg, Gd, 'v', 5, p, { count: false }); g1.remove(); const m = helpG(svg); const s = 5 - p[0]; for (let i = 1; i <= s; i++) { badge(m, Gd.P(p[0] + i - .5, p[1])[0], Gd.P(p[0], p[1])[1] - 16, i, css('--think')); badge(m, Gd.P(q[0] - i + .5, p[1])[0], Gd.P(p[0], p[1])[1] - 16, i, AXC.img); SFX.tick(); await sleep(FAST ? 20 : 260); }
   await S(L[2]); };
 /* الاكتشاف (ب): ورقة مطوية وثقب، فتظهر الصورة؛ وخط الطيّ هو المحور */
 SCENES.pinFold = async c => { const svg = newStage(250, { oasis: false, ground: 0 }), L = c.lines, F = axFoldAt(svg, { k: c.k || 'qRect' }, [180, 122], { at: [0, 0], ang: 90 }, { fill: GEO.paper, line: false });
   const p = [48, -12]; el('circle', { cx: 180 + p[0], cy: 122 + p[1], r: 6, fill: AXC.pt }, svg); await S(L[0]); await F.fold(); const pin = el('circle', { cx: 180 + p[0], cy: 122 + p[1], r: 9, fill: 'none', stroke: AXC.line, 'stroke-width': 3 }, svg); SFX.pop(); await sleep(500); await F.open(); pin.remove();
+  await axPredictAt(svg, [[180 - p[0], 122 + p[1] - 44], [180 - p[0], 122 + p[1]], [180 - p[0] / 2, 122 + p[1] + 40]], 1, 'gen.ax.predict.hole');
   el('circle', { cx: 180 - p[0], cy: 122 + p[1], r: 6, fill: AXC.img }, svg);   /* النصف الأيسر هو الذي يُطوى فوق النقطة، فالثقب يظهر فيه */ await S(L[1]); F.line.setAttribute('opacity', 1); SFX.tick(); await S(L[2]); };
 /* الاكتشاف (ج): الواصل بين النقطة وصورتها عمودي على المحور ويقطعه في منتصفه */
 SCENES.axPerpShow = async c => { const svg = newStage(250, { oasis: false, ground: 0 }), L = c.lines, Gd = axGrid(svg, 'v', 5), p = c.p || [2, 2], q = axImg('v', 5, p); axFigAt(svg, Gd, [p], []); axFigAt(svg, Gd, [q], [], { color: AXC.img });
-  await S(L[0]); const A = Gd.P(...p), B = Gd.P(...q); geoLine(svg, A[0], A[1], B[0], B[1], { color: AXC.guide, w: 3.2 }); SFX.tick();
+  await S(L[0]); const A = Gd.P(...p), B = Gd.P(...q); await axPredictAt(svg, [Gd.P(5, p[1] - 1), Gd.P(5, p[1]), Gd.P(5, p[1] + 1)], 1, 'gen.ax.predict.cross'); geoLine(svg, A[0], A[1], B[0], B[1], { color: AXC.guide, w: 3.2 }); SFX.tick();
   const M = Gd.P(5, p[1]); paperCornerAt(svg, M, 0, 34); await S(L[1]); ptAt(svg, M[0], M[1], '', { r: 6, color: AXC.ok }); await S(L[2]); };
 /* بطاقة طرق التحقق الثلاث: الطيّ، والمرآة، والورق الشفّاف */
 SCENES.checkWays = async c => { const L = c.lines, k = c.k || 'tIsoA';
@@ -369,16 +384,16 @@ SCENES.checkWays = async c => { const L = c.lines, k = c.k || 'tIsoA';
     const tr = el('g', { opacity: .85 }, svg); el('rect', { x: 60, y: 30, width: 120, height: 180, fill: '#fff', opacity: .55, stroke: '#9fb4c0', 'stroke-width': 1.5 }, tr); const id = 'axt' + (++AX_ID), cp = el('clipPath', { id }, tr); el('rect', { x: 60, y: 30, width: 120, height: 180 }, cp);
     el('polygon', { points: polyStr(pts), fill: 'none', stroke: AXC.line, 'stroke-width': 3, 'stroke-dasharray': '6 4', 'clip-path': `url(#${id})` }, tr); await S(L[4]); await axTween(900, t => tr.setAttribute('transform', `translate(180 0) scale(${1 - 2 * t} 1) translate(-180 0)`)); SFX.tick(); await S(L[5]); } };
 /* د2: شبه المنحرف متساوي الساقين: الساقان تُقاسان وتُعلَّمان */
-SCENES.trapIntro = async c => { const L = c.lines; for (const [i, k] of (c.keys || ['qTrap', 'qTrap2']).entries()) { const svg = axStage(), R = polyAt(svg, k, [196, 122], {}), legs = axLegs(R); legs.forEach(j => polyHl(R, 'side', j, AXC.img)); if (!i) await S(L[0]); const T = plyTools(svg, R); T.show('len'); await sleep(FAST ? 60 : 900); T.off();
+SCENES.trapIntro = async c => { const L = c.lines; for (const [i, k] of (c.keys || ['qTrap', 'qTrap2']).entries()) { const svg = axStage(), R = polyAt(svg, k, [196, 122], {}), legs = axLegs(R); legs.forEach(j => polyHl(R, 'side', j, AXC.img)); if (!i) await S(L[0]); { const pr0 = R.pr, eq0 = Math.abs(cmOf(pr0.L[legs[0]]) - cmOf(pr0.L[legs[1]])) < .01; await axPredictYN(eq0 ? 'yes' : 'no', 'gen.ax.predict.legs'); } const T = plyTools(svg, R); T.show('len'); await sleep(FAST ? 60 : 900); T.off();
     const pr = R.pr, eq = Math.abs(cmOf(pr.L[legs[0]]) - cmOf(pr.L[legs[1]])) < .01; if (eq) { polyMarks(R.g, R, ['eq']); await S(L[1]); } else await S(L[2]); } };
 /* جدول عدّ المحاور بالطيّ: كل شكل يُطوى على محاوره واحداً واحداً، ويُكتب عدده في جدوله */
 SCENES.foldTable = async c => { const L = c.lines, K = c.keys || ['tEq', 'tIsoA', 'tScaA'];
   await S(L[0]); for (const k of K) { const svg = axStage(), S0 = axShape({ k }); if (S0.circle) { el('circle', { cx: AX_C[0], cy: AX_C[1], r: S0.circle, fill: PLY.fill, stroke: PLY.edge, 'stroke-width': 4 }, svg); if (L[1]) await S(L[1]); await axLinesOneByOne(svg, S0, AX_C, { r: S0.circle + 14 }); await S('gen.ax.reveal.all'); continue; } el('polygon', { points: polyStr(S0.P.map(p => [p[0] + AX_C[0], p[1] + AX_C[1]])), fill: PLY.fill, stroke: PLY.edge, 'stroke-width': 4 }, svg);
     if (!S0.axes.length) { svg.lastChild.remove(); const F = axFoldAt(svg, { k }, AX_C, { at: [0, 0], ang: 90 }, { S: S0 }); await F.fold(); await sleep(400); await S('gen.ax.n.0'); }
-    else { await axLinesOneByOne(svg, S0, AX_C, { count: true }); await sleep(300); } }
+    else { if (K.indexOf(k) % 2 === 0) await axPredictNum(S0.axes.length); await axLinesOneByOne(svg, S0, AX_C, { count: true }); await sleep(300); } }
   };
 /* المنتظم ذو n ضلعاً له n محوراً */
-SCENES.regularAxes = async c => { const L = c.lines; await S(L[0]); for (const k of c.keys || ['tEq', 'qSq', 'r5', 'r6']) { const svg = axStage(), S0 = axShape({ k, s: k === 'tEq' ? 1 : .95 }); el('polygon', { points: polyStr(S0.P.map(p => [p[0] + AX_C[0], p[1] + AX_C[1]])), fill: PLY.fill, stroke: PLY.edge, 'stroke-width': 4 }, svg); await axLinesOneByOne(svg, S0, AX_C, { count: true }); await sleep(300); } await S(L[1]); };
+SCENES.regularAxes = async c => { const L = c.lines; await S(L[0]); for (const k of c.keys || ['tEq', 'qSq', 'r5', 'r6']) { const svg = axStage(), S0 = axShape({ k, s: k === 'tEq' ? 1 : .95 }); el('polygon', { points: polyStr(S0.P.map(p => [p[0] + AX_C[0], p[1] + AX_C[1]])), fill: PLY.fill, stroke: PLY.edge, 'stroke-width': 4 }, svg); if (k === (c.keys || ['tEq', 'qSq', 'r5', 'r6']).slice(-1)[0]) await axPredictNum(S0.axes.length); await axLinesOneByOne(svg, S0, AX_C, { count: true }); await sleep(300); } await S(L[1]); };
 /* المحاور المائلة: المربع والمعيّن مدوَّرين، والقطران محوران */
 SCENES.slantAxes = async c => { const L = c.lines; for (const [i, [k, rot]] of (c.figs || [['qSq', 30], ['qRhom', 20]]).entries()) { const svg = axStage(), S0 = axShape({ k, rot }); el('polygon', { points: polyStr(S0.P.map(p => [p[0] + AX_C[0], p[1] + AX_C[1]])), fill: PLY.fill, stroke: PLY.edge, 'stroke-width': 4 }, svg); if (!i) await S(L[0]); await axLinesOneByOne(svg, S0, AX_C); await S(L[i + 1]); } };
 /* د3: ترميم النافذة بالعدّ (مثال محلول): النقاط تُعدّ إلى المحور وتُنقل */
@@ -390,11 +405,13 @@ SCENES.axGridWorked = async c => { const svg = newStage(252, { oasis: false, gro
 SCENES.turnPaper = async c => { const svg = newStage(252, { oasis: false, ground: 0 }), L = c.lines, holder = el('g', {}, svg), Gd = axGrid(holder, 'd', [3, 1], { c: 28, cols: 8, rows: 6, x0: 68, y0: 196 }); axFigAt(holder, Gd, c.pts || [[2, 3], [1, 4]], c.segs || [[0, 1]]);
   await S(L[0]); const at = Gd.at; await axTween(1000, t => holder.setAttribute('transform', `rotate(${-45 * t} ${at[0]} ${at[1]})`)); SFX.tick(); await S(L[1]); await axTween(700, t => holder.setAttribute('transform', `rotate(${-45 * (1 - t)} ${at[0]} ${at[1]})`)); await S(L[2]); };
 /* د4: جولة في عالمنا: كل صورة تُطوى على محورها (أو لا ينطبق نصفاها) */
-SCENES.worldTour = async c => { axSymReady(); const L = c.lines; for (const [i, k] of (c.pics || ['butterfly', 'starfish', 'star8']).entries()) { const svg = axStage(), D = SYM[k]; if (D.lines !== 'all' && D.lines.length) { const F = symFoldAt(svg, k, 180, 122, 1.7, D.lines[0], 0, { lineR: 60, lineColor: AXC.line }); await S(L[i]); await F.fold(); await sleep(300); await F.open(); if (D.lines.length > 1) await axLinesOneByOne(svg, { axes: D.lines }, [180, 122], { r: 92 }); } else { symAt(svg, k, 180, 122, 1.7); await S(L[i]); } } };
+SCENES.worldTour = async c => { axSymReady(); const L = c.lines; for (const [i, k] of (c.pics || ['butterfly', 'starfish', 'star8']).entries()) { const svg = axStage(), D = SYM[k]; if (D.lines !== 'all' && D.lines.length) { const F = symFoldAt(svg, k, 180, 122, 1.7, D.lines[0], 0, { lineR: 60, lineColor: AXC.line }); await S(L[i]); await F.fold(); await sleep(300); await F.open(); if (D.lines.length > 1) { if (i === (c.pics || ['butterfly', 'starfish', 'star8']).length - 1) await axPredictNum(D.lines.length); await axLinesOneByOne(svg, { axes: D.lines }, [180, 122], { r: 92 }); } } else { symAt(svg, k, 180, 122, 1.7); await S(L[i]); } } };
 /* الطبيعة تقريبية: ورقة الشجر تُطوى فلا ينطبق نصفاها تماماً */
-SCENES.nearLeaf = async c => { const svg = axStage(), L = c.lines, F = symFoldAt(svg, 'leaf', 180, 122, 1.7, 90, 0, { lineR: 60, lineColor: AXC.line }); await S(L[0]); await F.fold(); await sleep(500); await S(L[1]); };
+SCENES.nearLeaf = async c => { const svg = axStage(), L = c.lines, F = symFoldAt(svg, 'leaf', 180, 122, 1.7, 90, 0, { lineR: 60, lineColor: AXC.line }); await S(L[0]); await axPredictYN('no', 'gen.ax.predict.exact'); await F.fold(); await sleep(500); await S(L[1]); };
 /* الحرف بخطّين: الحكم بحسب شكل الخط */
-SCENES.letterStyles = async c => { axSymReady(); const L = c.lines; for (const [i, [a, b]] of (c.pairs || [['kufiBa', 'handBa']]).entries()) { const svg = newStage(222, { oasis: false, ground: 0 }); for (const [j, k] of [a, b].entries()) { const x = j ? 92 : 268; el('rect', { x: x - 70, y: 22, width: 140, height: 178, rx: 14, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, svg); const F = symFoldAt(svg, k, x, 111, 1.15, 90, 0, { lineR: 60, lineColor: AXC.line }); if (j === 0) await S(L[2 * i]); await F.fold(); await sleep(200); } await S(L[2 * i + 1]); } };
+SCENES.letterStyles = async c => { axSymReady(); const L = c.lines; for (const [i, [a, b]] of (c.pairs || [['kufiBa', 'handBa']]).entries()) { const svg = newStage(222, { oasis: false, ground: 0 }); const Fs = [a, b].map((k, j) => { const x = j ? 92 : 268; const card = el('rect', { x: x - 70, y: 22, width: 140, height: 178, rx: 14, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, svg); return { k, card, F: symFoldAt(svg, k, x, 111, 1.15, 90, 0, { lineR: 60, lineColor: AXC.line }) }; });
+    await S(L[2 * i]); { const want = [a, b].findIndex(k => SYM[k].lines === 'all' || SYM[k].lines.length > 0), Tg = Fs.map((f, j) => ({ g: f.card, k: j, label: labelText('plyShape') + ' ' + DG(j + 1) })); const kk = await predictTap(Tg, 'gen.ax.predict.letter'); logAttempt({ scene: 'explore', tag: 'axPredict', ok: kk === want }); }
+    for (const f of Fs) { await f.F.fold(); await sleep(200); } await S(L[2 * i + 1]); } };
 /* التذكّر */
 SCENES.recallAxis = async c => { const svg = axStage(), F = axFoldAt(svg, { k: c.k || 'tIsoA', rot: c.rot || 0 }, AX_C, { at: [0, 0], ang: c.ang ?? 90 }, {}); await sleep(300); await F.fold(); await S(c.lines[0]); };
 SCENES.recallImg = async c => { const svg = newStage(252, { oasis: false, ground: 0 }), Gd = axGrid(svg, c.ax || 'v', c.a ?? 5), pts = c.pts || [[2, 3]]; axFigAt(svg, Gd, pts, c.segs); axFigAt(svg, Gd, pts.map(p => axImg(c.ax || 'v', c.a ?? 5, p)), c.segs, { color: AXC.img }); for (const p of pts) await axGuide(svg, Gd, c.ax || 'v', c.a ?? 5, p); await S(c.lines[0]); };

@@ -1,4 +1,4 @@
-import sys, json; sys.path.insert(0,'/home/claude/waha-math/tools/m2gen')
+import sys, json; sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
 from common import *
 # الوحدات الحسابية المصغّرة أ–هـ (S2_نظام_التقييم، الجزء 2؛ D44): «إحماء الحساب» درسٌ أول (d0) قبل S2-U0 وU3 وU6 وU7 وU8.
 # اختبار تخطٍّ بلوحة أرقام بلا مساعدة، ونتيجته شجرة: 🟢 85% فأكثر، 🟡 60–84%، 🔴 أقل (docs/خطة_تقييم_المرحلة_2.md).

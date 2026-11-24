@@ -10,6 +10,14 @@
 // وفوق ذلك (D240 «لكل مفهوم بند تعرّف وبند إنتاج أو تعليل»): لكل مفهوم يتقنه التطبيق بند إنتاج أو تعليل واحد على الأقل، ولكل مفهوم
 // «تأسيس» في الدرس فحص إتقان (إلا «المدخل»)، ولكل درس اختيار حقيقي للطفل (D239).
 
+import { loadPolys, canonMap } from './shapes.mjs';
+const CANON = canonMap(loadPolys(new URL('../src/js/49_m2_poly.js', import.meta.url)));
+const C = k => CANON[k] || k;   /* الشكل المشابه بعد الدوران والقلب والتكبير مسألة واحدة (build/shapes.mjs) */
+
+/* الشكل الذي تدور عليه مسألة من U4 أو U5 (مفتاحه بعد التشابه): ما رآه الطفل أو حلّه في الدرس بأي مهمة لا يكون صورة تعليل في تقييمه */
+const PIC1 = /^(plyis|plycnt|plyfix|qname|diagd|diagn|fam|pname|reg|concv|axn|trleg|parts|axis|pic)\|([^|]+)/, PIC2 = /^(tri|qopp|qchk)\|[^|]+\|([^|]+)/;
+export const picOf = f => { const m = PIC1.exec(f) || PIC2.exec(f); return m ? m[2] : null; };
+
 const PROD = new Set(['convMachine', 'lenOrder', 'fenceBuild', 'trackDesign', 'rectDraw', 'maxArea', 'fracColor', 'cellColor', 'linePlace', 'fracOrder', 'setColor',
   'squareSlide', 'sasBuild', 'paraComplete', 'compassDraw', 'sssBuild', 'consOrder', 'hexStep',   /* S2-U9: يرسم بمثلّث الرسم وبالمنقلة، ويكمل، ويضبط الفرجار، ويرتّب خطوات الإنشاء */   /* S2-U8: يلوّن ويضع ويرتّب */   /* S2-U7: يرسم المستطيل، ويبحث عن أكبر أرض */   /* S2-U6: يضبط آلة التحويل، ويرتّب، ويبني السور، ويصمّم المضمار */
   'axisHunt', 'ptImage', 'axisFind', 'designSym',   /* S2-U5: يجد المحاور بالطيّ، ويرسم الصورة، ويجد المحور، ويصمّم بمحاور */
@@ -209,35 +217,35 @@ export const factOf = it => { const t = it.t;
   if (t === 'angleEstimate') return `ange|${it.deg}`;
   if (t === 'compassFind') return `cmpf|${it.want}|${(it.hide || []).join('')}`;
   if (t === 'compassTurn') return `cmpt|${it.face}|${it.turns}|${it.cw === false ? 0 : 1}`;
-  /* S2-U4: الشكل (مفتاحه في المكتبة) ودورانه، ومهمّته */
+  /* S2-U4: الشكل (مفتاحه في المكتبة) ومهمّته، بلا دورانه: القياسات المكتوبة على الشكل والجواب هي نفسها بعد الدوران (الفحص المستقل لبوابة S2-U4/U5 (2)) */
   if (t === 'streetPair') return `street|${it.lay}`;
-  if (t === 'polyIs') return `plyis|${it.k}|${it.rot || 0}`;
-  if (t === 'polyCount') return `plycnt|${it.k}|${it.rot || 0}`;
-  if (t === 'polyFix') return `plyfix|${it.k}`;
-  if (t === 'triKind') return `tri|${it.by || 'side'}|${it.k}|${it.rot || 0}`;
-  if (t === 'quadOpp') return `qopp|${it.ask}|${it.k}|${it.i || 0}|${it.rot || 0}`;
-  if (t === 'quadName') return `qname|${it.k}|${it.rot || 0}`;
-  if (t === 'quadCheck') return `qchk|${it.ask}|${it.k}|${it.rot || 0}`;
-  if (t === 'quadRiddle') return `qrd|${it.is}|${[...it.figs].sort().join(',')}`;
-  if (t === 'diagDraw') return `diagd|${it.k}|${it.rot || 0}`;
-  if (t === 'diagCount') return `diagn|${it.k}`;
-  if (t === 'famSlot') return `fam|${it.k}|${it.rot || 0}`;
-  if (t === 'polyName') return `pname|${it.k}|${it.rot || 0}`;
-  if (t === 'regularQ') return `reg|${it.k}|${it.rot || 0}`;
-  if (t === 'concaveTap') return it.figs ? `concp|${[...it.figs].sort().join(',')}` : `concv|${it.k}|${it.rot || 0}`;
-  if (t === 'partsCount') return `parts|${it.k}|${JSON.stringify(it.cuts)}`;
+  if (t === 'polyIs') return `plyis|${C(it.k)}`;
+  if (t === 'polyCount') return `plycnt|${C(it.k)}`;
+  if (t === 'polyFix') return `plyfix|${C(it.k)}`;
+  if (t === 'triKind') return `tri|${it.by || 'side'}|${C(it.k)}`;
+  if (t === 'quadOpp') return `qopp|${it.ask}|${C(it.k)}|${it.i || 0}`;
+  if (t === 'quadName') return `qname|${C(it.k)}`;
+  if (t === 'quadCheck') return `qchk|${it.ask}|${C(it.k)}`;
+  if (t === 'quadRiddle') return `qrd|${it.is}|${[...it.figs].map(C).sort().join(',')}`;
+  if (t === 'diagDraw') return `diagd|${C(it.k)}`;
+  if (t === 'diagCount') return `diagn|${C(it.k)}`;
+  if (t === 'famSlot') return `fam|${C(it.k)}`;
+  if (t === 'polyName') return `pname|${C(it.k)}`;
+  if (t === 'regularQ') return `reg|${C(it.k)}`;
+  if (t === 'concaveTap') return it.figs ? `concp|${[...it.figs].map(C).sort().join(',')}` : `concv|${C(it.k)}`;
+  if (t === 'partsCount') return `parts|${C(it.k)}|${JSON.stringify(it.cuts)}`;
   if (t === 'polyDraw') return `pdrawn|${it.n}`;
   if (t === 'polyMino') return `mino|${it.n}`;
   /* S2-U5: الشكل ودورانه والخطّ، والشبكة بمحورها ونقاطها */
-  if (t === 'axisIs') return `axis|${it.k || it.sym}|${it.rot || 0}|${it.thru ? it.thru.join('-') : it.ang ?? 90}`;
-  if (t === 'axisCount') return `axn|${it.k || it.sym}|${it.rot || 0}`;
-  if (t === 'axisHunt') return `axn|${it.k}|${it.rot || 0}`;
+  if (t === 'axisIs') return `axis|${it.k ? C(it.k) : it.sym}|${it.thru ? it.thru.join('-') : it.ang ?? 90}`;
+  if (t === 'axisCount') return `axn|${it.k ? C(it.k) : it.sym}`;
+  if (t === 'axisHunt') return `axn|${C(it.k)}`;
   if (t === 'ptImage') return `img|${it.ax}|${JSON.stringify(it.a)}|${JSON.stringify(it.pts)}`;
   if (t === 'axisFind') return `axf|${it.p.join(',')}|${it.p2.join(',')}`;
   if (t === 'imageCheck') return `imgc|${JSON.stringify(it.pts)}|${[...it.wrong].sort().join(',')}`;
   if (t === 'imageError') return `imgerr|${it.ax}|${JSON.stringify(it.pts)}|${it.bad}`;
-  if (t === 'trapLegs') return `trleg|${it.k}|${it.rot || 0}`;
-  if (t === 'axisRiddle') return `axrd|${it.n}|${[...it.figs].sort().join(',')}`;
+  if (t === 'trapLegs') return `trleg|${C(it.k)}`;
+  if (t === 'axisRiddle') return `axrd|${it.n}|${[...it.figs].map(C).sort().join(',')}`;
   if (t === 'worldPick') return `world|${it.ask || 'yes'}|${[...it.pics].sort().join(',')}`;
   if (t === 'designSym') return `dsg|${it.need}|${(it.start || []).join(';')}`;
   /* S2-U6: الأطوال بقيمها ووحداتها */
@@ -314,9 +322,9 @@ export const factOf = it => { const t = it.t;
   if (t === 'reason' && it.pic && it.pic.kind === 'thing') return `thingpic|${it.pic.thing}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'conv') return `convpic|${it.pic.v.join('')}|${it.pic.to}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'calc') return `calcpic|${it.pic.a.join('.')}|${it.pic.op}|${it.pic.b.join('.')}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'axis') return `axpic|${it.pic.k || it.pic.sym}|${it.pic.rot || 0}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'axis') return `pic|${it.pic.k ? C(it.pic.k) : it.pic.sym}`;   /* صورة التعليل: شكلٌ لم يُرَ في الدرس بأي مهمة (picOf) */
   if (t === 'reason' && it.pic && it.pic.kind === 'axgrid') return `axgpic|${JSON.stringify(it.pic.pts)}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'poly') return `polypic|${it.pic.k}|${it.pic.rot || 0}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'poly') return `pic|${C(it.pic.k)}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'angle') return `angpic|${it.pic.deg}|${it.pic.rot || 0}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'prot') return `protpic|${it.pic.deg}|${it.pic.side || 'r'}`;
   if (t === 'reason' && it.pic) { const P = it.pic; if (P.kind === 'paragrid') return `pgpic|${P.d}`; if (P.kind === 'shore') return `shorepic|${P.ix || 150}`;
@@ -424,15 +432,16 @@ export function d240(lessons, code, MAKERS) {
     angDrawShow: s => [`angd|${s.deg}`], estimateShow: s => [`ange|${s.deg}`], recallProt: s => [`prot|${s.deg || 120}|${s.side || 'r'}`, `protpic|${s.deg || 120}|${s.side || 'r'}`], recallTurn: s => [`tdeg|${s.turns || 1}|0`],
     recallAngle: s => [`angk|${s.deg || 60}|${s.rot || 0}`, `angpic|${s.deg || 60}|${s.rot || 0}`], degreeDisc: () => ['tdeg|1|0', 'tdeg|2|0', 'tdeg|4|0'], cakeSlice: s => [`rfx|${s.deg || 60}`],
     compassTurns: () => [1, 2, 3, 4].map(q => `cmpt|n|${q}|1`), recallRose: s => s.face ? [`cmpf|${s.face}|`] : [],
-    /* S2-U4: ما يعرضه المشهد بجوابه */
-    polyRules: s => (s.keys || ['tEq2', 'nCircle', 'nOpen', 'nStar', 'r5', 'nCurve2']).map(k => `plyis|${k}|0`), polyParts: s => [`plycnt|${s.k || 'i5h'}|0`],
-    triMeasure: s => (s.keys || ['tEq2', 'tIsoA2', 'tScaA2']).map(k => `tri|${s.by || 'side'}|${k}|0`),
-    adjOppShow: s => ['oppSide', 'adjSide', 'oppAng', 'adjN', 'oppN'].map(a => `qopp|${a}|${s.k || 'qRect'}|0|0`),
-    quadChecks: s => [`qchk|par|${s.k}|${s.rot || 0}`, `qchk|right|${s.k}|${s.rot || 0}`, `qname|${s.k}|${s.rot || 0}`], squareTilt: s => [`qname|${s.k || 'qSq'}|45`],
-    diagShow: s => [`diagd|${s.k || 'qRect'}|0`, `diagn|${s.k || 'qRect'}`], famBuild: () => ['fam|qPara|0', 'fam|qRect|0', 'fam|qRhom2|0', 'fam|qSq|0', 'fam|qTrap|0', 'fam|qKite|0'],
-    polyNames: s => (s.keys || ['r5', 'r6', 'r8']).flatMap(k => [`pname|${k}|0`, `plycnt|${k}|0`]), regularShow: s => (s.keys || ['qSq', 'qRect', 'qRhom']).map(k => `reg|${k}|0`),
-    concaveShow: s => [`concv|${s.k || 'c5'}|0`], trominoes: () => ['mino|3'], composeShow: s => (s.order || ['rect', 'para', 'kite']).map(f => `qname|${{ rect: 'cRect', para: 'cPara', kite: 'cKite', tri: 'cTri' }[f]}|0`),
-    polyCity: () => ['qSq', 'qRect2', 'r6', 'r8', 'qKite'].flatMap(k => [`pname|${k}|0`, `reg|${k}|0`]),
+    /* S2-U4: ما يعرضه المشهد بجوابه، بمفتاح الشكل بعد التشابه C() وبلا دوران (كبنود U4) */
+    polyRules: s => (s.keys || ['tEq2', 'nCircle', 'nOpen', 'nStar', 'r5', 'nCurve2']).map(k => `plyis|${C(k)}`), polyParts: s => [`plycnt|${C(s.k || 'i5h')}`],
+    triMeasure: s => (s.keys || ['tEq2', 'tIsoA2', 'tScaA2']).map(k => `tri|${s.by || 'side'}|${C(k)}`),
+    adjOppShow: s => ['oppSide', 'adjSide', 'oppAng', 'adjN', 'oppN'].map(a => `qopp|${a}|${C(s.k || 'qRect')}|0`),
+    quadChecks: s => [`qchk|par|${C(s.k)}`, `qchk|right|${C(s.k)}`, `qname|${C(s.k)}`], squareTilt: s => [`qname|${C(s.k || 'qSq')}`],
+    diagShow: s => [s.k || 'qRect', ...(s.k2 ? [s.k2] : [])].flatMap(k => [`diagd|${C(k)}`, `diagn|${C(k)}`]), famBuild: () => ['qPara', 'qRect', 'qRhom2', 'qSq', 'qTrap', 'qKite'].map(k => `fam|${C(k)}`),
+    polyNames: s => (s.keys || ['r5', 'r6', 'r8']).flatMap(k => [`pname|${C(k)}`, `plycnt|${C(k)}`]), regularShow: s => (s.keys || ['qSq', 'qRect', 'qRhom']).map(k => `reg|${C(k)}`),
+    concaveShow: s => [`concv|${C(s.k || 'c5')}`], trominoes: () => ['mino|3'], composeShow: s => (s.order || ['rect', 'para', 'kite']).map(f => `qname|${C({ rect: 'cRect', para: 'cPara', kite: 'cKite', tri: 'cTri' }[f])}`),
+    cutRect: () => [`parts|${C('qRect2')}|[[0,2]]`],   /* المستطيل المرسوم 140×96 */
+    polyCity: () => ['qSq', 'qRect2', 'r6', 'r8', 'qKite'].flatMap(k => [`pname|${C(k)}`, `reg|${C(k)}`]),
     /* S2-U6 */
     tapeIntro: () => ['tape|85|cm'], kmWalk: () => [], unitTable: s => (s.pics || ['ant', 'pencil', 'door', 'road']).map(k => `unit|${k}`), convTable: () => ['conv|1m|cm', 'conv|2m|cm', 'conv|3m|cm', 'conv|1m|mm'],
     mcSplit: s => [`mc|${s.cm || 235}|toMC`], cmpShow: s => [`lcmp|${[(s.a || [2, 'm']).join(''), (s.b || [150, 'cm']).join('')].sort().join(',')}`], addWorked: s => [`lcalc|${(s.a || [2, 40]).join('.')}|${s.op || '+'}|${(s.b || [1, 80]).join('.')}`],
@@ -452,14 +461,14 @@ export function d240(lessons, code, MAKERS) {
     hexShow: s => [`hx|${s.r || 4}`], recallComp: s => s.part ? [s.part === 'center' ? 'cpp|center' : `cpp|${s.part}|${s.part === 'radius' ? 35 : 160}`] : s.tri ? [`te|${[...s.tri].sort((a, b) => b - a).join(',')}`] : [],
     recallPerim: s => [`pg|${(s.rows || ['####', '####']).join('/')}`], recallArea: s => s.w ? [`ra|${s.w}x${s.h}|${s.unit || 'cm'}`] : [`ac|${(s.rows || ['###', '###']).join('/')}`],
     recallTape: s => [`tape|${s.len || 75}|cm`], recallConv: s => [`conv|${(s.v || [2, 'm']).join('')}|${s.to || 'cm'}`], recallCalc: s => [`lcalc|${(s.a || [1, 60]).join('.')}|${s.op || '+'}|${(s.b || [1, 50]).join('.')}`], recallUnit: s => (s.pics || ['ant', 'pencil', 'door', 'road']).map(k => `unit|${k}`),
-    /* S2-U5 */
-    lakeHook: () => [], mirrorDist: s => [`img|v|5|${JSON.stringify([s.p || [2, 3]])}`], pinFold: s => [`axis|${s.k || 'qRect'}|0|90`], axPerpShow: s => [`img|v|5|${JSON.stringify([s.p || [2, 2]])}`],
-    checkWays: s => [`axis|${s.k || 'tIsoA'}|0|90`, `axn|${s.k || 'tIsoA'}|0`], trapIntro: s => (s.keys || ['qTrap', 'qTrap2']).map(k => `trleg|${k}|0`),
-    foldTable: s => (s.keys || ['tEq', 'tIsoA', 'tScaA']).map(k => `axn|${k}|0`), regularAxes: s => (s.keys || ['tEq', 'qSq', 'r5', 'r6']).map(k => `axn|${k}|0`), slantAxes: s => (s.figs || [['qSq', 30], ['qRhom', 20]]).map(([k, r]) => `axn|${k}|${r}`),
+    /* S2-U5: الشكل بعد التشابه C() والخطّ (الرؤوس أو الزاوية)، والشبكة بمحورها ونقاطها */
+    lakeHook: () => [], mirrorDist: s => [`img|v|5|${JSON.stringify([s.p || [2, 3]])}`], pinFold: s => [`axis|${C(s.k || 'qRect')}|*`], axPerpShow: s => [`img|v|5|${JSON.stringify([s.p || [2, 2]])}`],
+    checkWays: s => [`axis|${C(s.k || 'tIsoA')}|*`, `axn|${C(s.k || 'tIsoA')}`], trapIntro: s => (s.keys || ['qTrap', 'qTrap2']).map(k => `trleg|${C(k)}`),
+    foldTable: s => (s.keys || ['tEq', 'tIsoA', 'tScaA']).flatMap(k => [`axn|${C(k)}`, `axis|${C(k)}|*`]), regularAxes: s => (s.keys || ['tEq', 'qSq', 'r5', 'r6']).flatMap(k => [`axn|${C(k)}`, `axis|${C(k)}|*`]), slantAxes: s => (s.figs || [['qSq', 30], ['qRhom', 20]]).flatMap(([k]) => [`axn|${C(k)}`, `axis|${C(k)}|*`]),
     axGridWorked: s => [`img|${s.ax || 'v'}|${JSON.stringify(s.a ?? 5)}|${JSON.stringify(s.pts)}`], turnPaper: s => [`img|d|[3,1]|${JSON.stringify(s.pts || [[2, 3], [1, 4]])}`],
-    worldTour: s => (s.pics || ['butterfly', 'starfish', 'star8']).map(k => `axn|${k}|0`), nearLeaf: () => ['axn|leaf|0'], letterStyles: s => (s.pairs || [['kufiBa', 'handBa']]).flatMap(p => p.map(k => `axn|${k}|0`)),
-    recallAxis: s => [`axis|${s.k || 'tIsoA'}|${s.rot || 0}|${s.ang ?? 90}`], recallImg: s => [`img|${s.ax || 'v'}|${JSON.stringify(s.a ?? 5)}|${JSON.stringify(s.pts || [[2, 3]])}`], recallCount: s => [`axn|${s.k || 'qRect'}|${s.rot || 0}`], recallWorld: s => [`axn|${s.pic || 'butterfly'}|0`],
-    recallPoly: s => [`pname|${s.k || 'r5'}|${s.rot || 0}`, `qname|${s.k || 'r5'}|${s.rot || 0}`, `plycnt|${s.k || 'r5'}|${s.rot || 0}`, ...(s.measure || s.angles ? [`reg|${s.k || 'r5'}|${s.rot || 0}`] : [])],
+    worldTour: s => (s.pics || ['butterfly', 'starfish', 'star8']).map(k => `axn|${k}`), nearLeaf: () => ['axn|leaf'], letterStyles: s => (s.pairs || [['kufiBa', 'handBa']]).flatMap(p => p.map(k => `axn|${k}`)),
+    recallAxis: s => [`axis|${C(s.k || 'tIsoA')}|*`], recallImg: s => [`img|${s.ax || 'v'}|${JSON.stringify(s.a ?? 5)}|${JSON.stringify(s.pts || [[2, 3]])}`], recallCount: s => [`axn|${C(s.k || 'qRect')}`], recallWorld: s => [`axn|${s.pic || 'butterfly'}`],
+    recallPoly: s => [`pname|${C(s.k || 'r5')}`, `qname|${C(s.k || 'r5')}`, `plycnt|${C(s.k || 'r5')}`, ...(s.measure || s.angles ? [`reg|${C(s.k || 'r5')}`] : [])],
     angleCity: () => ['prot|110|l', 'prot|70|r', 'prot|40|r', 'prot|90|r', 'prot|140|l', 'angk|110|0', 'angk|70|0', 'angk|40|0', 'angk|90|0', 'angk|140|0'], sidesShow: () => ['side|rectF|par|ab', 'side|rectF|par|jd', 'side|rectF|perp|ab', 'side|rectF|perp|bj'], streetMap: () => ['pdraw|2|h|1', 'pturn|0|45', 'shore|120'],
     shelvesWalk: s => Array.from({ length: Math.max(0, s.n - 1) }, (_, i) => `part|${s.n}|${s2(i + 1, s.n - i - 1)}`),
     mailExplore: s => (s.boxes || []).map(b => `digitMatch|${b.n}`),
@@ -539,7 +548,7 @@ export function d240(lessons, code, MAKERS) {
   const MKKEYS = new Set(['mk', 'show', 'shape', 'objs', 'opts', 'shapes', 'objects', 'things', 'items']);
   function shownOf(L, withRecall, solved = {}) {
     const names = new Map(), sigs = { cls: new Map(), cnt: new Map(), face: new Map(), push: new Map() }, items = new Map(), facts = new Map(), hobj = new Map(), near = [];
-    let nameOK = true;   /* ما حُلّ في تقييم سابق يُقارَن بهيئته في المهمة وبنصّه وبمسألته، لا باسم مولّده: الشيء نفسه في مهمة أخرى سؤال آخر */
+    let nameOK = true; const setF = (f, w) => { if (!facts.has(f)) facts.set(f, w); const k = picOf(f); if (k && !f.startsWith('pic|') && !facts.has('pic|' + k)) facts.set('pic|' + k, w); };   /* ما حُلّ في تقييم سابق يُقارَن بهيئته في المهمة وبنصّه وبمسألته، لا باسم مولّده: الشيء نفسه في مهمة أخرى سؤال آخر */
     const put = (r, tasks, where) => { const x = ref(r); if (!x) return; if (nameOK && x.name && !isSmall(x.name)) names.set(x.name, where); if (x.sig) for (const t of tasks) if (!sigs[t].has(x.sig)) sigs[t].set(x.sig, where); };
     const ALL = ['cls', 'cnt', 'face', 'push'];
     /* مهمة الطفل في كل مشهد: ما عُدّت رؤوسه غير ما لُمست وجوهه غير ما دُفع */
@@ -552,9 +561,9 @@ export function d240(lessons, code, MAKERS) {
       if (!v || typeof v !== 'object') return;
       if (v.solid || v.type || v.sheet) put(v, tasks, where);
       let T = tasks;
-      if (typeof v.t === 'string') { for (const k of HOBJ(v)) if (!hobj.has(k)) hobj.set(k, where); { const nk = NEARK(v); if (nk) near.push({ ...nk, where, f: fact(v), t: v.t }); } items.set(norm(v), where); const f = fact(v); if (f && !facts.has(f) && !(nameOK && ASSESS_ONLY.test(f))) facts.set(f, where);   /* والترتيب في القطار ليس كالعدّ (الفحص المستقل A): «المس الخامسة» في التمرين ثم في المراجعة جوابه واحد؛ والمشهد الذي يعدّ القطار كله في الاكتشاف لا يسجّل مسائل */ T = [TASK[v.t] || 'cls']; for (const s of subjects(v)) { if (nameOK && s.name) names.set(s.name, where); if (s.sig) sigs[T[0]].set(s.sig, where); } }
+      if (typeof v.t === 'string') { for (const k of HOBJ(v)) if (!hobj.has(k)) hobj.set(k, where); { const nk = NEARK(v); if (nk) near.push({ ...nk, where, f: fact(v), t: v.t }); } items.set(norm(v), where); const f = fact(v); if (f && !facts.has(f) && !(nameOK && ASSESS_ONLY.test(f))) setF(f, where);   /* والترتيب في القطار ليس كالعدّ (الفحص المستقل A): «المس الخامسة» في التمرين ثم في المراجعة جوابه واحد؛ والمشهد الذي يعدّ القطار كله في الاكتشاف لا يسجّل مسائل */ T = [TASK[v.t] || 'cls']; for (const s of subjects(v)) { if (nameOK && s.name) names.set(s.name, where); if (s.sig) sigs[T[0]].set(s.sig, where); } }
       if (typeof v.scene === 'string') { T = SCENE_T[v.scene] || ['cls']; for (const [m, ts] of SCENE_DRAWS[v.scene] || []) put(m, [ts], where + ' (يرسمه المشهد)');
-        const addF = f => { if (f && !facts.has(f) && !ASSESS_ONLY.test(f)) facts.set(f, where + ' (يعرضه المشهد)'); };
+        const addF = f => { if (f && !facts.has(f) && !ASSESS_ONLY.test(f)) setF(f, where + ' (يعرضه المشهد)'); };
         if (SCENE_FACTS[v.scene]) SCENE_FACTS[v.scene](v).forEach(addF);
         if (SCENE_NEAR[v.scene]) for (const x of SCENE_NEAR[v.scene](v)) { const nk = NEARK(x); if (nk) near.push({ ...nk, where: where + (x.q ? ' «' + x.q + '»' : '') + ' (يعرضه المشهد)', f: fact(x), t: x.t }); }
         if (v.scene === 'contractorBoard') for (const [k] of v.house || []) if (!hobj.has(k + '|span')) hobj.set(k + '|span', where + ' (يعرضه المشهد)');
@@ -564,7 +573,7 @@ export function d240(lessons, code, MAKERS) {
     L.flow.forEach((st, i) => { if (['mastery', 'test'].includes(st.s)) return; visit(st, `${st.s}${st.scene ? ':' + st.scene : ''} (${i})`, ALL, null);
       /* ومسائل «معي» المعلنة (mat.facts، ويطابقها 4ب18 بأعداد جملتيها): ما يفعله الطفل بيديه بجوابه في مسار «معي» معروضٌ كالشاشة (الفحص المستقل G1 (3): كان 'mat' متخطّى،
          فصارت أعداد «معي» مسائل التقييم نفسها). والمسألة مواصفةُ بندٍ نوعُه في of (لا t، فلا تُعدّ بنداً معروضاً) يعطي مفتاحها factOf نفسه (H1 (6)) */
-      if (st.mat && Array.isArray(st.mat.facts)) for (const sp of st.mat.facts) { const f = sp && typeof sp === 'object' && typeof sp.of === 'string' ? fact({ ...sp, t: sp.of }) : null; if (f && !facts.has(f) && !ASSESS_ONLY.test(f)) facts.set(f, `«معي» ${st.s}${st.scene ? ':' + st.scene : ''} (${i})`); } });
+      if (st.mat && Array.isArray(st.mat.facts)) for (const sp of st.mat.facts) { const f = sp && typeof sp === 'object' && typeof sp.of === 'string' ? fact({ ...sp, t: sp.of }) : null; if (f && !facts.has(f) && !ASSESS_ONLY.test(f)) setF(f, `«معي» ${st.s}${st.scene ? ':' + st.scene : ''} (${i})`); } });
     if (L.practice) visit(L.practice, 'التمرين', ['cls'], null);
     if (L.chaos) visit(L.chaos, 'فوضى', ['cls', ...(CHAOS_T[L.chaos.check] ? [CHAOS_T[L.chaos.check]] : [])], null);
     if (L.mastery) { if (withRecall) visit(L.mastery.recall || {}, 'التذكّر', ['cls', 'cnt'], null); visit(L.mastery.remedial || {}, 'العلاج', ['cls'], null); }
@@ -595,6 +604,8 @@ export function d240(lessons, code, MAKERS) {
         else if (m) out.push(`${where}: يكاد يطابق ${m.where}${tag}: صورة الأحجام نفسها بنمط الرتب نفسه بنوعين («أيّها؟» و«رتّب»)، والقيم متقاربة (${nk.pv} و${m.pv}، الفرق ${nk.tol} على الأكثر)، فالصورة واحدة`); } }
       if (sh.items.has(norm(it))) out.push(`${where}: البند نفسه في ${sh.items.get(norm(it))}${tag}`);
       else if (fact(it) && sh.facts.has(fact(it))) out.push(`${where}: المسألة نفسها (${fact(it)}) في ${sh.facts.get(fact(it))}${tag}`);
+      /* ومشهد يُري محاور الشكل كلها (axis|K|*) يجيب عن كل «هل هذا الخطّ محور؟» عليه */
+      else if (fact(it) && /^axis\|/.test(fact(it)) && sh.facts.has(fact(it).replace(/\|[^|]*$/, '|*'))) out.push(`${where}: محاور الشكل رُئيت كلها (${fact(it)}) في ${sh.facts.get(fact(it).replace(/\|[^|]*$/, '|*'))}${tag}`);
     }
     for (const o of out) (it.x240 ? notes : errors).push(`${L.id}: ${o}${it.x240 ? ' — مستثنى: ' + it.x240 : ''} (D240)`);
   }

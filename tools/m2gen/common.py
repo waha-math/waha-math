@@ -1,5 +1,5 @@
 import json, os
-ROOT='/home/claude/waha-math'
+ROOT=__import__('os').path.abspath(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', '..'))   # من موضع الملف: نسخة المراجعة تكتب في نفسها
 def dump(path, obj):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     json.dump(obj, open(path,'w'), ensure_ascii=False, indent=1); open(path,'a').write('\n')

@@ -1,6 +1,6 @@
 # نصوص S2-U9 المشتركة (gen.cp.*) وتسمياتها، ونصوص مهمة بيت S2-U8 (تُسأل في S2-U9)
 import json
-ROOT='/home/claude/waha-math'
+ROOT=__import__('os').path.abspath(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', '..'))   # من موضع الملف: نسخة المراجعة تكتب في نفسها
 G={
  "gen.cp.and":"وَ",
  "gen.cp.sideIs":"وَالضِّلْعُ أ ج:",

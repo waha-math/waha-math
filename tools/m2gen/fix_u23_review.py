@@ -1,6 +1,6 @@
 # إصلاحات الفحص المستقل لبوابة S2-U2/U3 في النصوص المشتركة والتسميات ووسوم الأخطاء
 import json
-ROOT='/home/claude/waha-math'
+ROOT=__import__('os').path.abspath(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', '..'))   # من موضع الملف: نسخة المراجعة تكتب في نفسها
 p=ROOT+'/content/strings/gen.json'; g=json.load(open(p,encoding='utf8')); L=g['lines']
 if 'gen.ang.reveal.rfxCalc' not in L: L['gen.ang.reveal.rfxCalc']=L['gen.ang.reveal.reflex']
 L.update({

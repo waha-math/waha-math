@@ -1122,6 +1122,17 @@ export function lint(content, js) {
       if (ok.length && bad.length && Math.max(...ok) > 1.2 * Math.max(...bad)) errors.push(`${where}: في بند ${v.t === 'reason' ? 'التعليل' : 'البطاقتين'} «${v.q}» الصحيح ${Math.max(...ok)} حرفاً وأطول المشتّتين ${Math.max(...bad)}: الطول قرينة`); }
     for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkWhy(x, where, L); };
   for (const L of Object.values(lessons)) walkWhy(L, L.id, L);
+  // 4ج5) أنماط تكشف الصحيح في بطاقات التعليل (مراجعة بوابة S2-U4/U5، 3)، في م2: (أ) في بنود «نعم/لا» لا يكون الصحيح القطبَ الوحيد (مشتّتٌ بقطبه بسبب خاطئ)؛
+  //      (ب) «لِأَنَّ» في البطاقات الثلاث أو في لا شيء منها؛ (ج) لفظ مطلق (دائماً، أبداً، تماماً، فقط، مهما) لا يكون في المشتّتات وحدها
+  { const plain = t => String(t || '').replace(/\{([^|{}]*)\|[^{}]*\}/g, '$1').replace(/[\u064B-\u0652\u0670]/g, '').trim();
+    const ABS = /دائما|أبدا|تماما|فقط|مهما/, POL = t => (/^(نعم|لا)\s*[:،]/.exec(t) || [])[1] || null, WHY = t => /(^|[\s،:؛])لأن/.test(t);
+    const walkP = (v, where, L) => { if (Array.isArray(v)) return v.forEach(x => walkP(x, where, L)); if (!v || typeof v !== 'object') return;
+      if (v.t === 'reason' && Array.isArray(v.opts)) { const txt = id => plain((L.lines && L.lines[id]) || (content.gen.lines || {})[id] || ''), T = v.opts.map(o => ({ ok: !!o.ok, t: txt(o.id) })), ok = T.filter(o => o.ok), bad = T.filter(o => !o.ok);
+        const P = T.map(o => POL(o.t)); if (P.every(Boolean) && ok.length === 1 && !bad.some(o => POL(o.t) === POL(ok[0].t))) errors.push(`${where}: في بند التعليل «${v.q}» الصحيح وحده «${POL(ok[0].t)}»: يُعرف بقطبه (4ج5 أ)`);
+        const W = T.filter(o => WHY(o.t)).length; if (W && W < T.length) errors.push(`${where}: في بند التعليل «${v.q}» «لأنّ» في ${W} من ${T.length} بطاقات: في الثلاث أو في لا شيء (4ج5 ب)`);
+        if (bad.some(o => ABS.test(o.t)) && !ok.some(o => ABS.test(o.t))) errors.push(`${where}: في بند التعليل «${v.q}» لفظ مطلق في المشتّتات وحدها (${bad.filter(o => ABS.test(o.t)).map(o => ABS.exec(o.t)[0]).join('، ')}) (4ج5 ج)`); }
+      for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkP(x, where, L); };
+    for (const L of Object.values(lessons)) if (/^m2\./.test(L.id)) walkP(L, L.id, L); }
   // 4ج2) وعلى مستوى التقييم كله (مراجعة الخصم A-13: في 6 من 10 بنود تعليل في الإتقان والاختبار كان الصحيح أطولَ البطاقات وحده، والطفل يسمعها فالأطول أطول زمناً):
   //      عدد بنود التعليل في التقييم (الإتقان ومشتبكه، والمراجعة، والاختبار) التي الصحيحُ فيها أطولُ البطاقات وحده لا يزيد على ثلثها (مقرَّباً إلى أعلى)، وكذلك أقصرها وحده
   { const R = []; const grab = (v, L, where) => { if (Array.isArray(v)) return v.forEach(x => grab(x, L, where)); if (!v || typeof v !== 'object') return;

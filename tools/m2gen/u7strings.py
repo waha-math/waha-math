@@ -1,6 +1,6 @@
 # نصوص S2-U7 المشتركة (gen.ar.*) وتسمياتها، ونصوص مهمة بيت S2-U6 (تُسأل في S2-U7)
 import json
-ROOT='/home/claude/waha-math'
+ROOT=__import__('os').path.abspath(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', '..'))   # من موضع الملف: نسخة المراجعة تكتب في نفسها
 G={
  # الوحدات بعد العدد (sayArea وsayLenU)
  "gen.ar.cm2.one":"سَنْتِيمِتْرٌ مُرَبَّعٌ وَاحِدٌ.","gen.ar.cm2.two":"سَنْتِيمِتْرَانِ مُرَبَّعَانِ.","gen.ar.cm2.few":"سَنْتِيمِتْرَاتٍ مُرَبَّعَةٍ.","gen.ar.cm2.many":"سَنْتِيمِتْرًا مُرَبَّعًا.",
