@@ -333,20 +333,20 @@
     {
      "t": "setFrac",
      "q": "pr.set",
-     "n": 8,
+     "n": 10,
      "f": [
       3,
-      4
+      5
      ],
      "what": "button"
     },
     {
      "t": "setColor",
      "q": "pr.setC",
-     "n": 12,
+     "n": 10,
      "f": [
       1,
-      4
+      5
      ],
      "what": "cookie"
     },
@@ -443,8 +443,8 @@
    "q": "pr.setC",
    "n": 12,
    "f": [
-    3,
-    4
+    5,
+    6
    ],
    "what": "date",
    "c": "C227"

@@ -441,12 +441,12 @@ d8={"id":"m2.u8.d8","title":"كَعْكَةُ الحَفْلَةِ","icon":["frs
   "normal":[tw(sf(10,[1,2],'button'),sf(8,[1,4])), tw(sc(9,[1,3],'date'),sc(6,[1,2])), tw(sf(12,[1,3]),sf(6,[1,3],'date'))],
   "challenge":[tw(sf(12,[3,4],'date'),sf(10,[2,5])), tw(sc(12,[2,3],'button'),sc(8,[3,8],'date')), tw(sf(12,[5,6],'button'),sf(9,[2,3]))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":sf(12,[1,4],'date'),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C227":[sf(8,[3,4],'button'), sc(12,[1,4],'cookie'), reason("ms.1",{"kind":"frset","n":12},["ms.1a","ms.1b","ms.1c"])]},
+ "mastery":{"concepts":{"C227":[sf(10,[3,5],'button'), sc(10,[1,5],'cookie'), reason("ms.1",{"kind":"frset","n":12},["ms.1a","ms.1b","ms.1c"])]},
   "recall":{"C227":{"scene":"recallFrac","f":[1,4],"lines":["ms.recall"]}},
   "remedial":{"C227":[tw(sf(4,[1,2]),sc(6,[1,3],'button'))]},
   "mixed":{"lesson":"m2.u8.d7","concept":"C226","item":cmp([1,2],[5,12])},
   "ok":"ms.ok"},
- "review":[dict(sf(10,[1,5],'date'),c="C227"), dict(sc(12,[3,4],'date'),c="C227")],
+ "review":[dict(sf(10,[1,5],'date'),c="C227"), dict(sc(12,[5,6],'date'),c="C227")],
  "wrap":{"art":"fracArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"وزّعوا معه حلويات أو تمراً بالكسور: «نصفها لك وربعها لأخيك». وإن قال إن ربع اثني عشر أربعة فوزّعوها معاً أربع مجموعات متساوية وعدّوا ما في واحدة."}
 
@@ -508,11 +508,11 @@ d9={"id":"m2.u8.d9","title":"مَخْبَزُ فَوْضَى","icon":["stone"],"
    T(1,1,fe([C(3,k='bar',parts=[.4,.3,.3]),C(4,k='cake',parts=[.3,.3,.25,.15]),C(3,k='cake')],q='q.equal')), T(2,1,fc(C(3,parts=[.4,.4,.2]),q='q.fair')),
    T(3,2,fr(C(8,shade=[0,1,2,3,4]),q='q.read')), T(4,2,fr(C(10,k='bar',shade=[0,1,2]),q='q.read')),
    T(5,2,fcol(C(6),[4,6],q='q.color')), T(6,3,cc(4,3,[1,4],q='q.cells')),
-   T(7,3,hg(['aabbb','aaabb','aabbb'],q='q.half')), T(8,4,lr(3,4,q='q.lineR')),
-   T(9,5,ef([2,4],8,q='q.eqvF')), T(10,5,ep([3,4],[[9,12],[6,12],[4,5]],q='q.eqvP')),
+   T(7,3,hg(['aabbb','aaabb','aabbb'],q='q.half')), T(8,4,lr(3,8,q='q.lineR')),
+   T(9,5,ef([2,3],9,q='q.eqvF')), T(10,5,ep([2,3],[[8,12],[6,12],[3,4]],q='q.eqvP')),
    T(11,6,cmp([3,8],[3,5],q='q.cmp')), T(12,7,fo([[5,8],[1,4],[1,2]],q='q.order')),
    T(13,6,reason("ts.13",{"kind":"frstrips","rows":[[8,1],[4,1]]},["ts.13a","ts.13b","ts.13c"])),
-   T(14,3,reason("ts.14",{"kind":"frbig"},["ts.14a","ts.14b","ts.14c"])),
+   T(14,3,dict(reason("ts.14",{"kind":"frbig"},["ts.14a","ts.14b","ts.14c"]),x240="سؤال المرجع بنصّه (S2-U8، اختبار الوحدة: نصف الكعكة الكبيرة ونصف الصغيرة)")),
    T(15,8,sf(15,[2,3],'button',q='q.set'))]},   # كسر من مجموعة (C227؛ المرجع، والمراجع A لبوابة U8/U9، 7)
  "wrap":{"art":"medal","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"قطّعوا مع الطفل شريحتي خبز أرباعاً بطريقتين حيث يشير هو، ووزّعوا اثنتي عشرة تمرة: نصفها للأم وربعها للأخ، وليعدّ ما بقي. لا تصحّحوا التوزيع: سيُدخل ربع 12 وما بقي له."}
