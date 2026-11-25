@@ -178,6 +178,16 @@ ITEM.lenCompare = {
 };
 
 /* ================= ⑦ رتّب من الأقصر إلى الأطول (C189، إنتاج): vals أربعة. يلمس الطفل البطاقات بالترتيب فتُرقَّم ================= */
+/* ترتيب بطاقات باللمس (مشترك): لمسة على بطاقة مرقّمة تمحوها وما بعدها، والبند يُسلَّم بـ«تمّ» بعد آخرها (المراجعان B لبوابتي U6/U7، 8، وU8/U9، 10)؛ وخطّافا الاختبار __ordWant و__ordAt كـ lenOrder */
+async function orderTap(svg, cards, want, at) { const picked = [], badges = el('g', { 'pointer-events': 'none' }, svg), fill0 = cards.map(c => c.querySelector('rect').getAttribute('fill'));
+  /*T*/window.__ordWant = want.split(',').map(Number); window.__ordAt = i => { const r = cards[i].getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };/*/T*/
+  await gate(new Promise(res => { let bar = null; const draw = () => { badges.innerHTML = ''; cards.forEach((c, i) => c.querySelector('rect').setAttribute('fill', fill0[i])); picked.forEach((i, n) => { const [x, y] = at(i); badge(badges, x, y, n + 1, css('--compass')); cards[i].querySelector('rect').setAttribute('fill', '#eef6fb'); });
+      if (picked.length === cards.length && !bar) { bar = doneBtn(); bar.b.onclick = () => { if (picked.length !== cards.length) return; AUTO_CLEAR(); hush(); bar.bar.remove(); res(); }; } else if (picked.length < cards.length && bar) { bar.bar.remove(); bar = null; } };
+    const pick = i => { const k = picked.indexOf(i); if (k >= 0) picked.splice(k); else picked.push(i); SFX.tick(); draw(); };
+    cards.forEach((g, i) => { g.onclick = () => pick(i); g.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); pick(i); } }; });
+    const fin = () => setTimeout(() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }, 0);
+    AUTO({ kind: 'lenOrder', ok: () => { want.split(',').forEach(i => pick(+i)); fin(); }, wrong: () => { [...want.split(',')].reverse().forEach(i => pick(+i)); fin(); } }); }));
+  cards.forEach(g => { g.onclick = null; g.onkeydown = null; g.removeAttribute('role'); }); return picked; }
 const ORD_XY = [[262, 62], [98, 62], [262, 150], [98, 150]];   /* بطاقات 70 وحدة: 56 بكسلاً على أضيق شاشة (0.8 بكسل للوحدة؛ الفحص على iPhone SE) */
 ITEM.lenOrder = {
   make(spec) { const order = spec.vals.map((v, i) => i).sort((i, j) => lenMM(spec.vals[i]) - lenMM(spec.vals[j])); return { ...spec, want: order.join(','), tag: 'len-order' }; },

@@ -239,11 +239,7 @@ ITEM.consOrder = {
   async ask(item, mode, tries) { const svg = cpStage(262), picked = [], badges = el('g', { 'pointer-events': 'none' }, svg);
     const cards = item.shown.map((si, i) => { const g = el('g', { role: 'button', tabindex: 0, 'aria-label': plain(labelText('cpStep.' + item.kind + '.' + item.st[si])), style: 'cursor:pointer' }, svg); el('rect', { x: CO_XY[i][0] - 76, y: CO_XY[i][1] - 40, width: 152, height: 80, rx: 14, fill: '#fffdf6', stroke: css('--line'), 'stroke-width': 2.5 }, g); const t = el('text', { x: CO_XY[i][0], y: CO_XY[i][1] + 6, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: CPC.ink }, g); t.textContent = labelText('cpStep.' + item.kind + '.' + item.st[si]); return g; });
     if (tries >= 3) { const m = helpG(svg), w0 = item.want.split(',').map(Number)[0]; el('rect', { x: CO_XY[w0][0] - 80, y: CO_XY[w0][1] - 44, width: 160, height: 88, rx: 16, fill: 'none', stroke: css('--think'), 'stroke-width': 3.4, 'stroke-dasharray': '7 5' }, m); await S('gen.cp.together.order'); } else await S(item.q);
-    /*T*/window.__coWant = item.want.split(',').map(Number); window.__coAt = i => { const r = cards[i].getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };/*/T*/
-    await gate(new Promise(res => { const pick = i => { if (picked.includes(i) || picked.length >= cards.length) return; picked.push(i); SFX.tick(); badge(badges, CO_XY[i][0] + 64, CO_XY[i][1] - 34, picked.length, css('--compass')); cards[i].querySelector('rect').setAttribute('fill', '#eef6fb'); if (picked.length === cards.length) { AUTO_CLEAR(); res(); } };
-      cards.forEach((g, i) => { g.onclick = () => pick(i); g.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); pick(i); } }; });
-      AUTO({ kind: 'consOrder', ok: () => item.want.split(',').forEach(i => pick(+i)), wrong: () => [...item.want.split(',')].reverse().forEach(i => pick(+i)) }); }));
-    cards.forEach(g => { g.onclick = null; g.onkeydown = null; g.removeAttribute('role'); }); return { ans: picked.join(','), ctx: { svg } }; },
+    picked.push(...await orderTap(svg, cards, item.want, i => [CO_XY[i][0] + 64, CO_XY[i][1] - 34])); return { ans: picked.join(','), ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'stepsOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `1 · ${labelText('cpStep.' + item.kind + '.' + item.st[0])}`); await S('gen.cp.hint.order'); }, async together() {},

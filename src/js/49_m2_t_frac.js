@@ -239,11 +239,7 @@ ITEM.fracOrder = {
   async ask(item, mode, tries) { const svg = frStage(item.fs.length === 3 ? 250 : 296), XY = item.fs.length === 3 ? [[276, 110], [180, 110], [84, 110]] : FO_XY, picked = [], badges = el('g', { 'pointer-events': 'none' }, svg);
     const cards = item.fs.map((f, i) => { const g = el('g', { role: 'button', tabindex: 0, 'aria-label': plain(labelText('fr.' + f[0] + '.' + f[1])), style: 'cursor:pointer' }, svg); el('rect', { x: XY[i][0] - 42, y: XY[i][1] - 44, width: 84, height: 88, rx: 14, fill: '#fffdf6', stroke: css('--line'), 'stroke-width': 2.5 }, g); fracText(g, XY[i][0], XY[i][1] - 2, f, { fs: 24 }); return g; });
     if (tries >= 3) { const m = helpG(svg); item.fs.forEach((f, i) => fracShape(m, { k: 'bar', n: f[1], shade: [...Array(f[0]).keys()] }, [XY[i][0], XY[i][1] + 54], { w: 76, h: 14 })); await S('gen.fr.together.order'); } else await S(item.q);
-    /*T*/window.__foWant = item.want.split(',').map(Number); window.__foAt = i => { const r = cards[i].getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };/*/T*/
-    await gate(new Promise(res => { const pick = i => { if (picked.includes(i) || picked.length >= cards.length) return; picked.push(i); SFX.tick(); badge(badges, XY[i][0] + 38, XY[i][1] - 40, picked.length, css('--compass')); cards[i].querySelector('rect').setAttribute('fill', '#eef6fb'); if (picked.length === cards.length) { AUTO_CLEAR(); res(); } };
-      cards.forEach((g, i) => { g.onclick = () => pick(i); g.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); pick(i); } }; });
-      AUTO({ kind: 'frOrder', ok: () => item.want.split(',').forEach(i => pick(+i)), wrong: () => [...item.want.split(',')].reverse().forEach(i => pick(+i)) }); }));
-    cards.forEach(g => { g.onclick = null; g.onkeydown = null; g.removeAttribute('role'); }); return { ans: picked.join(','), ctx: { svg } }; },
+    picked.push(...await orderTap(svg, cards, item.want, i => [XY[i][0] + 38, XY[i][1] - 40])); return { ans: picked.join(','), ctx: { svg } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const byDen = item.fs.map((f, i) => i).sort((i, j) => item.fs[i][1] - item.fs[j][1]).join(','); return { ok: false, err: k === byDen ? 'biggerDen' : 'frOrderOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('frHHalf')); await S('gen.fr.hint.order'); }, async together() {},
