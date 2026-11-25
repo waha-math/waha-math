@@ -8,7 +8,7 @@
 /* أسئلة بلا مساعدة ولا «أخطأت» (كاختبار الوحدة)، والدرجة في تقدّم الدرس */
 SCENES.finalCheck = async (c, L) => { const P = progOf(L.id); if (c.intro) await S(c.intro);
   /* ما أُجيب محفوظٌ بعد كل بند (P.trun كاختبار الوحدة، D266 (2)): من خرج عند البند الخامس عشر يُكمل من السادس عشر بأجوبته (المراجع B لبوابة U8/U9، 23) */
-  const known = new Set(c.checks.map(q => q.id)), run = isObj(P.trun) ? P.trun : { a: [], w: [] }; run.a = (run.a || []).filter(id => known.has(id)); run.w = (run.w || []).filter(id => run.a.includes(id)); P.trun = run;
+  const run = testRun(P, c.checks.map(q => q.id));
   let ok = run.a.length - run.w.length; const wrong = run.w.slice();
   for (const q of c.checks.filter(q => !run.a.includes(q.id))) { const r = await runItem(q.item, 'test', { scene: 'final' }); run.a.push(q.id); if (r.ok) ok++; else { wrong.push(q.id); run.w.push(q.id); } saveProg(); }
   delete P.trun; P.score = ok; P.of = c.checks.length; P.at = Date.now(); saveProg();

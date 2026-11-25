@@ -100,7 +100,7 @@ async function homePhoto(f, unit) { for (let round = 0; round < 2; round++) {
     const sv = await new Promise(res => { const rd = new FileReader(); rd.onerror = () => res(null); rd.onload = () => { const img = new Image(); img.onerror = () => res(null); img.onload = async () => { const Z = 360, k = Math.min(1, Z / Math.max(img.width, img.height)), cv = document.createElement('canvas');
       cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
       res(await IDB.put({ id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kid: KID, k: 'home.' + f.photo, t: Date.now(), data: cv.toDataURL('image/jpeg', .72) })); }; img.src = rd.result; }; rd.readAsDataURL(file); });   // rng-ok: معرّف الصورة
-    if (sv === 'mem') { STORE_ISSUES.photoMem = true; try { onStoreIssue(); } catch (x) {} }
+    photoMemNote(sv);
     if (sv === 'ok' || sv === 'mem') { SFX.good(); await S('gen.home.phSaved'); return 1; }
     SFX.soft(); await S('gen.hunt.again'); }
   return 0; }
