@@ -43,7 +43,7 @@ function rulThingAt(parent, kind, x1, x2, y, color) { const g = el('g', { 'data-
   return g; }
 /* عدد ووحدته منطوقين: «خمسة سنتيمترات»، «سنتيمتر واحد»، «سنتيمتران»، «اثنا عشر سنتيمتراً» */
 /* المقاطع تُلحَق بنصّ الفقاعة (append) ولا تحلّ محلّه: السؤال المركّب «ارسم خطاً طوله: أربعة سنتيمترات» يبقى مكتوباً كله لمن كتم الصوت */
-async function sayLen(n, u = 'cm', opt = {}) { opt = { append: true, ...opt }; if (n === 1) return S(`gen.rul.${u}.one`, opt); if (n === 2) return S(`gen.rul.${u}.two`, opt); await S(numc(n), { noGap: true, append: opt.append }); return S(`gen.rul.${u}.${n <= 10 ? 'few' : 'many'}`, opt); }
+async function sayLen(n, u = 'cm', opt = {}) { opt = { append: true, ...opt }; if (n === 1) return S(`gen.rul.${u}.one`, opt); if (n === 2) return S(`gen.rul.${u}.two`, opt); await S(numc(n), { noGap: true, append: opt.append, sep: opt.sep }); const { sep, ...rest } = opt; return S(`gen.rul.${u}.${n <= 10 ? 'few' : 'many'}`, rest); }   /* sep للكلمة الأولى وحدها («وَ» موصولة بالعدد) */
 /* قفزات العدّ بين تدريجتين: قوس فوق كل مسافة وعددها يُنطق؛ step بالسنتيمتر (1) أو بالمليمتر (.1) */
 async function rulerHops(svg, R, a, b, o = {}) { const m = helpG(svg), step = o.step || 1, n = Math.round((b - a) / step), yy = o.y ?? R.y - 2; for (let i = 0; i < n; i++) { const x1 = R.X(a + i * step), x2 = R.X(a + (i + 1) * step), h = Math.min(20, (x2 - x1) * .7);
     el('path', { d: `M${x1} ${yy} Q${(x1 + x2) / 2} ${yy - h * 1.6} ${x2} ${yy}`, fill: 'none', stroke: o.color || css('--compass'), 'stroke-width': 2.6, 'stroke-linecap': 'round' }, m); SFX.tick(); if (o.silent) await sleep(o.ms || 160); else await S(numw(i + 1), { noGap: true, num: true }); } return m; }
