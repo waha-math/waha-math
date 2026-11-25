@@ -79,6 +79,7 @@ function reasonPic(svg, P) { const g = el('g', {}, svg);
   else if (P.kind === 'cipic') ciReasonPic(g, P);
   else if (P.kind === 'sopic') soReasonPic(g, P);
   else if (P.kind === 'arpic') arReasonPic(g, P);   /* M4-U1: مستقيمان متقاطعان أو قاطع بزواياه المرقّمة، أو زاويتان متلاصقتان */
+  else if (P.kind === 'pfpic') pfReasonPic(g, P);   /* M4-U2 */
   else if (P.kind === 'rapic') raReasonPic(g, P);   /* S3-U10: نسبة بنقاطها، أو شكلٌ ومكبَّره، أو مقياسٌ وخطّ، وحسابٌ تحتها */
   else if (P.kind === 'vopic') voReasonPic(g, P);   /* S3-U9: مكعبات الوحدة أو علبتان، وحسابٌ تحتها */   /* S3-U8: علبة بأبعادها، أو مجسّم، أو شبكة، وحسابٌ تحتها */   /* S3-U7: دائرة بنصف قطرها أو قطرها، أو علبة بخيط، أو π، وحسابٌ تحتها */   /* S3-U6: شكلٌ وصورته بتحويل، أو شكلٌ بتماثله الدوراني */
   else if (P.kind === 'pat') patRowAt(svg, P.seq || patSeq(P.unit, P.n), { y: 100, parent: g, arrow: false });   /* S1-U5 */

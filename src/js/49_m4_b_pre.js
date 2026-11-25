@@ -22,7 +22,8 @@ function preRight(g, C, A, B, s = 13) { const u = p => { const d = Math.hypot(p[
 /* ================= ① هل المثلثان متطابقان؟ (C405): case sas | sss | asa (نعم) · aaa | ssa (لا يكفي) =================
    العلامات المتشابهة قياسات متساوية: الشرطات للأضلاع والأقواس للزوايا */
 const PRE_CASE_OK = { sas: 'yes', sss: 'yes', asa: 'yes', aaa: 'no', ssa: 'no' };
-function preCaseTris(svg, cs) { const g = el('g', { 'pointer-events': 'none' }, svg), A = [[44, 192], [160, 192], [76, 86]];
+const PRE_CASE_V = [[[44, 192], [160, 192], [76, 86]], [[40, 188], [156, 192], [128, 84]], [[50, 176], [164, 196], [66, 90]], [[46, 190], [150, 180], [112, 80]], [[40, 172], [170, 192], [92, 94]]];   /* صور المثلث (v): مسألة جديدة بشكل آخر */
+function preCaseTris(svg, cs, v = 0) { const g = el('g', { 'pointer-events': 'none' }, svg), A = PRE_CASE_V[v];
   const k = cs === 'aaa' ? .7 : 1, B = A.map(([x, y]) => [360 - x, y]);   /* الثاني صورة الأول بالمرآة، ومصغَّرٌ في «الزوايا وحدها» */
   const ctr = B.reduce((s, p) => [s[0] + p[0] / 3, s[1] + p[1] / 3], [0, 0]), B2 = B.map(([x, y]) => [ctr[0] + (x - ctr[0]) * k, ctr[1] + (y - ctr[1]) * k + (1 - k) * 40]);
   preTri(g, A, PRE.a, PRE.fillA); preTri(g, B2, PRE.b, PRE.fillB);
@@ -35,7 +36,7 @@ function preCaseTris(svg, cs) { const g = el('g', { 'pointer-events': 'none' }, 
   return { g, A, B: B2 }; }
 ITEM.cgCase = cpItem({ H: 236, tLine: 'gen.pre.together.case', hint: 'gen.pre.hint.case', rLine: it => 'gen.pre.reveal.case.' + it.want, praise: 'praiseThink',
   make: s => ({ want: PRE_CASE_OK[s.cs], tag: 'pre-case-' + s.cs }),
-  draw(svg, item, tries) { const D = preCaseTris(svg, item.cs); if (tries >= 3) ciRule(helpG(svg), 180, 30, labelText('preRuleCase'), PRE.hl, 13); return D; },
+  draw(svg, item, tries) { const D = preCaseTris(svg, item.cs, item.v || 0); if (tries >= 3) ciRule(helpG(svg), 180, 30, labelText('preRuleCase'), PRE.hl, 13); return D; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleCase'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.want === 'yes' ? 'preCaseNo' : it.cs === 'aaa' ? 'preCaseAaa' : 'preCaseSsa' });

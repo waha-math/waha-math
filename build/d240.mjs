@@ -309,7 +309,24 @@ export const factOf = it => { const t = it.t;
   if (t === 'coordAlign') return `cal|${it.a.join(',')}|${it.b.join(',')}`;
   if (t === 'coordDraw') return `cdr|${it.pts.map(p => p.join(',')).join(' ')}`;
   if (t === 'coordShape') return `csh|${it.ask || 'area'}|${it.pts.map(p => p.join(',')).join(' ')}`;
-  if (t === 'cgCase') return `cgc|${it.cs}`;
+  const cgS = x => [...x].sort((p, q) => p - q).join(',');
+  if (t === 'prChain') return `pfc|${it.pf}|${it.v || 0}`;
+  if (t === 'prReason') return `pfr|${it.pf}|${it.v || 0}|${it.step}`;
+  if (t === 'ineqYN') return `iyn|${[...it.s].sort((x, y) => x - y)}`;
+  if (t === 'ineqRange') return `irg|${[it.a, it.b].sort((x, y) => x - y)}|${it.ask}`;
+  if (t === 'ineqPick') return `ipk|${it.sets.map(s => [...s].sort((x, y) => x - y).join(',')).sort().join(' ')}`;
+  if (t === 'polyTri') return `ptr|${it.n}`;
+  if (t === 'polySum') return `psm|${it.n}`;
+  if (t === 'polyReg') return `prg|${it.n}|${it.ask}`;
+  if (t === 'isoTrap') return `itp|${it.a}|${it.ask}`;
+  if (t === 'polyBuild') return `pbd|${it.sum}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'pfpic') return `pfpic|${JSON.stringify(it.pic)}`;
+  if (t === 'cgCase') return `cgc|${it.cs}|${it.v || 0}`;
+  if (t === 'cgSides') return `cgs|${cgS(it.a)}|${cgS(it.b)}`;
+  if (t === 'cgPick') return `cgp|${cgS(it.orig)}|${it.cands.map(cgS).sort().join(' ')}`;
+  if (t === 'simYN') return `smy|${it.fig}|${it.a.join(',')}|${it.b.join(',')}`;
+  if (t === 'quadDiag') return `qdg|${['mid', 'eq', 'perp'].map(k => it.info[k] ? 1 : 0).join('')}`;
+  if (t === 'perpArea') return `ppa|${it.a}|${it.b}|${it.c}|${it.d}`;
   if (t === 'simMiss') return `sim|${it.s.join(',')}|${it.k}|${it.ask}`;
   if (t === 'pyHyp') return `pyh|${[it.a, it.b].sort((x, y) => x - y)}`;
   if (t === 'coDist2') return `cd2|${it.a.join(',')}|${it.b.join(',')}`;
@@ -653,7 +670,7 @@ export function d240(lessons, code, MAKERS) {
     return out; };
   /* ما يرسمه المشهد بنفسه (لا من بياناته) من أشياء لها مولّد: عجلات العربتين في الإشعال، وبابا الزرافة. لكل مشهد في الكود سطر هنا (ولو فارغاً)، فلا يُضاف مشهد يرسم شيئاً دون أن يراه الفحص */
   const SCENE_DRAWS = { cartsRace: [['wheel', 'cls']], giraffeDoors: [['door', 'cls']] };
-  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'mirrorHook', 'refShow', 'trHook', 'trShow', 'rotHook', 'rotShow', 'rsHook', 'rsShow', 'congHook', 'congShow', 'tileShow2', 'circHook', 'compassShow', 'piHook', 'ciStringShow', 'piShow', 'archShow', 'areaHook', 'discShow', 'boundShow', 'ciDoubleShow', 'gardenShow', 'soHook', 'soFacesShow', 'soEdgesShow', 'eulerShow', 'boxHook', 'boxShow', 'netHook', 'netShow', 'wrapHook', 'saShow', 'viewHook', 'viewsShow', 'giftShow', 'voHook', 'voFillShow', 'voVsArea', 'voToMul', 'voSumHook', 'voMulShow', 'voSameShow', 'treasureShow', 'raHook', 'raShow', 'raTableShow', 'raFracShow', 'enHook', 'enSqShow', 'enTriShow', 'enRuleShow', 'scHook', 'scShow', 'scUpShow', 'scDownShow', 'roomShow', 'arHook', 'arCompShow', 'arCrossShow', 'arVertShow', 'arTransShow', 'arCorrShow', 'arAltShow', 'arBridgeShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
+  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'mirrorHook', 'refShow', 'trHook', 'trShow', 'rotHook', 'rotShow', 'rsHook', 'rsShow', 'congHook', 'congShow', 'tileShow2', 'circHook', 'compassShow', 'piHook', 'ciStringShow', 'piShow', 'archShow', 'areaHook', 'discShow', 'boundShow', 'ciDoubleShow', 'gardenShow', 'soHook', 'soFacesShow', 'soEdgesShow', 'eulerShow', 'boxHook', 'boxShow', 'netHook', 'netShow', 'wrapHook', 'saShow', 'viewHook', 'viewsShow', 'giftShow', 'voHook', 'voFillShow', 'voVsArea', 'voToMul', 'voSumHook', 'voMulShow', 'voSameShow', 'treasureShow', 'raHook', 'raShow', 'raTableShow', 'raFracShow', 'enHook', 'enSqShow', 'enTriShow', 'enRuleShow', 'scHook', 'scShow', 'scUpShow', 'scDownShow', 'roomShow', 'arHook', 'arCompShow', 'arCrossShow', 'arVertShow', 'arTransShow', 'arCorrShow', 'arAltShow', 'arBridgeShow', 'pfHook', 'pfPicHook', 'pfTriShow', 'pfVertShow', 'pfAltShow', 'ineqShow', 'ineqProof', 'polyShow', 'polyTable', 'regExShow', 'trapShow', 'cgHook', 'sssBuild', 'sasShow', 'simShow', 'quadProof', 'quadFamily', 'perpShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
     'bagFeel', 'pushLab', 'poses', 'faceLab', 'coneRoll', 'cylRoll', 'towersPredict', 'paperPush', 'stampLab', 'towerBuild', 'mosque', 'takeHook', 'facesCount', 'roomHunt', 'feelBox', 'shelvesWalk',
     'simonSays', 'lidCheck', 'chaosLid', 'queueBadge', 'queueSwap', 'trainOrdinals', 'chaosTrainBadge', 'ribbonHook', 'bodyMoves', 'robotIntro', 'chaosTurn', 'mapChaosHook', 'birdView', 'chaosSideDraw',
     'roadChaosHook', 'roadListen', 'roadCountChaos', 'chaosSkipBack', 'jumpChaosHook', 'roadRace', 'chaosSubForward', 'recallPic', 'queueOrdinals',   /* S1-U3: أشياؤها رسوم المواضع لا مولّدات */
