@@ -48,6 +48,26 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m2.u9",
+   "art": "lid",
+   "again": [
+    {
+     "key": "op",
+     "q": "gen.home.potQ",
+     "min": 1,
+     "max": 30,
+     "val": 10,
+     "unit": "rulCm"
+    }
+   ],
+   "askAgain": "gen.home.askPot",
+   "sayAgain": "potAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "lines",
    "mat": {
     "prompt": "mat.01",

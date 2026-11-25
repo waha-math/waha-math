@@ -63,6 +63,7 @@ function homeArt(svg, art) { const g = el('g', { 'pointer-events': 'none' }, svg
   else if (art === 'tile') { el('rect', { x: 120, y: 56, width: 120, height: 120, fill: '#e6d3b3', stroke: '#b9794e', 'stroke-width': 3 }, g); el('rect', { x: 150, y: 86, width: 60, height: 60, transform: 'rotate(45 180 116)', fill: '#3d7cc0', opacity: .7 }, g); }
   else if (art === 'rug') { el('rect', { x: 100, y: 70, width: 160, height: 100, rx: 8, fill: '#c8392d', stroke: '#8a2a20', 'stroke-width': 4 }, g); el('rect', { x: 116, y: 84, width: 128, height: 72, fill: 'none', stroke: '#f2d38a', 'stroke-width': 3 }, g); }   /* S2-U7: السجادة */
   else if (art === 'frame') { el('rect', { x: 120, y: 50, width: 120, height: 130, fill: '#dff0fb', stroke: '#8a5a3a', 'stroke-width': 12 }, g); el('path', { d: 'M136 160 L164 120 L184 142 L198 128 L226 160 Z', fill: '#7fb6d9' }, g); }
+  else if (art === 'lid') { el('circle', { cx: 180, cy: 116, r: 78, fill: '#e8eef8', stroke: '#6b7b88', 'stroke-width': 5 }, g); el('circle', { cx: 180, cy: 116, r: 12, fill: '#6b7b88' }, g); geoLine(g, 102, 116, 258, 116, { color: '#c8392d', w: 3, dash: '8 6' }); }   /* S2-U9: غطاء وقطره */
   else if (art === 'tape') { tapeAt(g, { x: 50, y: 92, to: 100, pxcm: 2.6, label: 10 }); }   /* S2-U6: شريط القياس */
   else if (art === 'window') { el('rect', { x: 110, y: 36, width: 140, height: 152, rx: 4, fill: '#dff0fb', stroke: '#8a6a4a', 'stroke-width': 6 }, g); geoLine(g, 180, 36, 180, 188, { color: '#8a6a4a', w: 5 }); geoLine(g, 110, 112, 250, 112, { color: '#8a6a4a', w: 5 }); }   /* S2-U5: نافذة الغرفة */
   else if (art === 'shapes') { [['tScaR', 100, 110, .6], ['cRect', 250, 110, .7]].forEach(([k, x, y, s]) => polyAt(g, k, [x, y], { s, dots: false, fill: '#f2d38a' })); }
@@ -78,7 +79,9 @@ const HOME_SAY = {
   axes: async () => S('gen.home.axesSay'),   /* S2-U5 */
   tape: async (r, v) => S([1, 2, 3].every(i => Math.abs(v['e' + i] - v['m' + i]) <= 20) ? 'gen.home.tapeClose' : 'gen.home.tapeFar'),   /* S2-U6: التقدير قريب حتى عشرين سنتيمتراً */
   roomAgain: async (r, v) => S(v.rt === v.rm * 100 + v.rc ? 'gen.home.roomOk' : 'gen.home.roomNo'),
-  rug: async () => S('gen.home.rugSay'),   /* S2-U7 */
+  rug: async () => S('gen.home.rugSay'),
+  lids: async () => S('gen.home.lidsSay'),   /* S2-U9 */
+  potAgain: async (r, v) => S(v.op === 12 ? 'gen.home.potOk' : 'gen.home.potNo'),   /* S2-U7 */
   frameAgain: async (r, v) => S(v.fk === 0 && v.fu === 0 ? 'gen.home.frameOk' : 'gen.home.frameNo'),
   tileAgain: async (r, v) => S(v.tile === 4 ? 'gen.home.tileOk' : 'gen.home.tileNo'),
   winAgain: async (r, v) => S(v.sides === v.verts ? 'gen.home.winEq' : 'gen.home.winNe'),
