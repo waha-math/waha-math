@@ -273,7 +273,7 @@
      "t": "lenCompare",
      "q": "q.cmp",
      "a": [
-      80,
+      95,
       "mm"
      ],
      "b": [
@@ -373,11 +373,11 @@
       "m"
      ],
      [
-      2,
+      80,
       "cm"
      ],
      [
-      20,
+      5,
       "m"
      ]
     ],
@@ -430,24 +430,24 @@
     "item": {
      "t": "estPick",
      "q": "q.est",
-     "thing": "river",
-     "real": 5,
-     "realU": "km",
+     "thing": "nail",
+     "real": 6,
+     "realU": "cm",
      "ch": [
       [
-       5,
-       "km"
+       6,
+       "cm"
       ],
       [
-       5,
-       "m"
+       1,
+       "cm"
       ],
       [
-       50,
+       20,
        "cm"
       ]
      ],
-     "ref": "door"
+     "ref": "finger"
     }
    },
    {

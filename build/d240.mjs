@@ -266,6 +266,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'lenOrder') return `lord|${it.vals.map(v => v.join('')).sort().join(',')}`;
   if (t === 'lenCalc') return `lcalc|${it.a.join('.')}|${it.op}|${it.b.join('.')}`;
   if (t === 'lenRound') return `lround|${it.v.join('.')}`;
+  if (t === 'lenSense') return `lsense|${[it.a.join('.'), it.b.join('.')].sort().join('+')}`;
   if (t === 'fenceBuild') return `fence|${it.fence}|${[...it.pieces].sort((x, y) => x - y).join(',')}`;
   if (t === 'estPick') return `est|${it.thing}`;
   if (t === 'trackDesign') return `track|${it.n || 4}`;
@@ -453,7 +454,7 @@ export function d240(lessons, code, MAKERS) {
     /* S2-U6 */
     tapeIntro: () => ['tape|85|cm'], kmWalk: () => [], unitTable: s => (s.pics || ['ant', 'pencil', 'door', 'road']).map(k => `unit|${k}`), convTable: () => ['conv|1m|cm', 'conv|2m|cm', 'conv|3m|cm', 'conv|1m|mm'],
     mcSplit: s => [`mc|${s.cm || 235}|toMC`], cmpShow: s => [`lcmp|${[(s.a || [2, 'm']).join(''), (s.b || [150, 'cm']).join('')].sort().join(',')}`], addWorked: s => [`lcalc|${(s.a || [2, 40]).join('.')}|${s.op || '+'}|${(s.b || [1, 80]).join('.')}`],
-    roundShow: s => [`lround|${(s.v || [2, 40]).join('.')}`], refsShow: s => (s.refs || ['finger', 'pencil', 'door']).map(k => `est|${k}`), roomPlan: () => [],
+    roundShow: s => [`lround|${(s.v || [2, 40]).join('.')}`].concat(s.b ? [`lsense|${[(s.v || [2, 40]).join('.'), s.b.join('.')].sort().join('+')}`] : []), refsShow: s => (s.refs || ['finger', 'pencil', 'door']).map(k => `est|${k}`), roomPlan: () => [],
     /* S2-U8 */
     chaosCake: () => [], frFoldStrip: () => [], partNames: () => ['pn|circle2', 'pn|circle3', 'pn|circle4'], readFrac: s => [`frd|circle|${s.a || 3}/${s.n || 8}`], unitWhole: () => [], halfWays: () => [], bigSmall: () => ['wr|1/2'],
     lineIntro: () => [], spacesNotMarks: s => [`lr|1/${s.b || 4}`], foldEqv: () => [], gridEqv: () => [], frCmpShow: s => (s.pairs || [[[3, 8], [5, 8]]]).map(([a, b]) => `fcmp|${[a.join('/'), b.join('/')].sort().join(',')}`), wall12: () => ['fcmp|2/3,3/4'],

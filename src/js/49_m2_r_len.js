@@ -18,12 +18,13 @@ function lenCard(parent, x, y, v, o = {}) { const g = el('g', { transform: `tran
   el('rect', { x: -w / 2, y: -h / 2, width: w, height: h, rx: 14, fill: o.fill || '#fffdf6', stroke: o.stroke || css('--line'), 'stroke-width': 2.5 }, g);
   const t = el('text', { x: 0, y: 8, 'text-anchor': 'middle', 'font-size': o.fs || 22, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, g); t.textContent = lenTxt(v); return g; }
 /* ---------- شريط القياس: يُقرأ كالمسطرة، وعلامة المتر عند 100 ---------- */
-function tapeAt(parent, o) { const { x, y, to } = o, k = o.pxcm, g = el('g', { 'data-tape': 1 }, parent), H = 34, X = v => x + v * k, step = o.label || (k >= 2.4 ? 10 : 20);
-  el('rect', { x: x - 30, y: y - 8, width: 32, height: H + 16, rx: 8, fill: '#c9a03a', stroke: LENC.tapeEd, 'stroke-width': 2 }, g);   /* علبة الشريط */
-  el('rect', { x, y, width: to * k + 6, height: H, fill: LENC.tape, stroke: LENC.tapeEd, 'stroke-width': 1.5 }, g);
-  for (let v = 0; v <= to; v++) { const big = v % 10 === 0, mid = v % 5 === 0; if (!mid && k < 2.4) continue; el('line', { x1: X(v), y1: y, x2: X(v), y2: y + (big ? 14 : mid ? 9 : 5), stroke: LENC.ink, 'stroke-width': big ? 1.8 : 1 }, g);
-    if (v % step === 0) { const t = el('text', { x: X(v), y: y + 28, 'text-anchor': 'middle', 'font-size': v >= 100 ? 11 : 12, 'font-weight': 700, fill: v === 100 ? '#c8392d' : LENC.ink, direction: 'ltr' }, g); t.textContent = String(v); } }
-  if (to >= 100) { el('rect', { x: X(100) - 1.5, y: y - 6, width: 3, height: H + 12, fill: '#c8392d' }, g); }
+function tapeAt(parent, o) { const { x, y, to } = o, from = o.from || 0, k = o.pxcm, g = el('g', { 'data-tape': 1 }, parent), H = 34, X = v => x + (v - from) * k, step = o.label || (k >= 2.4 ? 10 : 20);
+  if (!from) el('rect', { x: x - 30, y: y - 8, width: 32, height: H + 16, rx: 8, fill: '#c9a03a', stroke: LENC.tapeEd, 'stroke-width': 2 }, g);   /* علبة الشريط */
+  el('rect', { x, y, width: (to - from) * k + 6, height: H, fill: LENC.tape, stroke: LENC.tapeEd, 'stroke-width': 1.5 }, g);
+  if (from) el('path', { d: `M${x} ${y - 2} l-6 6 l6 6 l-6 6 l6 6 l-6 6 l6 6`, fill: 'none', stroke: LENC.tapeEd, 'stroke-width': 2 }, g);   /* الشريط مقطوع: يبدأ من الصفر قبل هذا */
+  for (let v = from; v <= to; v++) { const big = v % 10 === 0, mid = v % 5 === 0; if (!mid && k < 2.4) continue; el('line', { x1: X(v), y1: y, x2: X(v), y2: y + (big ? 14 : mid ? 9 : 5), stroke: LENC.ink, 'stroke-width': big ? 1.8 : 1 }, g);
+    if (v % step === 0 && !(from && v === from)) { const t = el('text', { x: X(v), y: y + 28, 'text-anchor': 'middle', 'font-size': v >= 100 ? 11 : 12, 'font-weight': 700, fill: v && v % 100 === 0 ? '#c8392d' : LENC.ink, direction: 'ltr' }, g); t.textContent = String(v); } }
+  for (let v = 100; v <= to; v += 100) if (v >= from) el('rect', { x: X(v) - 1.5, y: y - 6, width: 3, height: 22, fill: '#c8392d' }, g);   /* علامة المتر فوق العدد لا عليه (المراجع B لبوابة U6/U7، 11) */
   return { g, X, k, y, H }; }
 /* أشياء تُقاس: رسم بسيط في صندوق 120×120 حول المركز */
 const LEN_TH = {
@@ -75,7 +76,8 @@ ITEM.unitPick = {
 /* ================= ② اقرأ شريط القياس (C186): len بالسنتيمتر (مضاعف 5)، thing، ch خيارات بالسنتيمتر؛ وm: الجواب بالمتر والسنتيمتر ================= */
 ITEM.tapeRead = {
   make(spec) { const want = spec.m ? lenKey([spec.len, 'mc']) : lenKey([spec.len, 'cm']); return { ...spec, want, tag: 'tape-read' + (spec.m ? '-mc' : '') }; },
-  draw(item, svg) { const to = item.len <= 110 ? 120 : 220, k = to === 120 ? 2.5 : 1.38, x0 = 40, T = tapeAt(svg, { x: x0, y: 132, to, pxcm: k, label: to === 120 ? 10 : 20 }), X2 = T.X(item.len);
+  /* الطول فوق 110: نافذة من الشريط عند طرف الشيء بالمقياس نفسه (تدريجة لكل سنتيمتر وعدد كل عشرة)، والشريط مقطوع عند بدايتها (المراجع B لبوابة U6/U7، 11: كان 220 مضغوطاً بتدريجة 5 سم وعدد كل 20) */
+  draw(item, svg) { const from = item.len <= 110 ? 0 : Math.floor(item.len / 10) * 10 - 60, to = from + 120, k = from ? 2.4 : 2.5, x0 = 40, T = tapeAt(svg, { x: x0, y: 132, from, to, pxcm: k, label: 10 }), X2 = T.X(item.len);
     const th = el('g', {}, svg); el('rect', { x: x0, y: 84, width: X2 - x0, height: 34, rx: 4, fill: item.thing === 'table' ? '#b9794e' : '#3d7cc0', opacity: .9 }, th); el('line', { x1: X2, y1: 78, x2: X2, y2: 168, stroke: '#c8392d', 'stroke-width': 2.4, 'stroke-dasharray': '4 3' }, th);
     const t = el('text', { x: x0 + (X2 - x0) / 2, y: 106, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: '#fff' }, th); t.textContent = labelText('len.th.' + (item.thing || 'table')); return { T, X2 }; },
   async ask(item, mode, tries) { const svg = lenStage(220), D = this.draw(item, svg);
@@ -206,6 +208,20 @@ ITEM.lenCalc = {
 };
 
 /* ================= ⑨ قرّب لأقرب متر (C190): v [م، سم]، ch أمتار. 50 سم فأكثر: المتر التالي ================= */
+/* ================= أيّ الجوابين معقول؟ (C190، المراجع A لبوابة U6/U7، 11): a + b، وch جواب صحيح وجواب بلا إعادة تجميع؛ يُحكم بالتقريب لأقرب متر ================= */
+const mRound = v => v[0] + (v[1] >= 50 ? 1 : 0);
+ITEM.lenSense = {
+  make(spec) { const [m, c] = mcNorm(spec.a[0] * 100 + spec.a[1] + spec.b[0] * 100 + spec.b[1]), w = [m, c]; /*T*/if (TESTHOOK && !spec.ch.some(p => p[0] === m && p[1] === c)) testBug('lenSense: الجواب ليس بين الخيارات');/*/T*/ return { ...spec, w, want: lenKey([w, 'pair']), ra: mRound(spec.a), rb: mRound(spec.b), tag: 'len-sense' }; },
+  async ask(item, mode, tries) { const svg = lenStage(220); lenCard(svg, 270, 64, [item.a, 'pair'], { w: 128, h: 46, fs: 18 }); lenCard(svg, 90, 64, [item.b, 'pair'], { w: 128, h: 46, fs: 18 }); const pl = el('text', { x: 180, y: 74, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: LENC.ink }, svg); pl.textContent = '+';
+    if (tries >= 3) { const m = helpG(svg); for (const [x, r] of [[270, item.ra], [90, item.rb]]) { const t = el('text', { x, y: 118, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, m); t.textContent = `${labelText('lenAbout')} ${r} ${U_('m')}`; } hintCard(svg, 180, 166, `${labelText('lenAbout')} ${item.ra + item.rb} ${U_('m')}`); await S('gen.len.together.sense'); }
+    else await S(item.q);
+    const k = await choosePick(shuffle(lenOpts(item.ch.map(p => [p, 'pair']))), item.want); return { ans: k, ctx: { svg } }; },
+  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'calcOff' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 124, `${labelText('lenAbout')} ${item.ra} ${U_('m')} + ${item.rb} ${U_('m')}`); await S('gen.len.hint.sense'); }, async together() {},   /* التقريب مكتوب تحت الطولين، والمجموع التقريبي يُترك للطفل */
+  async reveal(item) { await S('gen.len.reveal.sense', { noGap: true }); await S(lenLn([item.w, 'pair']), { append: true }); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
 ITEM.lenRound = {
   make(spec) { const w = spec.v[0] + (spec.v[1] >= 50 ? 1 : 0); return { ...spec, want: lenKey([w, 'm']), w, tag: 'len-round' }; },
   async ask(item, mode, tries) { const svg = newStage(210, { oasis: false, ground: 0 }), m0 = Math.max(0, item.v[0] - 1), k = 100, x0 = 50, X = cm => x0 + (cm - m0 * 100) / 100 * k, g = el('g', {}, svg);
@@ -248,7 +264,7 @@ ITEM.estPick = {
   make(spec) { const rmm = spec.real * LEN_MM[spec.realU || 'cm'], best = spec.ch.map(v => [v, Math.abs(Math.log(lenMM(v) / rmm))]).sort((a, b) => a[1] - b[1])[0][0]; return { ...spec, want: lenKey(best), tag: 'est-pick' }; },   /* real بوحدته realU (المراجع A لبوابة U6/U7، 1: كان سنتيمتراً دائماً والمحتوى كتبه بالمتر والملم) */
   async ask(item, mode, tries) { const svg = lenStage(220); lenThing(svg, item.thing, 196, 104, 1.2); const t = el('text', { x: 196, y: 186, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 700, fill: LENC.ink }, svg); t.textContent = labelText('len.th.' + item.thing);
     if (tries >= 3) { const m = helpG(svg); lenThing(m, item.ref || 'finger', 62, 104, .7); const tt = el('text', { x: 62, y: 166, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: css('--think'), direction: 'rtl' }, m); tt.textContent = labelText('len.ref.' + (item.ref || 'finger')); await S('gen.len.together.est'); await S('gen.len.ref.' + (item.ref || 'finger'), { append: true }); }
-    else { await S(item.q, { noGap: true }); await S('gen.len.th.' + item.thing, { append: true }); }
+    else { await S(item.q, { noGap: true }); await S('gen.len.thm.' + item.thing, { append: true }); }   /* ما يُقدَّر: طول أو ارتفاع أو سُمك (المراجع A لبوابة U6/U7، 18 (ب)) */
     const k = await choosePick(shuffle(lenOpts(item.ch)), item.want); return { ans: k, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'estFar' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
@@ -281,47 +297,54 @@ ITEM.trackDesign = {
 
 /* ================= المشاهد ================= */
 /* شريط القياس: يمتدّ من علبته حتى المتر، وعلامة المتر عند 100 سم */
+/* توقّع الطفل قبل النتيجة في كل إشعال واكتشاف (D244، المبدأ 10): لا تصحيح، والمشهد بعده هو التحقق */
+async function lenPredict(opts, ok, q) { say(...lineOf(q), { free: true }); const k = await choosePick(opts, ok); hush(); logAttempt({ scene: 'explore', tag: 'lenPredict', ok: k === ok }); return k; }
+const lenPick = vals => lenOpts(vals);
 SCENES.tapeIntro = async c => { const L = c.lines; let svg = lenStage(220); const T = tapeAt(svg, { x: 40, y: 110, to: 110, pxcm: 2.6, label: 10 }), cover = el('rect', { x: 42, y: 100, width: 300, height: 56, fill: GEO.paper }, svg);
-  await S(L[0]); await axTween(1200, t => cover.setAttribute('x', 42 + 290 * t)); cover.remove(); SFX.tick(); const m = helpG(svg); thinkRing(m, [T.X(100), T.y + 22], 16); await S(L[1]);
+  await S(L[0]); await lenPredict(lenPick([[10, 'cm'], [100, 'cm'], [1000, 'cm']]), lenKey([100, 'cm']), 'gen.len.pr.tape'); await axTween(1200, t => cover.setAttribute('x', 42 + 290 * t)); cover.remove(); SFX.tick(); const m = helpG(svg); thinkRing(m, [T.X(100), T.y + 22], 16); await S(L[1]);
   svg = lenStage(220); const T2 = tapeAt(svg, { x: 40, y: 140, to: 120, pxcm: 2.5, label: 10 }); el('rect', { x: 40, y: 84, width: T2.X(85) - 40, height: 40, rx: 4, fill: '#b9794e' }, svg); const tt = el('text', { x: (40 + T2.X(85)) / 2, y: 110, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: '#fff' }, svg); tt.textContent = labelText('len.th.doorW');
   el('line', { x1: T2.X(85), y1: 80, x2: T2.X(85), y2: 176, stroke: '#c8392d', 'stroke-width': 2.4, 'stroke-dasharray': '4 3' }, svg); await S(L[2]); };
 /* الكيلومتر: عشر خطوات من مئة متر حتى البوابة، ودقائق المشي */
 SCENES.kmWalk = async c => { const L = c.lines, svg = lenStage(230), y = 128, x0 = 330, k = 28; el('rect', { x: 34, y: y - 4, width: 300, height: 8, rx: 4, fill: '#d9c7a4' }, svg);
   el('path', { d: `M${x0 - 6} ${y - 30} L${x0 + 6} ${y - 30} L${x0 + 6} ${y - 6} L${x0 - 6} ${y - 6} Z`, fill: '#3d7cc0' }, svg); el('path', { d: `M${x0 - 10 * k - 14} ${y - 6} V${y - 40} H${x0 - 10 * k + 14} V${y - 6}`, fill: 'none', stroke: '#8a6a4a', 'stroke-width': 5 }, svg);
-  await S(L[0]); const g = el('g', {}, svg); for (let i = 1; i <= 10; i++) { const x = x0 - i * k; el('circle', { cx: x, cy: y, r: 5, fill: '#c8392d' }, g); if (i % 5 === 0) { const t = el('text', { x, y: y + 30, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: LENC.ink, direction: 'ltr' }, g); t.textContent = String(i * 100); } SFX.tick(); await sleep(FAST ? 10 : 160); }
+  await S(L[0]); await axPredictNum(10, 'gen.len.pr.km'); const g = el('g', {}, svg); for (let i = 1; i <= 10; i++) { const x = x0 - i * k; el('circle', { cx: x, cy: y, r: 5, fill: '#c8392d' }, g); if (i % 5 === 0) { const t = el('text', { x, y: y + 30, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: LENC.ink, direction: 'ltr' }, g); t.textContent = String(i * 100); } SFX.tick(); await sleep(FAST ? 10 : 160); }
   await S(L[1]); if (L[2]) await S(L[2]); };
 /* جدول اختيار الوحدة: أربعة أشياء ووحداتها */
 SCENES.unitTable = async c => { const L = c.lines, svg = lenStage(240), rows = c.pics || ['ant', 'pencil', 'door', 'road']; await S(L[0]);
-  for (const [i, k] of rows.entries()) { const x = 300 - i * 80; lenThing(svg, k, x, 84, .5); const t = el('text', { x, y: 150, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: LENC.bar }, svg); t.textContent = labelText(LEN_LB[LEN_TH[k].u]); SFX.tick(); await S('gen.len.u.' + LEN_TH[k].u); }
+  for (const [i, k] of rows.entries()) { const x = 300 - i * 80; lenThing(svg, k, x, 84, .5); if (i === 2) await lenPredict(LEN_U.map(u => [u, labelText(LEN_LB[u]), '<i></i>', 'gen.len.u.' + u]), LEN_TH[k].u, 'gen.len.pr.unit'); const t = el('text', { x, y: 150, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: LENC.bar }, svg); t.textContent = labelText(LEN_LB[LEN_TH[k].u]); SFX.tick(); await S('gen.len.u.' + LEN_TH[k].u); }
   if (L[1]) await S(L[1]); };
 /* جدول التحويل: م وسم وملم، يملؤه الطفل صفاً صفاً بالمشاهدة */
 SCENES.convTable = async c => { const L = c.lines, svg = lenStage(232), X = { m: 270, cm: 180, mm: 90 }, y0 = 50; await S(L[0]);
   for (const [k, x] of Object.entries(X)) { const t = el('text', { x, y: y0, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: LENC.bar }, svg); t.textContent = labelText(LEN_LB[k]); }
-  for (let r = 1; r <= 3; r++) { for (const [k, f] of [['m', 1], ['cm', 100], ['mm', 1000]]) { const t = el('text', { x: X[k], y: y0 + r * 44, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: LENC.ink, direction: 'ltr' }, svg); t.textContent = String(r * f); } SFX.tick(); await sleep(FAST ? 10 : 400); }
+  for (let r = 1; r <= 3; r++) { for (const [k, f] of [['m', 1], ['cm', 100], ['mm', 1000]]) { if (r > 1 && k === 'cm') await lenPredict([10, 100, 1000].map(x => [String(r * x), String(r * x), '<i></i>', `gen.len.cm.${r * x}`]), String(r * 100), r === 2 ? 'gen.len.pr.conv2' : 'gen.len.pr.conv3'); const t = el('text', { x: X[k], y: y0 + r * 44, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: LENC.ink, direction: 'ltr' }, svg); t.textContent = String(r * f); } SFX.tick(); await sleep(FAST ? 10 : 400); }
   await S(L[1]); if (L[2]) await S(L[2]); };
 /* الطول المركّب: شريط 235 سم يُقسم إلى مترين و35 سم */
-SCENES.mcSplit = async c => { const L = c.lines, svg = lenStage(220), cm = c.cm || 235, k = 1.2, x0 = 40, g = el('g', {}, svg); el('rect', { x: x0, y: 80, width: cm * k, height: 30, rx: 4, fill: LENC.bar }, g); lenCard(svg, 180, 46, [cm, 'cm'], { w: 140, h: 44, fs: 18 }); await S(L[0]);
+SCENES.mcSplit = async c => { const L = c.lines, svg = lenStage(220), cm = c.cm || 235, k = 1.2, x0 = 40, g = el('g', {}, svg); el('rect', { x: x0, y: 80, width: cm * k, height: 30, rx: 4, fill: LENC.bar }, g); lenCard(svg, 180, 46, [cm, 'cm'], { w: 140, h: 44, fs: 18 }); await S(L[0]); await axPredictNum(Math.floor(cm / 100), 'gen.len.pr.split');
   for (let i = 0; i < Math.floor(cm / 100); i++) { el('rect', { x: x0 + i * 100 * k, y: 120, width: 100 * k - 3, height: 24, rx: 4, fill: '#f2d38a', stroke: '#b9862a', 'stroke-width': 1.5 }, g); const t = el('text', { x: x0 + (i + .5) * 100 * k, y: 137, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: LENC.ink, direction: 'rtl' }, g); t.textContent = `1 ${labelText('lenM')}`; SFX.tick(); await sleep(FAST ? 10 : 400); }
   const r = cm % 100; if (r) { el('rect', { x: x0 + Math.floor(cm / 100) * 100 * k, y: 120, width: r * k, height: 24, rx: 4, fill: '#cfe6f5', stroke: LENC.bar, 'stroke-width': 1.5 }, g); }
   lenCard(svg, 180, 180, [cm, 'mc'], { w: 160, h: 44, fs: 18 }); await S(L[1]); if (L[2]) await S(L[2]); };
 /* المقارنة بعد التحويل: 2 م و150 سم */
-SCENES.cmpShow = async c => { const L = c.lines, svg = lenStage(232), a = c.a || [2, 'm'], b = c.b || [150, 'cm']; lenCard(svg, 262, 70, a); lenCard(svg, 98, 70, b, { stroke: LENC.bar2 }); await S(L[0]);
+SCENES.cmpShow = async c => { const L = c.lines, svg = lenStage(232), a = c.a || [2, 'm'], b = c.b || [150, 'cm']; lenCard(svg, 262, 70, a); lenCard(svg, 98, 70, b, { stroke: LENC.bar2 }); await S(L[0]); await lenPredict([['a', lenTxt(a), '<i></i>', lenLn(a)], ['b', lenTxt(b), '<i></i>', lenLn(b)], ['eq', labelText('lenEq'), '<i></i>', 'gen.len.eq']], lenMM(a) > lenMM(b) ? 'a' : lenMM(a) < lenMM(b) ? 'b' : 'eq', 'gen.len.pr.guess');
   const t = el('text', { x: 262, y: 124, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 700, fill: css('--think'), direction: 'rtl' }, svg); t.textContent = '= ' + lenMM(a) / 10 + ' ' + labelText('rulCm'); await S(L[1]); lenBars(svg, [a, b], 150); await S(L[2]); };
 /* الجمع بإعادة التجميع: 2 م 40 سم + 1 م 80 سم */
 SCENES.addWorked = async c => { const L = c.lines, item = { a: c.a || [2, 40], b: c.b || [1, 80], op: c.op || '+' }, svg = newStage(212, { oasis: false, ground: 0 }), T = calcTable(svg, item, 30);
   const A = item.a[0] * 100 + item.a[1], B = item.b[0] * 100 + item.b[1];
-  if (item.op === '+') { await S(L[0]); const sc = item.a[1] + item.b[1]; T.r2.textContent = String(sc); T.r1.textContent = String(item.a[0] + item.b[0]); SFX.tick(); await S(L[1]); if (sc >= 100) { await axTween(600, t => T.r2.setAttribute('opacity', 1 - .7 * t)); T.r2.textContent = String(sc - 100); T.r2.setAttribute('opacity', 1); T.r1.textContent = String(item.a[0] + item.b[0] + 1); T.r1.setAttribute('fill', LENC.ok); SFX.pop(); } await S(L[2]); }
-  else { await S(L[0]); const m = helpG(svg), t = el('text', { x: 316, y: 92, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 700, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${A} − ${B}`; await S(L[1]); const [mm, cc] = mcNorm(A - B); T.r1.textContent = String(mm); T.r2.textContent = String(cc); SFX.tick(); await S(L[2]); } };
+  if (item.op === '+') { await S(L[0]); const sc = item.a[1] + item.b[1]; T.r2.textContent = String(sc); T.r1.textContent = String(item.a[0] + item.b[0]); SFX.tick(); await axPredictYN(sc >= 100 ? 'no' : 'yes', 'gen.len.pr.carry'); await S(L[1]); if (sc >= 100) { await axTween(600, t => T.r2.setAttribute('opacity', 1 - .7 * t)); T.r2.textContent = String(sc - 100); T.r2.setAttribute('opacity', 1); T.r1.textContent = String(item.a[0] + item.b[0] + 1); T.r1.setAttribute('fill', LENC.ok); SFX.pop(); } await S(L[2]); }
+  else { await S(L[0]); await axPredictYN(item.a[1] >= item.b[1] ? 'yes' : 'no', 'gen.len.pr.borrow'); const m = helpG(svg), t = el('text', { x: 316, y: 92, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 700, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${A} − ${B}`; await S(L[1]); const [mm, cc] = mcNorm(A - B); T.r1.textContent = String(mm); T.r2.textContent = String(cc); SFX.tick(); await S(L[2]); } };
 /* التحقق بالتقريب لأقرب متر */
 SCENES.roundShow = async c => { const L = c.lines, it = ITEM.lenRound.make({ v: c.v || [2, 40], ch: [2, 3] }), svg = newStage(210, { oasis: false, ground: 0 }), x0 = 50, k = 100, m0 = it.v[0] - 1, X = cm => x0 + (cm - m0 * 100) / 100 * k;
   geoLine(svg, x0 - 10, 130, x0 + 2.6 * k + 10, 130, { color: LENC.ink, w: 3 }); for (let i = 0; i <= 2; i++) { const x = X((m0 + i) * 100); geoLine(svg, x, 120, x, 140, { color: LENC.ink, w: 3 }); const t = el('text', { x, y: 166, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, svg); t.textContent = `${m0 + i} ${labelText('lenM')}`; geoLine(svg, x + k / 2, 125, x + k / 2, 135, { color: LENC.soft, w: 2 }); }
-  const px = X(it.v[0] * 100 + it.v[1]); el('circle', { cx: px, cy: 130, r: 8, fill: '#c8392d' }, svg); lenCard(svg, px, 76, [[it.v[0], it.v[1]], 'pair'], { w: 128, h: 46, fs: 18 }); await S(L[0]);
-  const near = X(it.w * 100); el('path', { d: `M${px} 142 Q${(px + near) / 2} 162 ${near} 142`, fill: 'none', stroke: LENC.ok, 'stroke-width': 3 }, svg); SFX.tick(); await S(L[1]); if (L[2]) await S(L[2]); };
+  const px = X(it.v[0] * 100 + it.v[1]); el('circle', { cx: px, cy: 130, r: 8, fill: '#c8392d' }, svg); lenCard(svg, px, 76, [[it.v[0], it.v[1]], 'pair'], { w: 128, h: 46, fs: 18 }); await S(L[0]); await lenPredict(lenPick([[m0 + 1, 'm'], [m0 + 2, 'm']]), lenKey([it.w, 'm']), 'gen.len.pr.guess');
+  const near = X(it.w * 100); el('path', { d: `M${px} 142 Q${(px + near) / 2} 162 ${near} 142`, fill: 'none', stroke: LENC.ok, 'stroke-width': 3 }, svg); SFX.tick(); await S(L[1]);
+  if (c.b && L[2]) { const s2 = lenStage(220), a = it.v, b = c.b, ra = mRound(a), rb = mRound(b), [sm, sc] = mcNorm(a[0] * 100 + a[1] + b[0] * 100 + b[1]); lenCard(s2, 270, 56, [a, 'pair'], { w: 128, h: 44, fs: 17 }); lenCard(s2, 90, 56, [b, 'pair'], { w: 128, h: 44, fs: 17 }); const pl = el('text', { x: 180, y: 66, 'text-anchor': 'middle', 'font-size': 28, 'font-weight': 800, fill: LENC.ink }, s2); pl.textContent = '+';
+    for (const [x, r] of [[270, ra], [90, rb]]) { const t = el('text', { x, y: 106, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, s2); t.textContent = `${labelText('lenAbout')} ${r} ${U_('m')}`; } const tt = el('text', { x: 180, y: 140, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, s2); tt.textContent = `${labelText('lenSum')} ${labelText('lenAbout')} ${ra + rb} ${U_('m')}`; SFX.tick(); await S(L[2]);
+    lenCard(s2, 180, 186, [[sm, sc], 'pair'], { w: 150, h: 44, fs: 18, stroke: LENC.ok }); SFX.good(); if (L[3]) await S(L[3]); }
+  else if (L[2]) await S(L[2]); };
 /* المراجع الشخصية: الإصبع والقلم والباب */
-SCENES.refsShow = async c => { const L = c.lines; await S(L[0]); for (const [i, k] of (c.refs || ['finger', 'pencil', 'door']).entries()) { const svg = lenStage(220); lenThing(svg, k, 180, 104, 1.1); const t = el('text', { x: 180, y: 190, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: LENC.bar, direction: 'rtl' }, svg); t.textContent = labelText('len.ref.' + k); await S('gen.len.ref.' + k); } if (L[1]) await S(L[1]); };
+SCENES.refsShow = async c => { const L = c.lines; await S(L[0]); for (const [i, k] of (c.refs || ['finger', 'pencil', 'door']).entries()) { const svg = lenStage(220); lenThing(svg, k, 180, 104, 1.1); if (k === 'finger') await lenPredict(lenPick([[1, 'cm'], [10, 'cm'], [1, 'm']]), lenKey([1, 'cm']), 'gen.len.pr.finger'); const t = el('text', { x: 180, y: 190, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: LENC.bar, direction: 'rtl' }, svg); t.textContent = labelText('len.ref.' + k); await S('gen.len.ref.' + k); } if (L[1]) await S(L[1]); };
 /* مخطط الغرفة: جدران بأطوالها (دون مقياس) */
-SCENES.roomPlan = async c => { const L = c.lines, svg = lenStage(240), W = c.w || [4, 20], H = c.h || [3, 50], g = el('g', {}, svg); el('rect', { x: 80, y: 52, width: 200, height: 136, fill: '#fffdf6', stroke: LENC.ink, 'stroke-width': 6 }, g); el('rect', { x: 150, y: 184, width: 40, height: 8, fill: '#fffdf6' }, g); await S(L[0]);
-  for (const [v, x, y] of [[W, 180, 40], [H, 316, 124], [W, 180, 220], [H, 44, 124]]) { lenCard(g, x, y, [v, 'pair'], { w: 104, h: 30, fs: 14 }); SFX.tick(); await sleep(FAST ? 10 : 300); } await S(L[1]); if (L[2]) await S(L[2]); };
+SCENES.roomPlan = async c => { const L = c.lines, svg = lenStage(240), W = c.w || [4, 20], H = c.h || [3, 50], g = el('g', {}, svg); el('rect', { x: 102, y: 56, width: 156, height: 128, fill: '#fffdf6', stroke: LENC.ink, 'stroke-width': 6 }, g); el('rect', { x: 160, y: 180, width: 40, height: 8, fill: '#fffdf6' }, g); await S(L[0]);
+  for (const [i, [v, x, y]] of [[W, 180, 34], [H, 309, 120], [W, 180, 210], [H, 51, 120]].entries()) { if (i === 2) await lenPredict(lenPick([[W, 'pair'], [H, 'pair']]), lenKey([W, 'pair']), 'gen.len.pr.wall'); lenCard(g, x, y, [v, 'pair'], { w: 94, h: 30, fs: 13 }); SFX.tick(); await sleep(FAST ? 10 : 300); } await S(L[1]); if (L[2]) await S(L[2]); };
 /* التذكّر */
 SCENES.recallTape = async c => { const svg = lenStage(220); ITEM.tapeRead.draw({ len: c.len || 75, thing: c.thing || 'table' }, svg); await S(c.lines[0]); };
 SCENES.recallConv = async c => { const svg = lenStage(220); convEq(svg, { v: c.v || [2, 'm'], to: c.to || 'cm' }); convRule(svg, (c.v || [2, 'm'])[1], c.to || 'cm', 182); await S(c.lines[0]); };
