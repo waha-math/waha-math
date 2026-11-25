@@ -236,6 +236,14 @@ async def run(p, dev):
                 q = await pg.evaluate("(s) => { const e = document.querySelector('#stage svg [data-step=\"' + s + '\"] circle'); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }", '%d:%d' % (i, d)); await tap(q['x'], q['y']); await pg.wait_for_timeout(70)
             if await pg.evaluate('() => window.__track') != goal: tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  track miss', st['scene'])
           xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(60); continue
+        if k == 'cake':   # S2-U8 د8: قسمة الكعكة باللمس: مربعات كل قطعة واحداً واحداً، ثم لمسة ثانية على آخرها تغلقها
+          await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
+          sol = await pg.evaluate('() => window.__ckSol')
+          for p in sol:
+            for i in p + [p[-1]]: q = await pg.evaluate('(i) => window.__ckAt(i)', i); await tap(q['x'], q['y']); await pg.wait_for_timeout(70)
+          own = await pg.evaluate('() => window.__cakeOwner')
+          if not own or -1 in own or len(set(own)) != len(sol): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  cake split miss', st['scene'])
+          xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(60); continue
         if k in ('rectDraw', 'maxArea'):   # S2-U7: لمسة حقيقية على ركن المستطيل في الشبكة، ولمسات على زرّي عرض المزرعة
           await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
           if k == 'rectDraw':

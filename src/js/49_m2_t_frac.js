@@ -340,3 +340,72 @@ SCENES.orderShow = async c => { const L = c.lines, fr = c.fr || [[1, 2], [1, 8],
   const s2 = frStage(260), so = [...fr].sort((a, b) => frVal(a) - frVal(b)); for (const [j, f] of so.entries()) { frStrips(s2, [[f[1], f[0]]], { y0: 36 + j * 50, h: 34 }); fracText(s2, 36, 52 + j * 50, f, { fs: 13 }); SFX.tick(); await sleep(FAST ? 10 : 300); } if (L[1]) await S(L[1]); };
 SCENES.recallFrac = async c => { const svg = frStage(232); if (c.fig) fracShape(svg, c.fig, [180, 116], { r: 80 }); if (c.f) fracText(svg, 320, 60, c.f, { fs: 22 }); if (c.line) { const Ln = fracLine(svg, c.line[1]); fracArrow(svg, Ln.X(c.line[0])); } await S(c.lines[0]); };
 WRAP_ART.fracArt = svg => { const Sh = fracShape(svg, { k: 'circle', n: 8, shade: [0, 1, 2] }, [180, 140], { r: 90 }); anim(Sh, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 200, fill: 'both' }); palmAt(svg, 330, 250, .8); palmAt(svg, 30, 250, .9); };
+/* ================= قسّم كعكة الحفلة 6 × 4 إلى ثماني قطع متساوية (المشروع، C227؛ المرجع: «بطريقتين مختلفتين، ويتحقّق بعدّ المربعات»؛ المراجع A لبوابة U8/U9، 20):
+   الطفل يرسم كل قطعة بإصبعه على المربعات (سحبةٌ قطعة)، أو يلمس المربعات المتجاورة واحداً واحداً (لمسةٌ غير مجاورة تبدأ قطعة جديدة)، ولمسةٌ على قطعةٍ مرسومة تمحوها.
+   diff: الطريقة الثانية غير الأولى (لا بالقلب ولا بالدوران) ================= */
+const CK = { W: 6, H: 4, c: 44, x0: 48, y0: 44 }, CK_COL = ['#f2d38a', '#bfe0b5', '#e6c6e8', '#f6c7a8', '#c9dcf2', '#efe39a', '#d8c3a5', '#b9e2dc'];
+let CAKE_LAST = null;   /* قسمة الطريقة الأولى في هذا الدرس، تقارن بها الثانية */
+const ckKey = pieces => { const syms = [(x, y) => [x, y], (x, y) => [CK.W - 1 - x, y], (x, y) => [x, CK.H - 1 - y], (x, y) => [CK.W - 1 - x, CK.H - 1 - y]];
+  return syms.map(f => pieces.map(p => p.map(i => { const [x, y] = f(i % CK.W, Math.floor(i / CK.W)); return y * CK.W + x; }).sort((a, b) => a - b).join('.')).sort().join('|')).sort()[0]; };
+const CK_STRIPS = (() => { const P = []; for (let y = 0; y < CK.H; y++) for (const x0 of [0, 3]) P.push([0, 1, 2].map(d => y * CK.W + x0 + d)); return P; })();
+const CK_LS = (() => { const P = []; for (const [bx, by] of [[0, 0], [3, 0], [0, 2], [3, 2]]) { const at = (x, y) => (by + y) * CK.W + bx + x; P.push([at(0, 0), at(1, 0), at(0, 1)], [at(2, 0), at(2, 1), at(1, 1)]);   /* كل مربع يجاور ما قبله: يُرسم بالترتيب */ } return P; })();
+ITEM.cakeSplit = {
+  make(spec) { return { ...spec, n: spec.n || 8, want: 'ok', tag: 'cake-split' + (spec.diff ? '-2' : '') }; },
+  sol(item) { const blk = (bw, bh) => { const P = []; for (let by = 0; by < CK.H; by += bh) for (let bx = 0; bx < CK.W; bx += bw) { const p = []; for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) p.push((by + y) * CK.W + bx + x); P.push(p); } return P; };
+    return item.n === 6 ? blk(2, 2) : item.n === 4 ? blk(3, 2) : item.diff && CAKE_LAST && ckKey(CAKE_LAST) === ckKey(CK_STRIPS) ? CK_LS : CK_STRIPS; },
+  async ask(item, mode, tries) { const svg = frStage(250), { W, H, c, x0, y0 } = CK, owner = Array(W * H).fill(-1), g = el('g', {}, svg), cutG = el('g', { 'pointer-events': 'none' }, svg); let cur = [], nid = 0, moved = false;
+    const P = i => [x0 + (i % W) * c, y0 + Math.floor(i / W) * c], adj = (a, b) => Math.abs(a % W - b % W) + Math.abs(Math.floor(a / W) - Math.floor(b / W)) === 1;
+    const cells = Array.from({ length: W * H }, (_, i) => { const [x, y] = P(i), r = el('rect', { x, y, width: c, height: c, fill: '#fff3e0', stroke: '#e9c9a0', 'stroke-width': 1.4 }, g); return r; });
+    el('rect', { x: x0, y: y0, width: W * c, height: H * c, rx: 6, fill: 'none', stroke: '#b9794e', 'stroke-width': 4, 'pointer-events': 'none' }, svg);
+    const pieces = () => { const m = new Map(); owner.forEach((o, i) => { if (o >= 0) { if (!m.has(o)) m.set(o, []); m.get(o).push(i); } }); return [...m.values()]; };
+    const redraw = () => { const ids = [...new Set(owner.filter(o => o >= 0))]; cells.forEach((r, i) => r.setAttribute('fill', cur.includes(i) ? '#fff' : owner[i] >= 0 ? CK_COL[ids.indexOf(owner[i]) % CK_COL.length] : '#fff3e0'));
+      cutG.innerHTML = ''; for (let i = 0; i < W * H; i++) { const [x, y] = P(i); if (i % W < W - 1 && owner[i] >= 0 && owner[i] !== owner[i + 1]) geoLine(cutG, x + c, y, x + c, y + c, { color: '#7a4a2a', w: 3.4 }); if (Math.floor(i / W) < H - 1 && owner[i] >= 0 && owner[i] !== owner[i + W]) geoLine(cutG, x, y + c, x + c, y + c, { color: '#7a4a2a', w: 3.4 }); }
+      for (const i of cur) { const [x, y] = P(i); el('rect', { x: x + 3, y: y + 3, width: c - 6, height: c - 6, rx: 6, fill: 'none', stroke: css('--compass'), 'stroke-width': 3 }, cutG); }
+      /*T*/window.__cakeOwner = owner.slice();/*/T*/ };
+    const close = () => { if (!cur.length) return; for (const i of cur) owner[i] = nid; nid++; cur = []; SFX.tick(); redraw(); };
+    const add = i => { if (owner[i] >= 0 || cur.includes(i)) return false; if (cur.length && !cur.some(j => adj(i, j))) close(); cur.push(i); SFX.tick(); redraw(); return true; };
+    const erase = i => { const o = owner[i]; if (o < 0) return; owner.forEach((v, j) => { if (v === o) owner[j] = -1; }); SFX.tick(); redraw(); };
+    /* لمسةٌ على مربعٍ حرّ تضيفه إلى القطعة الجارية (أو تبدأ قطعة إن لم يجاورها)، ولمسةٌ ثانية على مربعٍ منها تغلقها، ولمسةٌ على قطعةٍ مغلقة تمحوها؛ يعيد true إن بدأ رسماً */
+    const tapAt = i => { if (cur.includes(i)) { close(); return false; } if (owner[i] >= 0) { close(); erase(i); return false; } add(i); return true; };
+    const cellAt = q => { const cx = Math.floor((q[0] - x0) / c), cy = Math.floor((q[1] - y0) / c); return cx >= 0 && cx < W && cy >= 0 && cy < H ? cy * W + cx : -1; };
+    if (tries >= 3) { const m = helpG(svg); for (const p of this.sol(item)) { for (const i of p) { const [x, y] = P(i); for (const j of p) if (j > i && adj(i, j)) { const [x2, y2] = P(j); geoLine(m, x + c / 2, y + c / 2, x2 + c / 2, y2 + c / 2, { color: css('--think'), w: 3, dash: '4 4' }); } } } }
+    redraw(); await S(tries >= 3 ? 'gen.fr.together.split' : item.q);
+    const input = fingerInput(svg, { map: e => { const p = svgPoint(svg, e); return [p.x, p.y]; },
+      down(q) { const i = cellAt(q); if (i < 0) return false; moved = false; return tapAt(i) ? undefined : false; },
+      move(q) { const i = cellAt(q); if (i >= 0 && !cur.includes(i) && owner[i] < 0 && cur.some(j => adj(i, j))) { moved = true; add(i); } },
+      up() { if (moved) close(); } });
+    const kg = el('g', { role: 'grid', 'aria-label': plain(labelText('ckCake')) }, svg); for (let y = 0; y < H; y++) { const row = el('g', { role: 'row' }, kg); for (let x = 0; x < W; x++) { const i = y * W + x, [px, py] = P(i), b = el('g', { role: 'gridcell', tabindex: 0, 'aria-label': `${DG(y + 1)} · ${DG(x + 1)}` }, row); el('rect', { x: px, y: py, width: c, height: c, fill: 'transparent', 'pointer-events': 'none' }, b); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); tapAt(i); } }; } }
+    /*T*/window.__ckAt = i => { const m = svg.getScreenCTM(), [x, y] = P(i); return { x: m.a * (x + c / 2) + m.e, y: m.d * (y + c / 2) + m.f }; }; window.__ckSol = this.sol(item);/*/T*/
+    const setAll = ps => { owner.fill(-1); cur = []; ps.forEach((p, k) => p.forEach(i => owner[i] = k)); nid = ps.length; redraw(); };
+    AUTO({ kind: 'cake', ok: () => { setAll(this.sol(item)); rulDoneBtn().click(); }, wrong: () => { setAll([0, 1, 2, 3, 4, 5].map(k => [0, 1, 2, 3].map(y => y * W + k))); rulDoneBtn().click(); } });
+    await rulDone(() => { input.off(); kg.remove(); close(); });
+    return { ans: pieces(), ctx: { svg, setAll } }; },
+  judge(item, ps) { const n = item.n, sz = ps.map(p => p.length);
+    if (ps.reduce((a, p) => a + p.length, 0) < CK.W * CK.H) return { ok: false, err: 'cakeLeft' };
+    if (ps.length !== n) return { ok: false, err: 'cakeCount' };
+    if (new Set(sz).size > 1) return { ok: false, err: 'unequalParts' };
+    if (item.diff && CAKE_LAST && ckKey(ps) === ckKey(CAKE_LAST)) return { ok: false, err: 'cakeSame' };
+    if (!item.diff) CAKE_LAST = ps; return { ok: true }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `${CK.W * CK.H} ÷ ${item.n} = ؟`); await S('gen.fr.hint.split'); }, async together() {},
+  async reveal(item, r) { r.ctx.setAll(this.sol(item)); if (!item.diff) CAKE_LAST = this.sol(item); await S('gen.fr.reveal.split'); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
+/* جدول النكهات (المشروع، المرجع خطوتا 3 و4): النكهة والكسر والقطع والمربعات، يملأ الطفل القطع توقّعاً ثم تُكتب المربعات (3 لكل قطعة)؛
+   ثم «من حصل على أكثر؟» بين صديقين (قطعتان، وربع الكعكة) */
+SCENES.cakeTable = async c => { const L = c.lines, svg = frStage(262), X = [306, 226, 150, 70], rowY = i => 86 + i * 40, g = el('g', {}, svg);
+  [['ckFlavor'], ['ckFrac'], ['ckPieces'], ['ckSquares']].forEach(([l], j) => { const t = el('text', { x: X[j], y: 50, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: FRC.ink, direction: 'rtl' }, g); t.textContent = labelText(l); });
+  geoLine(g, 26, 60, 334, 60, { color: FRC.edge, w: 2 });
+  const rows = [['choc', '#b07a4f', [1, 2], 4], ['straw', '#f08ba0', [1, 4], 2], ['van', '#efe0a8', [1, 4], 2]];
+  await S(L[0]);
+  for (const [i, [k, col, f, n]] of rows.entries()) { const y = rowY(i); el('rect', { x: X[0] + 26, y: y - 14, width: 18, height: 18, rx: 4, fill: col, stroke: FRC.edge, 'stroke-width': 1.2 }, g); const t = el('text', { x: X[0] - 6, y: y + 2, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: FRC.ink, direction: 'rtl' }, g); t.textContent = labelText('ck.' + k);
+    if (k !== 'van') fracText(g, X[1], y + 4, f, { fs: 17 }); SFX.tick();
+    await axPredictNum(n, k === 'van' ? 'gen.fr.pr.ckRest' : 'gen.fr.pr.ckPieces');   /* القطع: من ثماني قطع (والفانيلا ما بقي) */
+    const p = el('text', { x: X[2], y: y + 6, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: FRC.ink }, g); p.textContent = DG(n);
+    if (k === 'van') fracText(g, X[1], y + 4, [n, 8], { fs: 17 });
+    const sq = el('text', { x: X[3], y: y + 6, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: FRC.ink, direction: 'ltr', style: 'unicode-bidi:bidi-override' }, g); sq.textContent = `${DG(n)} × ${DG(3)} = ${DG(n * 3)}`; SFX.tick(); await sleep(FAST ? 10 : 400);
+    if (i < 2) await S(L[i + 1]); }
+  await S(L[3]);
+  /* صديقان: سلمى قطعتان، وعلي ربع الكعكة */
+  const k = await choosePick([['a', labelText('ck.friendA'), '<i></i>', 'gen.fr.ck.friendA'], ['b', labelText('ck.friendB'), '<i></i>', 'gen.fr.ck.friendB'], ['eq', labelText('ckEq'), '<i></i>', 'gen.fr.ck.eq']], 'eq');
+  logAttempt({ scene: 'explore', tag: 'axPredict', ok: k === 'eq' }); await S(L[4]); };
