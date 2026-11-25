@@ -42,6 +42,9 @@ def pa(sit,ask='kind',unit=None,q=None):
     if unit: d['unit']=unit
     return d
 def sc(a,b,ask='area',q=None): return {"t":"sameCmp","q":q or ('pr.sameA' if ask=='area' else 'pr.sameP'),"a":a,"b":b,"ask":ask}
+def pcl(w,h,claim,q='pr.claim'): return {"t":"perimClaim","q":q,"w":w,"h":h,"claim":claim}
+def ao(rects,q='pr.aorder'):
+    assert len({w*h for w,h in rects})==len(rects); return {"t":"areaOrder","q":q,"rects":rects}
 def mx(fence,q='pr.max',m2=False):   # m2: «م مربع» بعد د7 (C212)
     d={"t":"maxArea","q":q,"fence":fence}
     if m2: d['m2']=True
@@ -134,6 +137,7 @@ L_2={
  "mat.01":"عَلَى وَرَقِ المُرَبَّعَاتِ {اُرْسُمْ|اُرْسُمِي} مُرَبَّعًا وَمُسْتَطِيلًا، {وَقِسْ|وَقِيسِي} أَضْلَاعَهُمَا بِالمِسْطَرَةِ، {وَاحْسُبْ|وَاحْسُبِي} مُحِيطَ كُلٍّ مِنْهُمَا. ثُمَّ {اِلْمِسْ|اِلْمِسِي} «تَمَّ».",
  "mat.02":"وَالآنَ عَلَى الشَّاشَةِ.",
  "game.01":"لُعْبَةُ: مُفَتِّشُ السُّورِ!",
+ "pr.claim":"كَتَبَ المُقَاوِلُ عَلَى اللَّوْحَةِ أَنَّ طُولَ السُّورِ",
  "pr.intro":"هَيَّا نَتَمَرَّنُ عَلَى مُحِيطِ المُرَبَّعِ وَالمُسْتَطِيلِ.",
  "pr.perim":"كَمْ سَنْتِيمِتْرًا مُحِيطُهُ؟",
  "pr.perimSq":"كَمْ سَنْتِيمِتْرًا مُحِيطُ هَذَا المُرَبَّعِ؟",
@@ -161,7 +165,7 @@ d2={"id":"m2.u7.d2","title":"مُحِيطُ المُرَبَّعِ وَالمُ�
  "flow":[
   {"s":"hook","scene":"perimShow","sq":True,"w":5,"lines":["psq.01","psq.02"]},
   {"s":"explore","scene":"perimShow","w":7,"h":2,"mat":MAT(),"lines":["prc.01","prc.02","prc.03"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(rp(8,3),rp(6,6,sq=True)), tw(sp(24),sp(20,7)), tw(rd('perim',14),rd('perim',18))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(pcl(8,3,11),pcl(6,6,24)), tw(pcl(7,2,14),pcl(5,4,18)), tw(rd('perim',14),rd('perim',18))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(rp(9,2),rp(4,4,sq=True)), tw(sp(28),sp(18,5)), tw(rp(10,5),rp(7,7,sq=True))],
@@ -249,6 +253,7 @@ L_4={
  "mat.01":"عَلَى وَرَقِ المُرَبَّعَاتِ {اُرْسُمْ|اُرْسُمِي} مُسْتَطِيلًا، {وَعُدَّ|وَعُدِّي} صُفُوفَهُ وَأَعْمِدَتَهُ، {وَاضْرِبْ|وَاضْرِبِي}، ثُمَّ {تَحَقَّقْ|تَحَقَّقِي} بِالعَدِّ وَبِالمِسْطَرَةِ. ثُمَّ {اِلْمِسْ|اِلْمِسِي} «تَمَّ».",
  "mat.02":"وَالآنَ عَلَى الشَّاشَةِ.",
  "game.01":"لُعْبَةُ: مُهَنْدِسُ الأَرَاضِي!",
+ "pr.aorder":"{رَتِّبِ|رَتِّبِي} الأَرَاضِيَ: {اِلْمِسِ|اِلْمِسِي} الأَصْغَرَ مَسَاحَةً أَوَّلًا، ثُمَّ الأَكْبَرَ فَالأَكْبَرَ.",
  "pr.intro":"هَيَّا نَتَمَرَّنُ عَلَى مَسَاحَةِ المُسْتَطِيلِ.",
  "pr.areaR":"كَمْ سَنْتِيمِتْرًا مُرَبَّعًا مَسَاحَتُهُ؟",
  "pr.areaSq":"كَمْ سَنْتِيمِتْرًا مُرَبَّعًا مَسَاحَةُ هَذَا المُرَبَّعِ؟",
@@ -277,7 +282,7 @@ d4={"id":"m2.u7.d4","title":"مَسَاحَةُ المُسْتَطِيلِ","ico
   AGAIN_U6,
   {"s":"hook","scene":"rowsCols","w":4,"h":5,"lines":["rc.01","rc.02","rc.03"]},
   {"s":"explore","scene":"perimShow","w":5,"h":3,"area":True,"mat":MAT(),"lines":["rq.01","rq.02"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(ra(6,3,'full'),ra(8,3,'edge')), tw(sc([8,3],[5,5]),sc([9,2],[4,4])), tw(rd('area',18),rd('area',20))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(ra(6,3,'full'),ra(8,3,'edge')), tw(ao([[8,3],[5,5],[6,3]]),ao([[9,2],[4,4],[5,3]])), tw(rd('area',18),rd('area',20))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(ra(7,3,'edge'),ra(4,4,'full',sq=True)), tw(sa(24,6),sa(35,7)), tw(ra(9,5),ra(6,6,sq=True))],

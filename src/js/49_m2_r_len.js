@@ -60,6 +60,19 @@ const lenStage = (H = 232) => { const svg = newStage(H, { oasis: false, ground: 
 const lenOpts = vals => vals.map(v => [lenKey(v), lenTxt(v), '<i></i>', lenLn(v)]);
 
 /* ================= ① أيّ وحدة أنسب؟ (C187): thing ================= */
+/* ================= لعبة «اختيار الأداة» (د1، المراجع A لبوابة U6/U7، 19): المسطرة للقصير، وشريط القياس للطويل، وعدّاد السيارة للمسافات ================= */
+const TOOL_OF = u => u === 'km' ? 'car' : u === 'm' ? 'tape' : 'ruler', TOOLS = ['ruler', 'tape', 'car'];
+ITEM.lenTool = {
+  make(spec) { const w = TOOL_OF(LEN_TH[spec.thing].u); return { ...spec, want: w, tag: 'tool-pick-' + w }; },
+  async ask(item, mode, tries) { const svg = lenStage(220); lenThing(svg, item.thing, 180, 104, 1.2); const t = el('text', { x: 180, y: 182, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 700, fill: LENC.ink }, svg); t.textContent = labelText('len.th.' + item.thing);
+    if (tries >= 3) { hintCard(svg, 180, 30, labelText('lenToolRule')); await S('gen.len.together.tool'); } else { await S(item.q, { noGap: true }); await S('gen.len.th.' + item.thing, { append: true }); }
+    const k = await choosePick(TOOLS.map(x => [x, labelText('lenTool.' + x), '<i></i>', 'gen.len.tool.' + x]), item.want); return { ans: k, ctx: { svg } }; },
+  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: TOOLS.indexOf(k) > TOOLS.indexOf(item.want) ? 'unitBig' : 'unitSmall' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30, labelText('lenToolRule')); await S('gen.len.hint.tool'); }, async together() {},   /* القاعدة مكتوبة: القصير بالمسطرة، والطويل بالشريط، والمسافة بالعدّاد */
+  async reveal(item) { await S('gen.len.reveal.tool', { noGap: true }); await S('gen.len.tool.' + item.want, { append: true }); },
+  praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
+};
 ITEM.unitPick = {
   make(spec) { return { ...spec, want: LEN_TH[spec.thing].u, tag: 'unit-pick-' + LEN_TH[spec.thing].u }; },
   async ask(item, mode, tries) { const svg = lenStage(220); lenThing(svg, item.thing, 180, 104, 1.2); const t = el('text', { x: 180, y: 182, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 700, fill: LENC.ink }, svg); t.textContent = labelText('len.th.' + item.thing);
@@ -77,16 +90,19 @@ ITEM.unitPick = {
 ITEM.tapeRead = {
   make(spec) { const want = spec.m ? lenKey([spec.len, 'mc']) : lenKey([spec.len, 'cm']); return { ...spec, want, tag: 'tape-read' + (spec.m ? '-mc' : '') }; },
   /* الطول فوق 110: نافذة من الشريط عند طرف الشيء بالمقياس نفسه (تدريجة لكل سنتيمتر وعدد كل عشرة)، والشريط مقطوع عند بدايتها (المراجع B لبوابة U6/U7، 11: كان 220 مضغوطاً بتدريجة 5 سم وعدد كل 20) */
-  draw(item, svg) { const from = item.len <= 110 ? 0 : Math.floor(item.len / 10) * 10 - 60, to = from + 120, k = from ? 2.4 : 2.5, x0 = 40, T = tapeAt(svg, { x: x0, y: 132, from, to, pxcm: k, label: 10 }), X2 = T.X(item.len);
-    const th = el('g', {}, svg); el('rect', { x: x0, y: 84, width: X2 - x0, height: 34, rx: 4, fill: item.thing === 'table' ? '#b9794e' : '#3d7cc0', opacity: .9 }, th); el('line', { x1: X2, y1: 78, x2: X2, y2: 168, stroke: '#c8392d', 'stroke-width': 2.4, 'stroke-dasharray': '4 3' }, th);
-    const t = el('text', { x: x0 + (X2 - x0) / 2, y: 106, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: '#fff' }, th); t.textContent = labelText('len.th.' + (item.thing || 'table')); return { T, X2 }; },
+  /* start: الشيء لا يبدأ من الصفر (فوضى في د5 تقرأ طرفه): الطول ما بين العددين */
+  draw(item, svg) { const s0 = item.start || 0, end = s0 + item.len, from = end <= 110 ? 0 : Math.floor(end / 10) * 10 - 60, to = from + 120, k = from ? 2.4 : 2.5, x0 = 40, T = tapeAt(svg, { x: x0, y: 132, from, to, pxcm: k, label: 10 }), X1 = s0 ? T.X(s0) : x0, X2 = T.X(end);
+    const th = el('g', {}, svg); el('rect', { x: X1, y: 84, width: X2 - X1, height: 34, rx: 4, fill: item.thing === 'table' ? '#b9794e' : '#3d7cc0', opacity: .9 }, th); el('line', { x1: X2, y1: 78, x2: X2, y2: 168, stroke: '#c8392d', 'stroke-width': 2.4, 'stroke-dasharray': '4 3' }, th);
+    if (s0) el('line', { x1: X1, y1: 78, x2: X1, y2: 168, stroke: '#c8392d', 'stroke-width': 2.4, 'stroke-dasharray': '4 3' }, th);
+    const t = el('text', { x: X1 + (X2 - X1) / 2, y: 106, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: '#fff' }, th); t.textContent = labelText('len.th.' + (item.thing || 'table')); return { T, X1, X2 }; },
   async ask(item, mode, tries) { const svg = lenStage(220), D = this.draw(item, svg);
-    if (tries >= 3) { const m = helpG(svg), base = Math.floor(item.len / 10) * 10; await S('gen.len.together.tape'); thinkRing(m, [D.T.X(base), D.T.y + 22], 14); if (item.len % 10) el('path', { d: `M${D.T.X(base)} ${D.T.y - 4} Q${(D.T.X(base) + D.X2) / 2} ${D.T.y - 22} ${D.X2} ${D.T.y - 4}`, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, m); }
+    if (tries >= 3 && item.start) { const m = helpG(svg); thinkRing(m, [D.X1, D.T.y + 22], 14); thinkRing(m, [D.X2, D.T.y + 22], 14); hintCard(svg, 180, 30, `${item.start + item.len} − ${item.start} = ؟`); await S('gen.len.together.tapeStart'); }
+    else if (tries >= 3) { const m = helpG(svg), base = Math.floor(item.len / 10) * 10; await S('gen.len.together.tape'); thinkRing(m, [D.T.X(base), D.T.y + 22], 14); if (item.len % 10) el('path', { d: `M${D.T.X(base)} ${D.T.y - 4} Q${(D.T.X(base) + D.X2) / 2} ${D.T.y - 22} ${D.X2} ${D.T.y - 4}`, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, m); }
     else await S(item.q);
     const vals = item.ch.map(n => item.m ? [n, 'mc'] : [n, 'cm']), k = await choosePick(shuffle(lenOpts(vals)), item.want); return { ans: k, ctx: { svg, D } }; },
-  judge(item, k) { if (k === item.want) return { ok: true }; const n = parseInt(k, 10), sw = d => String(d).split('').sort().join(''); return { ok: false, err: item.m && n !== item.len && sw(n) === sw(item.len) ? 'mcSplit' : 'tapeOff' }; },   /* mcSplit حين تنقلب الأرقام وحدها (153 لـ 135)، وغيره خطأ قراءة (المراجع B لبوابة U6/U7، 14) */
+  judge(item, k) { if (k === item.want) return { ok: true }; const n = parseInt(k, 10), sw = d => String(d).split('').sort().join(''); if (item.start && n === item.start + item.len) return { ok: false, err: 'tapeNotZero' }; return { ok: false, err: item.m && n !== item.len && sw(n) === sw(item.len) ? 'mcSplit' : 'tapeOff' }; },   /* mcSplit حين تنقلب الأرقام وحدها (153 لـ 135)، وغيره خطأ قراءة (المراجع B لبوابة U6/U7، 14) */
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { const m = helpG(r.ctx.svg); thinkRing(m, [r.ctx.D.X2, r.ctx.D.T.y + 8], 12); await S('gen.len.hint.tape'); await sleep(500); m.remove(); }, async together() {},
+  async hint2(item, r) { const m = helpG(r.ctx.svg); thinkRing(m, [r.ctx.D.X2, r.ctx.D.T.y + 8], 12); if (item.start) { thinkRing(m, [r.ctx.D.X1, r.ctx.D.T.y + 8], 12); await S('gen.len.hint.tapeStart'); await sleep(500); m.remove(); return; } await S('gen.len.hint.tape'); await sleep(500); m.remove(); }, async together() {},
   async reveal(item, r) { const m = helpG(r.ctx.svg); thinkRing(m, [r.ctx.D.X2, r.ctx.D.T.y + 8], 12); await S('gen.len.reveal.tape', { noGap: true }); await S(lenLn(item.m ? [item.len, 'mc'] : [item.len, 'cm']), { append: true }); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };

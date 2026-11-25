@@ -258,7 +258,8 @@ export const factOf = it => { const t = it.t;
   if (t === 'designSym') return `dsg|${it.need}|${(it.start || []).join(';')}`;
   /* S2-U6: الأطوال بقيمها ووحداتها */
   if (t === 'unitPick') return `unit|${it.thing}`;
-  if (t === 'tapeRead') return `tape|${it.len}|${it.m ? 'mc' : 'cm'}`;
+  if (t === 'tapeRead') return `tape|${it.len}|${it.m ? 'mc' : 'cm'}${it.start ? '|s' + it.start : ''}`;
+  if (t === 'lenTool') return `ltool|${it.thing}`;
   if (t === 'convFill') return `conv|${it.v.join('')}|${it.to}`;
   if (t === 'convMachine') return `convm|${it.v.join('')}|${it.to}`;
   if (t === 'mcConv') return `mc|${it.cm}|${it.dir}`;
@@ -285,6 +286,8 @@ export const factOf = it => { const t = it.t;
   if (t === 'pOrA') return `pa|${it.sit}|${it.ask || 'kind'}|${it.unit || 'cm'}`;
   if (t === 'sameCmp') return `sc|${[it.a.join('x'), it.b.join('x')].sort().join(',')}|${it.ask}`;
   if (t === 'maxArea') return `mx|${it.fence}`;
+  if (t === 'perimClaim') return `pcl|${rectKey(it.w, it.h)}|${it.claim}`;
+  if (t === 'areaOrder') return `ao|${it.rects.map(([w, h]) => rectKey(w, h)).sort().join(',')}`;
   /* S2-U8: الكسور بأشكالها وقيمها (الشكل والكسر معاً، فالكسر نفسه على شكل آخر مسألة أخرى) */
   if (t === 'fracEqual') return `fe|${it.figs.map(f => f.k + f.n + (f.parts ? ':' + f.parts.join(',') : '')).sort().join(';')}`;
   if (t === 'fairCut') return `fc|${it.fig.k}${it.fig.n}${it.fig.parts ? ':' + it.fig.parts.join(',') : ''}`;

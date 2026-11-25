@@ -191,6 +191,42 @@ ITEM.pOrA = {
   async reveal(item) { await S('gen.ar.reveal.pa.' + AR_SIT[item.sit]); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
+/* ================= لعبة «مفتّش السور» (د2، المراجع A لبوابة U6/U7، 19): المقاول يكتب طول السور لأرض مستطيلة؛ صحيح أم خطأ؟ claim: ما كتبه ================= */
+ITEM.perimClaim = {
+  make(spec) { const P = 2 * (spec.w + spec.h); return { ...spec, P, want: spec.claim === P ? 'yes' : 'no', tag: 'perim-claim' }; },
+  async ask(item, mode, tries) { const svg = arStage(232), Rl = rectLab(svg, item.w, item.h, { sq: item.w === item.h, showH: true, cy: 108, maxH: 110 }), sign = el('g', {}, svg);
+    el('rect', { x: 110, y: 184, width: 140, height: 34, rx: 8, fill: '#fff3d6', stroke: '#b9862a', 'stroke-width': 2 }, sign); const t = el('text', { x: 180, y: 207, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ink, direction: 'rtl' }, sign); t.textContent = `${labelText('arFence')} ${item.claim} ${labelText('rulCm')}`;
+    if (tries >= 3) { hintCard(svg, 180, 30, `2 × (${item.w} + ${item.h}) = ؟`); await S('gen.ar.together.claim'); } else { await S(item.q, { noGap: true }); await sayLen(item.claim, 'cm', { noGap: true }); await S('gen.ar.isRight', { append: true }); }
+    const k = await choosePick([['yes', labelText('yes'), PICKICON.yes, 'gen.opt.yes'], ['no', labelText('no'), PICKICON.no, 'gen.opt.no']], item.want); return { ans: k, ctx: { svg, Rl } }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; const { w, h, claim } = item; return { ok: false, err: claim === w + h ? 'perimHalf' : claim === w * h ? 'perimArea' : 'perimOff' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30, `${item.w} + ${item.h} + ${item.w} + ${item.h} = ؟`); await S('gen.ar.hint.claim'); }, async together() {},   /* الأضلاع الأربعة مكتوبة للجمع */
+  async reveal(item) { await S('gen.ar.reveal.claim', { noGap: true }); await sayLen(item.P, 'cm'); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
+/* ================= لعبة «مهندس الأراضي» (د4، المراجع A لبوابة U6/U7، 19): ثلاث أراضٍ مستطيلة تُرتَّب من الأصغر مساحةً إلى الأكبر، ثم «تمّ» ================= */
+const AO_X = [290, 180, 70];
+ITEM.areaOrder = {
+  make(spec) { const order = spec.rects.map((r, i) => i).sort((i, j) => spec.rects[i][0] * spec.rects[i][1] - spec.rects[j][0] * spec.rects[j][1]); /*T*/if (TESTHOOK && new Set(spec.rects.map(([w, h]) => w * h)).size < spec.rects.length) testBug('areaOrder: مساحتان متساويتان');/*/T*/ return { ...spec, want: order.join(','), tag: 'area-order' }; },
+  async ask(item, mode, tries) { const svg = arStage(232), k = Math.min(10, 86 / Math.max(...item.rects.map(r => r[0])), 96 / Math.max(...item.rects.map(r => r[1]))), picked = [], badges = el('g', { 'pointer-events': 'none' }, svg);
+    const cards = item.rects.map(([w, h], i) => { const cx = AO_X[i], g = el('g', { role: 'button', tabindex: 0, 'aria-label': `${w} × ${h}` }, svg); g.style.cursor = 'pointer'; el('rect', { x: cx - 50, y: 34, width: 100, height: 158, rx: 12, fill: '#fffdf6', stroke: css('--line'), 'stroke-width': 2 }, g); el('rect', { x: cx - w * k / 2, y: 100 - h * k / 2, width: w * k, height: h * k, fill: ARC.fill, stroke: ARC.edge, 'stroke-width': 2.4 }, g); const d = el('text', { x: cx, y: 178, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: ARC.ink, direction: 'ltr' }, g); d.textContent = `${w} × ${h}`; return g; });
+    if (tries >= 3) { const m = helpG(svg); item.rects.forEach(([w, h], i) => { const t = el('text', { x: AO_X[i], y: 214, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, m); t.textContent = `${labelText('arArea0')} ${w * h}`; }); await S('gen.ar.together.order'); }
+    else await S(item.q);
+    /*T*/window.__ordWant = item.want.split(',').map(Number); window.__ordAt = i => { const r = cards[i].getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };/*/T*/
+    const fill0 = cards.map(c => c.querySelector('rect').getAttribute('fill'));
+    await gate(new Promise(res => { let bar = null; const draw = () => { badges.innerHTML = ''; cards.forEach((c, i) => c.querySelector('rect').setAttribute('fill', fill0[i])); picked.forEach((i, n) => { badge(badges, AO_X[i] + 36, 46, n + 1, css('--compass')); cards[i].querySelector('rect').setAttribute('fill', '#eef6fb'); });
+        if (picked.length === cards.length && !bar) { bar = doneBtn(); bar.b.onclick = () => { if (picked.length !== cards.length) return; AUTO_CLEAR(); hush(); bar.bar.remove(); res(); }; } else if (picked.length < cards.length && bar) { bar.bar.remove(); bar = null; } };
+      const pick = i => { const at = picked.indexOf(i); if (at >= 0) picked.splice(at); else picked.push(i); SFX.tick(); draw(); };
+      cards.forEach((g, i) => { g.onclick = () => pick(i); g.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); pick(i); } }; });
+      const fin = () => setTimeout(() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }, 0);
+      AUTO({ kind: 'lenOrder', ok: () => { item.want.split(',').forEach(i => pick(+i)); fin(); }, wrong: () => { [...item.want.split(',')].reverse().forEach(i => pick(+i)); fin(); } }); }));
+    cards.forEach(g => { g.onclick = null; g.onkeydown = null; g.removeAttribute('role'); }); return { ans: picked.join(','), ctx: { svg, badges, cards } }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; const byP = item.rects.map((r, i) => i).sort((i, j) => (item.rects[i][0] + item.rects[i][1]) - (item.rects[j][0] + item.rects[j][1])).join(','); return { ok: false, err: k === byP ? 'perimBigArea' : 'areaOrder' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg); item.rects.forEach(([w, h], i) => { const t = el('text', { x: AO_X[i], y: 214, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${w} × ${h} = ؟`; }); } await S('gen.ar.hint.order'); }, async together() {},
+  async reveal(item, r) { const b = r.ctx.badges; b.innerHTML = ''; item.want.split(',').forEach((i, n) => badge(b, AO_X[+i] + 36, 46, n + 1, ARC.ok)); await S('gen.ar.reveal.order'); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
 /* ================= ⑫ محيط واحد ومساحتان (C210): a وb مستطيلان [w، h]، ask: area | perim ================= */
 ITEM.sameCmp = {
   make(spec) { const f = spec.ask === 'perim' ? ([w, h]) => 2 * (w + h) : ([w, h]) => w * h, A = f(spec.a), B = f(spec.b); return { ...spec, want: A === B ? 'eq' : A > B ? 'a' : 'b', tag: 'same-cmp-' + spec.ask }; },

@@ -6,10 +6,12 @@ def tw(a,b): a=dict(a); a['twin']=b; return a
 def reason(q,pic,ids): return {"t":"reason","q":q,"pic":pic,"opts":[{"id":ids[0],"ok":True},{"id":ids[1]},{"id":ids[2]}]}
 MAT=lambda: {"prompt":"mat.01","show":[],"icon":True,"after":"mat.02","facts":[]}
 def up(thing,q='pr.unit'): return {"t":"unitPick","q":q,"thing":thing}
-def tr(n,ch,thing='table',m=False,q='pr.tape'):
+def tp(thing,q='pr.tool'): return {"t":"lenTool","q":q,"thing":thing}
+def tr(n,ch,thing='table',m=False,q='pr.tape',start=0):
     assert n in ch and n%5==0
     d={"t":"tapeRead","q":q,"len":n,"ch":ch,"thing":thing}
     if m: d['m']=True
+    if start: d['start']=start; assert start+n in ch   # فوضى تقرأ الطرف والشيء لا يبدأ من الصفر
     return d
 MM={'mm':1,'cm':10,'m':1000,'km':1000000}
 def cf(v,to,ch,q='pr.conv'):
@@ -62,6 +64,7 @@ L1={
  "ut.01":"لِكُلِّ شَيْءٍ وَحْدَةٌ أَنْسَبُ: الصَّغِيرُ جِدًّا بِالمِلِّيمِتْرِ، ثُمَّ السَّنْتِيمِتْرُ، ثُمَّ المِتْرُ، ثُمَّ الكِيلُومِتْرُ لِلطُّرُقِ.",
  "ut.02":"نَخْتَارُ الوَحْدَةَ الَّتِي تُعْطِي عَدَدًا مُرِيحًا: لَا صَغِيرًا جِدًّا وَلَا ضَخْمًا.",
  "game.01":"لُعْبَةُ: اخْتِيَارُ الأَدَاةِ!",
+ "pr.tool":"بِأَيِّ أَدَاةٍ نَقِيسُ طُولَ",
  "pr.intro":"هَيَّا نَتَمَرَّنُ عَلَى المِتْرِ وَالوَحَدَاتِ.",
  "pr.unit":"أَيُّ وَحْدَةٍ أَنْسَبُ لِقِيَاسِ:",
  "pr.tape":"كَمْ طُولُهُ؟ {اِقْرَأْ|اِقْرَئِي} شَرِيطَ القِيَاسِ.",
@@ -93,7 +96,7 @@ d1={"id":"m2.u6.d1","title":"المِتْرُ وَالكِيلُومِتْرُ",
   {"s":"hook","scene":"tapeIntro","lines":["tp.01","tp.02","tp.03"]},
   {"s":"explore","scene":"kmWalk","mat":MAT(),"lines":["km.01","km.02","km.03"]},
   {"s":"explore","scene":"unitTable","pics":["ant","pencil","door","road"],"lines":["ut.01","ut.02"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(up('book'),up('bed')), tw(up('race'),up('seed')), tw(tr(70,[60,70,75]),tr(45,[45,50,40]))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(tp('book'),tp('door')), tw(tp('road'),tp('eraser')), tw(up('race'),up('seed')), tw(tr(70,[60,70,75]),tr(45,[45,50,40]))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(up('coin'),up('table')), tw(tr(90,[90,80,95]),tr(55,[55,65,50])), tw(cf([2,'m'],'cm',[20,200,2000]),cf([3,'km'],'m',[300,3000,30]))],
@@ -302,6 +305,7 @@ L5={
  "gm.intro":"لُعْبَةُ: مُغَامَرَةُ فَوْضَى القِيَاسِيَّةُ! {صَحِّحْ|صَحِّحِي} لَهَا مَا تُخْطِئُ فِيهِ.",
  "gm.unit":"قَاسَتْ فَوْضَى بِوَحْدَةٍ لَا تُنَاسِبُ. أَيُّ وَحْدَةٍ أَنْسَبُ لِقِيَاسِ:",
  "gm.conv":"حَوَّلَتْ فَوْضَى خَطَأً. كَمْ يُسَاوِي:",
+ "gm.tape":"قَاسَتْ فَوْضَى فَقَرَأَتِ العَدَدَ عِنْدَ الطَّرَفِ، وَالشَّيْءُ لَا يَبْدَأُ مِنَ الصِّفْرِ! كَمْ طُولُهُ حَقًّا؟",
  "gm.add":"جَمَعَتْ فَوْضَى بِلَا إِعَادَةِ تَجْمِيعٍ. كَمْ يَكُونُ المَجْمُوعُ حَقًّا؟",
  "pr.intro":"هَيَّا نَتَمَرَّنُ قَبْلَ الاخْتِبَارِ.",
  "q.unit":"أَيُّ وَحْدَةٍ أَنْسَبُ لِقِيَاسِ:",
@@ -338,7 +342,7 @@ d5={"id":"m2.u6.d5","title":"سَيِّدُ المِسْطَرَةِ","icon":["s
   AGAIN_U5,
   {"s":"hook","scene":"stoneHook","placed":6,"lines":["hook.01","hook.02"]},
   {"s":"explore","scene":"lines","mat":MAT(),"lines":["rv.01","rv.02","rv.03"]},
-  {"s":"game","scene":"items","mode":"practice","stage":"game","intro":"gm.intro","items":[tw(up('bus',q='gm.unit'),up('pencil',q='gm.unit')), tw(cf([2,'km'],'m',[20,200,2000],q='gm.conv'),cf([9,'m'],'cm',[90,900,9000],q='gm.conv')), tw(calc([3,60],[2,50],'+',[[6,10],[5,110],[5,10]],q='gm.add'),calc([1,85],[1,35],'+',[[3,20],[2,120],[2,20]],q='gm.add'))]},
+  {"s":"game","scene":"items","mode":"practice","stage":"game","intro":"gm.intro","items":[tw(up('bus',q='gm.unit'),up('pencil',q='gm.unit')), tw(cf([2,'km'],'m',[20,200,2000],q='gm.conv'),cf([9,'m'],'cm',[90,900,9000],q='gm.conv')), tw(calc([3,60],[2,50],'+',[[6,10],[5,110],[5,10]],q='gm.add'),calc([1,85],[1,35],'+',[[3,20],[2,120],[2,20]],q='gm.add')), tw(tr(25,[25,35,24],thing='book',q='gm.tape',start=10),tr(15,[15,20,14],thing='pencil',q='gm.tape',start=5))]},
   {"s":"practice"},{"s":"test"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(up('race',q='q.unit'),up('book',q='q.unit')), tw(cm_([4,'m'],'cm',q='q.machine'),cm_([6000,'m'],'km',q='q.machine')), tw(lc([3,'km'],[2900,'m'],q='q.cmp'),lc([95,'mm'],[9,'cm'],q='q.cmp'))],
