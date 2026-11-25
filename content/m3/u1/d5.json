@@ -194,9 +194,9 @@
    {
     "t": "quadMissing",
     "degs": [
-     40,
-     30,
-     60
+     35,
+     45,
+     50
     ],
     "twin": {
      "t": "quadMissing",
