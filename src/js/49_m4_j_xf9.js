@@ -22,14 +22,14 @@ function c9Mark(parent, Pl, xf) { const g = el('g', { 'pointer-events': 'none' }
 function c9Card(svg, txt, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 230, cx = o.cx || 180, y = o.y ?? 4;
   el('rect', { x: cx - w / 2, y, width: w, height: 28, rx: 10, fill: '#fff', stroke: o.col || C9.ax, 'stroke-width': 2 }, g); preLab(g, cx, y + 20, txt, { fs: 15, col: o.col || C9.ax, dir: 'rtl' }); return g; }
 const c9Name = xf => labelText('c9N.' + xf);
-/* قاعدة التحويل: اسمه بالكلمات سطراً، وصيغته بالرمز تحته من اليسار كالأزواج (D84): (س ، ص) → (−س ، ص) */
+/* قاعدة التحويل: اسمه بالكلمات سطراً، وصيغته بالرمز تحته من اليمين لأن رموزها عربية (D280): (س ، ص) ← (−س ، ص)، والسالب على يمين الحرف */
 const C9_FORM = { refV: ['−X', 'Y'], refH: ['X', '−Y'], rot90: ['−Y', 'X'], rot180: ['−X', '−Y'], rot270: ['Y', '−X'] };
 function c9RuleCard(parent, cx, y, xf, o = {}) { const g = el('g', { 'pointer-events': 'none' }, parent), w = o.w || 250, col = o.col || C9.hl, X = labelText('coX'), Y = labelText('coY'), sub = t => t.replace('X', X).replace('Y', Y);
   el('rect', { x: cx - w / 2, y: y - 20, width: w, height: 50, rx: 12, fill: '#fff', stroke: col, 'stroke-width': 2.4 }, g); preLab(g, cx, y, labelText('c9Rule.' + xf), { fs: 14, col, dir: 'rtl' });
-  /* كل رمزٍ في موضعه من اليسار، وبـ ltr لئلا ينقلب القوس في سياق الصفحة rtl */
-  const tok = ['(', 'X', '،', 'Y', ')', '→', '('].concat(...C9_FORM[xf].map((t, i) => (t[0] === '−' ? ['−', t[1]] : [t]).concat(i ? [] : ['،'])), [')']), W = { '(': 8, ')': 8, '،': 12, '→': 28, '−': 10 };
-  const ws = tok.map(t => W[t] || 15), tot = ws.reduce((a, b) => a + b, 0); let x = cx - tot / 2;
-  tok.forEach((t, i) => { const e = el('text', { x: x + ws[i] / 2, y: y + 22, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: col, direction: 'ltr' }, g); e.textContent = sub(t); x += ws[i]; });
+  /* كل رمزٍ في موضعه من اليمين، وبـ rtl فينعكس القوس كما في السطر العربي */
+  const tok = ['(', 'X', '،', 'Y', ')', '←', '('].concat(...C9_FORM[xf].map((t, i) => (t[0] === '−' ? ['−', t[1]] : [t]).concat(i ? [] : ['،'])), [')']), W = { '(': 8, ')': 8, '،': 12, '←': 28, '−': 10 };
+  const ws = tok.map(t => W[t] || 15), tot = ws.reduce((a, b) => a + b, 0); let x = cx + tot / 2;
+  tok.forEach((t, i) => { const e = el('text', { x: x - ws[i] / 2, y: y + 22, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: col, direction: 'rtl' }, g); e.textContent = sub(t); x -= ws[i]; });
   return g; }
 /* قوس الدوران حول الأصل من النقطة إلى صورتها (عكس عقارب الساعة) */
 function c9TurnArc(parent, Pl, p, q, o = {}) { const O = Pl.P(0, 0), A = Pl.P(...p), r = Math.hypot(A[0] - O[0], A[1] - O[1]), a0 = Math.atan2(O[1] - A[1], A[0] - O[0]) * 180 / Math.PI, B = Pl.P(...q);

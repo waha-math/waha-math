@@ -1,7 +1,7 @@
 /* =====================================================================
    M4-U5 «الإحداثيات الكاملة» (المرحلة 4، نوفمبر 2026)
    د1 المستوى الكامل والأرباع (C419) · د2 المسافة بفيثاغورس والميل (C410) · د3 معادلة المستقيم ص = م س + ب (C417، D190) · د4 مشروع «خريطة المدينة الكاملة»
-   الزوج المرتب من اليسار بالكتابتين (D84) وعلامة السالب قبل العدد؛ والمعادلة والميل جملةٌ تتبع «أرقامي» (D251): من اليمين مع المشرقية
+   الزوج المرتب والسالب والمعادلة بحروفها العربية من اليمين، والسالب على يمين العدد (D280، يعدّل D84)؛ والأزواج بالأرقام الغربية وحدها من اليسار، والميل عددٌ يتبع «أرقامي» (D251)
    فتقع علامة السالب يمين العدد كما تُقرأ، ومن اليسار مع الغربية
    ===================================================================== */
 const C4 = { grid: '#dfe5ea', ax: '#c9971c', ink: '#24323a', pt: '#2f7fc1', pt2: '#d9822b', ok: '#2f9d6b', q: '#c0392b', ln: '#7a4fb0', hl: SO.hl,
@@ -23,8 +23,8 @@ function c4Plane(svg, o = {}) { const n = o.n || 5, m = o.ny || n, top = o.top ?
   preLab(g, C[0] + n * c + 9, C[1] + 16, labelText('coX'), { col: C4.ax, fs: 13, dir: 'rtl' }); preLab(g, C[0] + 13, C[1] - m * c + 2, labelText('coY'), { col: C4.ax, fs: 13, dir: 'rtl', anchor: 'start' });
   const st = c >= 17 ? 1 : 2;
   if (o.nums !== false) for (let k = -Math.max(n, m); k <= Math.max(n, m); k++) { if (!k || k % st) continue;
-    if (Math.abs(k) <= n) preLab(g, C[0] + k * c, C[1] + 13, preNum(k), { fs: 9.5, col: '#5b6b72' });
-    if (Math.abs(k) <= m) preLab(g, C[0] - 5, C[1] - k * c + 3.5, preNum(k), { fs: 9.5, anchor: 'end', col: '#5b6b72' }); }
+    if (Math.abs(k) <= n) preLab(g, C[0] + k * c, C[1] + 13, preNumV(k), { fs: 9.5, col: '#5b6b72' });
+    if (Math.abs(k) <= m) preLab(g, C[0] - 5, C[1] - k * c + 3.5, preNumV(k), { fs: 9.5, anchor: 'end', col: '#5b6b72' }); }
   el('circle', { cx: C[0], cy: C[1], r: 3.5, fill: C4.ink }, g);
   if (o.qlab) [['q1', 1, 1], ['q2', -1, 1], ['q3', -1, -1], ['q4', 1, -1]].forEach(([k, sx, sy]) => preLab(g, C[0] + sx * n * c / 2, C[1] - sy * m * c / 2 + 5, labelText('c4Q.' + k), { fs: 14, col: '#7d8a90', dir: 'rtl' }));
   return { g, P, C, c, n, m, inside: q => q[0] > C[0] - n * c - 16 && q[0] < C[0] + n * c + 16 && q[1] > C[1] - m * c - 14 && q[1] < C[1] + m * c + 14,
@@ -49,12 +49,12 @@ async function c4Walk(svg, Pl, x, y, o = {}) { const m = helpG(svg); let last = 
 function c4Card(svg, x, y, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 116, col = o.col || C4.pt, cx = o.cx || 180;
   el('rect', { x: cx - w / 2, y: 4, width: w, height: 30, rx: 10, fill: '#fff', stroke: col, 'stroke-width': 2 }, g); coPairText(g, cx, 25, preNum(x), preNum(y), 'middle', 17, col); return g; }
 
-/* ---------- المعادلة ص = م س + ب جملةً (D190، D251): ذرّاتٌ بترتيب القراءة، تُعكس مع المشرقية فتُقرأ من اليمين ---------- */
+/* ---------- المعادلة ص = م س + ب جملةً (D190، D280): ذرّاتٌ بترتيب القراءة، تُعكس دائماً فتُقرأ من اليمين لأن فيها س وص ---------- */
 function c4EqAtoms(m, b) { const A = [labelText('coY'), ' ', '=', ' '], d = v => String(Math.abs(v)), x = labelText('coX');
   if (m) { if (m < 0) A.push('−'); if (Math.abs(m) !== 1) A.push(d(m)); A.push(x); if (b) A.push(' ', b < 0 ? '−' : '+', ' ', d(b)); }
   else { if (b < 0) A.push('−'); A.push(d(b)); }
   return A; }
-const c4EqVis = (m, b) => { const A = c4EqAtoms(m, b).map(t => /\d/.test(t) ? MS(t) : t); return (SET.digits === 'east' ? A.reverse() : A).join(''); };
+const c4EqVis = (m, b) => c4EqAtoms(m, b).map(t => /\d/.test(t) ? MS(t) : t).reverse().join('');   /* فيها س وص: من اليمين بالكتابتين (D280)، والذرّات معكوسة تحت ltr مع bidi-override */
 function c4EqText(parent, x, y, m, b, o = {}) { const t = el('text', { x, y, 'text-anchor': o.anchor || 'middle', 'font-size': o.fs || 20, 'font-weight': 800, fill: o.col || C4.ln, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'ltr', 'unicode-bidi': 'bidi-override', 'pointer-events': 'none' }, parent); t.textContent = c4EqVis(m, b); return t; }
 function c4EqCard(svg, m, b, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 156, cx = o.cx || 180, y = o.y ?? 4;
   el('rect', { x: cx - w / 2, y, width: w, height: 30, rx: 10, fill: '#fff', stroke: C4.ln, 'stroke-width': 2 }, g); c4EqText(g, cx, y + 22, m, b, { fs: 19 }); return g; }
@@ -66,8 +66,8 @@ function c4Line(parent, Pl, m, b, o = {}) { if (o.vx != null) { const A = Pl.P(o
 const c4Through = (parent, Pl, a, b, o = {}) => a[0] === b[0] ? c4Line(parent, Pl, 0, 0, { ...o, vx: a[0] }) : c4Line(parent, Pl, (b[1] - a[1]) / (b[0] - a[0]), a[1] - (b[1] - a[1]) / (b[0] - a[0]) * a[0], o);
 /* الفرق الأفقي ثم الرأسي بين نقطتين (الحلّ المشترك والمشاهد) */
 function c4RunRise(parent, Pl, a, b, o = {}) { const A = Pl.P(...a), K = Pl.P(b[0], a[1]), B = Pl.P(...b), dx = b[0] - a[0], dy = b[1] - a[1];
-  if (dx) { geoLine(parent, A[0], A[1], K[0], K[1], { color: C4.pt, w: 3, dash: '5 4' }); preLab(parent, (A[0] + K[0]) / 2, A[1] + (dy > 0 ? 18 : -9), o.abs ? MS(String(Math.abs(dx))) : preNum(dx), { col: C4.pt, fs: 14 }); }
-  if (dy) { geoLine(parent, K[0], K[1], B[0], B[1], { color: C4.pt2, w: 3, dash: '5 4' }); preLab(parent, K[0] + (dx >= 0 ? 8 : -8), (K[1] + B[1]) / 2 + 5, o.abs ? MS(String(Math.abs(dy))) : preNum(dy), { col: C4.pt2, fs: 14, anchor: dx >= 0 ? 'start' : 'end' }); }
+  if (dx) { geoLine(parent, A[0], A[1], K[0], K[1], { color: C4.pt, w: 3, dash: '5 4' }); preLab(parent, (A[0] + K[0]) / 2, A[1] + (dy > 0 ? 18 : -9), o.abs ? MS(String(Math.abs(dx))) : preNumV(dx), { col: C4.pt, fs: 14 }); }
+  if (dy) { geoLine(parent, K[0], K[1], B[0], B[1], { color: C4.pt2, w: 3, dash: '5 4' }); preLab(parent, K[0] + (dx >= 0 ? 8 : -8), (K[1] + B[1]) / 2 + 5, o.abs ? MS(String(Math.abs(dy))) : preNumV(dy), { col: C4.pt2, fs: 14, anchor: dx >= 0 ? 'start' : 'end' }); }
   if (dx && dy && o.right !== false) preRight(parent, K, A, B, 9); }
 
 /* ---------- الميل: كسرٌ مختزل [بسط، مقام موجب] أو none للرأسي ---------- */

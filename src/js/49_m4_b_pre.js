@@ -5,7 +5,8 @@
    هي النواة التي تبني عليها وحداتها (U3 إلى U9) بنودها، فتُكتب عامّةً بمواصفتها لا بالسؤال النموذجي وحده.
    ===================================================================== */
 const PRE = { a: '#2f7fc1', b: '#d9822b', mk: '#c0392b', ink: '#24323a', q: '#c0392b', fillA: 'rgba(47,127,193,.14)', fillB: 'rgba(217,130,43,.16)', grid: '#dfe5ea', hl: SO.hl, ok: SO.ok };
-const preNum = v => v < 0 ? '−' + MS(String(-v)) : MS(String(v));
+const preNum = v => v < 0 ? '−' + MS(String(-v)) : MS(String(v));   /* في الزوج (coPair وcoPairText يرتّبانه) */
+const preNumV = v => v < 0 ? (SET.digits === 'east' ? MS(String(-v)) + '−' : '−' + MS(String(-v))) : MS(String(v));   /* عددٌ وحده في نصّ ltr: السالب على يمين العدد مع المشرقية (D280) */
 /* نصّ مسمّى على الشكل: أبيض الحافة، لا يُلمس */
 function preLab(parent, x, y, s, o = {}) { const t = el('text', { x, y, 'text-anchor': o.anchor || 'middle', 'font-size': o.fs || 17, 'font-weight': 800, fill: o.col || PRE.ink, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: o.dir || 'ltr', 'pointer-events': 'none' }, parent); t.textContent = s; return t; }
 /* شرطات التساوي على ضلع، وأقواس التساوي في زاوية */
@@ -144,7 +145,7 @@ function prePlane4(svg, o = {}) { const n = o.n || 5, c = o.c || 19, C = o.C || 
   el('rect', { x: C[0] - n * c - 14, y: C[1] - n * c - 14, width: 2 * n * c + 28, height: 2 * n * c + 28, rx: 10, fill: '#fffdf6', stroke: PRE.grid, 'stroke-width': 2 }, g);
   for (let i = -n; i <= n; i++) { geoLine(g, C[0] + i * c, C[1] - n * c, C[0] + i * c, C[1] + n * c, { color: PRE.grid, w: 1.2 }); geoLine(g, C[0] - n * c, C[1] + i * c, C[0] + n * c, C[1] + i * c, { color: PRE.grid, w: 1.2 }); }
   geoLine(g, C[0] - n * c - 8, C[1], C[0] + n * c + 8, C[1], { color: o.hl === 'h' ? PRE.b : PRE.ink, w: o.hl === 'h' ? 4 : 2.6 }); geoLine(g, C[0], C[1] + n * c + 8, C[0], C[1] - n * c - 8, { color: o.hl === 'v' ? PRE.b : PRE.ink, w: o.hl === 'v' ? 4 : 2.6 });
-  for (const k of [-4, -2, 2, 4]) { preLab(g, C[0] + k * c, C[1] + 15, preNum(k), { fs: 10 }); preLab(g, C[0] - 9, C[1] - k * c + 4, preNum(k), { fs: 10, anchor: 'end' }); }
+  for (const k of [-4, -2, 2, 4]) { preLab(g, C[0] + k * c, C[1] + 15, preNumV(k), { fs: 10 }); preLab(g, C[0] - 9, C[1] - k * c + 4, preNumV(k), { fs: 10, anchor: 'end' }); }
   el('circle', { cx: C[0], cy: C[1], r: 3.5, fill: PRE.ink }, g); return { g, P, C, c, n }; }
 ITEM.xf4Pick = cpItem({ H: 262, tLine: 'gen.pre.together.xf4', hint: 'gen.pre.hint.xf4', rLine: 'gen.pre.reveal.xf4', praise: 'praiseThink',
   make: s => { const [x, y] = s.p, img = PRE_XF[s.xf](s.p), alt = { refV: [[x, -y], [-x, -y]], refH: [[-x, y], [-x, -y]], rot90: [[y, -x], [-x, -y], [-x, y]] }[s.xf];   /* المحور الآخر، وعكس الإشارتين، والدوران بالاتجاه الآخر */
