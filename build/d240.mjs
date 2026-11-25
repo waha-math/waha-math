@@ -327,7 +327,14 @@ export const factOf = it => { const t = it.t;
   if (t === 'hexSide') return `hs|${it.r}`;
   if (t === 'flowerAxes') return `fa|${it.pat}`;
   if (t === 'reason' && it.pic && /^cp/.test(it.pic.kind)) return `cppic|${JSON.stringify(it.pic)}`;
-  if (t === 'reason' && it.pic && /^fr/.test(it.pic.kind)) return `frpic|${it.pic.kind}|${JSON.stringify(it.pic.fig || it.pic.rows || [it.pic.a, it.pic.b, it.pic.n])}`;
+  /* صورة تعليل الكسور في فضاء مسائلها (المراجع A لبوابة U8/U9، 5): الشكل غير المتساوي كبند «قسمة عادلة»، والمظلَّل كقراءة كسر، وشبكة الأنصاف، والخط، والشريطان مقارنةً */
+  if (t === 'reason' && it.pic && /^fr/.test(it.pic.kind)) { const P = it.pic, F = P.fig;
+    if (P.kind === 'frfig' && F && F.parts) return `fc|${F.k}${F.n}:${F.parts.join(',')}`;
+    if (P.kind === 'frfig' && F && F.shade) return `frd|${F.k}|${F.shade.length}/${F.n}`;
+    if (P.kind === 'frhalf') return `hg|${gridKey(P.rows)}`;
+    if (P.kind === 'frline') return `lr|${P.a}/${P.b}`;
+    if (P.kind === 'frstrips') return `fcmp|${P.rows.map(([n, k]) => `${k}/${n}`).sort().join(',')}`;
+    return `frpic|${P.kind}|${JSON.stringify(P.fig || P.rows || [P.a, P.b, P.n])}`; }
   if (t === 'reason' && it.pic && it.pic.kind === 'arrect') return `pic|${rectKey(it.pic.w, it.pic.h)}`;   /* صورة التعليل مستطيلٌ لم يُرَ في الدرس بأي مهمة (المراجع A لبوابة U6/U7، 3) */
   if (t === 'reason' && it.pic && it.pic.kind === 'argrid') return `pic|${gridKey(it.pic.rows)}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'tape') return `tape|${it.pic.len}|cm`;
