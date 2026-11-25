@@ -387,6 +387,7 @@ export function lint(content, js) {
     if (typeof v.t === 'string' || typeof v.scene === 'string') { const mx = maxN(top);
       /* إحماء الحساب: العدد المقروء فوق المئة كلمةٌ بعينها (gen.numx.*)، فالفحص هنا أنّ لكل عدد يُقرأ كلمة */
       if (v.t === 'calc') { for (const x of [v.a, v.b, v.n, ...(v.seq || [])]) if (typeof x === 'number' && x > 100 && !LINES.has('gen.numx.' + x)) errors.push(`${where}: calc يقرأ ${x} ولا كلمة له (gen.numx.${x})`); }
+      else if (v.t === 'triMissing') { for (const x of [v.a, v.b, 180 - v.a - v.b]) if (!LINES.has('gen.deg.' + x)) errors.push(`${where}: triMissing يقرأ ${x} درجة ولا كلمة لها (gen.deg.${x})`); }   /* درجات م3: كلماتها مضاعفات 5 حتى 360 */
       else for (const k of NUMK) if (typeof v[k] === 'number' && (v[k] < 0 || v[k] > mx)) errors.push(`${where}: ${v.t || v.scene}.${k} = ${v[k]} خارج 0–${mx}` + (mx < 20 ? '، ولا كلمة له قبل طريق الأعداد' : '، ولا كلمة له'));
       for (const [nm, x] of derived(v)) if (x < 0 || x > mx) errors.push(`${where}: ${v.t || v.scene} ${nm} = ${x} خارج 0–${mx}، يُقرأ ولا كلمة له`);
       for (const k of ['said', 'rolls', 'chaos']) if (Array.isArray(v[k])) for (const x of v[k]) if (typeof x === 'number' && (x < 0 || x > mx)) errors.push(`${where}: ${v.t || v.scene}.${k} فيه ${x} خارج 0–${mx}`);

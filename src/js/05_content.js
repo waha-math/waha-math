@@ -12,7 +12,7 @@ for (const u of CONTENT.units) { UNITS.push({ ...u, lessons: u.lessons.map(l => 
   for (const l of u.lessons) { LDATA[l.id] = { ...l, unit: u.id }; if (l.talk) TALK[l.id] = l.talk; } }
 const HOSTS = {}, WS = {}, HUNT = []; for (const u of UNITS) { HOSTS[u.id] = u.hosts; if (u.workshop) WS[u.id] = u.workshop; HUNT.push(...u.hunt); }
 /* المرحلة (م1، م2…) من معرّف الوحدة أو الدرس، وحجارة نبعها: م1 ستة أحجار، وم2 عشر قنوات (D230)؛ والعدّ داخل المرحلة وحدها */
-const stageOf = id => String(id).split('.')[0], STAGE_TOTAL = { m1: 6, m2: 10 };
+const stageOf = id => String(id).split('.')[0], STAGE_TOTAL = { m1: 6, m2: 10, m3: 11 };
 const stageStones = m => { const tot = STAGE_TOTAL[m] || UNITS.filter(u => stageOf(u.id) === m).length; return { total: tot, placed: Math.min(tot, UNITS.filter(u => stageOf(u.id) === m && PROG['badge:' + u.id]).length) }; };
 const unitOf = L => (typeof L === 'string' ? L : L.id).split('.').slice(0, 2).join('.');
 
