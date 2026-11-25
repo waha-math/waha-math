@@ -22,6 +22,8 @@ function triDraw(parent, a, b, box, o = {}) { const [A, B, C] = triFromAngles(a,
   const show = o.show || [a, b, c], cs = [[A, B, C], [B, C, A], [C, A, B]].map(([V, P, Q], i) => o.corners === false ? null : triCorner(g, V, P, Q, show[i], TRI_COL[i], { wedge: o.wedge, label: o.labels !== false }));
   if (o.names) [[A, [-14, 14]], [B, [14, 14]], [C, [0, -12]]].forEach(([p, d], i) => { const t = el('text', { x: p[0] + d[0], y: p[1] + d[1], 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: GEO.ink }, g); t.textContent = LTR[['a', 'b', 'j'][i]]; });
   return { g, P: [A, B, C], cs }; }
+/* توقّعٌ بالدرجات: خياراتٌ من أخطاء حقيقية (مضاعفات 5 حتى 360، ولكلٍّ كلمته gen.deg.*) */
+async function axPredictDeg(n, q, errs = []) { say(...lineOf(q), { free: true }); const np = numberPick(rankMix(n, [...errs, n - 30, n + 30].filter(v => v > 0 && v <= 360 && v % 5 === 0), 5, 360), n, { west: true, word: degw }); const a = await np.p; hush(); np.box.remove(); logAttempt({ scene: 'explore', tag: 'axPredict', ok: a === n }); return a; }
 const m3Stage = (H = 250) => { const svg = newStage(H, { oasis: false, ground: 0 }); plyFrame(svg, H - 28); return svg; };
 /* قطاعٌ في الأصل من الاتجاه 0 إلى sw، يُنقل ويُدار: الزاوية الممزّقة */
 function wedgeAt(parent, sw, r, col) { const g = el('g', { 'pointer-events': 'none' }, parent); el('path', { d: `M0 0 L${r} 0 A${r} ${r} 0 0 0 ${angP([0, 0], sw, r)} Z`, fill: col, stroke: '#7a4a2a', 'stroke-width': 1.2, opacity: .9 }, g); return g; }
@@ -60,7 +62,7 @@ SCENES.sizeSum = async c => { const L = c.lines, [a, b] = c.ang || [50, 70], svg
 SCENES.missingShow = async c => { const L = c.lines, [a, b] = c.ang || [90, 35], w = 180 - a - b, svg = m3Stage(262), T = triDraw(svg, a, b, [80, 30, 200, 130], { show: [a, b, null] });
   await S(L[0]); const lines = [`180 − ${a} = ${180 - a}`, `${180 - a} − ${b} = ؟`];
   for (const [i, s] of lines.entries()) { const t = el('text', { x: 180, y: 196 + i * 28, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, svg); t.textContent = s; SFX.tick(); await sleep(FAST ? 10 : 500); }
-  await axPredictNum(w, 'gen.as.pr.missing'); T.cs[2].g.remove(); triCorner(T.g, T.P[2], T.P[0], T.P[1], w, ARC.ok);
+  await axPredictDeg(w, 'gen.as.pr.missing', [180 - a, a + b, 360 - a - b]); T.cs[2].g.remove(); triCorner(T.g, T.P[2], T.P[0], T.P[1], w, ARC.ok);
   for (const l of L.slice(1)) await S(l); };
 
 /* ================= ① الزاوية المجهولة في مثلث (C301): a وb زاويتان معلومتان، والثالثة «؟» ================= */
@@ -78,17 +80,93 @@ ITEM.triMissing = { ...numItem,
 };
 /* ================= ② هل تكون هذه زوايا مثلث؟ (C301): degs ثلاث زوايا تُرسم قطاعاتٍ منفصلة، والجواب بمجموعها ================= */
 ITEM.triPossible = {
-  make(spec) { const s = spec.degs.reduce((x, y) => x + y, 0); return { ...spec, sum: s, want: s === 180 ? 'yes' : 'no', tag: 'tri-possible' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(240), xs = [290, 180, 70], g = el('g', {}, svg);
-    item.degs.forEach((d, i) => { const V = [xs[i] - (d > 90 ? 0 : 20), 140]; const w = wedgeAt(g, d, 44, TRI_COL[i]); w.setAttribute('transform', `translate(${V[0]} ${V[1]})`); degText(g, xs[i], 190, d, { size: 16, color: TRI_COL[i] }); });
-    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${item.degs.join(' + ')} = ؟`; await S('gen.as.together.possible'); }
-    else await S(item.q || 'gen.as.q.possible');
+  make(spec) { const s = spec.degs.reduce((x, y) => x + y, 0), T = spec.degs.length === 4 ? 360 : 180; return { ...spec, sum: s, T, want: s === T ? 'yes' : 'no', tag: spec.degs.length === 4 ? 'quad-possible' : 'tri-possible' }; },
+  async ask(item, mode, tries) { const svg = m3Stage(240), xs = item.degs.length === 4 ? [300, 216, 132, 48] : [290, 180, 70], g = el('g', {}, svg);
+    item.degs.forEach((d, i) => { const V = [xs[i] - (d > 90 ? 0 : 20), 140]; const w = wedgeAt(g, d, item.degs.length === 4 ? 34 : 44, POLY_COL[i]); w.setAttribute('transform', `translate(${V[0]} ${V[1]})`); degText(g, xs[i], 190, d, { size: 16, color: POLY_COL[i] }); });
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${item.degs.join(' + ')} = ؟`; await S(item.T === 360 ? 'gen.as.together.possQ' : 'gen.as.together.possible'); }
+    else await S(item.q || (item.T === 360 ? 'gen.as.q.possQ' : 'gen.as.q.possible'));
     const k = await choosePick([['yes', labelText('yes'), PICKICON.yes, 'gen.opt.yes'], ['no', labelText('no'), PICKICON.no, 'gen.opt.no']], item.want); return { ans: k, ctx: { svg } }; },
-  judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.want === 'no' && item.degs.filter(d => d >= 90).length >= 2 ? 'twoBig' : 'sumNot180' }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.T === 180 && item.want === 'no' && item.degs.filter(d => d >= 90).length >= 2 ? 'twoBig' : item.T === 360 ? 'sumNot360' : 'sumNot180' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 40, labelText('asSum180')); await S('gen.as.hint.possible'); }, async together() {},
-  async reveal(item, r) { if (r && r.ctx && r.ctx.svg) { const t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: item.want === 'yes' ? ARC.ok : '#c8392d', direction: 'ltr' }, r.ctx.svg); t.textContent = `${item.degs.join(' + ')} = ${item.sum}`; } await S(item.want === 'yes' ? 'gen.as.reveal.possYes' : 'gen.as.reveal.possNo'); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 40, labelText(item.T === 360 ? 'asSum360' : 'asSum180')); await S(item.T === 360 ? 'gen.as.hint.possQ' : 'gen.as.hint.possible'); }, async together() {},
+  async reveal(item, r) { if (r && r.ctx && r.ctx.svg) { const t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: item.want === 'yes' ? ARC.ok : '#c8392d', direction: 'ltr' }, r.ctx.svg); t.textContent = `${item.degs.join(' + ')} = ${item.sum}`; } await S((item.want === 'yes' ? 'gen.as.reveal.possYes' : 'gen.as.reveal.possNo') + (item.T === 360 ? 'Q' : '')); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 /* ================= الختام ================= */
 WRAP_ART.triSum = svg => { const T = triDraw(svg, 60, 70, [110, 40, 140, 100], { wedge: true, labels: false }); const P0 = [180, 196]; geoLine(svg, 90, P0[1], 270, P0[1], { color: GEO.ink, w: 2.4 }); let s = 0; [60, 70, 50].forEach((d, j) => { const w = wedgeAt(svg, d, 30, TRI_COL[j]); w.setAttribute('transform', `translate(${P0[0]} ${P0[1]}) rotate(${-s})`); s += d; }); };
+
+/* =====================================================================
+   د2: المحدّب والمقعّر (C161) ومجموع زوايا الرباعي 360 (C302)، والمقعّر بزاويته المنعكسة (360 − س)
+   الأشكال بإحداثيات رياضية (ص إلى أعلى) ورؤوسٌ عكس عقارب الساعة، فالداخل يسار المسير
+   ===================================================================== */
+const POLY_COL = ['#e9894a', '#3d7cc0', '#4f9a6a', '#8e6bbf', '#c8392d', '#b9862a'];
+const M3_SH = { tri: [[0, 0], [4, 0], [1.6, 3]], hex: [0, 1, 2, 3, 4, 5].map(i => [Math.cos(i * Math.PI / 3) * 2, Math.sin(i * Math.PI / 3) * 2]), sq: [[0, 0], [3, 0], [3, 3], [0, 3]],
+  arrow: [[0, 0], [4, 1.6], [0, 3.2], [1.3, 1.6]], ell: [[0, 0], [3, 0], [3, 1], [1, 1], [1, 3], [0, 3]], kite: [[0, 0], [2, -1.2], [4, 0], [2, 2.6]], dart: [[0, 0], [2, 1], [4, 0], [2, 3]], gen: [[0, 0], [4, 0], [3.4, 2.6], [0.6, 2]], para: [[0, 0], [3.4, 0], [4.4, 2], [1, 2]], chev: [[0, 0], [2, 1.2], [4, 0], [4, 1.6], [2, 2.8], [0, 1.6]],
+  trap: [[0, 0], [4, 0], [3, 2], [1, 2]], pent: [[0, 0], [3, 0], [3.8, 1.8], [1.5, 3], [-0.8, 1.8]], notch: [[0, 0], [4, 0], [4, 3], [2, 1.5], [0, 3]], boom: [[0, 0], [3.5, 0.6], [1.2, 1.2], [0.6, 3.4]],
+  zig: [[0, 0], [4, 0], [4, 2], [2.5, 1], [1.5, 2.5], [0, 1.5]], oct: [0, 1, 2, 3, 4, 5, 6, 7].map(i => [Math.cos((i + .5) * Math.PI / 4) * 2, Math.sin((i + .5) * Math.PI / 4) * 2]) };
+/* زوايا داخلية بالدرجات لرؤوسٍ عكس عقارب الساعة */
+const polyAng = pts => pts.map((V, i) => { const P = pts[(i + pts.length - 1) % pts.length], N = pts[(i + 1) % pts.length], d1 = Math.atan2(N[1] - V[1], N[0] - V[0]), d2 = Math.atan2(P[1] - V[1], P[0] - V[0]); return ((d2 - d1) * 180 / Math.PI % 360 + 360) % 360; });
+/* رباعي بزواياه الأربع (مجموعها 360) وضلعين أوّلين: يُغلق بالضلعين الباقيين */
+function quadFromAngles(degs) { const r = Math.PI / 180; for (const s2 of [1, .8, 1.2, .6, 1.5, .45]) { let h = 0; const A = [0, 0], B = [1, 0]; h += 180 - degs[1]; const C = [B[0] + s2 * Math.cos(h * r), B[1] + s2 * Math.sin(h * r)]; h += 180 - degs[2]; const u = [Math.cos(h * r), Math.sin(h * r)]; const h3 = h + 180 - degs[3], v = [Math.cos(h3 * r), Math.sin(h3 * r)];
+    /* C + s3·u + s4·v = A */ const det = u[0] * v[1] - u[1] * v[0]; if (Math.abs(det) < 1e-6) continue; const rx = A[0] - C[0], ry = A[1] - C[1], s3 = (rx * v[1] - ry * v[0]) / det, s4 = (u[0] * ry - u[1] * rx) / det; if (s3 > .25 && s4 > .25) return [A, B, C, [C[0] + s3 * u[0], C[1] + s3 * u[1]]]; }
+  return null; }
+function polyDraw(parent, pts, box, o = {}) { const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), [x0, y0, w, h] = box, k = Math.min(w / (Math.max(...xs) - Math.min(...xs)), h / (Math.max(...ys) - Math.min(...ys)));
+  const ox = x0 + (w - (Math.max(...xs) - Math.min(...xs)) * k) / 2 - Math.min(...xs) * k, oy = y0 + (h - (Math.max(...ys) - Math.min(...ys)) * k) / 2 + Math.max(...ys) * k, S2 = pts.map(p => [ox + p[0] * k, oy - p[1] * k]);
+  const g = el('g', {}, parent); el('polygon', { points: polyStr(S2), fill: o.fill || '#fdf7e8', stroke: GEO.ink, 'stroke-width': 3, 'stroke-linejoin': 'round' }, g); const ang = polyAng(pts), cs = [];
+  if (o.arcs) S2.forEach((V, i) => { const N = S2[(i + 1) % S2.length], d1 = dirOf(V, N), sw = ang[i], r = sw > 180 ? 16 : 22, big = sw > 180 ? 1 : 0, col = o.arcCol ? o.arcCol(i, sw) : POLY_COL[i % POLY_COL.length], cg = el('g', { 'pointer-events': 'none' }, g);
+    el('path', { d: `M${angP(V, d1, r)} A${r} ${r} 0 ${big} 0 ${angP(V, d1 + sw, r)}`, fill: 'none', stroke: col, 'stroke-width': sw > 180 ? 4 : 3 }, cg);
+    const show = o.show ? o.show[i] : Math.round(sw / 5) * 5; if (o.labels) { const m = angP(V, d1 + sw / 2, r + (sw > 180 ? 16 : 18)); if (show == null) { const t = el('text', { x: m[0], y: m[1] + 7, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: col }, cg); t.textContent = '؟'; } else if (show !== false) degText(cg, m[0], m[1] + 6, show, { size: 14, color: col }); }
+    cs.push({ g: cg, V, d1, sw }); });
+  return { g, P: S2, ang, cs }; }
+const isConvex = pts => polyAng(pts).every(a => a < 180);
+
+/* ================= الإشعال: «رأس سهم» لفوضى — «زواياه كلها أقل من نصف دورة!» ================= */
+SCENES.arrowHook = async c => { const L = c.lines, svg = m3Stage(250), D = polyDraw(svg, M3_SH.arrow, [80, 40, 200, 170]);
+  await S(L[0]); await axPredictYN('no', 'gen.as.pr.allSmall');
+  const i = D.ang.findIndex(a => a > 180), V = D.P[i], N = D.P[(i + 1) % D.P.length], d1 = dirOf(V, N), sw = D.ang[i]; el('path', { d: `M${angP(V, d1, 26)} A26 26 0 1 0 ${angP(V, d1 + sw, 26)}`, fill: 'none', stroke: '#c8392d', 'stroke-width': 4 }, svg); SFX.tick();
+  for (const l of L.slice(1)) await S(l); };
+/* ================= الجزء أ: قوس داخل الشكل عند كل رأس — المحدّب كل زواياه أقل من 180، والمقعّر فيه منعكسة ================= */
+SCENES.convexShow = async c => { const L = c.lines, ks = c.polys || ['tri', 'hex', 'arrow', 'ell'];
+  for (const [i, pair] of [ks.slice(0, 2), ks.slice(2, 4)].entries()) { const svg = m3Stage(250); pair.forEach((k, j) => { const D = polyDraw(svg, M3_SH[k], [j ? 30 : 196, 50, 134, 140], { arcs: true, arcCol: (q, sw) => sw > 180 ? '#c8392d' : '#4f9a6a' }); const t = el('text', { x: j ? 97 : 263, y: 224, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: isConvex(M3_SH[k]) ? '#4f9a6a' : '#c8392d' }, svg); t.textContent = labelText(isConvex(M3_SH[k]) ? 'asConvex' : 'asConcave'); });
+    SFX.tick(); await S(L[i]); }
+  for (const l of L.slice(2)) await S(l); };
+/* ================= الجزء ب: القطر يقسّم الرباعي مثلثين — 2 × 180 = 360 ================= */
+SCENES.quadSplit = async c => { const L = c.lines, degs = c.degs || [85, 95, 110, 70], pts = quadFromAngles(degs), svg = m3Stage(262), D = polyDraw(svg, pts, [70, 30, 220, 140], { arcs: true, labels: true, show: degs });
+  await S(L[0]); await axPredictDeg(360, 'gen.as.pr.quadSum', [180, 270, 720]);
+  geoLine(svg, D.P[0][0], D.P[0][1], D.P[2][0], D.P[2][1], { color: '#8e6bbf', w: 3, dash: '7 5' }); el('polygon', { points: polyStr([D.P[0], D.P[1], D.P[2]]), fill: '#f2d38a', opacity: .45, 'pointer-events': 'none' }, svg); el('polygon', { points: polyStr([D.P[0], D.P[2], D.P[3]]), fill: '#bfe0b5', opacity: .45, 'pointer-events': 'none' }, svg); SFX.tick();
+  await S(L[1]); const t = el('text', { x: 180, y: 214, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: ARC.ok, direction: 'ltr' }, svg); t.textContent = '180 + 180 = 360'; SFX.tick();
+  for (const l of L.slice(2)) await S(l); };
+/* ================= الجزء ج: الرباعي المقعّر — المنقلة تقرأ الجهة الخارجية (150)، والداخلية 360 − 150 ================= */
+SCENES.concaveSum = async c => { const L = c.lines, degs = c.degs || [40, 50, 60, 210], pts = quadFromAngles(degs), svg = m3Stage(262), D = polyDraw(svg, pts, [60, 30, 240, 150], { arcs: true, labels: true, show: [degs[0], degs[1], degs[2], null] }), i = 3, V = D.P[i];
+  const P = D.P[2], N = D.P[0], out = 360 - degs[3]; el('path', { d: angArc(V, 34, dirOf(V, P), dirOf(V, P) + out), fill: 'none', stroke: '#8a9aa8', 'stroke-width': 2.6, 'stroke-dasharray': '4 3' }, svg); const m = angP(V, dirOf(V, P) + out / 2, 50); degText(svg, m[0], m[1] + 6, out, { size: 15, color: '#6b7b88' });
+  await S(L[0]); await axPredictDeg(degs[3], 'gen.as.pr.inner', [360 - degs[3], 180 - (360 - degs[3]), 180]);
+  D.cs[i].g.remove(); polyDraw(svg, pts, [60, 30, 240, 150], { arcs: true, labels: true, show: degs, fill: 'none' }); SFX.tick();
+  await S(L[1]); geoLine(svg, D.P[1][0], D.P[1][1], D.P[3][0], D.P[3][1], { color: '#4f9a6a', w: 3, dash: '7 5' }); geoLine(svg, D.P[0][0], D.P[0][1], D.P[2][0], D.P[2][1], { color: '#c8392d', w: 2.4, dash: '3 5' }); SFX.tick();
+  for (const l of L.slice(2)) await S(l); };
+
+/* ================= ③ محدّب أم مقعّر؟ (C161): k شكل من M3_SH ================= */
+ITEM.convexPick = {
+  make(spec) { return { ...spec, want: isConvex(M3_SH[spec.k]) ? 'convex' : 'concave', tag: 'convex-pick' }; },
+  async ask(item, mode, tries) { const svg = m3Stage(236), D = polyDraw(svg, M3_SH[item.k], [70, 34, 220, 160], { arcs: tries >= 3, arcCol: (q, sw) => css('--think') });
+    await S(tries >= 3 ? 'gen.as.together.convex' : item.q || 'gen.as.q.convex');
+    const k = await choosePick([['convex', labelText('asConvex'), '<i></i>', 'gen.as.convex'], ['concave', labelText('asConcave'), '<i></i>', 'gen.as.concave']], item.want); return { ans: k, ctx: { svg, D } }; },
+  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.want === 'concave' ? 'dentMissed' : 'dentFalse' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 216, labelText('asHintConvex')); await S('gen.as.hint.convex'); }, async together() {},
+  async reveal(item, r) { if (r && r.ctx) { r.ctx.D.g.remove(); polyDraw(r.ctx.svg, M3_SH[item.k], [70, 34, 220, 160], { arcs: true, arcCol: (q, sw) => sw > 180 ? '#c8392d' : '#4f9a6a' }); } await S(item.want === 'convex' ? 'gen.as.reveal.convex' : 'gen.as.reveal.concave'); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
+/* ================= ④ الزاوية الرابعة في رباعي (C302): degs الثلاث المعلومة، والرابعة 360 − مجموعها (منعكسة في المقعّر) ================= */
+ITEM.quadMissing = { ...numItem,
+  make(spec) { const s = spec.degs.reduce((a, b) => a + b, 0), want = 360 - s; /*T*/if (TESTHOOK && (want <= 0 || want >= 360 || !quadFromAngles([...spec.degs, want]))) testBug('quadMissing: رباعي لا يُرسم');/*/T*/
+    const [a, b, c] = spec.degs; return { ...spec, want, nums: rankMix(want, [180 - (s - 180), 360 - a - b, 360 - b - c, 360 - a - c, s, 180 + want].filter(v => v > 0 && v < 360 && v % 5 === 0 && v !== want), 0, 355), tag: 'quad-missing' + (want > 180 ? '-rfx' : '') }; },
+  async ask(item, mode, tries) { const degs = [...item.degs, item.want], svg = m3Stage(250), D = polyDraw(svg, quadFromAngles(degs), [70, 30, 220, 160], { arcs: true, labels: true, show: [...item.degs, null] });
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 222, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `360 − ${item.degs.join(' − ')} = ؟`; await S('gen.as.together.quad'); }
+    else await S(item.q || 'gen.as.q.missing');
+    const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); return { ans: await np.p, ctx: { svg, np, D } }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; const s = item.degs.reduce((a, b) => a + b, 0); return { ok: false, err: k === 180 + item.want || k === 180 - (s - 180) ? 'quad180' : k === s ? 'sumAdded' : 'quadForgot' }; },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 222, `${item.degs.join(' + ')} + ؟ = 360`); await S('gen.as.hint.quad'); }, async together() {},
+  async reveal(item, r) { if (r && r.ctx && r.ctx.D) { const c = r.ctx.D.cs[3]; c.g.remove(); } await S('gen.as.reveal.missing', { noGap: true }); await S(degw(item.want), { append: true }); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
+WRAP_ART.quadSum = svg => { const D = polyDraw(svg, quadFromAngles([85, 95, 110, 70]), [100, 40, 160, 150], { arcs: true }); geoLine(svg, D.P[0][0], D.P[0][1], D.P[2][0], D.P[2][1], { color: '#8e6bbf', w: 3, dash: '7 5' }); };
