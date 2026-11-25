@@ -113,7 +113,7 @@ ITEM.sasBuild = {
     redraw(cur); const sg = el('text', { x: (A[0] + B[0]) / 2, y: 232, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: CPC.ink, direction: 'rtl' }, g); sg.textContent = `${item.ab} ${labelText('rulCm')}`;
     if (tries >= 3) { const m = helpG(svg), C = angP(A, item.deg, 170); geoLine(m, A[0], A[1], C[0], C[1], { color: css('--think'), w: 2.2, dash: '6 5' }); }
     await S(tries >= 3 ? 'gen.cp.together.sas' : item.q, { noGap: true }); await sayDeg(item.deg); await S('gen.cp.sideIs', { noGap: true, append: true }); await sayLen(item.ac, 'cm');
-    const v = await stepperAsk([{ key: 'ang', min: 10, max: 170, val: 90, step: 5, unit: 'cpDeg' }, { key: 'len', min: 1, max: 7, val: 3, unit: 'rulCm' }], { kind: 'sas', onChange: redraw, auto: { ok: { ang: item.deg, len: item.ac }, wrong: { ang: 180 - item.deg === item.deg ? item.deg + 10 : 180 - item.deg, len: item.ac } } });
+    const v = await stepperAsk([{ key: 'ang', min: 10, max: 170, val: 90, step: 5, unit: 'cpDeg' }, { key: 'len', min: 1, max: 7, val: 3, unit: 'rulCm' }], { kind: 'sas', onChange: redraw, bare: true, auto: { ok: { ang: item.deg, len: item.ac }, wrong: { ang: 180 - item.deg === item.deg ? item.deg + 10 : 180 - item.deg, len: item.ac } } });
     return { ans: v.ang + '|' + v.len, ctx: { svg, redraw } }; },
   judge(item, k) { const [a, l] = k.split('|').map(Number); return a === item.deg && l === item.ac ? { ok: true } : { ok: false, err: a === 180 - item.deg ? 'protScale' : a !== item.deg ? 'sasAngle' : 'sasSide' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
@@ -218,7 +218,7 @@ ITEM.sssBuild = {
     redraw({ r1: 2, r2: 2 });
     if (tries >= 3) { const m = helpG(svg); el('circle', { cx: A[0], cy: A[1], r: item.a * CM, fill: 'none', stroke: css('--think'), 'stroke-width': 1.6, 'stroke-dasharray': '5 5' }, m); }
     await S(tries >= 3 ? 'gen.cp.together.sss' : item.q, { noGap: true }); await sayLen(item.a, 'cm'); await S('gen.cp.and', { noGap: true, append: true }); await sayLen(item.b, 'cm');
-    const v = await stepperAsk([{ key: 'r1', min: 1, max: 9, val: 2, unit: 'rulCm' }, { key: 'r2', min: 1, max: 9, val: 2, unit: 'rulCm' }], { kind: 'sss', onChange: redraw, auto: { ok: { r1: item.a, r2: item.b }, wrong: { r1: item.a, r2: item.a === item.b ? item.b + 1 : item.a } } });
+    const v = await stepperAsk([{ key: 'r1', min: 1, max: 9, val: 2, unit: 'rulCm' }, { key: 'r2', min: 1, max: 9, val: 2, unit: 'rulCm' }], { kind: 'sss', onChange: redraw, bare: true, auto: { ok: { r1: item.a, r2: item.b }, wrong: { r1: item.a, r2: item.a === item.b ? item.b + 1 : item.a } } });
     return { ans: [v.r1, v.r2].sort().join(','), ctx: { svg, redraw } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k.split(',').map(Number).some(x => x === item.base) ? 'sssBase' : 'sssOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },

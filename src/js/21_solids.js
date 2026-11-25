@@ -44,7 +44,7 @@ function blockDeco(g, face, at) { if (face === 'bottom' || face === 'back') retu
   el('polygon', { points: [[.12, .12], [.88, .12], [.88, .88], [.12, .88]].map(([u, v]) => at(u, v).join(',')).join(' '), fill: 'none', stroke: '#fff', 'stroke-width': 2.5, opacity: .8 }, g);
   const pts = face === 'front' ? [[.5, .22], [.58, .42], [.8, .42], [.63, .55], [.7, .78], [.5, .65], [.3, .78], [.37, .55], [.2, .42], [.42, .42]] : [[.5, .25], [.75, .5], [.5, .75], [.25, .5]];
   el('polygon', { points: pts.map(([u, v]) => at(u, v).join(',')).join(' '), fill: '#f6cf7e', opacity: .95 }, g); }
-function teaDeco(g, face, at) { if (face !== 'front' && face !== 'right') return; el('polygon', { points: [[0, .38], [1, .38], [1, .62], [0, .62]].map(([u, v]) => at(u, v).join(',')).join(' '), fill: '#f6cf7e', opacity: .9 }, g); }
+function teaDeco(g, face, at) { if (face !== 'front' && face !== 'right') return; el('polygon', { points: [[0, .38], [1, .38], [1, .62], [0, .62]].map(([u, v]) => at(u, v).join(',')).join(' '), fill: '#f6cf7e', opacity: .9, 'pointer-events': 'none' }, g); }   /* الشريط على الوجه زينة: اللمسة على منتصف الوجه للوجه (فاحص التعارض، D255) */
 /* مجسّم في مكانه: s = {solid, size, pose, color, object, yaw, pitch, roll} */
 function solidAt(parent, s, x, y) { s = tok(s);
   const shadowAt = s.noShadow ? p => el('g', {}, p) : shadowEl;   /* D238: لا ظلّ في فرز «مسطّح أم مجسّم»، فلا يصير الظلّ قاعدة التمييز */

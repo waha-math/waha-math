@@ -37,7 +37,7 @@ timeout 1800 python3 test/smoke_prod.py                         > "$O/smoke_prod
 timeout 1800 python3 test/flows_run.py                          > "$O/flows.txt" 2>&1         || echo flows >> "$O/FAILED"
 timeout 1800 python3 test/sort_errors.py                        > "$O/sort_errors.txt" 2>&1   || echo sort_errors >> "$O/FAILED"   # D253 (4)
 timeout 1800 python3 test/replay_run.py                         > "$O/replay.txt" 2>&1        || echo replay >> "$O/FAILED"   # «أعد الجملة»: بعد الخروج، وأثناء الجملة، وأثناء البطاقتين، وفي التعليل
-timeout 1800 python3 test/realtap_run.py 'iPhone SE' 'Galaxy S5' 'Pixel 5' > "$O/realtap.txt" 2>&1 || echo realtap >> "$O/FAILED"   # اللمس الحقيقي بالإصبع في مركز كل هدف (D255)
+timeout 5400 python3 test/realtap_run.py 'iPhone SE' 'Galaxy S5' 'Pixel 5' > "$O/realtap.txt" 2>&1 || echo realtap >> "$O/FAILED"   # اللمس الحقيقي بالإصبع في مركز كل هدف (D255)
 MOUSE=1 timeout 1800 python3 test/realtap_run.py 'Pixel 5'      > "$O/realtap_mouse.txt" 2>&1 || echo realtap_mouse >> "$O/FAILED" # وبالفأرة
 timeout 2700 python3 test/ws_tap_run.py 'iPhone SE' 'Pixel 5' 'Galaxy S5' > "$O/ws_tap.txt" 2>&1       || echo ws_tap >> "$O/FAILED"   # ألغاز الورشة باللمس: القطعة ثم ظلّها، بالترتيبين (الفحص المستقل B لبوابة S1-U4، D246)
 timeout 1800 python3 test/layout_run.py                         > "$O/layout.txt" 2>&1        || echo layout >> "$O/FAILED"   # الأشياء المبعثرة: لا تراكب، ومركز كل شيء له، و«لمس واحد» لما تحت الإصبع (D255)
@@ -78,9 +78,10 @@ if [ "$P" != all ] && [ "$P" != c ]; then
   if [ -s "$O/FAILED" ]; then echo "إخفاق: $(tr '\n' ' ' < "$O/FAILED")"; exit 1; fi
   exit 0
 fi
+# المهل: م2 بلغت 75 درساً فتجاوز اللمس الحقيقي بثلاثة أجهزة وdeepall نصف الساعة فقُطعا (EPIPE في Gate على 82d4da6)
 if in_part c; then
-SHOTS=0 CLIPS_OUT="$O/clips/auto_deepall_screen_f.json" timeout 1800 python3 test/auto_run.py deepall screen f > "$O/auto_deepall_screen_f.txt" 2>&1   # كل بند بمساعدة حتى الكشف، ثم توأمه (الفحص المستقل B)
-SHOTS=0 CHAL=1 CLIPS_OUT="$O/clips/auto_deepall_chal_mat_m.json" timeout 1800 python3 test/auto_run.py deepall mat m > "$O/auto_deepall_chal_mat_m.txt" 2>&1   # وفرع «التحدّي»
+SHOTS=0 CLIPS_OUT="$O/clips/auto_deepall_screen_f.json" timeout 3600 python3 test/auto_run.py deepall screen f > "$O/auto_deepall_screen_f.txt" 2>&1   # كل بند بمساعدة حتى الكشف، ثم توأمه (الفحص المستقل B)
+SHOTS=0 CHAL=1 CLIPS_OUT="$O/clips/auto_deepall_chal_mat_m.json" timeout 3600 python3 test/auto_run.py deepall mat m > "$O/auto_deepall_chal_mat_m.txt" 2>&1   # وفرع «التحدّي»
 SHOTS=0 CLIPS_OUT="$O/clips/auto_remedialdeep_screen_m.json" timeout 1800 python3 test/auto_run.py remedialdeep screen m > "$O/auto_remedialdeep_screen_m.txt" 2>&1   # وبنود العلاج
 SHOTS=0 DEVICE='iPhone SE' SEED=23 ONLY='m1.u3.d5,ws:m1.u3' CLIPS_OUT="$O/clips/auto_se_remedialdeep_d5ws.json" timeout 1800 python3 test/auto_run.py remedialdeep screen m > "$O/auto_se_remedialdeep_d5ws.txt" 2>&1   # أهداف اللمس حين تظهر الخيارات تحت المسرح على أضيق شاشة (الفحصان المستقلان C وD)
 timeout 1800 python3 test/unspoken.py "$O/clips" > "$O/unspoken.txt" 2>&1   # جمل في جدول التسجيل لم تُنطق في أي تشغيل (تقرير لا يوقف)
