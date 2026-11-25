@@ -236,6 +236,29 @@ async def run(p, dev):
                 q = await pg.evaluate("(s) => { const e = document.querySelector('#stage svg [data-step=\"' + s + '\"] circle'); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }", '%d:%d' % (i, d)); await tap(q['x'], q['y']); await pg.wait_for_timeout(70)
             if await pg.evaluate('() => window.__track') != goal: tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  track miss', st['scene'])
           xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(60); continue
+        if k in ('fenceP', 'tiles', 'bestFarm'):   # S2-U7: قطع السياج بزرّي − و+، والبلاط بلمس مربعاته، وعرض الأرض في «أفضل مزرعة»
+          await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
+          STEP = "(s) => { const e = document.querySelector('#stage svg [data-step=\"' + s + '\"] circle'); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }"
+          if k == 'fenceP':
+            for _ in range(30):
+              n, w = await pg.evaluate('() => [window.__fpN, window.__fpWant]')
+              if n == w: break
+              q = await pg.evaluate(STEP, '1' if n < w else '-1'); await tap(q['x'], q['y']); await pg.wait_for_timeout(70)
+            if await pg.evaluate('() => window.__fpN !== window.__fpWant'): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  fence pieces miss', st['scene'])
+          elif k == 'tiles':
+            for x, y, s in await pg.evaluate('() => window.__tlSol'):
+              have = await pg.evaluate('([x, y, s]) => (window.__tiles || []).some(t => t[0] === x && t[1] === y && t[2] === s)', [x, y, s])
+              if have: continue
+              q = await pg.evaluate('(s) => window.__tlPal(s)', s); await tap(q['x'], q['y']); await pg.wait_for_timeout(60)
+              q = await pg.evaluate('([x, y]) => window.__tlAt(x, y)', [x, y]); await tap(q['x'], q['y']); await pg.wait_for_timeout(70)
+            if len(await pg.evaluate('() => window.__tiles')) != len(await pg.evaluate('() => window.__tlSol')): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  tiles miss', st['scene'])
+          else:
+            made = await pg.evaluate('() => window.__bfMade'); want = next(v for v in (2, 4, 6) if v not in made and 12 - v not in made)
+            for _ in range(15):
+              w = await pg.evaluate('() => window.__bfW')
+              if w == want: break
+              q = await pg.evaluate(STEP, '1' if w < want else '-1'); await tap(q['x'], q['y']); await pg.wait_for_timeout(70)
+          xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(60); continue
         if k == 'flowerC':   # S2-U9 د6: تلوين بتلات الزهرة باللمس
           await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
           want = await pg.evaluate('() => window.__flwWant'); cur = await pg.evaluate('() => window.__flw || [0, 0, 0, 0, 0, 0]')

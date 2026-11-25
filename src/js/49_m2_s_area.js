@@ -377,3 +377,88 @@ SCENES.m2Show = async c => { const L = c.lines; let svg = arStage(232); el('rect
 SCENES.recallPerim = async c => { const svg = arStage(240), D = shpDraw(svg, c.rows || ['####', '####']); await walkSegs(svg, D); await S(c.lines[0]); };
 SCENES.recallArea = async c => { const svg = arStage(240); if (c.w) { const Rl = rectLab(svg, c.w, c.h, { grid: 'full', showH: true, unit: c.unit }); } else shpDraw(svg, c.rows || ['###', '###']); await S(c.lines[0]); };
 WRAP_ART.areaArt = svg => { const g = el('g', {}, svg); el('rect', { x: 90, y: 70, width: 180, height: 120, fill: '#8fca7a', stroke: ARC.fence, 'stroke-width': 8 }, g); for (let i = 1; i < 6; i++) geoLine(g, 90 + i * 30, 70, 90 + i * 30, 190, { color: '#6aa85a', w: 1.5 }); for (let j = 1; j < 4; j++) geoLine(g, 90, 70 + j * 30, 270, 70 + j * 30, { color: '#6aa85a', w: 1.5 }); anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 200, fill: 'both' }); palmAt(svg, 326, 250, .8); palmAt(svg, 34, 250, .9); };
+/* زرّا − و+ في المسرح (كأكبر مزرعة): يعيدان [زرّ الإنقاص، زرّ الزيادة]؛ step(d) يغيّر القيمة */
+function arSteps(svg, y, step) { return [-1, 1].map(d => { const b = el('g', { role: 'button', tabindex: 0, 'aria-label': plain(labelText(d < 0 ? 'stepLess' : 'stepMore')), style: 'cursor:pointer', 'data-step': d }, svg), x = d < 0 ? 40 : 320;
+  el('circle', { cx: x, cy: y, r: 26, fill: '#eef6fb', stroke: css('--compass'), 'stroke-width': 2.5 }, b); const t = el('text', { x, y: y + 10, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: css('--compass'), 'pointer-events': 'none' }, b); t.textContent = d < 0 ? '−' : '+'; hitPad(b, 64);
+  const go = () => { step(d); SFX.tick(); }; b.onclick = go; b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); go(); } }; return b; }); }
+/* ================= لعبة «سياج المزرعة» (د1، C200؛ المرجع: «يضع قطع سياج بأطوال معلومة حول حقل، ويحدّد كم قطعة يحتاج»؛ المراجع A لبوابة U6/U7، 19):
+   حقل w × h متراً، وقطعة السياج L متراً. كل «+» تضع قطعة تالية على الحدود مع عقارب الساعة، و«−» ترفع آخرها؛ الجواب عدد القطع ================= */
+ITEM.fencePlace = {
+  make(spec) { const P = 2 * (spec.w + spec.h); /*T*/if (TESTHOOK && P % spec.L) testBug('fencePlace: المحيط لا يقسم على طول القطعة');/*/T*/ return { ...spec, P, want: P / spec.L, tag: 'fence-place' }; },
+  async ask(item, mode, tries) { const svg = arStage(262), Rl = rectLab(svg, item.w, item.h, { showH: true, unit: 'm', cy: 132, maxW: 150, maxH: 110, fill: '#bfe0b5' }), g = el('g', { 'pointer-events': 'none' }, svg);
+    const { x0, y0, W, H } = Rl, k = Rl.k, P = item.P, cnt = el('text', { x: 180, y: 240, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ink, direction: 'rtl' }, svg); let n = 0;
+    const at = t => { t = ((t % P) + P) % P; if (t <= item.w) return [x0 + t * k, y0]; t -= item.w; if (t <= item.h) return [x0 + W, y0 + t * k]; t -= item.h; if (t <= item.w) return [x0 + W - t * k, y0 + H]; t -= item.w; return [x0, y0 + H - t * k]; };
+    const seg = (t0, t1, col, off) => { const pts = [at(t0)]; for (const c of [item.w, item.w + item.h, 2 * item.w + item.h, P]) if (c > t0 && c < t1) pts.push(at(c)); pts.push(at(t1)); const o = el('polyline', { points: pts.map(p => p.join(',')).join(' '), fill: 'none', stroke: col, 'stroke-width': 7, 'stroke-linecap': 'butt', transform: off ? `translate(${off} ${-off})` : null }, g); return o; };
+    const draw = () => { g.innerHTML = ''; for (let i = 0; i < n; i++) { const over = (i + 1) * item.L > P; seg(i * item.L + .06, (i + 1) * item.L - .06, i % 2 ? '#8a5a3a' : '#b9794e', over ? 9 : 0); }
+      cnt.textContent = `${labelText('fpPieces')} ${n}`; /*T*/window.__fpN = n; window.__fpWant = item.want;/*/T*/ if (reg) reg(); };
+    let reg = null; const btns = arSteps(svg, 128, d => { n = Math.max(0, Math.min(item.want + 6, n + d)); draw(); });
+    const pc = el('text', { x: 180, y: 26, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: '#8a5a3a', direction: 'rtl' }, svg); pc.textContent = `${labelText('fpPiece')} ${item.L} ${labelText('lenM')}`;
+    if (tries >= 3) n = item.want - 1; draw();
+    await S(tries >= 3 ? 'gen.ar.together.fp' : item.q, { noGap: true }); await sayLenU(item.L, 'm');
+    const tap = b => b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    reg = () => AUTO({ kind: 'fenceP', ok: () => n === item.want ? rulDoneBtn().click() : tap(btns[n < item.want ? 1 : 0]), wrong: () => n === item.want - 1 ? rulDoneBtn().click() : tap(btns[n < item.want - 1 ? 1 : 0]) });
+    const fin = rulDone(() => { reg = null; btns.forEach(b => { b.onclick = null; b.onkeydown = null; b.removeAttribute('role'); }); }); reg(); await fin;
+    return { ans: n, ctx: { svg, set: v => { n = v; draw(); } } }; },
+  judge(item, n) { return n === item.want ? { ok: true } : { ok: false, err: n < item.want ? 'fenceShort' : 'fenceLong' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 26, `${item.w} + ${item.h} + ${item.w} + ${item.h} = ؟`); await S('gen.ar.hint.fp'); }, async together() {},
+  async reveal(item, r) { r.ctx.set(item.want); await S('gen.ar.reveal.fp', { noGap: true }); await S(numw(item.want), { num: true, append: true }); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
+/* ================= لعبة «مبلّط الأرضيات» (د3، C203؛ المرجع: «يملأ أرضية بالبلاط بأقل عدد ممكن دون فراغ»؛ المراجع A لبوابة U6/U7، 19):
+   أرضية w × h مربعاً، وبلاطتان: كبيرة 2 × 2 وصغيرة 1 × 1. لمسة على مربع تضع البلاطة المختارة من ركنها، ولمسة على بلاطة ترفعها ================= */
+const tileMin = (w, h) => { const b = Math.floor(w / 2) * Math.floor(h / 2); return b + (w * h - 4 * b); };
+ITEM.tilePlace = {
+  make(spec) { return { ...spec, want: tileMin(spec.w, spec.h), tag: 'tile-place' }; },
+  sol(item) { const T = []; for (let y = 0; y + 1 < item.h; y += 2) for (let x = 0; x + 1 < item.w; x += 2) T.push([x, y, 2]); for (let y = 0; y < item.h; y++) for (let x = 0; x < item.w; x++) if (!T.some(([a, b, s]) => x >= a && x < a + s && y >= b && y < b + s)) T.push([x, y, 1]); return T; },
+  async ask(item, mode, tries) { const svg = newStage(270, { oasis: false, ground: 0 }), c = Math.min(40, 280 / item.w, 150 / item.h), x0 = 180 - item.w * c / 2, y0 = 48, g = el('g', {}, svg), tg = el('g', { 'pointer-events': 'none' }, svg); let size = 2; const T = [];
+    for (let y = 0; y < item.h; y++) for (let x = 0; x < item.w; x++) el('rect', { x: x0 + x * c, y: y0 + y * c, width: c, height: c, fill: '#fbf3e4', stroke: '#e0cfae', 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }, g);
+    el('rect', { x: x0, y: y0, width: item.w * c, height: item.h * c, fill: 'none', stroke: '#8a5a3a', 'stroke-width': 3, 'pointer-events': 'none' }, svg);
+    const cnt = el('text', { x: 180, y: 30, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: ARC.ink, direction: 'rtl' }, svg);
+    const owner = (x, y) => T.findIndex(([a, b, s]) => x >= a && x < a + s && y >= b && y < b + s);
+    const draw = () => { tg.innerHTML = ''; for (const [a, b, s] of T) el('rect', { x: x0 + a * c + 1.5, y: y0 + b * c + 1.5, width: s * c - 3, height: s * c - 3, rx: 3, fill: s === 2 ? '#d9b88f' : '#f2d38a', stroke: '#8a5a3a', 'stroke-width': 1.6 }, tg); cnt.textContent = `${labelText('tlCount')} ${T.length}`; pal.forEach(p => p.r.setAttribute('stroke-width', p.s === size ? 4 : 1.6)); /*T*/window.__tiles = T.map(t => t.slice());/*/T*/ };
+    const place = (x, y) => { const o = owner(x, y); if (o >= 0) { T.splice(o, 1); SFX.tick(); draw(); return; } if (x + size > item.w || y + size > item.h) { SFX.soft(); return; } for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) if (owner(x + dx, y + dy) >= 0) { SFX.soft(); return; } T.push([x, y, size]); SFX.tick(); draw(); };
+    /* البلاطتان: يختار الطفل أيّهما يضع */
+    const pal = [[2, 120], [1, 240]].map(([s, x]) => { const b = el('g', { role: 'button', tabindex: 0, 'aria-label': plain(labelText(s === 2 ? 'tlBig' : 'tlSmall')), style: 'cursor:pointer' }, svg), yy = 236, sz = s === 2 ? 40 : 20; el('rect', { x: x - 46, y: yy - 26, width: 92, height: 52, rx: 10, fill: '#fffdf6', stroke: css('--line'), 'stroke-width': 1.5 }, b);
+      const r = el('rect', { x: x - sz / 2, y: yy - sz / 2, width: sz, height: sz, rx: 3, fill: s === 2 ? '#d9b88f' : '#f2d38a', stroke: '#8a5a3a', 'stroke-width': 1.6 }, b); const go = () => { size = s; SFX.tick(); draw(); }; b.onclick = go; b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); go(); } }; return { b, r, s }; });
+    if (tries >= 3) { const S0 = this.sol(item); S0.slice(0, -1).forEach(t => T.push(t.slice())); }   /* الحلّ المشترك: البلاط إلا الأخيرة */
+    draw(); await S(tries >= 3 ? 'gen.ar.together.tl' : item.q);
+    const input = fingerInput(svg, { map: e => { const p = svgPoint(svg, e); return [p.x, p.y]; }, down(q) { const x = Math.floor((q[0] - x0) / c), y = Math.floor((q[1] - y0) / c); if (x < 0 || y < 0 || x >= item.w || y >= item.h) return false; place(x, y); return false; }, move() {}, up() {} });
+    const kg = el('g', { role: 'grid', 'aria-label': plain(labelText('tlFloor')) }, svg); for (let y = 0; y < item.h; y++) { const row = el('g', { role: 'row' }, kg); for (let x = 0; x < item.w; x++) { const b = el('g', { role: 'gridcell', tabindex: 0, 'aria-label': `${DG(y + 1)} · ${DG(x + 1)}` }, row); el('rect', { x: x0 + x * c, y: y0 + y * c, width: c, height: c, fill: 'transparent', 'pointer-events': 'none' }, b); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); place(x, y); } }; } }
+    /*T*/window.__tlAt = (x, y) => { const m = svg.getScreenCTM(); return { x: m.a * (x0 + x * c + c / 2) + m.e, y: m.d * (y0 + y * c + c / 2) + m.f }; }; window.__tlPal = s => { const r = pal.find(p => p.s === s).b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }; window.__tlSol = this.sol(item);/*/T*/
+    const setAll = L => { T.length = 0; L.forEach(t => T.push(t.slice())); draw(); };
+    AUTO({ kind: 'tiles', ok: () => { setAll(this.sol(item)); rulDoneBtn().click(); }, wrong: () => { const L = []; for (let y = 0; y < item.h; y++) for (let x = 0; x < item.w; x++) L.push([x, y, 1]); setAll(item.want === item.w * item.h ? L.slice(1) : L); rulDoneBtn().click(); } });
+    await rulDone(() => { input.off(); kg.remove(); pal.forEach(p => { p.b.onclick = null; p.b.onkeydown = null; p.b.removeAttribute('role'); }); });
+    const covered = T.reduce((a, t) => a + t[2] * t[2], 0); return { ans: covered < item.w * item.h ? 'gap' : T.length, ctx: { svg, setAll } }; },
+  judge(item, a) { if (a === 'gap') return { ok: false, err: 'tileGap' }; return a === item.want ? { ok: true } : { ok: false, err: 'tileMore' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 26, labelText('tlHint')); await S('gen.ar.hint.tl'); }, async together() {},
+  async reveal(item, r) { r.ctx.setAll(this.sol(item)); await S('gen.ar.reveal.tl', { noGap: true }); await S(numw(item.want), { num: true, append: true }); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
+/* ================= الإبداع «أفضل مزرعة» (د6، C210؛ المرجع: «يصمّم 3 أراضٍ بسور واحد الطول (24 م) ويقارن مساحاتها»؛ المراجع A لبوابة U6/U7، 19):
+   ثلاث جولات يضبط فيها الطفل عرض أرضٍ سورها 24 م (أرضٌ غير ما صمّم قبلها)، ثم جدولٌ بأراضيه الثلاث ومساحاتها، و«أيّها أكبر؟» ================= */
+SCENES.bestFarm = async c => { const L = c.lines, fence = c.fence || 24, half = fence / 2, made = [];
+  await S(L[0]);
+  for (let r = 0; r < 3; r++) { const svg = newStage(262, { oasis: false, ground: 0 }), land = el('g', {}, svg), k = Math.min(150 / (half - 1), 16); let w = [2, 4, 6][r];
+    const t1 = el('text', { x: 180, y: 30, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--compass'), direction: 'rtl' }, svg); t1.textContent = labelText(['bfLand1', 'bfLand2', 'bfLand3'][r]);
+    const dm = el('text', { x: 180, y: 56, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ink, direction: 'ltr' }, svg), ft = el('text', { x: 180, y: 252, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: ARC.fence, direction: 'rtl' }, svg); ft.textContent = `${labelText('arFence')} ${fence} ${labelText('lenM')}`;
+    let reg = null; const draw = () => { land.innerHTML = ''; const h = half - w, x0 = 180 - w * k / 2, y0 = 150 - h * k / 2; el('rect', { x: x0, y: y0, width: w * k, height: h * k, fill: '#8fca7a', stroke: ARC.fence, 'stroke-width': 4 }, land); dm.textContent = `${w} × ${h}`; /*T*/window.__bfW = w; window.__bfMade = made.map(m => m[0]);/*/T*/ if (reg) reg(); };
+    const btns = arSteps(svg, 150, d => { w = Math.max(1, Math.min(half - 1, w + d)); draw(); }); draw();
+    await S(r ? 'gen.ar.bf.again' : L[1]);
+    const tap = b => b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    for (;;) { reg = () => AUTO({ kind: 'bestFarm', ok: () => { const want = [2, 4, 6].find(v => !made.some(m => m[0] === v || m[1] === v)); w === want ? rulDoneBtn().click() : tap(btns[w < want ? 1 : 0]); }, wrong: () => rulDoneBtn().click() });
+      const fin = rulDone(() => { reg = null; }); reg(); await fin;
+      if (!made.some(m => m[0] === w || m[1] === w)) break;   /* أرضٌ صمّمها من قبل (أو هي نفسها مقلوبة): أخرى */
+      SFX.soft(); await S('gen.ar.bf.same'); }
+    btns.forEach(b => { b.onclick = null; b.onkeydown = null; b.removeAttribute('role'); }); made.push([w, half - w]); SFX.good(); }
+  /* الجدول: الأراضي الثلاث بأبعادها ومساحاتها، ثم «أيّها أكبر؟» */
+  const svg = newStage(262, { oasis: false, ground: 0 }), X = [300, 190, 80];
+  [['bfLand'], ['bfDims'], ['arArea0']].forEach(([l], j) => { const t = el('text', { x: X[j], y: 44, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: ARC.ink, direction: 'rtl' }, svg); t.textContent = labelText(l); });
+  geoLine(svg, 30, 56, 330, 56, { color: css('--line'), w: 2 });
+  made.forEach(([w, h], i) => { const y = 92 + i * 44, a = el('text', { x: X[0], y, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: css('--compass'), direction: 'rtl' }, svg); a.textContent = labelText(['bfFirst', 'bfSecond', 'bfThird'][i]); const d = el('text', { x: X[1], y, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: ARC.ink, direction: 'ltr' }, svg); d.textContent = `${w} × ${h}`; const ar = el('text', { x: X[2], y, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: ARC.ok, direction: 'rtl' }, svg); ar.textContent = `${w * h} ${labelText('arM2')}`; });
+  await S(L[2]);
+  const best = made.map((m, i) => [m[0] * m[1], i]).sort((a, b) => b[0] - a[0])[0][1];
+  const k = await choosePick(made.map((m, i) => ['l' + i, labelText(['bfFirst', 'bfSecond', 'bfThird'][i]), '<i></i>', ['gen.ar.bf.first', 'gen.ar.bf.second', 'gen.ar.bf.third'][i]]), 'l' + best);
+  logAttempt({ scene: 'explore', tag: 'axPredict', ok: k === 'l' + best }); el('rect', { x: 24, y: 92 + best * 44 - 26, width: 312, height: 38, rx: 8, fill: 'none', stroke: ARC.ok, 'stroke-width': 3 }, svg); SFX.tick();
+  await S(L[3]); };
