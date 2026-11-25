@@ -23,7 +23,7 @@ const rectKey = (w, h) => `R${Math.min(w, h)}x${Math.max(w, h)}`;
 const PIC1 = /^(plyis|plycnt|plyfix|qname|diagd|diagn|fam|pname|reg|concv|axn|trleg|parts|axis|pic|pg|ac|ae|ca|cp|hg|rp|ra)\|([^|]+)/, PIC2 = /^(tri|qopp|qchk)\|[^|]+\|([^|]+)/;
 export const picOf = f => { const m = PIC1.exec(f) || PIC2.exec(f); return m ? m[2] : null; };
 
-const PROD = new Set(['coordPlace', 'coordDraw', 'kiteTune', 'twoReasons', 'xfDraw', 'soEdgeHunt', 'voFill', 'enDraw', 'scDraw',   /* م3: يعيّن النقطة، ويصل الرؤوس، ويضبط الطائرة، ويختار سببين (D244) */
+const PROD = new Set(['coordPlace', 'coordDraw', 'kiteTune', 'twoReasons', 'xfDraw', 'soEdgeHunt', 'voFill', 'enDraw', 'scDraw', 'arTurn',   /* م3: يعيّن النقطة، ويصل الرؤوس، ويضبط الطائرة، ويختار سببين (D244) */
   'convMachine', 'lenOrder', 'fenceBuild', 'trackDesign', 'rectDraw', 'maxArea', 'fracColor', 'cellColor', 'linePlace', 'fracOrder', 'setColor',
   'squareSlide', 'sasBuild', 'paraComplete', 'compassDraw', 'sssBuild', 'consOrder', 'hexStep',   /* S2-U9: يرسم بمثلّث الرسم وبالمنقلة، ويكمل، ويضبط الفرجار، ويرتّب خطوات الإنشاء */   /* S2-U8: يلوّن ويضع ويرتّب */   /* S2-U7: يرسم المستطيل، ويبحث عن أكبر أرض */   /* S2-U6: يضبط آلة التحويل، ويرتّب، ويبني السور، ويصمّم المضمار */
   'axisHunt', 'ptImage', 'axisFind', 'designSym',   /* S2-U5: يجد المحاور بالطيّ، ويرسم الصورة، ويجد المحور، ويصمّم بمحاور */
@@ -309,6 +309,22 @@ export const factOf = it => { const t = it.t;
   if (t === 'coordAlign') return `cal|${it.a.join(',')}|${it.b.join(',')}`;
   if (t === 'coordDraw') return `cdr|${it.pts.map(p => p.join(',')).join(' ')}`;
   if (t === 'coordShape') return `csh|${it.ask || 'area'}|${it.pts.map(p => p.join(',')).join(' ')}`;
+  if (t === 'cgCase') return `cgc|${it.cs}`;
+  if (t === 'simMiss') return `sim|${it.s.join(',')}|${it.k}|${it.ask}`;
+  if (t === 'pyHyp') return `pyh|${[it.a, it.b].sort((x, y) => x - y)}`;
+  if (t === 'coDist2') return `cd2|${it.a.join(',')}|${it.b.join(',')}`;
+  if (t === 'ciInsc') return `cin|${it.c}`;
+  if (t === 'cylVol') return `cyl|${it.r}|${it.h}|${it.u}`;
+  if (t === 'trigVal') return `tgv|${it.deg}`;
+  if (t === 'xf4Pick') return `xf4|${it.p.join(',')}|${it.xf}`;
+  if (t === 'arComp') return `arc|${it.a}|${it.kind}`;
+  if (t === 'arPair') return `arp|${[it.a, it.b].sort((x, y) => x - y)}`;
+  if (t === 'arVert') return `arv|${it.th}|${it.given}|${it.ask}`;
+  if (t === 'arWhich') return `arw|${it.kind}|${it.th ?? it.phi}|${it.mark}|${it.rel}`;
+  if (t === 'arTrCalc') return `art|${it.phi}|${it.given}|${it.ask}`;
+  if (t === 'arPar') return `arq|${it.phi}|${it.tilt}`;
+  if (t === 'arTurn') return `aru|${it.mode}|${it.a ?? ''}|${it.want ?? ''}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'arpic') return `arpic|${JSON.stringify(it.pic)}`;
   if (t === 'raTable') return `rat|${it.ctx}|${JSON.stringify(it.cols)}|${it.eq ? 1 : 0}`;
   if (t === 'raEq') return `raq|${it.r1}|${it.r2}`;
   if (t === 'enDims') return `end|${it.fig}|${it.a}|${it.b}|${it.k}`;
@@ -637,7 +653,7 @@ export function d240(lessons, code, MAKERS) {
     return out; };
   /* ما يرسمه المشهد بنفسه (لا من بياناته) من أشياء لها مولّد: عجلات العربتين في الإشعال، وبابا الزرافة. لكل مشهد في الكود سطر هنا (ولو فارغاً)، فلا يُضاف مشهد يرسم شيئاً دون أن يراه الفحص */
   const SCENE_DRAWS = { cartsRace: [['wheel', 'cls']], giraffeDoors: [['door', 'cls']] };
-  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'mirrorHook', 'refShow', 'trHook', 'trShow', 'rotHook', 'rotShow', 'rsHook', 'rsShow', 'congHook', 'congShow', 'tileShow2', 'circHook', 'compassShow', 'piHook', 'ciStringShow', 'piShow', 'archShow', 'areaHook', 'discShow', 'boundShow', 'ciDoubleShow', 'gardenShow', 'soHook', 'soFacesShow', 'soEdgesShow', 'eulerShow', 'boxHook', 'boxShow', 'netHook', 'netShow', 'wrapHook', 'saShow', 'viewHook', 'viewsShow', 'giftShow', 'voHook', 'voFillShow', 'voVsArea', 'voToMul', 'voSumHook', 'voMulShow', 'voSameShow', 'treasureShow', 'raHook', 'raShow', 'raTableShow', 'raFracShow', 'enHook', 'enSqShow', 'enTriShow', 'enRuleShow', 'scHook', 'scShow', 'scUpShow', 'scDownShow', 'roomShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
+  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'mirrorHook', 'refShow', 'trHook', 'trShow', 'rotHook', 'rotShow', 'rsHook', 'rsShow', 'congHook', 'congShow', 'tileShow2', 'circHook', 'compassShow', 'piHook', 'ciStringShow', 'piShow', 'archShow', 'areaHook', 'discShow', 'boundShow', 'ciDoubleShow', 'gardenShow', 'soHook', 'soFacesShow', 'soEdgesShow', 'eulerShow', 'boxHook', 'boxShow', 'netHook', 'netShow', 'wrapHook', 'saShow', 'viewHook', 'viewsShow', 'giftShow', 'voHook', 'voFillShow', 'voVsArea', 'voToMul', 'voSumHook', 'voMulShow', 'voSameShow', 'treasureShow', 'raHook', 'raShow', 'raTableShow', 'raFracShow', 'enHook', 'enSqShow', 'enTriShow', 'enRuleShow', 'scHook', 'scShow', 'scUpShow', 'scDownShow', 'roomShow', 'arHook', 'arCompShow', 'arCrossShow', 'arVertShow', 'arTransShow', 'arCorrShow', 'arAltShow', 'arBridgeShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
     'bagFeel', 'pushLab', 'poses', 'faceLab', 'coneRoll', 'cylRoll', 'towersPredict', 'paperPush', 'stampLab', 'towerBuild', 'mosque', 'takeHook', 'facesCount', 'roomHunt', 'feelBox', 'shelvesWalk',
     'simonSays', 'lidCheck', 'chaosLid', 'queueBadge', 'queueSwap', 'trainOrdinals', 'chaosTrainBadge', 'ribbonHook', 'bodyMoves', 'robotIntro', 'chaosTurn', 'mapChaosHook', 'birdView', 'chaosSideDraw',
     'roadChaosHook', 'roadListen', 'roadCountChaos', 'chaosSkipBack', 'jumpChaosHook', 'roadRace', 'chaosSubForward', 'recallPic', 'queueOrdinals',   /* S1-U3: أشياؤها رسوم المواضع لا مولّدات */

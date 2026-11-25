@@ -75,7 +75,9 @@ function calcShare(svg, [n, k], what) { const per = Math.min(10, n), rows = Math
    🟢 جاهز · 🟡 يحتاج تدعيماً (أخطأ في أحد بندي المفهوم) · 🔴 يحتاج بناء: درس م1 المقابل قبل الوحدة المتأثرة (اقتراحٌ في لوحة الكبار، لا قفل).
    c.checks: [{id، c مفهوم م1، m1 درس المراجعة، u وحدات م2 المتأثرة، short لمن أنهى م1، item}] */
 /* والمرحلة 3 (S3_نظام_التقييم، أولاً): خرّيج م2 بشهادة «بنّاء ماهر» يُجري الأسئلة المختصرة، والنتيجة في diag:m3 */
-SCENES.geoCheck = async (c, L) => { const st = c.stage || 'm2', grad = st === 'm3' ? !!(isObj(PROG['final:m2']) && PROG['final:m2'].cert) : !!PROG['badge:m1.u6'], list = c.checks.filter(q => !grad || q.short);
+/* والمرحلة 4 (M4_نظام_التقييم، أولاً): خرّيج م3 بشهادة «مهندس معتمد» يُجري الأسئلة 2 و4 و6 و8، والنتيجة في diag:m4 */
+const GEO_PREV = { m3: 'm2', m4: 'm3' };
+SCENES.geoCheck = async (c, L) => { const st = c.stage || 'm2', pv = GEO_PREV[st], grad = pv ? !!(isObj(PROG['final:' + pv]) && PROG['final:' + pv].cert) : !!PROG['badge:m1.u6'], list = c.checks.filter(q => !grad || q.short);
   if (c.intro) await S(c.intro);
   const got = {}; for (const q of list) { const r = await runItem(q.item, 'test', { scene: 'diag' }); (got[q.c] = got[q.c] || []).push(!!r.ok); }
   const res = {}; for (const [k, a] of Object.entries(got)) res[k] = a.every(Boolean) ? 'go' : a.some(Boolean) ? 'help' : 'build';

@@ -56,7 +56,8 @@ LESSONS = ['m1.u1.d1', 'm1.u1.d2', 'm1.u1.d3', 'm1.u1.d4', 'm1.u1.d5', 'm1.u1.d6
            'm3.u7.d1', 'm3.u7.d2', 'm3.u7.d3', 'm3.u7.d4', 'm3.u7.d5',
            'm3.u8.d1', 'm3.u8.d2', 'm3.u8.d3', 'm3.u8.d4', 'm3.u8.d5', 'm3.u8.d6',
            'm3.u9.d1', 'm3.u9.d2', 'm3.u9.d3', 'm3.u9.d4', 'm3.u9.d5',
-           'm3.u10.d1', 'm3.u10.d2', 'm3.u10.d3', 'm3.u10.d4', 'm3.u10.d5']
+           'm3.u10.d1', 'm3.u10.d2', 'm3.u10.d3', 'm3.u10.d4', 'm3.u10.d5',
+           'm4.u1.d1', 'm4.u1.d2', 'm4.u1.d3', 'm4.u1.d4', 'm4.u1.d5', 'm4.u1.d6']
 if os.environ.get('ONLY'): LESSONS = [l for l in LESSONS if l in os.environ['ONLY'].split(',')]   # تشغيل جزئي أثناء التطوير
 # ما خرج من نافذة الشريط (القطار، الطريق) مخفيّ لا يُلمس: يُلمس زرّ التحريك نحوه حتى يظهر
 REVEAL = """(sel) => { const g = document.querySelector(sel); if (!g || getComputedStyle(g).visibility !== 'hidden') return null;

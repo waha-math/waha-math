@@ -24,6 +24,7 @@ function stopIconInner(L) { const s = el('svg', { viewBox: '0 0 72 56' }); const
     geoline: () => { geoObj(s, 'line', [26, 36], [46, 24], { ext: 20 }); },
     quadsum: () => { el('path', { d: 'M10 48 L62 48 L52 14 L20 22 Z', fill: '#fdf7e8', stroke: GEO.ink, 'stroke-width': 2.4, 'stroke-linejoin': 'round' }, s); el('path', { d: 'M10 48 L52 14', stroke: '#8e6bbf', 'stroke-width': 2, 'stroke-dasharray': '4 3' }, s); },   /* S3-U1 د2 */
     tessicon: () => { for (const [x, y, r] of [[22, 30, 0], [42, 30, 0], [32, 13, 0], [32, 47, 0]]) el('polygon', { points: [0, 1, 2, 3, 4, 5].map(i => [x + 10 * Math.cos(i * Math.PI / 3), y + 10 * Math.sin(i * Math.PI / 3)].join(',')).join(' '), fill: '#f2d38a', stroke: GEO.ink, 'stroke-width': 1.6 }, s); },   /* S3-U1 د3 */
+    anicon: () => { el('path', { d: 'M6 22 L58 22 M6 46 L58 46 M18 58 L46 8', stroke: '#2f7fc1', 'stroke-width': 3.4, fill: 'none' }, s); el('path', { d: 'M36 22 A8 8 0 0 0 31.5 15', stroke: '#2f9d6b', 'stroke-width': 3, fill: 'none' }, s); el('path', { d: 'M22 46 A8 8 0 0 0 26.5 53', stroke: '#2f9d6b', 'stroke-width': 3, fill: 'none' }, s); },   /* M4-U1 */
     raicon: () => { for (const [x, n, c] of [[10, 2, '#2f7fc1'], [38, 6, '#d9822b']]) for (let i = 0; i < n; i++) el('circle', { cx: x + 8 + (i % 2) * 10, cy: 16 + Math.floor(i / 2) * 14, r: 5, fill: c }, s); el('text', { x: 34, y: 34, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: '#333' }, s).textContent = ':'; },   /* S3-U10 د1 */
     enicon: () => { el('rect', { x: 40, y: 38, width: 14, height: 14, fill: '#9cc7ea', stroke: '#2a3b4c', 'stroke-width': 2 }, s); el('rect', { x: 8, y: 24, width: 28, height: 28, fill: '#f2c46b', stroke: '#2a3b4c', 'stroke-width': 2 }, s); el('path', { d: 'M40 30 L36 26 M40 30 L44 26', stroke: '#c0392b', 'stroke-width': 2, fill: 'none' }, s); },   /* S3-U10 د2 */
     scicon: () => { el('rect', { x: 8, y: 10, width: 48, height: 36, rx: 4, fill: '#fffdf6', stroke: '#8f877a', 'stroke-width': 2 }, s); el('path', { d: 'M8 28 L56 28 M30 10 L30 46', stroke: '#9a948a', 'stroke-width': 5 }, s); el('rect', { x: 12, y: 50, width: 40, height: 8, rx: 2, fill: '#2f7fc1' }, s); },   /* S3-U10 د3 ود4 */
@@ -129,7 +130,11 @@ function stopIconInner(L) { const s = el('svg', { viewBox: '0 0 72 56' }); const
   if (!digitsKnown()) s.querySelectorAll('text').forEach(t => { if (/[0-9٠-٩]/.test(t.textContent)) t.remove(); });
   return s.innerHTML; }
 const stopIcon = L => `<svg viewBox="0 0 72 56" aria-hidden="true">${stopIconInner(L)}</svg>`;
-const unitOpen = ui => ui === 0 || !!PROG['badge:' + UNITS[ui - 1].id] || !!PROG['support:' + UNITS[ui - 1].id] || !!PROG.unlockAll;   // «متقدّم مع دعم» يفتح الوحدة التالية (A-03، D266)
+/* «متقدّم مع دعم» يفتح الوحدة التالية (A-03، D266)؛ وأول وحدة في المرحلة التالية يفتحها التقييم الختامي «متقن» أو «متقدّم»
+   (S3_نظام_التقييم، رابعاً: المتقدّم ينتقل مع أنشطة دعم)، فالختامي لا شارة له */
+const FINAL_UNIT = { 'm2.u10': 'm2', 'm3.u11': 'm3' };
+const unitOpen = ui => { if (ui === 0 || PROG.unlockAll) return true; const P = UNITS[ui - 1].id; if (PROG['badge:' + P] || PROG['support:' + P]) return true;
+  const R = FINAL_UNIT[P] && PROG['final:' + FINAL_UNIT[P]]; return !!(R && (R.level === 'master' || R.level === 'adv')); };
 const isTestLesson = id => !!LDATA[id].test;
 function lessonOpen(U, i) { const ids = U.lessons; if (PROG.unlockAll) return true; if (i > 0 && !(PROG[ids[i - 1]] || {}).done) return false;
   if (isTestLesson(ids[i]) && WS[U.id] && wsSolved(U.id) < 1) return false; if (isTestLesson(ids[i]) && !retakeOpen(PROG[ids[i]] || {})) return false; return true; }
