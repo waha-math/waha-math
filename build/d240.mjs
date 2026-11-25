@@ -23,7 +23,8 @@ const rectKey = (w, h) => `R${Math.min(w, h)}x${Math.max(w, h)}`;
 const PIC1 = /^(plyis|plycnt|plyfix|qname|diagd|diagn|fam|pname|reg|concv|axn|trleg|parts|axis|pic|pg|ac|ae|ca|cp|hg|rp|ra)\|([^|]+)/, PIC2 = /^(tri|qopp|qchk)\|[^|]+\|([^|]+)/;
 export const picOf = f => { const m = PIC1.exec(f) || PIC2.exec(f); return m ? m[2] : null; };
 
-const PROD = new Set(['convMachine', 'lenOrder', 'fenceBuild', 'trackDesign', 'rectDraw', 'maxArea', 'fracColor', 'cellColor', 'linePlace', 'fracOrder', 'setColor',
+const PROD = new Set(['coordPlace', 'coordDraw', 'kiteTune', 'twoReasons',   /* م3: يعيّن النقطة، ويصل الرؤوس، ويضبط الطائرة، ويختار سببين (D244) */
+  'convMachine', 'lenOrder', 'fenceBuild', 'trackDesign', 'rectDraw', 'maxArea', 'fracColor', 'cellColor', 'linePlace', 'fracOrder', 'setColor',
   'squareSlide', 'sasBuild', 'paraComplete', 'compassDraw', 'sssBuild', 'consOrder', 'hexStep',   /* S2-U9: يرسم بمثلّث الرسم وبالمنقلة، ويكمل، ويضبط الفرجار، ويرتّب خطوات الإنشاء */   /* S2-U8: يلوّن ويضع ويرتّب */   /* S2-U7: يرسم المستطيل، ويبحث عن أكبر أرض */   /* S2-U6: يضبط آلة التحويل، ويرتّب، ويبني السور، ويصمّم المضمار */
   'axisHunt', 'ptImage', 'axisFind', 'designSym',   /* S2-U5: يجد المحاور بالطيّ، ويرسم الصورة، ويجد المحور، ويصمّم بمحاور */
   'rulerAlign', 'drawLen', 'gridPoint', 'midMark', 'rayDraw', 'paraDraw', 'perpTurn', 'angleMatch', 'angleDraw', 'polyFix', 'diagDraw', 'polyDraw',   /* S2-U4: يغلق الشكل ويقوّم ضلعه، ويرسم القطر، ويرسم المضلع على الشبكة */   /* S2-U3: يفتح الباب بانفتاح الزاوية، ويرسم الزاوية بالمنقلة */   /* S2-U2: يرسم الموازي ويدير المعامد */   /* S2-U0: يحرّك المسطرة حتى الصفر، ويرسم بطول معلوم */
@@ -301,6 +302,13 @@ export const factOf = it => { const t = it.t;
   if (t === 'a2Cmp') return `a2cmp|${it.a.join('')}|${it.b.join('')}`;
   if (t === 'a2Tiles') return `a2t|${it.room ? it.room.join('x') : it.A}`;
   if (t === 'a2Machine') return `a2m|${it.v}|${it.from}`;
+  if (t === 'coordPlace') return `cpl|${it.x}|${it.y}|${(it.given || []).map(g => g.slice(0, 2).join(',')).join(' ')}`;
+  if (t === 'coordRead') return `crd|${it.x}|${it.y}`;
+  if (t === 'coordWhere') return `cwh|${it.x}|${it.y}`;
+  if (t === 'coordDist') return `cds|${it.a.join(',')}|${it.b.join(',')}`;
+  if (t === 'coordAlign') return `cal|${it.a.join(',')}|${it.b.join(',')}`;
+  if (t === 'coordDraw') return `cdr|${it.pts.map(p => p.join(',')).join(' ')}`;
+  if (t === 'coordShape') return `csh|${it.ask || 'area'}|${it.pts.map(p => p.join(',')).join(' ')}`;
   if (t === 'estPick') return `est|${it.thing}`;
   if (t === 'trackDesign') return `track|${it.n || 4}`;
   /* S2-U7: المحيط والمساحة؛ الشكل على الشبكة بصفوفه، والمستطيل بطوليه (الشبكة لا تجعل السؤال جديداً) */
@@ -587,7 +595,7 @@ export function d240(lessons, code, MAKERS) {
     return out; };
   /* ما يرسمه المشهد بنفسه (لا من بياناته) من أشياء لها مولّد: عجلات العربتين في الإشعال، وبابا الزرافة. لكل مشهد في الكود سطر هنا (ولو فارغاً)، فلا يُضاف مشهد يرسم شيئاً دون أن يراه الفحص */
   const SCENE_DRAWS = { cartsRace: [['wheel', 'cls']], giraffeDoors: [['door', 'cls']] };
-  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
+  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
     'bagFeel', 'pushLab', 'poses', 'faceLab', 'coneRoll', 'cylRoll', 'towersPredict', 'paperPush', 'stampLab', 'towerBuild', 'mosque', 'takeHook', 'facesCount', 'roomHunt', 'feelBox', 'shelvesWalk',
     'simonSays', 'lidCheck', 'chaosLid', 'queueBadge', 'queueSwap', 'trainOrdinals', 'chaosTrainBadge', 'ribbonHook', 'bodyMoves', 'robotIntro', 'chaosTurn', 'mapChaosHook', 'birdView', 'chaosSideDraw',
     'roadChaosHook', 'roadListen', 'roadCountChaos', 'chaosSkipBack', 'jumpChaosHook', 'roadRace', 'chaosSubForward', 'recallPic', 'queueOrdinals',   /* S1-U3: أشياؤها رسوم المواضع لا مولّدات */
