@@ -74,12 +74,13 @@ function calcShare(svg, [n, k], what) { const per = Math.min(10, n), rows = Math
    عشرة أسئلة ببنود م1 لمن يدخل م2 مباشرةً، والسؤالان 4 و8 وحدهما لمن أنهى م1 (شارة S1-U6). النتيجة خريطة لكل مفهوم لا درجة:
    🟢 جاهز · 🟡 يحتاج تدعيماً (أخطأ في أحد بندي المفهوم) · 🔴 يحتاج بناء: درس م1 المقابل قبل الوحدة المتأثرة (اقتراحٌ في لوحة الكبار، لا قفل).
    c.checks: [{id، c مفهوم م1، m1 درس المراجعة، u وحدات م2 المتأثرة، short لمن أنهى م1، item}] */
-SCENES.geoCheck = async (c, L) => { const grad = !!PROG['badge:m1.u6'], list = c.checks.filter(q => !grad || q.short);
+/* والمرحلة 3 (S3_نظام_التقييم، أولاً): خرّيج م2 بشهادة «بنّاء ماهر» يُجري الأسئلة المختصرة، والنتيجة في diag:m3 */
+SCENES.geoCheck = async (c, L) => { const st = c.stage || 'm2', grad = st === 'm3' ? !!(isObj(PROG['final:m2']) && PROG['final:m2'].cert) : !!PROG['badge:m1.u6'], list = c.checks.filter(q => !grad || q.short);
   if (c.intro) await S(c.intro);
   const got = {}; for (const q of list) { const r = await runItem(q.item, 'test', { scene: 'diag' }); (got[q.c] = got[q.c] || []).push(!!r.ok); }
   const res = {}; for (const [k, a] of Object.entries(got)) res[k] = a.every(Boolean) ? 'go' : a.some(Boolean) ? 'help' : 'build';
   const meta = {}; for (const q of c.checks) meta[q.c] = { m1: q.m1, u: q.u };
-  PROG['diag:m2'] = { at: Date.now(), short: grad, res, meta }; saveProg();
+  PROG['diag:' + st] = { at: Date.now(), short: grad, res, meta }; saveProg();
   logAttempt({ scene: 'diag', tag: 'result', ok: Object.values(res).every(v => v === 'go'), res, short: grad });
   if (c.after) await S(c.after); };
 /* ================= المشهد: إحماء الحساب (بلا مساعدة ولا «أخطأت»، ثم الشجرة بالنطاق) =================

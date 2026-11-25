@@ -792,7 +792,7 @@ export function d240(lessons, code, MAKERS) {
       for (const q of st.checks || []) { const k = keyOf(q.item, L); if (k && TF.has(k)) errors.push(`${L.id}: بند الختامي ${q.id} (${k.slice(0, 60)}) رُئي في ${TF.get(k)} (D277 (3): الختامي أسئلة جديدة)`); } }
     // D239: اختيار حقيقي في كل درس
     /* إلا «إحماء الحساب» (الوحدات الحسابية المصغّرة): اختبار تخطٍّ بلا تمرين، والاختيار فيه لوحة الأرقام نفسها */
-    if (!L.flow.some(s => ['calcCheck', 'finalCheck', 'finalResult'].includes(s.scene) || (s.s === 'explore' && (L.id.startsWith('m2.u10.') || L.id.startsWith('m3.u11.')))) && !(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);
+    if (!L.flow.some(s => ['calcCheck', 'geoCheck', 'finalCheck', 'finalResult'].includes(s.scene) || (s.s === 'explore' && (L.id.startsWith('m2.u10.') || L.id.startsWith('m3.u11.')))) && !(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);
   }
   /* التوأم (الفحص المستقل B): بند آخر بعد الحلّ المشترك أو الكشف، فمسألته غير مسألة أصله، وإلا كان جوابه ما كُشف للتوّ.
      ومسائل التوأم «معروضة» في الدرس (shownOf يزور كل ما في بيانات التمرين والعلاج واللعب)، فلا يقيسها إتقان ولا مراجعة ولا اختبار */
