@@ -222,7 +222,7 @@ d3={"id":"m2.u9.d3","title":"مُضَلَّعَاتٌ بِزَوَايَا مَ�
    "C233":[sas(7,4,50), aca(60,65), reason("ms.1",{"kind":"cpsas","ab":6,"ac":4,"deg":60},["ms.1a","ms.1b","ms.1c"])],
    "C234":[pc([1,1],[6,1],[3,4]), pc([2,1],[5,0],[1,4]), reason("ms.2",{"kind":"cppara"},["ms.2a","ms.2b","ms.2c"])]},
   "recall":{"C233":{"scene":"recallComp","lines":["ms.recall"]},"C234":{"scene":"recallComp","lines":["ms.recall2"]}},
-  "remedial":{"C233":[tw(sas(4,3,90),aca(90,91))],"C234":[tw(pc([1,1],[4,1],[1,3]),pc([0,0],[3,0],[1,2]))]},
+  "remedial":{"C233":[tw(sas(4,5,90),aca(90,91))],"C234":[tw(pc([1,1],[4,1],[1,3]),pc([0,0],[3,0],[1,2]))]},
   "mixed":{"lesson":"m2.u9.d2","concept":"C231","item":ss('perp',2)},
   "ok":"ms.ok"},
  "review":[dict(sas(5,5,100),c="C233"), dict(pc([2,2],[6,2],[3,5]),c="C234"), dict(aca(80,76),c="C233"), dict(pc([1,0],[5,1],[0,3]),c="C234")],
@@ -351,7 +351,7 @@ d5={"id":"m2.u9.d5","title":"إِنْشَاءَاتُ الفِرْجَارِ","i
   "remedial":{"C238":[tw(tf(2,[3,2,4]),tf(7,[7,6,8]))],"C239":[tw(sss(3,3,3),sss(6,6,6))],"C240":[tw(te([9,9,9]),te([6,1,2]))]},
   "mixed":{"lesson":"m2.u9.d4","concept":"C236","item":rdr(4)},
   "ok":"ms.ok"},
- "review":[dict(tf(8,[7,8,6]),c="C238"), dict(sss(7,7,7),c="C239"), dict(te([8,6,3]),c="C240"), dict(tf(4,[4,3,5]),c="C238"), dict(sss(2,2,2),c="C239"), dict(te([9,3,5]),c="C240")],
+ "review":[dict(tf(8,[7,8,6]),c="C238"), dict(sss(7,7,7),c="C239"), dict(te([8,6,3]),c="C240"), dict(tf(4,[4,3,5]),c="C238"), dict(sss(5,5,5),c="C239"), dict(te([9,3,5]),c="C240")],
  "wrap":{"art":"compArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"أنشئوا معه مثلثاً متساوي الأضلاع بالفرجار، ولا تدعوه يمسح الأقواس فهي جزء من الحل. وجرّبوا أطوالاً لا يتكوّن منها مثلث، واسألوه: لماذا لم يلتقِ القوسان؟"}
 
@@ -403,7 +403,7 @@ d6={"id":"m2.u9.d6","title":"زَخْرَفَةُ القَصْرِ","icon":["cpf
    "C241":[hx(3,q='pr.hex'), hs(5), reason("ms.1",{"kind":"cphex"},["ms.1a","ms.1b","ms.1c"])],
    "C242":[fa('pairs'), fa('half'), co('flower',[2,1,3,0])]},
   "recall":{"C241":{"scene":"recallComp","hex":True,"lines":["ms.recall"]},"C242":{"scene":"recallComp","hex":True,"lines":["ms.recall2"]}},
-  "remedial":{"C241":[tw(hs(3),hx(8))],"C242":[tw(fa('skip'),fa('quad'))]},
+  "remedial":{"C241":[tw(hs(3),hx(8))],"C242":[tw(fa('skip'),fa('opp2'))]},
   "mixed":{"lesson":"m2.u9.d5","concept":"C240","item":te([6,6,3])},
   "ok":"ms.ok"},
  "review":[dict(hs(8),c="C241"), dict(fa('five'),c="C242"), dict(hx(9),c="C241"), dict(fa('adjB'),c="C242")],

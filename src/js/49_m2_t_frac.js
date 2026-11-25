@@ -37,7 +37,7 @@ const frStage = (H = 240) => { const svg = newStage(H, { oasis: false, ground: 0
 /* خيارات كسور: الصحيح ومشتّتات الأخطاء الشائعة، ثم ما يكمل ثلاثة */
 function frOpts(want, errs = []) { const out = [want], has = f => out.some(g => g[0] === f[0] && g[1] === f[1]);
   const okD = d => [2, 3, 4, 5, 6, 8, 10, 12].includes(d);   /* مقامات الوحدة وحدها (لا سبع ولا تسع ولا واحد في المشتّتات) */
-  for (const f of errs) if (f && f[0] > 0 && f[0] <= 10 && okD(f[1]) && !has(f) && out.length < 3) out.push(f);
+  let imp = 0; for (const f of errs) if (f && f[0] > 0 && f[0] <= 10 && okD(f[1]) && !has(f) && out.length < 3 && !(f[0] > f[1] && imp++)) out.push(f);   /* كسرٌ أكبر من الواحد مشتّتاً واحداً على الأكثر، فلا يُعرف الجواب بأنه الحقيقيّ الوحيد (المراجع B لبوابة U8/U9، 16) */
   for (const f of [[want[0] + 1, want[1]], [want[0], want[1] + 1], [Math.max(1, want[0] - 1), want[1]], [want[0], Math.max(2, want[1] - 1)], [want[0], want[1] + 2], [want[0] + 2, want[1]]]) if (out.length < 3 && !has(f) && okD(f[1]) && f[0] <= f[1] + 1 && !(f[0] === 2 && f[1] === 10)) out.push(f);   /* «عشران» يلتبس بالعشرة (4ب17) */
   return shuffle(out); }
 const frAsk = (opts, want) => choosePick(opts.map(frOpt), frKey(want));
@@ -225,7 +225,7 @@ ITEM.fracCmp = frItem({ tLine: 'gen.fr.together.cmp', hint: 'gen.fr.hint.cmp', r
     [[item.a, 75], [item.b, 155]].forEach(([f, y]) => fracText(svg, 46, y, f, { fs: 17 }));
     if (tries >= 3) { const m = helpG(svg); [[item.a, 54], [item.b, 134]].forEach(([f, y]) => { const x = 79 + 250 * (1 - f[0] / f[1]); geoLine(m, x, y - 6, x, y + 48, { color: css('--think'), w: 4 }); }); } return {}; },
   pick: item => choosePick([['a', labelText('frFirstF'), '<i></i>', 'gen.fr.firstF'], ['b', labelText('frSecondF'), '<i></i>', 'gen.fr.secondF'], ['eq', labelText('frEqual'), '<i></i>', 'gen.fr.equal']], item.want),
-  errOf: (it, k) => it.a[0] === it.b[0] && k !== 'eq' ? 'biggerDen' : it.a[1] === it.b[1] ? 'frCmpOff' : k === 'eq' ? 'cmpEqWrong' : 'numOnly' });
+  errOf: (it, k) => it.a[0] === it.b[0] && k !== 'eq' ? 'biggerDen' : it.a[1] === it.b[1] ? 'frCmpOff' : k === 'eq' ? 'cmpEqWrong' : it[k][0] > it[k === 'a' ? 'b' : 'a'][0] ? 'numOnly' : 'frCmpOff' });   /* numOnly حين اختار الأكبر بسطاً وهو الأصغر قيمةً (المراجع B لبوابة U8/U9، 11) */
 /* ================= ⑯ أكبر من النصف أم أصغر؟ (C226): f ================= */
 ITEM.halfBench = frItem({ tLine: 'gen.fr.together.bench', hint: 'gen.fr.hint.bench', rLine: it => 'gen.fr.reveal.bench.' + it.want, sayQ: it => sayFrac(it.f),
   make: s => { const d = 2 * s.f[0] - s.f[1]; return { want: d === 0 ? 'eq' : d > 0 ? 'more' : 'less', tag: 'half-bench' }; },

@@ -118,7 +118,7 @@ ITEM.sasBuild = {
     await S(tries >= 3 ? 'gen.cp.together.sas' : item.q, { noGap: true }); await sayDeg(item.deg); await S('gen.cp.sideIs', { noGap: true, append: true }); await sayLen(item.ac, 'cm');
     const v = await stepperAsk([{ key: 'ang', min: 10, max: 170, val: 90, step: 5, unit: 'cpDeg' }, { key: 'len', min: 1, max: 7, val: 3, unit: 'rulCm' }], { kind: 'sas', onChange: redraw, bare: true, auto: { ok: { ang: item.deg, len: item.ac }, wrong: { ang: 180 - item.deg === item.deg ? item.deg + 10 : 180 - item.deg, len: item.ac } } });
     return { ans: v.ang + '|' + v.len, ctx: { svg, redraw } }; },
-  judge(item, k) { const [a, l] = k.split('|').map(Number); return a === item.deg && l === item.ac ? { ok: true } : { ok: false, err: a === 180 - item.deg ? 'protScale' : a !== item.deg ? 'sasAngle' : 'sasSide' }; },
+  judge(item, k) { const [a, l] = k.split('|').map(Number); return a === item.deg && l === item.ac ? { ok: true } : { ok: false, err: a !== item.deg && a === 180 - item.deg ? 'protScale' : a !== item.deg ? 'sasAngle' : 'sasSide' }; },   /* (المراجع B لبوابة U8/U9، 11) */
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('cpH.sas')); await S('gen.cp.hint.sas'); }, async together() {},
   async reveal(item, r) { r.ctx.redraw({ ang: item.deg, len: item.ac }); await S('gen.cp.reveal.sas'); },
@@ -208,7 +208,7 @@ async function arcsShow(svg, s, o = {}) { const [c, a, b] = [...s].sort((p, q) =
 ITEM.triExists = cpItem({ h2: async (item, ctx) => { const [c, a2, b2] = [...item.s].sort((p, q) => q - p), m = helpG(ctx.svg), y = 150, x0 = 180 - c * CM / 2; geoLine(m, x0, y, x0 + c * CM, y, { color: CPC.ink, w: 4 }); geoLine(m, x0, y + 14, x0 + a2 * CM, y + 14, { color: css('--think'), w: 4 }); geoLine(m, x0 + a2 * CM, y + 14, x0 + (a2 + b2) * CM, y + 14, { color: '#2f9d6b', w: 4 }); SFX.tick(); await sleep(FAST ? 10 : 300); },   /* الضلعان الأقصران متتاليين تحت الأطول: هل يبلغانه؟ */
   tLine: 'gen.cp.together.tri', hint: 'gen.cp.hint.tri', rLine: it => 'gen.cp.reveal.tri.' + it.want, H: 256,
   make: s => { const [c, a, b] = [...s.s].sort((p, q) => q - p); return { want: a + b > c ? 'yes' : 'no', tag: 'tri-exists' }; },
-  draw(svg, item) { item.s.forEach((L, i) => { const y = 54 + i * 26, x1 = 300 - L * CM; geoLine(svg, x1, y, 300, y, { color: ['#c8392d', '#2f9d6b', '#2a5f94'][i], w: 5 }); const t = el('text', { x: x1 - 10, y: y + 6, 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg); t.textContent = `${L} ${labelText('rulCm')}`; }); return {}; },
+  draw(svg, item) { item.s.forEach((L, i) => { const y = 54 + i * 26, x1 = 300 - L * CM; geoLine(svg, x1, y, 300, y, { color: ['#c8392d', '#2f9d6b', '#2a5f94'][i], w: 5 }); const t = el('text', { x: x1 - 10, y: y + 6, 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: CPC.ink, direction: 'ltr' }, svg); t.textContent = `${L} ${labelText('rulCm')}`; }); return {}; },
   async together(item, ctx) { await arcsShow(ctx.svg, item.s, { y: 230, noClose: true }); },   /* القوسان وحدهما: هل يلتقيان؟ للطفل (B-6) */
   pick: item => yesNo(item.want),
   errOf: it => it.want === 'no' ? 'triAlways' : 'triMissed' });
@@ -225,7 +225,7 @@ ITEM.sssBuild = {
     await S(tries >= 3 ? 'gen.cp.together.sss' : item.q, { noGap: true }); await sayLen(item.a, 'cm'); await S('gen.cp.and', { noGap: true, append: true }); await sayLen(item.b, 'cm');
     const v = await stepperAsk([{ key: 'r1', min: 1, max: 9, val: 2, unit: 'rulCm' }, { key: 'r2', min: 1, max: 9, val: 2, unit: 'rulCm' }], { kind: 'sss', onChange: redraw, bare: true, auto: { ok: { r1: item.a, r2: item.b }, wrong: { r1: item.a, r2: item.a === item.b ? item.b + 1 : item.a } } });
     return { ans: [v.r1, v.r2].sort().join(','), ctx: { svg, redraw } }; },
-  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k.split(',').map(Number).some(x => x === item.base) ? 'sssBase' : 'sssOff' }; },
+  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: !(item.a === item.base && item.b === item.base) && k.split(',').map(Number).some(x => x === item.base) ? 'sssBase' : 'sssOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('cpH.sss')); await S('gen.cp.hint.sss'); }, async together() {},
   async reveal(item, r) { r.ctx.redraw({ r1: item.a, r2: item.b }); await S('gen.cp.reveal.sss'); },
