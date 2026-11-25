@@ -14,7 +14,7 @@ function maintNote(L, C, x) { const md = maintDue(L, C, x); if (md == null) retu
 function statusPill(L) { const p = PROG[L.id] || {};
   /* إحماء الحساب (الوحدات الحسابية المصغّرة، S2_نظام_التقييم): النطاق وما يُفعل به، لا رقم أمام الطفل */
   /* التقييم الختامي للمرحلة 2 (الدرس الرابع من «بوّابة البنّائين»): المستوى بالعتبات، وما ينقصه */
-  if ((L.id === 'm2.u10.d4' || L.id === 'm3.u11.d4') && p.done) { const st = L.id.split('.')[0], R = finalOf(st), LV = { master: ['good', '🌳 متقن'], adv: ['think', '🌿 متقدّم'], support: ['think', '🌱 يحتاج دعماً'], pending: ['think', 'ينتظر بطاقة المعايير'] }[R.level] || ['think', 'لم تكتمل الأجزاء'];
+  if ((L.id === 'm2.u10.d4' || L.id === 'm3.u11.d4' || L.id === 'm4.u10.d4') && p.done) { const st = L.id.split('.')[0], R = finalOf(st), LV = { master: ['good', '🌳 متقن'], adv: ['think', '🌿 متقدّم'], support: ['think', '🌱 يحتاج دعماً'], pending: ['think', 'ينتظر بطاقة المعايير'] }[R.level] || ['think', 'لم تكتمل الأجزاء'];
     return `<span class="pill ${LV[0]}">${LV[1]}</span> <span class="muted">أ وأ2: ${R.score ?? '—'} من ${R.of} (العتبة ${Math.ceil(.85 * R.of)})${R.a2Paper ? '، أ2 بحكمكم على الورق' : ''} · المهمة: ${R.bDone ? R.b3 + ' معايير 🌳' + (R.b1 ? ' ومعيار 🌱' : '') : 'البطاقة لم تُملأ'} · الشارات ${R.badges} من ${R.units}${R.cert ? ` · <b>شهادة «${st === 'm3' ? 'مهندس معتمد' : 'بنّاء ماهر'}»</b>` : ''}</span>`; }
   /* والتشخيص الهندسي عند دخول م2: مفهوم م1 بلونه، ودرس م1 المقترح قبل وحدة م2 المتأثرة لما يحتاج بناءً */
   const dgK = { 'm2.u0.d0': 'diag:m2', 'm3.u0.d0': 'diag:m3', 'm4.u1.d0': 'diag:m4' }[L.id], dg = dgK && isObj(PROG[dgK]) ? PROG[dgK] : null, DGC = { go: '🟢', help: '🟡', build: '🔴' };

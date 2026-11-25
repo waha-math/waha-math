@@ -322,18 +322,55 @@ export const factOf = it => { const t = it.t;
   if (t === 'polyBuild') return `pbd|${it.sum}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'pfpic') return `pfpic|${JSON.stringify(it.pic)}`;
   if (t === 'cgCase') return `cgc|${it.cs}|${it.v || 0}`;
+  if (t === 'pySq') return `pys|${it.a}|${it.b}`;
+  if (t === 'pyLeg') return `pyl|${it.hyp}|${it.a}|${it.ctx || 'tri'}`;
+  if (t === 'pyApprox') return `pya|${[it.a, it.b].sort((x, y) => x - y)}`;
+  if (t === 'pyIsRight') return `pir|${cgS(it.s)}`;
   if (t === 'cgSides') return `cgs|${cgS(it.a)}|${cgS(it.b)}`;
   if (t === 'cgPick') return `cgp|${cgS(it.orig)}|${it.cands.map(cgS).sort().join(' ')}`;
   if (t === 'simYN') return `smy|${it.fig}|${it.a.join(',')}|${it.b.join(',')}`;
   if (t === 'quadDiag') return `qdg|${['mid', 'eq', 'perp'].map(k => it.info[k] ? 1 : 0).join('')}`;
-  if (t === 'perpArea') return `ppa|${it.a}|${it.b}|${it.c}|${it.d}`;
+  if (t === 'perpArea') return `ppa|${it.x1}|${it.x2}|${it.y1}|${it.y2}`;
   if (t === 'simMiss') return `sim|${it.s.join(',')}|${it.k}|${it.ask}`;
   if (t === 'pyHyp') return `pyh|${[it.a, it.b].sort((x, y) => x - y)}`;
   if (t === 'coDist2') return `cd2|${it.a.join(',')}|${it.b.join(',')}`;
-  if (t === 'ciInsc') return `cin|${it.c}`;
+  if (t === 'ciInsc') return `cin|${it.cen}`;
   if (t === 'cylVol') return `cyl|${it.r}|${it.h}|${it.u}`;
   if (t === 'trigVal') return `tgv|${it.deg}`;
   if (t === 'xf4Pick') return `xf4|${it.p.join(',')}|${it.xf}`;
+  const c4P = (...P) => P.map(p => p.join(',')).sort().join(' ');
+  if (t === 'c4Place') return `c4p|${it.kind || 'pt'}|${it.kind === 'int' ? it.ln.join(',') : it.kind === 'corner' ? c4P(it.a, it.b) : [it.x, it.y].join(',')}`;
+  if (t === 'c4Quad') return `c4q|${it.x},${it.y}`;
+  if (t === 'c4Read') return `c4r|${it.x},${it.y}`;
+  if (t === 'c4Dist') return `c4d|${c4P(it.a, it.b)}`;
+  if (t === 'c4Slope') return `c4s|${c4P(it.a, it.b)}`;
+  if (t === 'c4Eq') return `c4e|${it.ln.join(',')}`;
+  if (t === 'c4On') return `c4o|${it.ln.join(',')}|${it.p.join(',')}`;
+  if (t === 'c4FindB') return `c4b|${it.sl}|${it.p.join(',')}`;
+  if (t === 'c4Perp') return `c4pp|${it.sl}`;
+  if (t === 'ci4Chord') return `c6c|${it.seg}|${it.rot ?? 200}`;
+  if (t === 'ci4Half') return `c6h|${it.r}|${it.d}|${it.ask}`;
+  if (t === 'ci4Tan') return `c6t|${it.kind}|${it.dir ?? 60}`;
+  if (t === 'ci4TanLen') return `c6l|${it.r}|${it.op}|${it.ask}`;
+  if (t === 'ci4TanAng') return `c6a|${it.th}`;
+  if (t === 'ci4Ang') return `c6g|${it.cen}|${it.ask}|${it.pAt ?? 90}`;
+  if (t === 'ci4Sector') return `c6s|${it.kind}|${it.ang}|${it.C ?? ''}|${it.A ?? ''}|${it.r ?? ''}`;
+  if (t === 'c7Vol') return `c7v|${it.fig}|${['r', 'd', 's', 'B', 'h', 'ask', 'V', 'hm', 'out'].map(k => it[k] ?? '').join('|')}`;
+  if (t === 'c7SA') return `c7a|${it.r}|${it.h}|${it.ask}`;
+  if (t === 'c7Conv') return `c7c|${it.v}|${it.from}|${it.to}`;
+  if (t === 'c8Half') return `c8h|${it.deg}|${it.ask}`;
+  if (t === 'c8EqDist') return `c8e|${it.deg}|${it.at}`;
+  if (t === 'c8Pb') return `c8p|${it.half}|${it.h ?? ''}|${it.ask}`;
+  if (t === 'c8Which') return `c8w|${it.a}|${it.b}|${it.side}|${it.flip ? 1 : 0}`;
+  if (t === 'c8Ratio') return `c8r|${it.a}|${it.b}|${it.hy}|${it.fn}`;
+  if (t === 'c8Table') return `c8t|${it.fn}|${it.deg}`;
+  if (t === 'c8Height') return `c8y|${it.dist}|${it.deg}`;
+  if (t === 'c9Draw') return `c9d|${JSON.stringify(it.pts)}|${it.xf}`;
+  if (t === 'c9Pick') return `c9p|${it.p}|${it.xf}`;
+  if (t === 'c9Which') return `c9w|${it.xf}|${it.p}`;
+  if (t === 'c9NameIt') return `c9n|${JSON.stringify(it.pts)}|${it.xf}`;
+  if (t === 'c9Rot') return `c9r|${it.th}|${it.cw ? 1 : 0}|${it.r ?? 5}|${it.ask ?? 'ang'}`;
+  if (t === 'c9Comp') return `c9c|${it.p}|${JSON.stringify(it.seq)}|${it.ask ?? 'img'}`;
   if (t === 'arComp') return `arc|${it.a}|${it.kind}`;
   if (t === 'arPair') return `arp|${[it.a, it.b].sort((x, y) => x - y)}`;
   if (t === 'arVert') return `arv|${it.th}|${it.given}|${it.ask}`;
@@ -670,7 +707,7 @@ export function d240(lessons, code, MAKERS) {
     return out; };
   /* ما يرسمه المشهد بنفسه (لا من بياناته) من أشياء لها مولّد: عجلات العربتين في الإشعال، وبابا الزرافة. لكل مشهد في الكود سطر هنا (ولو فارغاً)، فلا يُضاف مشهد يرسم شيئاً دون أن يراه الفحص */
   const SCENE_DRAWS = { cartsRace: [['wheel', 'cls']], giraffeDoors: [['door', 'cls']] };
-  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'mirrorHook', 'refShow', 'trHook', 'trShow', 'rotHook', 'rotShow', 'rsHook', 'rsShow', 'congHook', 'congShow', 'tileShow2', 'circHook', 'compassShow', 'piHook', 'ciStringShow', 'piShow', 'archShow', 'areaHook', 'discShow', 'boundShow', 'ciDoubleShow', 'gardenShow', 'soHook', 'soFacesShow', 'soEdgesShow', 'eulerShow', 'boxHook', 'boxShow', 'netHook', 'netShow', 'wrapHook', 'saShow', 'viewHook', 'viewsShow', 'giftShow', 'voHook', 'voFillShow', 'voVsArea', 'voToMul', 'voSumHook', 'voMulShow', 'voSameShow', 'treasureShow', 'raHook', 'raShow', 'raTableShow', 'raFracShow', 'enHook', 'enSqShow', 'enTriShow', 'enRuleShow', 'scHook', 'scShow', 'scUpShow', 'scDownShow', 'roomShow', 'arHook', 'arCompShow', 'arCrossShow', 'arVertShow', 'arTransShow', 'arCorrShow', 'arAltShow', 'arBridgeShow', 'pfHook', 'pfPicHook', 'pfTriShow', 'pfVertShow', 'pfAltShow', 'ineqShow', 'ineqProof', 'polyShow', 'polyTable', 'regExShow', 'trapShow', 'cgHook', 'sssBuild', 'sasShow', 'simShow', 'quadProof', 'quadFamily', 'perpShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
+  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'mirrorHook', 'refShow', 'trHook', 'trShow', 'rotHook', 'rotShow', 'rsHook', 'rsShow', 'congHook', 'congShow', 'tileShow2', 'circHook', 'compassShow', 'piHook', 'ciStringShow', 'piShow', 'archShow', 'areaHook', 'discShow', 'boundShow', 'ciDoubleShow', 'gardenShow', 'soHook', 'soFacesShow', 'soEdgesShow', 'eulerShow', 'boxHook', 'boxShow', 'netHook', 'netShow', 'wrapHook', 'saShow', 'viewHook', 'viewsShow', 'giftShow', 'voHook', 'voFillShow', 'voVsArea', 'voToMul', 'voSumHook', 'voMulShow', 'voSameShow', 'treasureShow', 'raHook', 'raShow', 'raTableShow', 'raFracShow', 'enHook', 'enSqShow', 'enTriShow', 'enRuleShow', 'scHook', 'scShow', 'scUpShow', 'scDownShow', 'roomShow', 'arHook', 'arCompShow', 'arCrossShow', 'arVertShow', 'arTransShow', 'arCorrShow', 'arAltShow', 'arBridgeShow', 'pfHook', 'pfPicHook', 'pfTriShow', 'pfVertShow', 'pfAltShow', 'ineqShow', 'ineqProof', 'polyShow', 'polyTable', 'regExShow', 'trapShow', 'cgHook', 'sssBuild', 'cgSasShow', 'simShow', 'quadProof', 'quadFamily', 'cgPerpShow', 'pyHook', 'pySqShow', 'pyPumpShow', 'ladderShow', 'c4Hook', 'c4QuadShow', 'c4SignShow', 'c4DistShow', 'c4SlopeShow', 'c4LineHook', 'c4LineShow', 'c4CheckShow', 'c4CityShow', 'ci4ChordHook', 'ci4ChordShow', 'ci4TanHook', 'ci4TanShow', 'ci4TwoTanShow', 'ci4InscHook', 'ci4InscShow', 'ci4ArcShow', 'ci4SectorShow', 'ci4GardenShow', 'c7CylHook', 'c7CylShow', 'c7NetShow', 'c7ThirdShow', 'c7SphereShow', 'c7LiterShow', 'c7TankShow', 'c8BisHook', 'c8BisBuild', 'c8PbHook', 'c8PbBuild', 'c8TrigHook', 'c8TableShow', 'c8SimShow', 'c8TanShow', 'c8SurveyShow', 'c8BiruniShow', 'c9MirrorHook', 'c9RefShow', 'c9RotHook', 'c9RotShow', 'c9ProtHook', 'c9ProtShow', 'c9TwoMirrorShow', 'c9CityShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
     'bagFeel', 'pushLab', 'poses', 'faceLab', 'coneRoll', 'cylRoll', 'towersPredict', 'paperPush', 'stampLab', 'towerBuild', 'mosque', 'takeHook', 'facesCount', 'roomHunt', 'feelBox', 'shelvesWalk',
     'simonSays', 'lidCheck', 'chaosLid', 'queueBadge', 'queueSwap', 'trainOrdinals', 'chaosTrainBadge', 'ribbonHook', 'bodyMoves', 'robotIntro', 'chaosTurn', 'mapChaosHook', 'birdView', 'chaosSideDraw',
     'roadChaosHook', 'roadListen', 'roadCountChaos', 'chaosSkipBack', 'jumpChaosHook', 'roadRace', 'chaosSubForward', 'recallPic', 'queueOrdinals',   /* S1-U3: أشياؤها رسوم المواضع لا مولّدات */
@@ -825,7 +862,7 @@ export function d240(lessons, code, MAKERS) {
       for (const q of st.checks || []) { const k = keyOf(q.item, L); if (k && TF.has(k)) errors.push(`${L.id}: بند الختامي ${q.id} (${k.slice(0, 60)}) رُئي في ${TF.get(k)} (D277 (3): الختامي أسئلة جديدة)`); } }
     // D239: اختيار حقيقي في كل درس
     /* إلا «إحماء الحساب» (الوحدات الحسابية المصغّرة): اختبار تخطٍّ بلا تمرين، والاختيار فيه لوحة الأرقام نفسها */
-    if (!L.flow.some(s => ['calcCheck', 'geoCheck', 'finalCheck', 'finalResult'].includes(s.scene) || (s.s === 'explore' && (L.id.startsWith('m2.u10.') || L.id.startsWith('m3.u11.')))) && !(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);
+    if (!L.flow.some(s => ['calcCheck', 'geoCheck', 'finalCheck', 'finalResult'].includes(s.scene) || (s.s === 'explore' && (L.id.startsWith('m2.u10.') || L.id.startsWith('m3.u11.') || L.id.startsWith('m4.u10.')))) && !(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);
   }
   /* التوأم (الفحص المستقل B): بند آخر بعد الحلّ المشترك أو الكشف، فمسألته غير مسألة أصله، وإلا كان جوابه ما كُشف للتوّ.
      ومسائل التوأم «معروضة» في الدرس (shownOf يزور كل ما في بيانات التمرين والعلاج واللعب)، فلا يقيسها إتقان ولا مراجعة ولا اختبار */

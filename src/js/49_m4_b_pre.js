@@ -21,9 +21,10 @@ function preRight(g, C, A, B, s = 13) { const u = p => { const d = Math.hypot(p[
 
 /* ================= ① هل المثلثان متطابقان؟ (C405): case sas | sss | asa (نعم) · aaa | ssa (لا يكفي) =================
    العلامات المتشابهة قياسات متساوية: الشرطات للأضلاع والأقواس للزوايا */
-const PRE_CASE_OK = { sas: 'yes', sss: 'yes', asa: 'yes', aaa: 'no', ssa: 'no' };
+const PRE_CASE_OK = { sas: 'yes', sss: 'yes', asa: 'yes', aaa: 'no', ssa: 'no', rhs: 'yes' };
+const PRE_CASE_RHS = [[[44, 192], [166, 192], [44, 84]], [[60, 196], [150, 196], [60, 80]], [[40, 190], [170, 190], [40, 110]], [[52, 186], [146, 186], [52, 92]]];   /* قائمة عند الرأس الأول (M4-U4، الوتر وضلع قائم) */
 const PRE_CASE_V = [[[44, 192], [160, 192], [76, 86]], [[40, 188], [156, 192], [128, 84]], [[50, 176], [164, 196], [66, 90]], [[46, 190], [150, 180], [112, 80]], [[40, 172], [170, 192], [92, 94]]];   /* صور المثلث (v): مسألة جديدة بشكل آخر */
-function preCaseTris(svg, cs, v = 0) { const g = el('g', { 'pointer-events': 'none' }, svg), A = PRE_CASE_V[v];
+function preCaseTris(svg, cs, v = 0) { const g = el('g', { 'pointer-events': 'none' }, svg), A = cs === 'rhs' ? PRE_CASE_RHS[v] : PRE_CASE_V[v];
   const k = cs === 'aaa' ? .7 : 1, B = A.map(([x, y]) => [360 - x, y]);   /* الثاني صورة الأول بالمرآة، ومصغَّرٌ في «الزوايا وحدها» */
   const ctr = B.reduce((s, p) => [s[0] + p[0] / 3, s[1] + p[1] / 3], [0, 0]), B2 = B.map(([x, y]) => [ctr[0] + (x - ctr[0]) * k, ctr[1] + (y - ctr[1]) * k + (1 - k) * 40]);
   preTri(g, A, PRE.a, PRE.fillA); preTri(g, B2, PRE.b, PRE.fillB);
@@ -32,6 +33,7 @@ function preCaseTris(svg, cs, v = 0) { const g = el('g', { 'pointer-events': 'no
     else if (cs === 'sss') { preTicks(g, P, Q, 1); preTicks(g, P, R, 2); preTicks(g, Q, R, 3); }
     else if (cs === 'asa') { preArcs(g, P, Q, R, 1); preTicks(g, P, Q, 1); preArcs(g, Q, P, R, 2); }
     else if (cs === 'aaa') { preArcs(g, P, Q, R, 1); preArcs(g, Q, P, R, 2); preArcs(g, R, P, Q, 3, PRE.mk, 14); }
+    else if (cs === 'rhs') { preRight(g, P, Q, R); preTicks(g, P, Q, 1); preTicks(g, Q, R, 2); }
     else { preTicks(g, P, Q, 1); preTicks(g, Q, R, 2); preArcs(g, P, Q, R, 1); } }
   return { g, A, B: B2 }; }
 ITEM.cgCase = cpItem({ H: 236, tLine: 'gen.pre.together.case', hint: 'gen.pre.hint.case', rLine: it => 'gen.pre.reveal.case.' + it.want, praise: 'praiseThink',
@@ -47,11 +49,13 @@ function preSideLabs(g, T, labs, cols) { const { A, B, C } = T, h = [(A[0] + B[0
   const P = [[(A[0] + C[0]) / 2, C[1] + 22], [C[0] + 16, (B[1] + C[1]) / 2 + 6], [h[0] - nx * 18 - 4, h[1] - ny * 18 + 4]];
   return labs.map((s, i) => preLab(g, P[i][0], P[i][1], s, { col: cols[i], anchor: i === 1 ? 'start' : i === 2 ? 'end' : 'middle' })); }
 ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hint.sim', rLine: 'gen.pre.reveal.sim', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
-  make: s => { const want = s.s[s.ask] * s.k, add = [0, 1, 2].filter(i => i !== s.ask).map(i => s.s[s.ask] + s.s[i] * (s.k - 1)), nums = [...new Set([want, ...add])];   /* الجمع بدل الضرب: يُزاد على المجهول ما زاده ضلعٌ آخر */
+  make: s => { const want = s.s[s.ask] * s.k, add = [0, 1, 2].filter(i => i !== s.ask).map(i => s.s[s.ask] + s.s[i] * (s.k - 1)).filter(v => Number.isInteger(v) && v > 0), nums = [...new Set([want, ...add])];   /* الجمع بدل الضرب: يُزاد على المجهول ما زاده ضلعٌ آخر */
     for (let d = 1; nums.length < 3; d++) if (!nums.includes(want + d)) nums.push(want + d); return { want, add, nums: nums.slice(0, 3), tag: 'pre-sim' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(15, 150 / (item.s[1] * item.k)), sm = preRightTri(g, [318, 204], item.s[0], item.s[1], u), bg = preRightTri(g, [214, 204], item.s[0] * item.k, item.s[1] * item.k, u, { col: PRE.b, fill: PRE.fillB });
-    preSideLabs(g, sm, item.s.map(v => MS(String(v))), [PRE.ink, PRE.ink, PRE.ink]);
-    const labs = preSideLabs(g, bg, item.s.map((v, i) => i === item.ask ? '؟' : MS(String(v * item.k))), item.s.map((v, i) => i === item.ask ? PRE.q : PRE.ink));
+  draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = item.s, right = a * a + b * b === c * c; let labs;
+    if (right) { const u = Math.min(15, 150 / (b * Math.max(1, item.k))), sm = preRightTri(g, [318, 204], a, b, u), bg = preRightTri(g, [214, 204], a * item.k, b * item.k, u, { col: PRE.b, fill: PRE.fillB });
+      preSideLabs(g, sm, item.s.map(v => MS(String(v))), [PRE.ink, PRE.ink, PRE.ink]); labs = preSideLabs(g, bg, item.s.map((v, i) => i === item.ask ? '؟' : MS(String(v * item.k))), item.s.map((v, i) => i === item.ask ? PRE.q : PRE.ink)); }
+    else { const mx = Math.max(...item.s) * Math.max(1, item.k), u = Math.min(13, 150 / mx), big = item.k >= 1;   /* مثلث عامّ بأطوال أضلاعه (M4-U3)؛ الأصل يمين والمكبَّر أو المصغَّر يسار */
+      cgTri(g, item.s, { cx: 266, y: 196, u }); labs = cgTri(g, item.s.map(v => v * item.k), { cx: 96, y: 196, u, col: PRE.b, fill: PRE.fillB, ask: item.ask }).labs; }
     if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.s[0] * item.k} ÷ ${item.s[0]} = ${item.k}`, PRE.hl, 17); return { q: labs[item.ask] }; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 120, 34, labelText('preRuleSim'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) { ctx.q.textContent = MS(String(item.want)); ctx.q.setAttribute('fill', PRE.ok); } },
@@ -62,7 +66,7 @@ ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hi
 ITEM.pyHyp = cpItem({ H: 250, tLine: 'gen.pre.together.py', hint: 'gen.pre.hint.py', rLine: 'gen.pre.reveal.py', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const want = Math.round(Math.hypot(s.a, s.b)); /*T*/if (TESTHOOK && want * want !== s.a * s.a + s.b * s.b) testBug('pyHyp: الوتر ليس عدداً صحيحاً');/*/T*/
     return { want, nums: [want, s.a + s.b, s.a * s.a + s.b * s.b <= 100 ? s.a * s.a + s.b * s.b : want + 2], tag: 'pre-py' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(17, 150 / Math.max(item.a, item.b * 1.1)), T = preRightTri(g, [262, 206], item.a, item.b, u);
+  draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(36, 150 / Math.max(item.a, item.b * 1.1)), T = preRightTri(g, [262, 206], item.a, item.b, u);
     const labs = preSideLabs(g, T, [MS(String(item.a)), MS(String(item.b)), '؟'], [PRE.ink, PRE.ink, PRE.q]);
     if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: labs[2] }; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 120, 34, labelText('preRulePy'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
@@ -85,22 +89,22 @@ ITEM.coDist2 = cpItem({ H: 262, tLine: 'gen.pre.together.dist', hint: 'gen.pre.h
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.dx + it.dy ? 'coDistAdd' : k === it.dx * it.dx + it.dy * it.dy ? 'pyNoRoot' : 'coDistOff2' });
 
-/* ================= ⑤ الزاوية المحيطية نصف المركزية (C412): c المركزية (زوجية، مضاعف 10)؛ المحيطية على القوس الأكبر ================= */
+/* ================= ⑤ الزاوية المحيطية نصف المركزية (C412): cen المركزية (زوجية، مضاعف 10)؛ المحيطية على القوس الأكبر ================= */
 ITEM.ciInsc = cpItem({ H: 250, tLine: 'gen.pre.together.insc', hint: 'gen.pre.hint.insc', rLine: 'gen.pre.reveal.insc', rSay: it => sayDeg(it.want), num: true, praise: 'praiseThink',
-  sayQ: async it => { await sayDeg(it.c); await S('gen.pre.q.inscEnd', { append: true }); },
-  make: s => ({ want: s.c / 2, nums: [s.c / 2, s.c, 2 * s.c], tag: 'pre-insc' }),
-  draw(svg, item, tries) { const g = el('g', {}, svg), O = [180, 126], R = 80, A = angP(O, 270 - item.c / 2, R), B = angP(O, 270 + item.c / 2, R), P = angP(O, 90, R);
+  sayQ: async it => { await sayDeg(it.cen); await S('gen.pre.q.inscEnd', { append: true }); },
+  make: s => ({ want: s.cen / 2, nums: [s.cen / 2, s.cen, 2 * s.cen], tag: 'pre-insc' }),
+  draw(svg, item, tries) { const g = el('g', {}, svg), O = [180, 126], R = 80, A = angP(O, 270 - item.cen / 2, R), B = angP(O, 270 + item.cen / 2, R), P = angP(O, 90, R);
     el('circle', { cx: O[0], cy: O[1], r: R, fill: '#f6fbf4', stroke: PRE.ink, 'stroke-width': 3, 'pointer-events': 'none' }, g);
-    el('path', { d: angArc(O, R, 270 - item.c / 2, 270 + item.c / 2), fill: 'none', stroke: PRE.b, 'stroke-width': 6, 'stroke-linecap': 'round', 'pointer-events': 'none' }, g);
+    el('path', { d: angArc(O, R, 270 - item.cen / 2, 270 + item.cen / 2), fill: 'none', stroke: PRE.b, 'stroke-width': 6, 'stroke-linecap': 'round', 'pointer-events': 'none' }, g);
     for (const X of [A, B]) { geoLine(g, O[0], O[1], X[0], X[1], { color: PRE.a, w: 3 }); geoLine(g, P[0], P[1], X[0], X[1], { color: AR.tr, w: 3 }); }
-    arArc(g, O, 270 - item.c / 2, 270 + item.c / 2, { r: 22, col: PRE.a, deg: item.c, dl: 18, fs: 15, fill: true });
-    const q = arArc(g, P, 270 - item.c / 4, 270 + item.c / 4, { r: 28, col: AR.q, lab: '؟', dl: 16, fs: 16, fill: true });
+    arArc(g, O, 270 - item.cen / 2, 270 + item.cen / 2, { r: 22, col: PRE.a, deg: item.cen, dl: 18, fs: 15, fill: true });
+    const q = arArc(g, P, 270 - item.cen / 4, 270 + item.cen / 4, { r: 28, col: AR.q, lab: '؟', dl: 16, fs: 16, fill: true });
     for (const X of [O, A, B, P]) el('circle', { cx: X[0], cy: X[1], r: 4.5, fill: ANG.v, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, g);
-    if (tries >= 3) ciEq(helpG(svg), 180, 236, `${item.c} ÷ 2 = ؟`, PRE.hl, 16); return { q }; },
+    if (tries >= 3) ciEq(helpG(svg), 180, 236, `${item.cen} ÷ 2 = ؟`, PRE.hl, 16); return { q }; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 236, labelText('preRuleInsc'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) arSetDeg(ctx.q, item.want, PRE.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
-  errOf: (it, k) => k === it.c ? 'inscSame' : k === 2 * it.c ? 'inscDouble' : 'inscOff' });
+  errOf: (it, k) => k === it.cen ? 'inscSame' : k === 2 * it.cen ? 'inscDouble' : 'inscOff' });
 
 /* ================= ⑥ حجم الأسطوانة (C415): r، h، u؛ ch [[الصحيح]، [قيمة، وسم]…]، و«باي» 3.14 مكتوبٌ ومسموع ================= */
 function preCyl(svg, item) { const g = el('g', { 'pointer-events': 'none' }, svg), cx = 190, top = 66, bot = 196, rx = 66, ry = 17;

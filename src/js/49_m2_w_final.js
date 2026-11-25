@@ -18,7 +18,8 @@ SCENES.finalCheck = async (c, L) => { const P = progOf(L.id); if (c.intro) await
 /* النتيجة من الأجزاء الثلاثة (S2_نظام_التقييم، تفسير النتيجة): أ وأ2 = 24 بنداً والعتبة 21 (85%، المبدأ 3)، والمهمة 6 معايير 🌳 من 8 بلا 🌱 */
 /* والمرحلة 3 بالطريقة نفسها (S3_نظام_التقييم، رابعاً): الشارات الإحدى عشرة وشهادة «مهندس معتمد» */
 const FINALS = { m2: { a: 'm2.u10.d1', a2: 'm2.u10.d2', b: 'm2.u10.d3', units: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => 'm2.u' + i), cert: ['certTitle', 'certSub'] },
-  m3: { a: 'm3.u11.d1', a2: 'm3.u11.d2', b: 'm3.u11.d3', units: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => 'm3.u' + i), cert: ['cert3Title', 'cert3Sub'] } };
+  m3: { a: 'm3.u11.d1', a2: 'm3.u11.d2', b: 'm3.u11.d3', units: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => 'm3.u' + i), cert: ['cert3Title', 'cert3Sub'] },
+  m4: { a: 'm4.u10.d1', a2: 'm4.u10.d2', b: 'm4.u10.d3', units: [1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => 'm4.u' + i), cert: ['cert4Title', 'cert4Sub'] } };   /* M4_نظام_التقييم: أ وأ2 = 29 بنداً والعتبة 25، والشارات التسع وشهادة «مخترع معتمد» */
 const FINAL_M2 = FINALS.m2;
 const finalM2 = () => finalOf('m2');
 function finalOf(st) { const F = FINALS[st], pa = PROG[F.a] || {}, pa2 = PROG[F.a2] || {}, LA2 = LDATA[F.a2], LB = LDATA[F.b];
@@ -49,3 +50,4 @@ SCENES.finalResult = async (c, L) => { const st = c.stage || 'm2', R = finalOf(s
   if (R.level === 'master' && R.badges < R.units) await S(c.results.badges); };
 WRAP_ART.certArt = svg => { const g = certAt(svg, 180, 150); anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 200, fill: 'both' }); };
 WRAP_ART.cert3Art = svg => { const g = certAt(svg, 180, 150, 'm3'); anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 200, fill: 'both' }); };
+WRAP_ART.cert4Art = svg => { const g = certAt(svg, 180, 150, 'm4'); anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 200, fill: 'both' }); };

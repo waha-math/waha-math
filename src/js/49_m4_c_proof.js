@@ -27,6 +27,9 @@ const PF_TRI = [{ L: ['أ', 'ب', 'ج'], P: [[170, 30], [84, 112], [290, 112]] }
 const PF_MK = { vert: [[40, [0, 1, 2]], [65, [1, 2, 3]]], alt: [[3, 7, 6], [4, 8, 5]], coint: [[3, 7, 5], [4, 8, 6]] }, PF_INEQ = [{ L: ['أ', 'ب', 'ج'], P: [[70, 104], [196, 26], [300, 104]] }, { L: ['د', 'هـ', 'و'], P: [[60, 100], [120, 30], [304, 100]] }], PF_POLY = [5, 6, 7];
 const pfKey = (k, v, n) => `pf.${k}${v ? '.v' + v : ''}.${n + 1}`;
 function pfFig(g, k, o = {}) { if (['paraSide', 'paraDiag', 'rectDiag', 'rhombDiag', 'conv'].includes(k)) return cgQuad(g, k, { y0: o.y0, s: o.s });   /* براهين الرباعيات (M4-U3) */
+  if (['pyth', 'pyConv', 'perpPf'].includes(k)) return pyFig(g, k, o);   /* براهين فيثاغورس (M4-U4) */
+  if (['chordPf', 'inscPf'].includes(k)) return c6Fig(g, k, o);   /* براهين الدائرة (M4-U6) */
+  if (['bisPf', 'pbPf', 'bisCon', 'perpCon'].includes(k)) return c8Fig(g, k, o);   /* الإنشاء وبرهاناه (M4-U8) */
   const y0 = o.y0 ?? 0, s = o.s || 1, v = o.v || 0, T = (x, y) => [180 + (x - 180) * s, y0 + y * s];
   if (k === 'tri') { const V = PF_TRI[v], [A, B, C] = V.P.map(p => T(...p)), [nA, nB, nC] = V.L;
     if (o.par !== false) { geoLine(g, T(40, 30)[0], A[1], T(320, 30)[0], A[1], { color: PF.par, w: 3.4, dash: o.parDash ? '7 5' : null }); }
@@ -62,11 +65,11 @@ function pfStep(g, y, k, n, o = {}) { const rs = PF_PROOFS[k].rs[n], t = el('tex
   r.textContent = (o.two ? '' : '  ') + labelText('pfBecause') + ' ' + (o.ask ? '؟' : labelText('pf.rs.' + rs)); return t; }
 
 /* ================= ① سلسلة السبب (C408): pf؛ ثلاث بطاقات خطوات تُرتَّب باللمس ================= */
-const PF_CY = i => 86 + i * 46;
+const PF_CY = i => 92 + i * 45;
 ITEM.prChain = {
   make(spec) { const P = PF_PROOFS[spec.pf], order = shuffle([0, 1, 2]); const ok = ['0,1,2', ...(P.alt || [])].map(s => s.split(',').map(i => order.indexOf(+i)).join(','));
     return { ...spec, order, okSet: ok, want: ok[0], tag: 'pf-chain-' + spec.pf }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFig(g, item.pf, { y0: 2, s: .7, v });
+  async ask(item, mode, tries) { const svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFig(g, item.pf, { y0: 2, s: PF_PROOFS[item.pf].rs.includes('sas') || PF_PROOFS[item.pf].rs.includes('asa') || PF_PROOFS[item.pf].rs.includes('sss') ? .64 : .7, v });
     const cards = item.order.map((n, i) => { const c = el('g', { role: 'button', tabindex: 0, style: 'cursor:pointer' }, svg), y = PF_CY(i);
       el('rect', { x: 20, y, width: 320, height: 40, rx: 9, fill: PF.card, stroke: PF.edge, 'stroke-width': 2 }, c); pfStep(c, y + 17, item.pf, n, { x: 330, fs: 13, two: true, v }); c.setAttribute('aria-label', plain(labelText(pfKey(item.pf, v, n)) + ' ' + labelText('pfBecause') + ' ' + labelText('pf.rs.' + PF_PROOFS[item.pf].rs[n]))); return c; });
     if (tries >= 3) { const m = helpG(svg); badge(m, 32, PF_CY(item.order.indexOf(0)) + 20, 1, css('--think')); await S('gen.pf.together.chain'); }
@@ -216,6 +219,12 @@ function pfReasonPic(g, P) { const sc = el('g', {}, g);
   else if (P.sim) { const mx = Math.max(...P.sim.a, ...P.sim.b), u = Math.min(22, 120 / mx); simShape(sc, P.sim.fig, P.sim.a, { cx: 262, y: 160, u, col: CG.a, fill: CG.fa }); simShape(sc, P.sim.fig, P.sim.b, { cx: 96, y: 160, u, col: CG.b, fill: CG.fb }); }
   else if (P.trapD) { const Q = isoTrapAt(sc, P.trapD, { y1: 50, y2: 150 }); geoLine(sc, Q.B1[0], Q.B1[1], Q.T2[0], Q.T2[1], { color: CG.c, w: 2.6 }); geoLine(sc, Q.B2[0], Q.B2[1], Q.T1[0], Q.T1[1], { color: CG.c, w: 2.6 }); }
   else if (P.qd) cgQuad(sc, P.qd, { y0: 30, s: 1 });
+  else if (P.py) pyFig(sc, P.py, { y0: 20, s: 1, ...P });
+  else if (P.c4) c4Pic(sc, P.c4);   /* M4-U5 */
+  else if (P.ci4) c6Pic(sc, P.ci4);   /* M4-U6 */
+  else if (P.c7) c7Pic(sc, P.c7);   /* M4-U7 */
+  else if (P.c8) c8Pic(sc, P.c8);   /* M4-U8 */
+  else if (P.c9) c9Pic(sc, P.c9);   /* M4-U9 */
   else if (P.tri3) [[66, 0], [180, 1], [294, 2]].forEach(([x, i]) => { const S3 = [[[x - 48, 140], [x + 48, 140], [x - 10, 70]], [[x - 50, 140], [x + 44, 140], [x + 26, 86]], [[x - 40, 140], [x + 50, 140], [x - 30, 60]]][i];
       el('polygon', { points: polyStr(S3), fill: 'rgba(122,79,176,.08)', stroke: PF.ink, 'stroke-width': 3, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, sc); pfLab(sc, x, 166, MS('180'), { fs: 15, col: PF.a }); });
   if (P.f) ciEq(g, 180, 200, P.f, P.bad ? SO.bad : SO.ink, 18); }

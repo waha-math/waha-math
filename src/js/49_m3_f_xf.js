@@ -81,7 +81,9 @@ function xfErr(item, a) { const xf = item.xf, P = item.pts;
   if (xfSame(a, P.map(p => xfApply({ ...xf, cw: !xf.cw }, p)))) return 'rotDir';
   return xfShift(a, P) ? 'rotMove' : 'xfOff'; }
 function xfWrongImg(item) { const xf = item.xf, P = item.pts;
-  if (xf.k === 'ref') { const d = xf.axis === 'v' ? [item.img[0][0] - P[0][0], 0] : [0, item.img[0][1] - P[0][1]]; return P.map(p => [p[0] + d[0], p[1] + d[1]]); }
+  if (xf.k === 'ref') { const d = xf.axis === 'v' ? [item.img[0][0] - P[0][0], 0] : [0, item.img[0][1] - P[0][1]], W = P.map(p => [p[0] + d[0], p[1] + d[1]]);
+    if (!xfSame(W, item.img)) return W;   /* نقطة واحدة: نسخها هو صورتها، فالخطأ بُعدٌ زائد عن الخط (refDist) */
+    const n = item.n || 10, m = item.m || 8; return item.img.map(p => xf.axis === 'v' ? [p[0] + (p[0] < n ? 1 : -1), p[1]] : [p[0], p[1] + (p[1] < m ? 1 : -1)]); }
   if (xf.k === 'tr') return P.map(p => [p[0] + xf.dy, p[1] + xf.dx]);
   return P.map(p => xfApply({ ...xf, q: xf.q === 2 ? 1 : 2 }, p)); }
 
