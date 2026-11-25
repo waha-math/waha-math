@@ -384,7 +384,7 @@ d7={"id":"m2.u8.d7","title":"أُرَتِّبُ الكُسُورَ","icon":["fro
  "labels":{"bagStrips":"شَرِيطُ وَرَقٍ","bagRuler":"مِسْطَرَةٌ"},"lines":L_7,
  "flow":[
   {"s":"hook","scene":"wall12","lines":["w12.01","w12.02","w12.03"]},
-  {"s":"explore","scene":"lines","mat":MAT(),"lines":["os.01","os.02"]},
+  {"s":"explore","scene":"orderShow","fr":[[1,2],[1,8],[3,4],[1,4]],"mat":MAT(),"lines":["os.01","os.02"]},
   {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(fo([[1,2],[1,4],[3,4]]),fo([[2,3],[1,3],[1,6]])), tw(fo([[3,5],[1,5],[4,5],[2,5]]),fo([[1,8],[1,2],[1,4],[1,3]]))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",

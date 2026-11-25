@@ -73,7 +73,25 @@
   },
   {
    "s": "explore",
-   "scene": "lines",
+   "scene": "orderShow",
+   "fr": [
+    [
+     1,
+     2
+    ],
+    [
+     1,
+     8
+    ],
+    [
+     3,
+     4
+    ],
+    [
+     1,
+     4
+    ]
+   ],
    "mat": {
     "prompt": "mat.01",
     "show": [],
