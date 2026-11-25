@@ -254,10 +254,12 @@ function frThing(parent, what, x, y, s = 1) { const g = el('g', { transform: `tr
   return g; }
 /* المجموعة مصفوفة بمجموعات التوزيع: كل مجموعة صفّ متصل (per = n / b)، والمجموعات في عمود أو عمودين؛ فإطار كل مجموعة حول صفّه وحده */
 function setLay(n, b, sp = 56, maxW = 300) { const per = n / b, gc = Math.max(1, Math.min(b, Math.floor((maxW + 24) / (per * sp + 24)))), gr = Math.ceil(b / gc), W = gc * per * sp + (gc - 1) * 24; return { per, gc, gr, W, H: gr * sp, at: (cx, cy) => [...Array(n).keys()].map(i => { const g = Math.floor(i / per), j = i % per, bx = g % gc, by = Math.floor(g / gc); return [cx + W / 2 - (bx * (per * sp + 24) + (j + .5) * sp), cy - gr * sp / 2 + (by + .5) * sp]; }) }; }
+/* في الإتقان والاختبار: صفوف منتظمة بلا فراغ بين المجموعات، فالتقسيم بعدد المقام لا يُرى قبل الجواب (المراجع B لبوابة U8/U9، 12) */
+function gridLay(n, sp = 56, maxW = 300) { const cols = Math.min(n, Math.max(1, Math.floor(maxW / sp))), rows = Math.ceil(n / cols), W = cols * sp; return { W, H: rows * sp, at: (cx, cy) => [...Array(n).keys()].map(i => [cx + W / 2 - (i % cols + .5) * sp, cy - rows * sp / 2 + (Math.floor(i / cols) + .5) * sp]) }; }
 const setXY = (n, cx = 180, cy = 118, sp = 72, vy = sp * .8) => { const cols = n <= 4 ? n : n <= 8 ? 4 : n <= 12 ? (n % 4 === 0 ? 4 : n % 3 === 0 ? 3 : 4) : 5, rows = Math.ceil(n / cols); return [...Array(n).keys()].map(i => [cx + ((cols - 1) / 2 - i % cols) * sp, cy + (Math.floor(i / cols) - (rows - 1) / 2) * vy]); };
 ITEM.setFrac = {
   make(spec) { const want = spec.n * spec.f[0] / spec.f[1]; /*T*/if (TESTHOOK && want % 1) testBug('setFrac: لا يقسم');/*/T*/ return { ...spec, want, tag: 'set-frac' }; },
-  async ask(item, mode, tries) { const Ly = setLay(item.n, item.f[1], 50), svg = frStage(Math.max(240, Ly.H + 70)), P = Ly.at(170, 36 + Ly.H / 2), G = P.map(([x, y]) => frThing(svg, item.what || 'cookie', x, y, .9));
+  async ask(item, mode, tries) { const Ly = NEUTRAL_ANS ? gridLay(item.n, 50) : setLay(item.n, item.f[1], 50), svg = frStage(Math.max(240, Ly.H + 70)), P = Ly.at(170, 36 + Ly.H / 2), G = P.map(([x, y]) => frThing(svg, item.what || 'cookie', x, y, .9));
     fracText(svg, 326, 44, item.f, { fs: 18 });
     if (tries >= 3) { await S('gen.fr.together.set'); await frGroups(svg, G, item.n / item.f[1], item.f[0]); } else { await S(item.q, { noGap: true }); await sayFrac(item.f); }
     const np = numberPick(rankMix(item.want, [item.f[1], item.n / item.f[1], item.want + 1, item.want - 1], 1, item.n), item.want); return { ans: await np.p, ctx: { svg, G, np } }; },   /* المقام ومجموعة واحدة مشتّتان (المراجع A لبوابة U8/U9، 19 (أ)) */
@@ -273,7 +275,7 @@ async function frGroups(svg, G, per, a) { const m = helpG(svg), cols = ['#e9894a
 /* ================= ⑲ لوّن كسراً من مجموعة (C227، إنتاج): n وf — يلمس الطفل الأشياء ================= */
 ITEM.setColor = {
   make(spec) { const want = spec.n * spec.f[0] / spec.f[1]; return { ...spec, want, tag: 'set-color' }; },
-  async ask(item, mode, tries) { const Ly = setLay(item.n, item.f[1], 72, 312), svg = frStage(Math.max(250, Ly.H + 92)), P = Ly.at(172, 60 + Ly.H / 2), on = new Set();   /* الأشياء متباعدة 72 أفقياً ورأسياً: هدف 56 بكسلاً بلا تراكب، ومرتّبة بمجموعات التوزيع */
+  async ask(item, mode, tries) { const Ly = NEUTRAL_ANS ? gridLay(item.n, 72, 312) : setLay(item.n, item.f[1], 72, 312), svg = frStage(Math.max(250, Ly.H + 92)), P = Ly.at(172, 60 + Ly.H / 2), on = new Set();   /* الأشياء متباعدة 72 أفقياً ورأسياً: هدف 56 بكسلاً بلا تراكب، ومرتّبة بمجموعات التوزيع */
     fracText(svg, 332, 34, item.f, { fs: 17 });
     const G = P.map(([x, y], i) => { const g = el('g', { role: 'button', tabindex: 0, 'aria-label': plain(labelText('frThing.' + (item.what || 'cookie'))) + ' ' + DG(i + 1), style: 'cursor:pointer' }, svg); el('circle', { cx: x, cy: y, r: 30, fill: '#fff', stroke: '#e6d6bb', 'stroke-width': 2 }, g); frThing(g, item.what || 'cookie', x, y, 1); g.ring = el('circle', { cx: x, cy: y, r: 30, fill: 'none', stroke: FRC.shade2, 'stroke-width': 0 }, g); hitPad(g, 72); return g; });
     if (tries >= 3) { await S('gen.fr.together.setC', { noGap: true }); await frGroups(svg, G.map((g, i) => { const t = el('g', { transform: `translate(${P[i][0]} ${P[i][1]})` }); return t; }), item.n / item.f[1], 0); } else await S(item.q, { noGap: true });
