@@ -53,15 +53,15 @@ const rulNear = (w, ...alts) => { const out = [w]; for (const a of [...alts, w +
    b نهاية الشيء، a بدايته (0)، brk: المسطرة مكسورة وتبدأ من brk، thing نوع الشيء ================= */
 ITEM.rulerRead = { ...numItem,
   make(spec) { const a = spec.a || 0, w = spec.b - a, from = spec.brk || 0;
-    /* inMm: القراءة ثم التحويل إلى الملّيمتر (الختامي: «قراءة المسطرة وتحويل الوحدات»، المراجع A لبوابة U8/U9، 22)؛ المشتّتان: نسي التحويل، وعامل 100 */
-    if (spec.inMm) return { ...spec, a, from, w, want: w * 10, nums: [w * 10, w, w * 100], tag: 'ruler-mm' };
+    /* inMm: القراءة ثم التحويل إلى الملّيمتر (الختامي: «قراءة المسطرة وتحويل الوحدات»، المراجع A لبوابة U8/U9، 22)؛ المشتّتان: نسي التحويل، وعدّ الخطوط لا المسافات */
+    if (spec.inMm) return { ...spec, a, from, w, want: w * 10, nums: [w * 10, w, w * 10 + 1], tag: 'ruler-mm' };   /* (والأعداد المسموعة حتى المئة) */
     return { ...spec, a, from, want: w, nums: a ? rulNear(w, spec.b, w + 1) : rulNear(w, w + 1, w - 1), tag: a ? (spec.brk ? 'ruler-broken' : 'ruler-diff') : 'ruler-read' }; },
   draw(item, svg, tries) { const to = Math.max(item.from + 10, item.b + 1), R = rulerAt(svg, { x: 30, y: 128, pxcm: 300 / (to - item.from), from: item.from, to, mm: false, broken: !!item.brk }); rulThingAt(svg, item.thing || 'pencil', R.X(item.a), R.X(item.b), 126, item.color);
     for (const v of [item.a, item.b]) el('line', { x1: R.X(v), y1: 96, x2: R.X(v), y2: 128, stroke: css('--compass'), 'stroke-width': 1.6, 'stroke-dasharray': '3 3', 'pointer-events': 'none' }, svg); return R; },
   async ask(item, mode, tries) { const svg = newStage(214, { oasis: false, ground: 0 }), R = this.draw(item, svg, tries); let hops = null;
     if (tries >= 3) { await S('gen.rul.together.read'); hops = await rulerHops(svg, R, item.a, item.b, { silent: true }); }   /* الحلّ المشترك: القفزات مرسومة، والعدّ للطفل */
     else await S(item.q); const np = numberPick(shuffle(item.nums), item.want, { digits: true, west: true }); return { ans: await np.p, ctx: { svg, np, R, hops } }; },
-  judge(item, k) { if (k === item.want) return { ok: true }; if (item.inMm) return { ok: false, err: k === item.w ? 'convDir' : 'convFactor' }; return { ok: false, err: item.a && k === item.b ? 'rulerEnd' : k === item.want + 1 ? 'rulerLines' : 'rulerWrong' }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; if (item.inMm) return { ok: false, err: k === item.w ? 'convDir' : k === item.want + 1 ? 'rulerLines' : 'convFactor' }; return { ok: false, err: item.a && k === item.b ? 'rulerEnd' : k === item.want + 1 ? 'rulerLines' : 'rulerWrong' }; },
   async hint2(item, r) { const m = await rulerHops(r.ctx.svg, r.ctx.R, item.a, item.b, { silent: true, ms: 260 }); await sleep(700); m.remove(); }, async together() {},
   async reveal(item, r) { if (!r.ctx.hops) await rulerHops(r.ctx.svg, r.ctx.R, item.a, item.b); await sayLen(item.want, item.inMm ? 'mm' : 'cm'); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
