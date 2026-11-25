@@ -185,7 +185,7 @@ ITEM.pOrA = {
     if (tries >= 3) { await S('gen.ar.sit.' + item.sit); await S('gen.ar.together.pa'); } else { await S(item.q, { noGap: true }); await S('gen.ar.sit.' + item.sit, { append: true }); }
     const u = item.unit || 'cm', opts = item.ask === 'unit' ? [['p' + u, labelText(AR_U[u][0]), '<i></i>', 'gen.ar.u.' + u], ['a' + u, labelText(AR_U[u][1]), '<i></i>', 'gen.ar.u.' + u + '2']] : [['p', labelText('arPerim0'), '<i></i>', 'gen.ar.k.p'], ['a', labelText('arArea0'), '<i></i>', 'gen.ar.k.a']];
     const k = await choosePick(opts, item.want); return { ans: k, ctx: { svg } }; },
-  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.ask === 'unit' ? 'unitSquare' : 'perimOrArea' }; },
+  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.ask === 'unit' ? (AR_SIT[item.sit] === 'a' ? 'unitSquare' : 'unitLen') : 'perimOrArea' }; },   /* سؤال الخطأ بنوع الموقف (المراجع A لبوابة U6/U7، 17 (و)) */
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2() { await S('gen.ar.hint.pa'); }, async together() {},
   async reveal(item) { await S('gen.ar.reveal.pa.' + AR_SIT[item.sit]); },
@@ -199,7 +199,10 @@ ITEM.sameCmp = {
     if (tries >= 3) { const m = helpG(svg); [[item.a, 264], [item.b, 96]].forEach(([[w, h], cx]) => { const t = el('text', { x: cx, y: 34, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, m); t.textContent = `${labelText('arPerim0')} ${2 * (w + h)} · ${labelText('arArea0')} ${w * h}`; }); await S('gen.ar.together.same'); }
     else await S(item.q);
     const k2 = await choosePick([['a', labelText('arFirst'), '<i></i>', 'gen.ar.first'], ['b', labelText('arSecond'), '<i></i>', 'gen.ar.second'], ['eq', labelText('arEq'), '<i></i>', 'gen.ar.eq']], item.want); return { ans: k2, ctx: { svg } }; },
-  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === 'eq' ? 'samePerimArea' : 'sameOff' }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; const P = ([w, h]) => 2 * (w + h), Ar = ([w, h]) => w * h;   /* (المراجع A لبوابة U6/U7، 17 (ب) و(ج)) */
+    if (k === 'eq') return { ok: false, err: item.ask === 'perim' ? 'sameAreaPerim' : 'samePerimArea' };
+    if (item.ask === 'area' && P(item[k]) > P(item[k === 'a' ? 'b' : 'a']) && Ar(item[k]) <= Ar(item[k === 'a' ? 'b' : 'a'])) return { ok: false, err: 'perimBigArea' };
+    return { ok: false, err: 'sameOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2() { await S('gen.ar.hint.same'); }, async together() {},
   async reveal(item) { await S(`gen.ar.reveal.same.${item.ask}.${item.want}`); },
