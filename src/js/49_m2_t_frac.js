@@ -61,7 +61,7 @@ ITEM.fracEqual = {
   make(spec) { const ok = spec.figs.findIndex(f => !f.parts); /*T*/if (TESTHOOK && spec.figs.filter(f => !f.parts).length !== 1) testBug('fracEqual: شكل واحد متساوي الأجزاء');/*/T*/ return { ...spec, want: ok, tag: 'frac-equal' }; },
   async ask(item, mode, tries) { const svg = frStage(232), X = [292, 180, 68], T = item.figs.map((f, i) => { const g = el('g', {}, svg); el('rect', { x: X[i] - 54, y: 34, width: 108, height: 164, rx: 14, fill: '#fffdf6', stroke: css('--line'), 'stroke-width': 2 }, g);
       fracShape(g, f, [X[i], 116], { r: 44, w: 90, h: f.k === 'bar' ? 40 : 70, c: 30 }); return { g, k: i, label: labelText('frFig' + (i + 1)) }; });
-    if (tries >= 3) { const m = helpG(svg); item.figs.forEach((f, i) => { const t = el('text', { x: X[i], y: 216, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: css('--think') }, m); t.textContent = labelText(f.parts ? 'frUneq' : 'frEq'); }); await S('gen.fr.together.equal'); } else await S(item.q);
+    if (tries >= 3) { const m = helpG(svg); const i0 = item.figs.findIndex(f => f.parts); if (i0 >= 0) { const t = el('text', { x: X[i0], y: 216, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: css('--think') }, m); t.textContent = labelText('frUneq'); }   /* يُستبعد شكل واحد معاً، والحكم بين الباقيين للطفل (المراجع B لبوابة U8/U9، 6) */ await S('gen.fr.together.equal'); } else await S(item.q);
     const k = await tapOne(T, { ok: item.want, pad: 76 }); return { ans: k, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'unequalParts' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
@@ -73,7 +73,7 @@ ITEM.fracEqual = {
 ITEM.fairCut = frItem({ tLine: 'gen.fr.together.fair', hint: 'gen.fr.hint.fair', rLine: it => 'gen.fr.reveal.fair.' + it.want,
   make: s => ({ want: s.fig.parts ? 'no' : 'yes', tag: 'fair-cut' }),
   draw(svg, item) { return { Sh: fracShape(svg, item.fig, [180, 118], { r: 80, h: item.fig.k === 'bar' ? 50 : undefined }) }; },
-  async together(item, ctx) { const m = helpG(ctx.svg); /* نصف شفّاف لأول جزء فوق كل جزء: المطابقة بالعين */ ctx.Sh.P.forEach((p, i) => { for (const dy of [-3, 3]) geoLine(m, p.c[0] - 6, p.c[1] + dy, p.c[0] + 6, p.c[1] + dy, { color: css('--think'), w: 2.4 });   /* «=» مرسومة: الخطّ المضمّن لا يغطّيها بوزن 800 (Inter بديلاً، فحص الخط D256) */ if (item.fig.parts && Math.round(item.fig.parts[i] * 100) / 100 !== Math.round(item.fig.parts[0] * 100) / 100) geoLine(m, p.c[0] + 6, p.c[1] - 8, p.c[0] - 6, p.c[1] + 8, { color: css('--think'), w: 2.2 }); }); },   /* «لا يساوي» يساوي مشطوب مرسوماً: خط القراءة لا يغطّي ≠ */
+  async together(item, ctx) { const m = helpG(ctx.svg); /* نصف شفّاف لأول جزء فوق كل جزء: المطابقة بالعين */ ctx.Sh.P.forEach((p, i) => { if (i > 1) return; for (const dy of [-3, 3]) geoLine(m, p.c[0] - 6, p.c[1] + dy, p.c[0] + 6, p.c[1] + dy, { color: css('--think'), w: 2.4 });   /* «=» مرسومة: الخطّ المضمّن لا يغطّيها بوزن 800 (Inter بديلاً، فحص الخط D256) */ if (item.fig.parts && Math.round(item.fig.parts[i] * 100) / 100 !== Math.round(item.fig.parts[0] * 100) / 100) geoLine(m, p.c[0] + 6, p.c[1] - 8, p.c[0] - 6, p.c[1] + 8, { color: css('--think'), w: 2.2 }); }); },   /* «لا يساوي» يساوي مشطوب مرسوماً: خط القراءة لا يغطّي ≠ */
   pick: item => choosePick([['yes', labelText('frYes'), '<i></i>', 'gen.fr.yes'], ['no', labelText('frNo'), '<i></i>', 'gen.fr.no']], item.want),
   errOf: it => it.want === 'yes' ? 'equalMissed' : 'unequalParts' });
 /* ================= ③ ما اسم الجزء؟ (C220): fig بأجزاء متساوية وجزء ملوّن، والجواب نصف أو ثلث أو ربع ================= */
@@ -95,7 +95,7 @@ ITEM.fracColor = {
   make(spec) { return { ...spec, want: spec.f[0], tag: 'frac-color-' + spec.fig.k }; },
   async ask(item, mode, tries) { const svg = frStage(262), Sh = fracShape(svg, { ...item.fig, shade: [] }, [180, 128], { r: 104, c: 72 }), on = new Set();
     fracText(svg, 324, 46, item.f, { fs: 20 });
-    if (tries >= 3) { const m = helpG(svg); Sh.P.forEach((p, i) => { if (i < item.f[0]) el('circle', { cx: p.c[0], cy: p.c[1], r: 7, fill: 'none', stroke: css('--think'), 'stroke-width': 3 }, m); }); await S('gen.fr.together.color', { noGap: true }); } else await S(item.q, { noGap: true });
+    if (tries >= 3) { const m = helpG(svg); Sh.P.forEach((p, i) => { if (i < 1 && item.f[0] > 1) el('circle', { cx: p.c[0], cy: p.c[1], r: 7, fill: 'none', stroke: css('--think'), 'stroke-width': 3 }, m); }); await S('gen.fr.together.color', { noGap: true }); } else await S(item.q, { noGap: true });
     await sayFrac(item.f);
     const tog = i => { if (on.has(i)) on.delete(i); else on.add(i); Sh.shadeSet(i, on.has(i)); SFX.tick(); /*T*/window.__frOn = [...on];/*/T*/ };
     Sh.P.forEach((p, i) => { p.setAttribute('role', 'button'); p.setAttribute('tabindex', 0); p.setAttribute('aria-label', plain(labelText('frPart')) + ' ' + DG(i + 1)); p.style.cursor = 'pointer'; p.onclick = () => tog(i); p.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); tog(i); } }; });

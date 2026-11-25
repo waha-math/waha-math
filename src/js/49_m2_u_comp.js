@@ -129,7 +129,7 @@ ITEM.paraComplete = {
     el('rect', { x: x0 - 12, y: y0 - rows * c - 12, width: cols * c + 24, height: rows * c + 24, rx: 10, fill: GEO.paper, stroke: css('--line'), 'stroke-width': 2 }, g); for (let i = 0; i <= cols; i++) geoLine(g, ...P(i, 0), ...P(i, rows), { color: '#d5e2ea', w: 1.3 }); for (let j = 0; j <= rows; j++) geoLine(g, ...P(0, j), ...P(cols, j), { color: '#d5e2ea', w: 1.3 });
     const [A, B, D] = [item.a, item.b, item.d].map(q => P(...q)); geoLine(g, ...A, ...B, { color: CPC.ink, w: 3.4 }); geoLine(g, ...A, ...D, { color: CPC.ink, w: 3.4 }); [[A, 'a'], [B, 'b'], [D, 'd']].forEach(([p, k]) => { el('circle', { cx: p[0], cy: p[1], r: 5, fill: CPC.ink }, g); const t = el('text', { x: p[0] - 12, y: p[1] - 8, 'font-size': 17, 'font-weight': 800, fill: CPC.ink }, g); t.textContent = LTR[k]; });
     const set = q => { cur = q; if (mark) mark.remove(); mark = el('g', { 'pointer-events': 'none' }, svg); const Cq = P(...q); geoLine(mark, ...B, ...Cq, { color: CPC.arc, w: 3, dash: '7 5' }); geoLine(mark, ...D, ...Cq, { color: CPC.arc, w: 3, dash: '7 5' }); el('circle', { cx: Cq[0], cy: Cq[1], r: 7, fill: CPC.arc }, mark); SFX.tick(); /*T*/window.__pcCur = q.join(',');/*/T*/ };
-    if (tries >= 3) { const m = helpG(svg), dv = [item.d[0] - item.a[0], item.d[1] - item.a[1]]; cpArrow(m, B, P(item.b[0] + dv[0], item.b[1] + dv[1]), { color: css('--think') }); cpArrow(m, A, D, { color: css('--think') }); }
+    if (tries >= 3) { const m = helpG(svg), dv = [item.d[0] - item.a[0], item.d[1] - item.a[1]]; cpArrow(m, B, P(item.b[0] + dv[0] / 2, item.b[1] + dv[1] / 2), { color: css('--think') });   /* نصف الطريق: آخره للطفل (B-6) */ cpArrow(m, A, D, { color: css('--think') }); }
     await S(tries >= 3 ? 'gen.cp.together.para' : item.q);
     const input = fingerInput(svg, { map: e => { const p = svgPoint(svg, e); return [p.x, p.y]; }, down(q) { const r = Math.round((q[0] - x0) / c), u = Math.round((y0 - q[1]) / c); if (r < 0 || r > cols || u < 0 || u > rows) return false; set([r, u]); return false; }, move() {}, up() {} });
     const kg = el('g', { role: 'grid', 'aria-label': labelText('geoGrid') }, svg); for (let u = rows; u >= 0; u--) { const row = el('g', { role: 'row' }, kg); for (let r = 0; r <= cols; r++) { const [x, y] = P(r, u), b = el('g', { role: 'gridcell', tabindex: 0, 'aria-label': `${DG(r)}، ${DG(u)}` }, row); el('circle', { cx: x, cy: y, r: 9, fill: 'transparent', 'pointer-events': 'none' }, b); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); set([r, u]); } }; } }
@@ -168,7 +168,7 @@ ITEM.compassDraw = {
     const draw = () => { tool.innerHTML = ''; cpCompassAt(tool, [R.X(0), 154], [R.X(v), 154]); const t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: CPC.arc, direction: 'rtl' }, tool); t.textContent = `${labelText('cpOpen')} ${v} ${labelText('rulCm')}`; /*T*/window.__cdV = v; window.__cdWant = item.want;/*/T*/ if (reg) reg(); };
     let reg = null; draw();
     const btns = svgSteppers(svg, [[44, 232], [316, 232]], d => { v = Math.max(1, Math.min(10, v + d)); SFX.tick(); draw(); }, { key: 'cd', labels: ['cpClose', 'cpOpenMore'] });
-    if (tries >= 3) { const m = helpG(svg); geoLine(m, R.X(item.want), 120, R.X(item.want), 152, { color: css('--think'), w: 3, dash: '5 4' }); }
+    if (tries >= 3) { const m = helpG(svg); if (item.d) hintCard(svg, 180, 30, `${item.d} ÷ 2 = ؟`);   /* القطر مقسوماً بلا علامة الفتحة على المسطرة: آخر خطوة للطفل (B-6) */ }
     await S(tries >= 3 ? 'gen.cp.together.cd' : item.q, { noGap: true }); await sayLen(item.r || item.d, 'cm');
     const t = item.want, tap = b => b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     const fin = rulDone(() => { reg = null; btns.forEach(b => { b.onclick = null; b.onkeydown = null; b.removeAttribute('role'); }); });
@@ -200,11 +200,11 @@ function arcsMeet(base, r1, r2) { const c = base; if (r1 + r2 <= c || r1 + c <= 
 async function arcsShow(svg, s, o = {}) { const [c, a, b] = [...s].sort((p, q) => q - p), A = [180 - c * CM / 2, o.y || 196], B = [A[0] + c * CM, A[1]], m = o.g || helpG(svg);
   geoLine(m, A[0], A[1], B[0], B[1], { color: CPC.ink, w: 4 }); const meet = arcsMeet(c, a, b);
   el('path', { d: arcPath(A, a * CM, 5, 120), fill: 'none', stroke: CPC.arc, 'stroke-width': 2.6 }, m); SFX.tick(); await sleep(FAST ? 10 : 300); el('path', { d: arcPath(B, b * CM, 60, 175), fill: 'none', stroke: CPC.toolEdge, 'stroke-width': 2.6 }, m); SFX.tick(); await sleep(FAST ? 10 : 300);
-  if (meet) { const Cp = [A[0] + meet[0] * CM, A[1] - meet[1] * CM]; geoLine(m, A[0], A[1], Cp[0], Cp[1], { color: CPC.ok, w: 3 }); geoLine(m, B[0], B[1], Cp[0], Cp[1], { color: CPC.ok, w: 3 }); el('circle', { cx: Cp[0], cy: Cp[1], r: 5, fill: CPC.ok }, m); } return { m, meet }; }
+  if (meet && !o.noClose) { const Cp = [A[0] + meet[0] * CM, A[1] - meet[1] * CM]; geoLine(m, A[0], A[1], Cp[0], Cp[1], { color: CPC.ok, w: 3 }); geoLine(m, B[0], B[1], Cp[0], Cp[1], { color: CPC.ok, w: 3 }); el('circle', { cx: Cp[0], cy: Cp[1], r: 5, fill: CPC.ok }, m); } return { m, meet }; }
 ITEM.triExists = cpItem({ tLine: 'gen.cp.together.tri', hint: 'gen.cp.hint.tri', rLine: it => 'gen.cp.reveal.tri.' + it.want, H: 256,
   make: s => { const [c, a, b] = [...s.s].sort((p, q) => q - p); return { want: a + b > c ? 'yes' : 'no', tag: 'tri-exists' }; },
   draw(svg, item) { item.s.forEach((L, i) => { const y = 54 + i * 26, x1 = 300 - L * CM; geoLine(svg, x1, y, 300, y, { color: ['#c8392d', '#2f9d6b', '#2a5f94'][i], w: 5 }); const t = el('text', { x: x1 - 10, y: y + 6, 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg); t.textContent = `${L} ${labelText('rulCm')}`; }); return {}; },
-  async together(item, ctx) { await arcsShow(ctx.svg, item.s, { y: 230 }); },
+  async together(item, ctx) { await arcsShow(ctx.svg, item.s, { y: 230, noClose: true }); },   /* القوسان وحدهما: هل يلتقيان؟ للطفل (B-6) */
   pick: item => yesNo(item.want),
   errOf: it => it.want === 'no' ? 'triAlways' : 'triMissed' });
 /* ================= ⑬ أنشئ المثلث بثلاثة أضلاع (C239، C240، إنتاج): base القاعدة، a وb الضلعان الآخران؛ يضبط الطفل فتحتي القوسين من طرفي القاعدة ================= */
