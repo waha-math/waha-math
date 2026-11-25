@@ -198,12 +198,12 @@
    {
     "t": "pOrA",
     "q": "pr.unitPA",
-    "sit": "tiles",
+    "sit": "cover",
     "ask": "unit",
     "twin": {
      "t": "pOrA",
      "q": "pr.unitPA",
-     "sit": "fence",
+     "sit": "lace",
      "ask": "unit"
     }
    },
@@ -327,7 +327,7 @@
     {
      "t": "pOrA",
      "q": "pr.unitPA",
-     "sit": "carpet",
+     "sit": "card",
      "ask": "unit"
     },
     {
@@ -466,7 +466,7 @@
     {
      "t": "pOrA",
      "q": "pr.unitPA",
-     "sit": "grass",
+     "sit": "page",
      "ask": "unit",
      "twin": {
       "t": "pOrA",
@@ -520,7 +520,7 @@
   {
    "t": "pOrA",
    "q": "pr.unitPA",
-   "sit": "paint",
+   "sit": "screen",
    "ask": "unit",
    "c": "C204"
   },
@@ -546,7 +546,7 @@
   {
    "t": "pOrA",
    "q": "pr.unitPA",
-   "sit": "walk",
+   "sit": "border",
    "ask": "unit",
    "c": "C204"
   },
