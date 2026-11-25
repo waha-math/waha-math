@@ -331,3 +331,31 @@ SCENES.hexShow = async c => { const L = c.lines, svg = cpStage(276), C = [180, 1
 SCENES.flowerShow = async c => { const L = c.lines, svg = cpStage(262), C = [180, 134], R = 90; el('circle', { cx: C[0], cy: C[1], r: R, fill: 'none', stroke: '#9fb4c0', 'stroke-width': 2 }, svg); await S(L[0]); await axPredictNum(6, 'gen.cp.pr.petals'); for (let i = 0; i < 6; i++) { const P = angP(C, 90 + 60 * i, R); el('path', { d: arcPath(P, R, 90 + 60 * i + 180 - 60, 90 + 60 * i + 180 + 60), fill: 'none', stroke: CPC.arc, 'stroke-width': 2.6 }, svg); SFX.tick(); await sleep(FAST ? 5 : 260); } await S(L[1]); const s2 = cpStage(262); flowerAt(s2, C, R, 'alt'); if (L[2]) await S(L[2]); };
 SCENES.recallComp = async c => { const svg = cpStage(232); if (c.part) circleFig(svg, [180, 116], 80, c.part); else if (c.hex) hexInCircle(svg, [180, 116], 80); else if (c.tri) await arcsShow(svg, c.tri, { y: 200, g: el('g', {}, svg) }); else setSquareAt(svg, 120, 190, 120, -130); await S(c.lines[0]); };
 WRAP_ART.compArt = svg => { const g = flowerAt(svg, [180, 140], 92, 'alt'); anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 200, fill: 'both' }); palmAt(svg, 330, 250, .8); palmAt(svg, 30, 250, .9); };
+/* ================= لوّن الزهرة بنمطٍ له عدد محاور مطلوب (المشروع، C242؛ المرجع: «يلوّن البتلات بنمط ويحدّد عدد محاور تماثل زخرفته»؛ المراجع A لبوابة U8/U9، 20):
+   ax: عدد المحاور المطلوب (1 أو 2 أو 3). كل لمسة على بتلة تبدّل لونها، والمحاور تُحسب من ألوان الطفل ================= */
+const flwPt = C => (deg, r) => [C[0] + r * Math.cos(deg * Math.PI / 180), C[1] - r * Math.sin(deg * Math.PI / 180)];   /* بزاوية flowerAt نفسها (عكس عقارب الساعة من الشرق) */
+const flwAxes = p => [0, 1, 2, 3, 4, 5].filter(a => p.every((c, i) => c === p[((a - i) % 6 + 6) % 6]));
+ITEM.flowerColor = {
+  make(spec) { return { ...spec, want: spec.ax, tag: 'flower-color' }; },
+  sol(item) { return FLW_PAT[Object.keys(FLW_PAT).find(k => FLW_AX[k] === item.ax)]; },
+  async ask(item, mode, tries) { const svg = cpStage(262), C = [180, 128], R = 96, p = [0, 0, 0, 0, 0, 0], cols = ['#e9894a', '#3d7cc0'], g = el('g', {}, svg), axG = el('g', { 'pointer-events': 'none' }, svg), pt = flwPt(C);
+    el('circle', { cx: C[0], cy: C[1], r: R, fill: '#fffdf6', stroke: '#9fb4c0', 'stroke-width': 2 }, g);
+    const pet = [0, 1, 2, 3, 4, 5].map(i => { const a = 90 + 60 * i, b = el('g', { role: 'button', tabindex: 0, 'aria-label': `${plain(labelText('cpPetal'))} ${DG(i + 1)}`, style: 'cursor:pointer' }, g), P = pt(a, R / 2);
+      const s1 = pt(a - 30, R + 14), s2 = pt(a + 30, R + 14); el('path', { d: `M${C[0]} ${C[1]} L${s1[0]} ${s1[1]} A${R + 14} ${R + 14} 0 0 0 ${s2[0]} ${s2[1]} Z`, fill: 'transparent' }, b);   /* منطقة اللمس قطاع البتلة كله */
+      const e = el('ellipse', { cx: P[0], cy: P[1], rx: R * .29, ry: R * .5, transform: `rotate(${-a + 90} ${P[0]} ${P[1]})`, fill: cols[0], stroke: '#7a4a2a', 'stroke-width': 1.6, opacity: .9, 'pointer-events': 'none' }, b);
+      const tog = () => { p[i] = 1 - p[i]; e.setAttribute('fill', cols[p[i]]); SFX.tick(); /*T*/window.__flw = p.slice();/*/T*/ }; b.onclick = tog; b.onkeydown = ev => { if (isActKey(ev)) { ev.preventDefault(); tog(); } }; return { b, e, tog }; });
+    el('circle', { cx: C[0], cy: C[1], r: 6, fill: '#f2d38a', stroke: '#7a4a2a', 'stroke-width': 1.5, 'pointer-events': 'none' }, svg);
+    const set = q => q.forEach((c, i) => { if (p[i] !== c) pet[i].tog(); });
+    if (tries >= 3) { const s = this.sol(item), q = s.slice(), last = q.lastIndexOf(1); if (last >= 0) q[last] = 0; set(q); }   /* الحلّ المشترك: النمط إلا بتلة واحدة، يلوّنها الطفل */
+    await S(tries >= 3 ? 'gen.cp.together.flowerC' : item.q);
+    /*T*/window.__flwAt = i => { const r = pet[i].e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }; window.__flwWant = this.sol(item);/*/T*/
+    AUTO({ kind: 'flowerC', ok: () => { set(this.sol(item)); rulDoneBtn().click(); }, wrong: () => { set(item.ax === 1 ? [0, 1, 0, 1, 0, 1] : [1, 0, 0, 0, 0, 0]); rulDoneBtn().click(); } });
+    await rulDone(() => pet.forEach(t => { t.b.onclick = null; t.b.onkeydown = null; t.b.removeAttribute('role'); }));
+    return { ans: flwAxes(p).length, ctx: { svg, C, R, p, set, axG } }; },
+  judge(item, n) { return n === item.want ? { ok: true } : { ok: false, err: 'flowerMade' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  showAxes(ctx, col) { ctx.axG.innerHTML = ''; for (const a of flwAxes(ctx.p)) { const d = 90 + 30 * a, pt = flwPt(ctx.C), P1 = pt(d, ctx.R + 16), P2 = pt(d + 180, ctx.R + 16); geoLine(ctx.axG, P1[0], P1[1], P2[0], P2[1], { color: col, w: 2.2, dash: '6 5' }); } },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.axG) { this.showAxes(r.ctx, css('--think')); hintCard(r.ctx.svg, 180, 24, `${labelText('cpAxesNow')} ${flwAxes(r.ctx.p).length}`); } await S('gen.cp.hint.flowerC'); }, async together() {},
+  async reveal(item, r) { r.ctx.set(this.sol(item)); this.showAxes(r.ctx, CPC.ok); await S('gen.cp.reveal.flowerC'); },
+  praise: () => 'praiseSym', twin(item) { return item.twin || null; },
+};
