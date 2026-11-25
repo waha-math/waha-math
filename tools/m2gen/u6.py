@@ -359,7 +359,7 @@ d5={"id":"m2.u6.d5","title":"سَيِّدُ المِسْطَرَةِ","icon":["s
    T(3,2,cf([8,'km'],'m',[80,800,8000],q='q.conv')), T(4,2,cm_([3,'m'],'mm',q='q.machine')),
    T(5,2,lo([[2,'m'],[180,'cm'],[2500,'mm'],[220,'cm']],q='q.order')),
    T(6,3,calc([4,35],[2,85],'+',[[7,20],[6,120],[6,20]],q='q.add')), T(7,3,calc([6,15],[3,50],'-',[[2,65],[3,35],[3,65]],q='q.sub')),
-   T(8,1,tr(40,[40,45,35],thing='table',q='q.tape')), T(9,1,{"t":"rulerRead","q":"q.ruler","b":9,"a":2,"brk":True,"thing":"pencil"}),
+   T(8,1,tr(40,[40,45,35],thing='table',q='q.tape')), T(9,1,{"t":"rulerRead","q":"q.ruler","b":9,"a":2,"brk":1,"thing":"pencil"}),
    T(10,3,reason("ts.10",{"kind":"calc","a":[1,45],"b":[2,75],"op":"+","res":[3,120]},["ts.10a","ts.10b","ts.10c"])),
    T(11,3,fb(900,[400,250,175,75,150],q='q.fence')),
    T(12,1,reason("ts.12",{"kind":"thing","thing":"pencil"},["ts.12a","ts.12b","ts.12c"]))]},

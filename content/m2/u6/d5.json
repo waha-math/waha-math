@@ -617,7 +617,7 @@
      "q": "q.ruler",
      "b": 9,
      "a": 2,
-     "brk": true,
+     "brk": 1,
      "thing": "pencil"
     }
    },

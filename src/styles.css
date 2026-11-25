@@ -328,13 +328,13 @@ html.lpause #confetti { visibility: hidden; }
   .stage > svg { flex: 1 1 0; height: 0; min-height: 0; max-height: none; }
   .stage > .choices { padding: 0 8px 8px; gap: 6px; }
   .stage > .choices.cards { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-  .stage > .choices.cards .card { min-height: 52px; font-size: 16px; line-height: 1.4; padding: 4px 8px; }
+  .stage > .choices.cards .card { min-height: 56px; font-size: 16px; line-height: 1.4; padding: 4px 8px; }
   .stage > .choices.icons { grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); }
-  .stage > .choices.icons .pick { min-height: 52px; font-size: 15px; line-height: 1.3; padding: 4px 6px; gap: 0; } .stage > .choices.icons .pick svg { max-width: 34px; max-height: 34px; }
-  .stage > .choices.nums .num { min-height: 52px; } .stage > .choices.nums .num b { font-size: 24px; }
-  .stage > .choices.rbbar .pick { min-height: 48px; } .go, .help { min-height: 52px; }
+  .stage > .choices.icons .pick { min-height: 56px; font-size: 15px; line-height: 1.3; padding: 4px 6px; gap: 0; } .stage > .choices.icons .pick svg { max-width: 34px; max-height: 34px; }
+  .stage > .choices.nums .num { min-height: 56px; } .stage > .choices.nums .num b { font-size: 24px; }
+  .stage > .choices.rbbar .pick { min-height: 56px; } .go, .help { min-height: 56px; }   /* D255: 56 بكسلاً للمس بالعرض أيضاً (المراجع B لبوابة U6/U7، 25) */
   /* لوحة الأرقام بالعرض: ستة في الصف وصفّان، فيبقى الرسم ظاهراً (Gate X-03: كان 90 بكسلاً تحت أربعة صفوف) */
-  .stage > .choices.numpad { grid-template-columns: repeat(6, 1fr); } .numpad .npk { min-height: 44px; } .numpad .npv { min-height: 38px; font-size: 26px; }
+  .stage > .choices.numpad { grid-template-columns: repeat(6, minmax(56px, 1fr)); } .numpad .npk { min-height: 56px; } .numpad .npv { min-height: 38px; font-size: 26px; }
 }
 @media (max-width: 340px) { #who { display: none; } #talk { grid-template-columns: 1fr; } .cover .talk { grid-template-columns: 64px 1fr; } .cover .talk .who { width: 64px; height: 74px; }
   .avatars { gap: 8px; } .av { min-height: 62px; padding: 4px; } }   /* صور الملف الأربع في 288 بكسلاً، لا تخرج عن الشاشة */
