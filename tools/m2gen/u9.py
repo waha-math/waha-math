@@ -57,7 +57,7 @@ dump(U+'/unit.json', {"id":"m2.u9","title":"وَرْشَةُ الفِرْجَا�
 
 # مهمة بيت S2-U8: ربع الحبات الاثنتي عشرة وما بقي؛ وبعد أسبوع: البرتقالة فصوصاً والكسر
 HOME_U8={"s":"hook","scene":"homeNums","unit":"m2.u8","art":"bread","ask":"gen.home.askBread","fields":[
- {"key":"q12","q":"gen.home.q12Q","min":0,"max":12,"val":1,"unit":"homeDates"},{"key":"lf","q":"gen.home.lfQ","min":0,"max":12,"val":1,"unit":"homeDates"}],"say":"bread","lines":["home.back"]}
+ {"key":"q12","q":"gen.home.q12Q","min":0,"max":12,"val":1,"unit":"homeDates"},{"key":"lf","q":"gen.home.lfQ","min":0,"max":12,"val":1,"unit":"homeDates"},{"key":"ph","photo":"slices","q":"gen.home.phSlicesQ"}],"say":"bread","lines":["home.back"]}
 AGAIN_U8={"s":"hook","scene":"homeNums","unit":"m2.u8","art":"orange","again":[{"key":"og","q":"gen.home.ogQ","min":4,"max":16,"val":8,"unit":"homeSegs"},{"key":"od","q":"gen.home.odQ","min":2,"max":16,"val":2,"unit":"homeDen"}],"askAgain":"gen.home.askOrange","sayAgain":"orangeAgain","quiet":True,"lines":[]}
 
 # ---------------- د1: أدوات الورشة (C230) ----------------

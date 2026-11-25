@@ -79,7 +79,7 @@
      "min": 40,
      "max": 600,
      "val": 200,
-     "step": 10,
+     "step": 5,
      "unit": "rulCm"
     },
     {
@@ -90,6 +90,11 @@
      "val": 6,
      "step": 1,
      "unit": "homeTiles"
+    },
+    {
+     "key": "ph",
+     "photo": "rug",
+     "q": "gen.home.phRugQ"
     }
    ],
    "say": "rug",

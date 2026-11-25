@@ -88,6 +88,11 @@
      "max": 12,
      "val": 1,
      "unit": "homeDates"
+    },
+    {
+     "key": "ph",
+     "photo": "slices",
+     "q": "gen.home.phSlicesQ"
     }
    ],
    "say": "bread",

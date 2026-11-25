@@ -139,7 +139,7 @@ async function openGallery() {
   const photos = (await IDB.all()).filter(p => typeof p.data === 'string' && PHOTO_RX.test(p.data)).sort((a, b) => b.t - a.t); const designs = designsGet();
   const c = cover('galCover', `<div class="gallery"><div class="ghead"><button class="round ico" id="galClose" aria-label="${esc(labelText('back'))}">${ICON.map}</button><b>${esc(G(labelText('myGallery')))}</b></div>${coverHead()}
     <div class="huntgrid" id="huntGrid"></div><input type="file" id="huntIn" accept="image/*" capture="environment" hidden>
-    <div class="gitems">${photos.map(p => `<figure><img src="${p.data}" alt=""><figcaption>${esc(BIN_NAMES[p.k] || '')}</figcaption></figure>`).join('')}
+    <div class="gitems">${photos.map(p => `<figure><img src="${p.data}" alt=""><figcaption>${esc(BIN_NAMES[p.k] || (String(p.k).startsWith('home.') && LABELS.ui['ph.' + p.k.slice(5)] ? labelText('ph.' + p.k.slice(5)) : ''))}</figcaption></figure>`).join('')}
       ${designs.map(d => `<figure class="design">${designSVG(d)}<figcaption>${esc(G(labelText('myDesign')))}</figcaption></figure>`).join('')}</div></div>`);
   let want = null;
   open.forEach(([k]) => { const b = document.createElement('button'); b.className = 'bin'; b.dataset.hunt = k; b.innerHTML = basketSVG(k) + `<span>${esc(BIN_NAMES[k])}</span>`; b.setAttribute('aria-label', plain(BIN_NAMES[k]));

@@ -334,7 +334,7 @@ SCENES.tapeIntro = async c => { const L = c.lines; let svg = lenStage(220); cons
 SCENES.kmWalk = async c => { const L = c.lines, svg = lenStage(230), y = 128, x0 = 330, k = 28; el('rect', { x: 34, y: y - 4, width: 300, height: 8, rx: 4, fill: '#d9c7a4' }, svg);
   el('path', { d: `M${x0 - 6} ${y - 30} L${x0 + 6} ${y - 30} L${x0 + 6} ${y - 6} L${x0 - 6} ${y - 6} Z`, fill: '#3d7cc0' }, svg); el('path', { d: `M${x0 - 10 * k - 14} ${y - 6} V${y - 40} H${x0 - 10 * k + 14} V${y - 6}`, fill: 'none', stroke: '#8a6a4a', 'stroke-width': 5 }, svg);
   await S(L[0]); await axPredictNum(10, 'gen.len.pr.km'); const g = el('g', {}, svg); for (let i = 1; i <= 10; i++) { const x = x0 - i * k; el('circle', { cx: x, cy: y, r: 5, fill: '#c8392d' }, g); if (i % 5 === 0) { const t = el('text', { x, y: y + 30, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: LENC.ink, direction: 'ltr' }, g); t.textContent = String(i * 100); } SFX.tick(); await sleep(FAST ? 10 : 160); }
-  await S(L[1]); if (L[2]) await S(L[2]); };
+  await S(L[1]); if (L[2]) await S(L[2]); if (L[3]) await S(L[3]); };
 /* جدول اختيار الوحدة: أربعة أشياء ووحداتها */
 SCENES.unitTable = async c => { const L = c.lines, svg = lenStage(240), rows = c.pics || ['ant', 'pencil', 'door', 'road']; await S(L[0]);
   for (const [i, k] of rows.entries()) { const x = 300 - i * 80; lenThing(svg, k, x, 84, .5); if (i === 2) await lenPredict(LEN_U.map(u => [u, labelText(LEN_LB[u]), '<i></i>', 'gen.len.u.' + u]), LEN_TH[k].u, 'gen.len.pr.unit'); const t = el('text', { x, y: 150, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: LENC.bar }, svg); t.textContent = labelText(LEN_LB[LEN_TH[k].u]); SFX.tick(); await S('gen.len.u.' + LEN_TH[k].u); }

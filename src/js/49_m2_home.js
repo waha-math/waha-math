@@ -87,6 +87,23 @@ const HOME_SAY = {
   winAgain: async (r, v) => S(v.sides === v.verts ? 'gen.home.winEq' : 'gen.home.winNe'),
   clockAgain: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }); homeArt(svg, 'clock'); homeClock(svg, 6); await S(v.kind === 2 ? 'gen.home.sixOk' : 'gen.home.sixNo'); await S(v.q === 1 ? 'gen.home.quarterOk' : 'gen.home.quarterNo'); },
 };
+/* صورة ناتج مهمة البيت عبر «صيد الكاميرا» (المرجع: U7 السجادة والخيط، U8 الشريحتان؛ المراجع A لبوابتي U6/U7 (30) وU8/U9 (21)):
+   بطاقتان «أُصوّر الآن» و«بلا صورة»، والصورة تُحفظ في معرض الطفل باسمها. اختيارية: الطفل بلا كاميرا يكمل. يعيد 1 إن حُفظت */
+async function homePhoto(f, unit) { for (let round = 0; round < 2; round++) {
+    await S(f.q); const cp = cardPick([{ id: 'gen.home.phTake', k: 'take' }, { id: 'gen.home.phSkip', k: 'skip', ok: true }], { keepOrder: true, intro: f.q }), pick = await cp.p; cp.done(); cp.box.remove();
+    if (pick.k === 'skip') return 0;
+    const file = await new Promise(res => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.setAttribute('capture', 'environment'); inp.hidden = true; document.body.appendChild(inp);
+      let done = false; const end = v => { if (done) return; done = true; inp.remove(); window.removeEventListener('focus', onF); res(v); }, onF = () => setTimeout(() => end(inp.files && inp.files[0] || null), 900);
+      inp.onchange = () => end(inp.files && inp.files[0] || null); inp.addEventListener('cancel', () => end(null)); window.addEventListener('focus', onF);
+      /*T*/if (TESTHOOK) { setTimeout(() => end(null), 30); return; }/*/T*/ inp.click(); });   /* في الفحص لا نافذة ملفات: يعود بلا صورة */
+    if (!file) { if (round) return 0; continue; }
+    const sv = await new Promise(res => { const rd = new FileReader(); rd.onerror = () => res(null); rd.onload = () => { const img = new Image(); img.onerror = () => res(null); img.onload = async () => { const Z = 360, k = Math.min(1, Z / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      res(await IDB.put({ id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kid: KID, k: 'home.' + f.photo, t: Date.now(), data: cv.toDataURL('image/jpeg', .72) })); }; img.src = rd.result; }; rd.readAsDataURL(file); });   // rng-ok: معرّف الصورة
+    if (sv === 'mem') { STORE_ISSUES.photoMem = true; try { onStoreIssue(); } catch (x) {} }
+    if (sv === 'ok' || sv === 'mem') { SFX.good(); await S('gen.home.phSaved'); return 1; }
+    SFX.soft(); await S('gen.hunt.again'); }
+  return 0; }
 SCENES.homeNums = async c => { const unit = c.unit, H = PROG.home = isObj(PROG.home) ? PROG.home : {}, [back] = c.lines || []; let rec = H[unit];
   const stage0 = () => { const v = newStage(230, { oasis: false, ground: 0 }); homeArt(v, c.art); return v; };
   const again = !!c.again && !!rec; if (again) { let due = !rec.an && Date.now() - rec.at >= 6.5 * 864e5; /*T*/if (TESTHOOK && window.__homeDue !== false && !rec.an) due = true;/*/T*/ if (!due) { if (back && !c.quiet) { stage0(); await S(back); } return; } }
@@ -95,6 +112,7 @@ SCENES.homeNums = async c => { const unit = c.unit, H = PROG.home = isObj(PROG.h
   stage0(); const askId = again ? c.askAgain || 'gen.home.askAgain' : c.ask || 'gen.home.ask'; await S(askId); const cp = cardPick([{ id: 'gen.home.did', k: 'yes', ok: true }, { id: 'gen.home.no', k: 'no' }], { keepOrder: true, intro: askId }), pick = await cp.p; cp.done(); cp.box.remove();
   if (pick.k === 'no') { logAttempt({ scene: c.s || 'hook', tag: 'homeLater', ok: true }); await S('gen.home.later'); if (back && !c.quiet) await S(back); return; }
   const vals = {}; for (const f of again ? c.again : c.fields) { stage0(); if (f.pick) { await S(f.q); const k = await choosePick(f.pick.map(([k2, line]) => [k2, T(line), '<i></i>', line]), null); vals[f.key] = f.pick.findIndex(x => x[0] === k); }
+    else if (f.photo) vals[f.key] = await homePhoto(f, unit);
     else { S(f.q, { free: true }); const v = await stepperAsk([{ key: f.key, min: f.min ?? 0, max: f.max ?? 99, val: f.val ?? 1, unit: f.unit || 'rulCm', step: f.step || 1 }]); vals[f.key] = v[f.key]; } }
   if (again) rec.an = vals; else rec = H[unit] = { at: Date.now(), items: [], n: vals }; saveProg();
   logAttempt({ scene: c.s || 'hook', tag: again ? 'homeAgain' : 'homeNums', ok: true }); SFX.good(); const say = again ? c.sayAgain : c.say; if (say && HOME_SAY[say]) await HOME_SAY[say](rec, vals);

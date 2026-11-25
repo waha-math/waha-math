@@ -75,7 +75,7 @@ HOME_U6={"s":"hook","scene":"homeNums","unit":"m2.u6","art":"tape","ask":"gen.ho
  {"key":"e1","q":"gen.home.e1Q","min":40,"max":160,"val":80,"step":5,"unit":"rulCm"},{"key":"m1","q":"gen.home.m1Q","min":40,"max":160,"val":80,"step":5,"unit":"rulCm"},
  {"key":"e2","q":"gen.home.e2Q","min":100,"max":250,"val":180,"step":5,"unit":"rulCm"},{"key":"m2","q":"gen.home.m2Q","min":100,"max":250,"val":180,"step":5,"unit":"rulCm"},
  {"key":"e3","q":"gen.home.e3Q","min":80,"max":180,"val":120,"step":5,"unit":"rulCm"},{"key":"m3","q":"gen.home.m3Q","min":80,"max":180,"val":120,"step":5,"unit":"rulCm"}],"say":"tape","lines":["home.back"]}
-AGAIN_U6={"s":"hook","scene":"homeNums","unit":"m2.u6","art":"tape","again":[{"key":"rm","q":"gen.home.rmQ","min":1,"max":9,"val":3,"unit":"lenM"},{"key":"rc","q":"gen.home.rcQ","min":0,"max":90,"val":0,"step":10,"unit":"rulCm"},{"key":"rt","q":"gen.home.rtQ","min":100,"max":990,"val":300,"step":10,"unit":"rulCm"}],"askAgain":"gen.home.askRoom","sayAgain":"roomAgain","quiet":True,"lines":[]}
+AGAIN_U6={"s":"hook","scene":"homeNums","unit":"m2.u6","art":"tape","again":[{"key":"rm","q":"gen.home.rmQ","min":1,"max":9,"val":3,"unit":"lenM"},{"key":"rc","q":"gen.home.rcQ","min":0,"max":95,"val":0,"step":5,"unit":"rulCm"},{"key":"rt","q":"gen.home.rtQ","min":100,"max":995,"val":300,"step":5,"unit":"rulCm"}],"askAgain":"gen.home.askRoom","sayAgain":"roomAgain","quiet":True,"lines":[]}
 
 COMMON={"pr.intro":None}
 # ---------------- د1: ما المحيط؟ ----------------
@@ -463,6 +463,12 @@ L_7={
  "wrap.home":["chaos","مُهِمَّةُ البَيْتِ: {اُرْسُمْ|اُرْسُمِي} أَرْضًا عَلَى وَرَقِ المُرَبَّعَاتِ، كُلُّ مُرَبَّعٍ مِتْرٌ، {وَاحْسُبْ|وَاحْسُبِي} سُورَهَا وَعُشْبَهَا."],
 }
 d7={"id":"m2.u7.d7","title":"خُطَّةُ الأَرْضِ","icon":["argarden"],
+ "adultCard":{"title":"خطّط أرضك: سلّم الأداء (المرجع S2-U7)","how":"انظروا في الخطة والجدول واسألوه عنهما، ثم اختاروا لكل معيار:","levels":True,"qs":[
+   "المحيط: 🌱 يجمع بعض الأضلاع · 🌿 يجمعها كلها بتذكير · 🌳 يجمعها ويستنتج المجهول.",
+   "المساحة: 🌱 يعدّ المربعات · 🌿 الصفوف × الأعمدة · 🌳 يستعملها في الشكل المركّب.",
+   "الفرق بين المفهومين: 🌱 يخلطهما · 🌿 يميّز بتذكير · 🌳 يميّز ويعلّل بمثال.",
+   "الوحدات: 🌱 ينساها · 🌿 يكتبها غالباً · 🌳 م وم² بدقة.",
+   "حلّ المسائل: 🌱 بمساعدة · 🌿 يختار العملية · 🌳 يحلّ ويتحقّق بالتقدير."]},
  "concepts":{"C212":"المتر المربع وحدةً لمساحة الأراضي (دون تحويل بين السنتيمتر المربع والمتر المربع)، منقول من د6؛ ومشروع «خطّط أرضك»"},
  "bag":{"items":[{"icon":"tape","label":"bagTape"},{"icon":"tapeM","label":"bagTapeM"}],"ask":"bag.ask","adult":"شريط لاصق أو ورق جرائد، وشريط قياس، لتحديد مربع ضلعه متر على الأرض.","screenPath":"على الشاشة يرى الطفل المتر المربع، ويحسب سور الحديقة وعشبها بالمتر والمتر المربع، ويبحث عن أفضل مزرعة بسور واحد؛ والمربع الحقيقي على الأرض في مسار «معي»."},
  "labels":{"bagTape":"شَرِيطٌ لَاصِقٌ","bagTapeM":"شَرِيطُ قِيَاسٍ"},"lines":L_7,

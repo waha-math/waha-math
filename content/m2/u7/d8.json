@@ -89,18 +89,18 @@
      "key": "rc",
      "q": "gen.home.rcQ",
      "min": 0,
-     "max": 90,
+     "max": 95,
      "val": 0,
-     "step": 10,
+     "step": 5,
      "unit": "rulCm"
     },
     {
      "key": "rt",
      "q": "gen.home.rtQ",
      "min": 100,
-     "max": 990,
+     "max": 995,
      "val": 300,
-     "step": 10,
+     "step": 5,
      "unit": "rulCm"
     }
    ],

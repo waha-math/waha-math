@@ -40,7 +40,7 @@ dump(U+'/unit.json', {"id":"m2.u8","title":"كَعْكَةُ الهَنْدَس�
 
 # مهمة بيت S2-U7: المحيط بالسنتيمتر والبلاط تقريباً؛ وبعد أسبوع: إطار الصورة محيط أم مساحة، وبأيّ وحدة
 HOME_U7={"s":"hook","scene":"homeNums","unit":"m2.u7","art":"rug","ask":"gen.home.askRug","fields":[
- {"key":"rp","q":"gen.home.rpQ","min":40,"max":600,"val":200,"step":10,"unit":"rulCm"},{"key":"tl","q":"gen.home.tlQ","min":0,"max":60,"val":6,"step":1,"unit":"homeTiles"}],"say":"rug","lines":["home.back"]}
+ {"key":"rp","q":"gen.home.rpQ","min":40,"max":600,"val":200,"step":5,"unit":"rulCm"},{"key":"tl","q":"gen.home.tlQ","min":0,"max":60,"val":6,"step":1,"unit":"homeTiles"},{"key":"ph","photo":"rug","q":"gen.home.phRugQ"}],"say":"rug","lines":["home.back"]}
 AGAIN_U7={"s":"hook","scene":"homeNums","unit":"m2.u7","art":"frame","again":[{"key":"fk","q":"gen.home.fkQ","pick":[["p","gen.home.fkP"],["a","gen.home.fkA"]]},{"key":"fu","q":"gen.home.fuQ","pick":[["cm","gen.home.fuCm"],["cm2","gen.home.fuCm2"]]}],"askAgain":"gen.home.askFrame","sayAgain":"frameAgain","quiet":True,"lines":[]}
 
 # ---------------- د1: كعكة فوضى (C220) ----------------
