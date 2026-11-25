@@ -116,7 +116,7 @@ ITEM.fracName = frItem({ tLine: 'gen.fr.together.nameF', hint: 'gen.fr.hint.name
   /* الخيارات بالرمز وحده، بلا اسم مكتوب ولا مقروء (المراجع A لبوابة U8/U9، 10: كان يُحلّ بمطابقة الكلمة)، والاسم يُقال بعد الاختيار */
   pick: it => choosePick(frOpts(it.f, [[it.f[1], it.f[0]]]).map(f => [frKey(f), `${f[0]}/${f[1]}`, fracIcon(f)]), frKey(it.want), { cls: 'symonly' }),
   draw(svg, item, tries) { const t = el('text', { x: 180, y: 110, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: FRC.ink }, svg); t.textContent = labelText('fr.' + item.f[0] + '.' + item.f[1]);
-    if (tries >= 3) { const m = helpG(svg), t2 = el('text', { x: 180, y: 160, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think') }, m); t2.textContent = labelText('frDenIs') + ' ' + DG(item.f[1]) + ' · ' + labelText('frNumIs') + ' ' + DG(item.f[0]); } return {}; },
+    if (tries >= 3) { const m = helpG(svg), t2 = el('text', { x: 180, y: 160, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think') }, m); t2.textContent = labelText('frDenIs') + ' ' + DG(item.f[1]) + ' · ' + labelText('frNumIs') + ' ؟'; } return {}; },
   errOf: (it, k) => { const [a, b] = frParse(k); return a === it.f[1] && b === it.f[0] ? 'fracFlip' : 'fracOff'; } });
 /* ================= ⑦ الوحدوي والواحد الصحيح (C222): ask: unit | whole | notUnit، opts الكسور ================= */
 ITEM.unitFrac = frItem({ tLine: 'gen.fr.together.unit', hint: 'gen.fr.hint.unit', rLine: it => 'gen.fr.reveal.unit.' + it.ask, rSay: it => sayFrac(it.want),
@@ -132,7 +132,7 @@ function halfGridAt(parent, rows, C = [180, 116], o = {}) { const H = rows.lengt
 ITEM.halfGrid = frItem({ tLine: 'gen.fr.together.half', hint: 'gen.fr.hint.half', rLine: it => 'gen.fr.reveal.half.' + it.want,
   make: s => { const [a, b] = halfCells(s.rows); return { want: a === b ? 'yes' : 'no', na: a, nb: b, tag: 'half-grid' }; },
   draw(svg, item) { return { G: halfGridAt(svg, item.rows) }; },
-  async together(item, ctx) { const m = helpG(ctx.svg); for (const [ch, col] of [['a', '#b35a1f'], ['b', '#2f7d4a']]) { const P = ctx.G.cells(ch); P.forEach(([x, y], i) => { const t = el('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: col, direction: 'ltr' }, m); t.textContent = DG(i + 1); }); SFX.tick(); await S(numw(P.length), { num: true }); } },
+  async together(item, ctx) { const m = helpG(ctx.svg); for (const [ch, col] of [['a', '#b35a1f']]) { const P = ctx.G.cells(ch); P.forEach(([x, y], i) => { const t = el('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: col, direction: 'ltr' }, m); t.textContent = DG(i + 1); }); SFX.tick(); await S(numw(P.length), { num: true }); } },
   pick: item => choosePick([['yes', labelText('frYes'), '<i></i>', 'gen.fr.yes'], ['no', labelText('frNo'), '<i></i>', 'gen.fr.no']], item.want),
   errOf: it => it.want === 'yes' ? 'halfShape' : 'halfCount' });
 /* ================= ⑨ لوّن الكسر على الشبكة (C223، C227، إنتاج): cols، rows، f — أيّ مربعات بالعدد الصحيح ================= */
@@ -177,7 +177,7 @@ ITEM.lineRead = frItem({ tLine: 'gen.fr.together.line', hint: 'gen.fr.hint.line'
   make: s => ({ want: [s.a, s.b], tag: 'line-read' }),
   opts: it => frOpts(it.want, [it.a + 1 <= it.b ? [it.a + 1, it.b] : null, [2, 3, 4, 5, 6, 8, 10, 12].includes(it.b + 1) ? [it.a, it.b + 1] : null]),
   draw(svg, item) { const Ln = fracLine(svg, item.b); fracArrow(svg, Ln.X(item.a)); return { Ln }; },
-  async together(item, ctx) { await frHops(ctx.svg, ctx.Ln, item.a, item.b); },
+  async together(item, ctx) { await frHops(ctx.svg, ctx.Ln, Math.max(1, item.a - 1), item.b); },   /* القفزات تقف قبل السهم بقفزة (المراجع A لبوابة U8/U9، 16 (أ)) */
   errOf: (it, k) => { const [a, b] = frParse(k); return b === it.b && a === it.a + 1 ? 'countMarks' : b === it.b + 1 ? 'countMarksDen' : 'fracOff'; } });
 /* ================= ⑫ ضع الكسر على القطعة (C224، إنتاج): a وb ================= */
 ITEM.linePlace = {
