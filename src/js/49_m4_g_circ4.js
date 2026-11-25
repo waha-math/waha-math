@@ -121,6 +121,7 @@ ITEM.ci4Sector = cpItem({ H: 262, tLine: 'gen.ci4.together.sector', hint: 'gen.c
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 252, labelText(item.kind === 'arc' ? 'ci4RuleArc' : 'ci4RuleArea').replace('N', MS('360')), C6.hl, 13); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.cands.map(v => [String(v), ciTxt(v, item.uk), '<i></i>', ciLine(v, item.uk)])), String(item.want)),
   errOf: (it, k) => +k === c6R(it.W / 2) ? 'ciArcHalf' : +k === c6R(it.W - it.want) ? 'ciArcOther' : +k === c6R(it.W * it.ang / 180) ? 'ciArcDouble' : 'ciArcOff' });
+{ const j0 = ITEM.ci4Sector.judge; ITEM.ci4Sector.judge = (item, k) => k === String(item.want) ? { ok: true } : j0(item, k); }   /* مفاتيح الاختيار نصوص والجواب عدد */
 
 /* ---------- البرهانان (D242) ورسماهما في pfFig ---------- */
 Object.assign(PF_PROOFS, { chordPf: { rs: ['radii', 'rhs', 'cpct'] }, inscPf: { rs: ['radii', 'isoBase', 'ext'] } });

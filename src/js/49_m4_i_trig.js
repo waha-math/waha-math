@@ -99,6 +99,7 @@ ITEM.c8Table = cpItem({ H: 236, tLine: 'gen.c8.together.table', hint: 'gen.c8.hi
   pick: item => choosePick(shuffle(item.ch.map(v => [String(v), MS(String(v)), '<i></i>', 'gen.c8.v.' + c8Key(v)])), String(item.want)),
   errOf: (it, k) => +k === .3 ? 'trig03' : +k === it.deg ? 'trigDeg' : it.fn !== 'tan' && +k === C8_T[it.fn === 'sin' ? 'cos' : 'sin'][it.deg] ? 'trigSinCos' : 'trigOff' });
 
+{ const j0 = ITEM.c8Table.judge; ITEM.c8Table.judge = (item, k) => k === String(item.want) ? { ok: true } : j0(item, k); }   /* مفاتيح الاختيار نصوص والجواب عدد */
 /* ================= ⑦ الارتفاع بزاوية النظر (C409 ب): dist، deg (30 | 45 | 60)، what tree | pole ================= */
 function c8Survey(g, dist, deg, o = {}) { const G0 = [52, o.y ?? 206], k = Math.min(230 / dist, 150 / (dist * C8_T.tan[deg])), X = [G0[0] + dist * k, G0[1]], Top = [X[0], G0[1] - dist * C8_T.tan[deg] * k];
   geoLine(g, 20, G0[1], 340, G0[1], { color: '#8b7d6b', w: 4 }); el('rect', { x: X[0] - 5, y: Top[1], width: 10, height: X[1] - Top[1], fill: '#7d5a3a' }, g);
