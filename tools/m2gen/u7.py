@@ -483,7 +483,7 @@ d7={"id":"m2.u7.d7","title":"خُطَّةُ الأَرْضِ","icon":["argarden"
   {"s":"hook","scene":"lines","lines":["hk.01"]},
   {"s":"explore","scene":"m2Show","w":3,"h":2,"mat":MAT(),"lines":["m2.01","m2.02","m2.03"]},
   {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(ra(8,5,'full',q='pr.areaM',unit='m'),rp(8,5,q='pr.perimM',unit='m')), tw(ra(7,4,'full',q='pr.areaM',unit='m'),rp(9,4,q='pr.perimM',unit='m'))]},
-  {"s":"game","scene":"items","mode":"practice","intro":"prj.01","items":[cp(LAND,[],q='prj.fence',unit='m'), ca(LAND,q='prj.grass',unit='m'), ra(4,4,'full',q='prj.garden',unit='m'), ra(2,3,'full',q='prj.play',unit='m')]},
+  {"s":"game","scene":"items","mode":"practice","intro":"prj.01","items":[tw(cp(LAND,[],q='prj.fence',unit='m'),cp(['#####','#####','###..'],[],q='prj.fence',unit='m')), tw(ca(LAND,q='prj.grass',unit='m'),ca(['#####','#####','#####','##...'],q='prj.grass',unit='m')), tw(ra(4,4,'full',q='prj.garden',unit='m'),ra(3,5,'full',q='prj.garden',unit='m')), tw(ra(2,3,'full',q='prj.play',unit='m'),ra(1,5,'full',q='prj.play',unit='m'))]},   # بتوائم: الخطوة يُخطئ فيها الطفل أربعاً يلقى مسألةً أخرى (المبدأ 5)
   {"s":"explore","scene":"landTable","rows":LAND,"gw":4,"lines":["prj.02","prj.03"]},
   {"s":"game","scene":"items","mode":"practice","intro":"best.01","items":[tw(mx(22,m2=True),mx(26,m2=True))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],

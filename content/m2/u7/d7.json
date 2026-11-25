@@ -163,7 +163,18 @@
       "####.."
      ],
      "hide": [],
-     "unit": "m"
+     "unit": "m",
+     "twin": {
+      "t": "compPerim",
+      "q": "prj.fence",
+      "rows": [
+       "#####",
+       "#####",
+       "###.."
+      ],
+      "hide": [],
+      "unit": "m"
+     }
     },
     {
      "t": "compArea",
@@ -174,7 +185,18 @@
       "######",
       "####.."
      ],
-     "unit": "m"
+     "unit": "m",
+     "twin": {
+      "t": "compArea",
+      "q": "prj.grass",
+      "rows": [
+       "#####",
+       "#####",
+       "#####",
+       "##..."
+      ],
+      "unit": "m"
+     }
     },
     {
      "t": "rectArea",
@@ -182,7 +204,15 @@
      "w": 4,
      "h": 4,
      "grid": "full",
-     "unit": "m"
+     "unit": "m",
+     "twin": {
+      "t": "rectArea",
+      "q": "prj.garden",
+      "w": 3,
+      "h": 5,
+      "grid": "full",
+      "unit": "m"
+     }
     },
     {
      "t": "rectArea",
@@ -190,7 +220,15 @@
      "w": 2,
      "h": 3,
      "grid": "full",
-     "unit": "m"
+     "unit": "m",
+     "twin": {
+      "t": "rectArea",
+      "q": "prj.play",
+      "w": 1,
+      "h": 5,
+      "grid": "full",
+      "unit": "m"
+     }
     }
    ]
   },
