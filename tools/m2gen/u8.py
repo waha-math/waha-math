@@ -16,7 +16,10 @@ def fn(f,q='pr.nameF'): return {"t":"fracName","q":q,"f":f}
 def uf(ask,opts,q=None): return {"t":"unitFrac","q":q or {'unit':'pr.unit','whole':'pr.whole','notUnit':'pr.notUnit'}[ask],"ask":ask,"opts":opts}
 def hg(rows,q='pr.half'): return {"t":"halfGrid","q":q,"rows":rows}
 def cc(cols,rows,f,q='pr.cells'): return {"t":"cellColor","q":q,"cols":cols,"rows":rows,"f":f}
-def wr(f,q='pr.whole2'): return {"t":"wholeRef","q":q,"f":f}
+def wr(f,q='pr.whole2',f2=None):   # f2: كسر الصغيرة إن اختلف (المراجع A لبوابة U8/U9، 9 (ب))
+    d={"t":"wholeRef","q":q,"f":f}
+    if f2: d['f2']=f2
+    return d
 def lr(a,b,q='pr.lineR'): return {"t":"lineRead","q":q,"a":a,"b":b}
 def lp(a,b,q='pr.lineP'): return {"t":"linePlace","q":q,"a":a,"b":b}
 def ef(f,m,q='pr.eqvF'): return {"t":"eqvFill","q":q,"f":f,"m":m}
@@ -193,12 +196,12 @@ d3={"id":"m2.u8.d3","title":"النِّصْفُ لَهُ أَشْكَالٌ كَ
   "normal":[tw(hg(HB),hg(['aabb','abbb','abbb'])), tw(cc(4,2,[1,4]),cc(4,3,[1,2])), tw(wr([1,2]),wr([1,4]))],
   "challenge":[tw(cc(3,2,[1,3]),cc(4,3,[1,3])), tw(hg(['abbbb','aabbb','aaabb','aaaab']),hg(['aaabb','aabbb','abbbb'])), tw(wr([1,3]),cc(4,3,[3,4]))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":hg(HC),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C223":[hg(HD), cc(4,2,[3,4]), wr([2,4]), reason("ms.1",{"kind":"frhalf","rows":['aaaa','aabb','abbb','abbb']},["ms.1a","ms.1b","ms.1c"])]},
+ "mastery":{"concepts":{"C223":[hg(['aaab','abbb','aabb']), cc(4,2,[3,4]), wr([2,4]), reason("ms.1",{"kind":"frhalf","rows":['aaaa','aabb','abbb','abbb']},["ms.1a","ms.1b","ms.1c"])]},
   "recall":{"C223":{"scene":"recallFrac","fig":C(4,k='grid',cols=2,rows=2,shade=[0,3]),"lines":["ms.recall"]}},
   "remedial":{"C223":[tw(hg(['ab','ab']),cc(2,2,[1,2]))]},
   "mixed":{"lesson":"m2.u8.d2","concept":"C221","item":fr(C(5,k='bar',shade=[0,1]))},
   "ok":"ms.ok"},
- "review":[dict(hg(['aaaab','aabbb','abbbb']),c="C223"), dict(cc(3,2,[2,3]),c="C223"), dict(wr([3,4]),c="C223")],
+ "review":[dict(hg(['aaaab','aabbb','abbbb']),c="C223"), dict(cc(3,2,[2,3]),c="C223"), dict(wr([1,8],f2=[3,4]),c="C223")],
  "wrap":{"art":"fracArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"ارسموا معه مستطيلاً على ورق مربعات، وليلوّن نصفه بأغرب شكل يخطر له، ثم عدّوا المربعات معاً. واسألوه عند المقارنة: «نصف ماذا؟ هل الكلّ واحد؟»."}
 

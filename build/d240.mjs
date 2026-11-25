@@ -298,7 +298,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'unitFrac') return `uf|${it.ask}|${it.opts.map(f => f.join('/')).sort().join(',')}`;
   if (t === 'halfGrid') return `hg|${gridKey(it.rows)}`;
   if (t === 'cellColor') return `cc|${it.cols}x${it.rows}|${it.f.join('/')}`;
-  if (t === 'wholeRef') return `wr|${it.f.join('/')}`;
+  if (t === 'wholeRef') return `wr|${it.f.join('/')}${it.f2 ? '|' + it.f2.join('/') : ''}`;
   if (t === 'lineRead') return `lr|${it.a}/${it.b}`;
   if (t === 'linePlace') return `lp|${it.a}/${it.b}`;
   if (t === 'eqvFill') return `ef|${it.f.join('/')}|${it.m}`;

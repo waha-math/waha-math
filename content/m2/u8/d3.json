@@ -302,9 +302,9 @@
      "t": "halfGrid",
      "q": "pr.half",
      "rows": [
-      "aaa",
-      "abb",
-      "abb"
+      "aaab",
+      "abbb",
+      "aabb"
      ]
     },
     {
@@ -436,6 +436,10 @@
    "t": "wholeRef",
    "q": "pr.whole2",
    "f": [
+    1,
+    8
+   ],
+   "f2": [
     3,
     4
    ],

@@ -156,12 +156,13 @@ ITEM.cellColor = {
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
 /* ================= ⑩ الكلّ المرجعي (C223): big وsmall كعكتان، وf كسر واحد منهما ================= */
-ITEM.wholeRef = frItem({ tLine: 'gen.fr.together.whole', hint: 'gen.fr.hint.whole', rLine: 'gen.fr.reveal.whole',
-  make: s => ({ want: 'big', tag: 'whole-ref' }),
-  draw(svg, item) { const n = item.f[1], sh = [...Array(item.f[0]).keys()]; fracShape(svg, { k: 'circle', n, shade: sh }, [262, 112], { r: 74 }); fracShape(svg, { k: 'circle', n, shade: sh }, [92, 126], { r: 40 });
+ITEM.wholeRef = frItem({ tLine: 'gen.fr.together.whole', hint: 'gen.fr.hint.whole', rLine: it => it.f2 ? 'gen.fr.reveal.whole2.' + it.want : 'gen.fr.reveal.whole',
+  /* f2: كسر الصغيرة إن اختلف، فقد يكون جزء الصغيرة أكبر (المراجع A لبوابة U8/U9، 9 (ب): كان الجواب «من الكبيرة» دائماً وفي الخيار الأول) */
+  make: s => { const g = s.f2 || s.f, A = s.f[0] / s.f[1] * 74 * 74, B = g[0] / g[1] * 40 * 40; return { want: Math.abs(A - B) < 1 ? 'eq' : A > B ? 'big' : 'small', tag: 'whole-ref' }; },
+  draw(svg, item) { const g = item.f2 || item.f; fracShape(svg, { k: 'circle', n: item.f[1], shade: [...Array(item.f[0]).keys()] }, [262, 112], { r: 74 }); fracShape(svg, { k: 'circle', n: g[1], shade: [...Array(g[0]).keys()] }, [92, 126], { r: 40 });
     [[262, 'frBig'], [92, 'frSmall']].forEach(([x, k]) => { const t = el('text', { x, y: 214, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: FRC.ink }, svg); t.textContent = labelText(k); }); return {}; },
   async together(item, ctx) { const m = helpG(ctx.svg); el('circle', { cx: 262, cy: 112, r: 80, fill: 'none', stroke: css('--think'), 'stroke-width': 3, 'stroke-dasharray': '6 5' }, m); el('circle', { cx: 92, cy: 126, r: 46, fill: 'none', stroke: css('--think'), 'stroke-width': 3, 'stroke-dasharray': '6 5' }, m); },
-  pick: item => choosePick([['big', labelText('frOfBig'), '<i></i>', 'gen.fr.ofBig'], ['small', labelText('frOfSmall'), '<i></i>', 'gen.fr.ofSmall'], ['eq', labelText('frSame'), '<i></i>', 'gen.fr.same']], item.want),
+  pick: item => choosePick(shuffle([['big', labelText('frOfBig'), '<i></i>', 'gen.fr.ofBig'], ['small', labelText('frOfSmall'), '<i></i>', 'gen.fr.ofSmall'], ['eq', labelText('frSame'), '<i></i>', 'gen.fr.same']]), item.want),
   errOf: (it, k) => k === 'eq' ? 'wholeIgnored' : 'wholeOff' });
 /* ================= ⑪ الكسر على القطعة (C224): b أجزاء، والسهم عند a ================= */
 const FL = { x0: 50, x1: 310, y: 130 };
