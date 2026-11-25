@@ -345,7 +345,7 @@ ITEM.flowerColor = {
       const e = el('ellipse', { cx: P[0], cy: P[1], rx: R * .29, ry: R * .5, transform: `rotate(${-a + 90} ${P[0]} ${P[1]})`, fill: cols[0], stroke: '#7a4a2a', 'stroke-width': 1.6, opacity: .9, 'pointer-events': 'none' }, b);
       const tog = () => { p[i] = 1 - p[i]; e.setAttribute('fill', cols[p[i]]); SFX.tick(); /*T*/window.__flw = p.slice();/*/T*/ }; b.onclick = tog; b.onkeydown = ev => { if (isActKey(ev)) { ev.preventDefault(); tog(); } }; return { b, e, tog }; });
     el('circle', { cx: C[0], cy: C[1], r: 6, fill: '#f2d38a', stroke: '#7a4a2a', 'stroke-width': 1.5, 'pointer-events': 'none' }, svg);
-    const set = q => q.forEach((c, i) => { if (p[i] !== c) pet[i].tog(); });
+    const set = q => q.forEach((c, i) => { if (p[i] !== c) pet[i].tog(); }); /*T*/window.__flw = p.slice();/*/T*/
     if (tries >= 3) { const s = this.sol(item), q = s.slice(), last = q.lastIndexOf(1); if (last >= 0) q[last] = 0; set(q); }   /* الحلّ المشترك: النمط إلا بتلة واحدة، يلوّنها الطفل */
     await S(tries >= 3 ? 'gen.cp.together.flowerC' : item.q);
     /*T*/window.__flwAt = i => { const r = pet[i].e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }; window.__flwWant = this.sol(item);/*/T*/
