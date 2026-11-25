@@ -66,6 +66,8 @@ function homeArt(svg, art) { const g = el('g', { 'pointer-events': 'none' }, svg
   else if (art === 'lid') { el('circle', { cx: 180, cy: 116, r: 78, fill: '#e8eef8', stroke: '#6b7b88', 'stroke-width': 5 }, g); el('circle', { cx: 180, cy: 116, r: 12, fill: '#6b7b88' }, g); geoLine(g, 102, 116, 258, 116, { color: '#c8392d', w: 3, dash: '8 6' }); }   /* S2-U9: غطاء وقطره */
   else if (art === 'tape') { tapeAt(g, { x: 50, y: 92, to: 100, pxcm: 2.6, label: 10 }); }   /* S2-U6: شريط القياس */
   else if (art === 'window') { el('rect', { x: 110, y: 36, width: 140, height: 152, rx: 4, fill: '#dff0fb', stroke: '#8a6a4a', 'stroke-width': 6 }, g); geoLine(g, 180, 36, 180, 188, { color: '#8a6a4a', w: 5 }); geoLine(g, 110, 112, 250, 112, { color: '#8a6a4a', w: 5 }); }   /* S2-U5: نافذة الغرفة */
+  else if (art === 'shadow') { el('circle', { cx: 300, cy: 46, r: 22, fill: '#f6c945', stroke: '#e0a92a', 'stroke-width': 3 }, g); geoLine(g, 40, 180, 330, 180, { color: '#b9a27a', w: 3 });   /* S3-U10: ظلّا الطفل والوالد في الشمس */
+    for (const [x, h] of [[110, 62], [250, 92]]) { el('ellipse', { cx: x - h * .55, cy: 181, rx: h * .55, ry: 6, fill: '#6b6b6b', opacity: .45 }, g); geoLine(g, x, 180, x, 180 - h * .62, { color: '#2a5f94', w: 6 }); el('circle', { cx: x, cy: 180 - h * .62 - h * .14, r: h * .14, fill: '#f1c9a5', stroke: '#2a5f94', 'stroke-width': 2.5 }, g); geoLine(g, x - h * .2, 180 - h * .42, x + h * .2, 180 - h * .42, { color: '#2a5f94', w: 4 }); } }
   else if (art === 'shapes') { [['tScaR', 100, 110, .6], ['cRect', 250, 110, .7]].forEach(([k, x, y, s]) => polyAt(g, k, [x, y], { s, dots: false, fill: '#f2d38a' })); }
   return g; }
 /* ساعة بعقربين: الصغير عند h والكبير عند الثانية عشرة، وقوس الزاوية الصغرى بينهما */

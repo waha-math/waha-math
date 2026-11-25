@@ -60,7 +60,7 @@ function soEdgeSpots(G) { const segD = (p, A, B) => { const vx = B[0] - A[0], vy
 ITEM.soEdgeHunt = {
   make(spec) { return { ...spec, want: 12, tag: 'so-edge-hunt' }; },
   async ask(item, mode, tries) { const [w, h, d] = item.dims || [4, 4, 4], svg = m3Stage(262), B = soBox(svg, w, h, d, { s: 120 / Math.max(w, h, d), cx: 180, cy: 132, k: .62 }), G = B.G, spots = soEdgeSpots(G), on = new Set(), marks = el('g', { 'pointer-events': 'none' }, svg);
-    const cnt = el('text', { x: 330, y: 34, 'text-anchor': 'end', 'font-size': 22, 'font-weight': 800, fill: SO.hl, 'pointer-events': 'none' }, svg);
+    const cnt = el('text', { x: 310, y: 40, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: SO.hl, 'pointer-events': 'none' }, svg);
     const redraw = () => { marks.innerHTML = ''; for (const i of on) { const e = G.E[i]; geoLine(marks, e.A[0], e.A[1], e.B[0], e.B[1], { color: SO.ok, w: 6 }); } cnt.textContent = MS(String(on.size)); /*T*/window.__dsgOn = [...on].map(i => 'e' + i);/*/T*/ };
     if (tries >= 3) { const m = helpG(svg); G.E.filter(e => e.hid).forEach(e => geoLine(m, e.A[0], e.A[1], e.B[0], e.B[1], { color: SO.hl, w: 4, dash: '6 5' })); }
     const hit = el('rect', { x: 10, y: 10, width: 340, height: 240, fill: 'transparent', role: 'button', tabindex: 0, 'aria-label': plain(labelText('soEdgesTap')), style: 'cursor:pointer' }, svg);
@@ -232,7 +232,7 @@ SCENES.viewsShow = async c => { const L = c.lines, svg = m3Stage(250); let g = e
 /* د5 المشروع «علبة الهدية»: علبة 6 و4 و3: شبكتها ومساقطها ومساحة سطحها 108 سم²، ثم الجدول */
 SCENES.giftShow = async c => { const L = c.lines, svg = m3Stage(262);
   if (c.table) { const rows = [['soT.net', '6'], ['soT.views', '6 × 3 ، 4 × 3 ، 6 × 4'], ['soT.sa', `108 ${labelText('arCm2')}`]], g = el('g', { 'pointer-events': 'none' }, svg);
-    rows.forEach(([k, v], i) => { const y = 40 + i * 64; el('rect', { x: 16, y, width: 328, height: 54, rx: 12, fill: i % 2 ? '#f6eccf' : '#fff', stroke: SO.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 330, y: y + 33, 'text-anchor': 'start', 'font-size': 15, 'font-weight': 800, fill: SO.ink, direction: 'rtl' }, g); a.textContent = labelText(k); const b = el('text', { x: 30, y: y + 33, 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: SO.ok, direction: 'rtl' }, g); b.textContent = MS(v); });
+    rows.forEach(([k, v], i) => { const y = 40 + i * 64; el('rect', { x: 28, y, width: 304, height: 54, rx: 12, fill: i % 2 ? '#f6eccf' : '#fff', stroke: SO.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 318, y: y + 33, 'text-anchor': 'start', 'font-size': 15, 'font-weight': 800, fill: SO.ink, direction: 'rtl' }, g); a.textContent = labelText(k); const b = el('text', { x: 42, y: y + 33, 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: SO.ok, direction: 'rtl' }, g); b.textContent = MS(v); });
     for (const l of L) await S(l); return; }
   let g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 6, 3, 4, { s: 22, cy: 128, dims: true }); await soSay(L, 0);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const R = (x, y, w, h, f) => el('rect', { x, y, width: w, height: h, fill: f, stroke: SO.edge, 'stroke-width': 2 }, g), k = 13, X = 180 - 3 * k - 4 * k, Y = 20;

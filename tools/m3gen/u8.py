@@ -422,7 +422,7 @@ def walk(x):
         for v in x.values(): walk(v)
     elif isinstance(x,list):
         for v in x: walk(v)
-for f in glob.glob(U+'/d*.json'): walk(json.load(open(f,encoding='utf8')))
+for f in glob.glob(ROOT+'/content/m3/u*/d*.json'): walk(json.load(open(f,encoding='utf8')))   # ومساحات السطح في S3-U9
 G={'gen.so.v.%d.%s'%(v,u):unitphrase(v,u)+'.' for v,u in sorted(VALS)}
 G.update({
  "gen.so.q.faces":"كَمْ وَجْهًا لِهَذَا المُجَسَّمِ؟","gen.so.q.surf":"كَمْ سَطْحًا لِهَذَا المُجَسَّمِ؟","gen.so.q.edges":"كَمْ حَرْفًا لِهَذَا المُجَسَّمِ؟","gen.so.q.verts":"كَمْ رَأْسًا لِهَذَا المُجَسَّمِ؟",
