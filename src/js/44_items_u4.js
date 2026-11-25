@@ -76,7 +76,8 @@ function reasonPic(svg, P) { const g = el('g', {}, svg);
   else if (P.kind === 'rulerMm') ITEM.rulerMm.draw(ITEM.rulerMm.make({ cm: P.cm, mm: P.mm, thing: P.thing }), g);
   else if (P.kind === 'string') { const R = rulerAt(g, { x: 30, y: 176, pxcm: 30, from: 0, to: 10, mm: false }); stringAt(g, R, P.len, P.span, 84); }
   else if (P.kind === 'xfpic') xfReasonPic(g, P);
-  else if (P.kind === 'cipic') ciReasonPic(g, P);   /* S3-U7: دائرة بنصف قطرها أو قطرها، أو علبة بخيط، أو π، وحسابٌ تحتها */   /* S3-U6: شكلٌ وصورته بتحويل، أو شكلٌ بتماثله الدوراني */
+  else if (P.kind === 'cipic') ciReasonPic(g, P);
+  else if (P.kind === 'sopic') soReasonPic(g, P);   /* S3-U8: علبة بأبعادها، أو مجسّم، أو شبكة، وحسابٌ تحتها */   /* S3-U7: دائرة بنصف قطرها أو قطرها، أو علبة بخيط، أو π، وحسابٌ تحتها */   /* S3-U6: شكلٌ وصورته بتحويل، أو شكلٌ بتماثله الدوراني */
   else if (P.kind === 'pat') patRowAt(svg, P.seq || patSeq(P.unit, P.n), { y: 100, parent: g, arrow: false });   /* S1-U5 */
   const bb = g.getBBox(), k = Math.min(1, 340 / bb.width, 186 / bb.height); g.setAttribute('transform', `translate(${180 - (bb.x + bb.width / 2) * k} ${100 - (bb.y + bb.height / 2) * k}) scale(${k})`); return g; }
 
