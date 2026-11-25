@@ -148,7 +148,7 @@ ITEM.compArea = arItem({ tLine: 'gen.ar.together.comp', hint: 'gen.ar.hint.comp'
   make: s => { const p = shpParse(s.rows), big = p.W * p.H; return { want: shpArea(s.rows), big, tag: 'comp-area' }; },
   nums: it => rankMix(it.want, [it.big, it.big - it.want, it.want + (it.big - it.want)]),
   h2: async (item, ctx) => { const D = ctx.D, m = helpG(ctx.svg), rows = item.rows; let y2 = 0; while (y2 + 1 < rows.length && rows[y2 + 1] === rows[0]) y2++; const xs = [...rows[0]].map((ch, i) => ch === '#' ? i : -1).filter(i => i >= 0); el('rect', { x: D.X(Math.min(...xs)), y: D.Y(0), width: xs.length * D.c, height: (y2 + 1) * D.c, fill: '#f2d38a', opacity: .7 }, m); SFX.tick(); await sleep(FAST ? 10 : 300); },   /* المستطيل الأول ملوّناً، بلا عدد */
-  draw(svg, item) { const D = shpDraw(svg, item.rows, { grid: false, cellLines: false, labeled: true, at: [180, 128] }); shpLabels(svg, D); return { D }; },
+  draw(svg, item) { const D = shpDraw(svg, item.rows, { grid: false, cellLines: false, labeled: true, at: [180, 128] }); shpLabels(svg, D, { unit: item.unit }); return { D }; },
   async together(item, ctx) { const D = ctx.D, m = helpG(ctx.svg); /* تقسيم إلى مستطيلات أفقية متصلة: صفّاً صفّاً، وكل صفّين متطابقين معاً */ const rows = item.rows; let y = 0, tot = 0, col = 0; const cols = ['#f2d38a', '#bfe0b5', '#e6c6e8'];
     while (y < rows.length) { let y2 = y; while (y2 + 1 < rows.length && rows[y2 + 1] === rows[y]) y2++; const xs = [...rows[y]].map((ch, i) => ch === '#' ? i : -1).filter(i => i >= 0), x0 = Math.min(...xs), w = xs.length, h = y2 - y + 1; el('rect', { x: D.X(x0), y: D.Y(y), width: w * D.c, height: h * D.c, fill: cols[col++ % 3], opacity: .7 }, m); tot += w * h; y = y2 + 1; if (y >= rows.length) break; badge(m, D.X(x0) + w * D.c / 2, D.Y(y - h) + h * D.c / 2, tot, css('--think')); SFX.tick(); await S(numw(tot), { noGap: true, num: true }); } },   /* آخر جزء ملوّن بلا مجموعه */
   errOf: (it, k) => k === it.big ? 'compWhole' : k < it.want ? 'compPart' : 'compDouble' });
@@ -159,9 +159,9 @@ ITEM.compPerim = arItem({ tLine: 'gen.ar.together.compP', hint: 'gen.ar.hint.com
     return { want: w, miss, tag: 'comp-perim' }; },
   nums: it => rankMix(it.want, [it.miss, it.want - 2, it.want + 2]),
   h2: async (item, ctx) => { await walkSegs(ctx.svg, ctx.D, { badges: true, upTo: 2 }); },
-  draw(svg, item) { const D = shpDraw(svg, item.rows, { grid: false, cellLines: false, labeled: true, at: [180, 128] }); return { D, Lb: shpLabels(svg, D, { hide: item.hide }) }; },
-  async together(item, ctx) { ctx.Lb.remove(); ctx.Lb = shpLabels(ctx.svg, ctx.D); await walkSegs(ctx.svg, ctx.D, { badges: true, stopLast: true }); },
-  show: async (item, ctx) => { ctx.Lb.remove(); shpLabels(ctx.svg, ctx.D); },
+  draw(svg, item) { const D = shpDraw(svg, item.rows, { grid: false, cellLines: false, labeled: true, at: [180, 128] }); return { D, Lb: shpLabels(svg, D, { hide: item.hide, unit: item.unit }) }; },
+  async together(item, ctx) { ctx.Lb.remove(); ctx.Lb = shpLabels(ctx.svg, ctx.D, { unit: item.unit }); await walkSegs(ctx.svg, ctx.D, { badges: true, stopLast: true }); },
+  show: async (item, ctx) => { ctx.Lb.remove(); shpLabels(ctx.svg, ctx.D, { unit: item.unit }); },
   errOf: (it, k) => k === it.miss ? 'compMissing' : 'perimOff' });
 /* ================= ⑪ محيط أم مساحة؟ (C211): sit موقف من الحياة، ask: kind (المفهوم) أو unit (الوحدة) ================= */
 const AR_SIT = { fence: 'p', ribbon: 'p', frame: 'p', walk: 'p', rope: 'p', lace: 'p', border: 'p', tiles: 'a', paint: 'a', grass: 'a', carpet: 'a', cloth: 'a', cover: 'a', card: 'a', page: 'a', screen: 'a', cake: 'a' };   /* الأشياء الصغيرة (غلاف، بطاقة، صفحة، شاشة، كعكة، خيط، حافة) لوحدة السنتيمتر في د3 */
@@ -331,6 +331,13 @@ SCENES.sameTables = async c => { const L = c.lines; for (const [i, set] of [c.p 
 /* سور أم بلاط؟ */
 SCENES.fenceOrTile = async c => { const L = c.lines; await S(L[0]); for (const k of c.sits || ['fence', 'tiles']) { const svg = arStage(222); arSitAt(svg, k, 180, 112, 1.1); await S('gen.ar.sit.' + k); await lenPredict([['p', labelText('arPerim0'), '<i></i>', 'gen.ar.k.p'], ['a', labelText('arArea0'), '<i></i>', 'gen.ar.k.a']], AR_SIT[k], 'gen.ar.pr.pa'); await S('gen.ar.reveal.pa.' + AR_SIT[k]); } if (L[1]) await S(L[1]); };
 /* المتر المربع: مربع ضلعه متر على الأرض، وحديقة 3 م × 2 م */
+/* مشروع «خطّط أرضك» (U7 د7، المراجع A لبوابة U6/U7، 19): الأرض المركّبة بالمتر مقسومةً حديقةً وملعباً، وجدول النتائج بوحداتها بعد أن حسبها الطفل بنفسه في بنود المشروع */
+SCENES.landTable = async c => { const L = c.lines, rows = c.rows || ['######', '######', '######', '####..'], gw = c.gw || 4, svg = arStage(262), D = shpDraw(svg, rows, { grid: false, at: [104, 112], c: 22 }), p = shpParse(rows);
+  const m = el('g', { 'pointer-events': 'none' }, svg); for (const [x, y] of p.full) el('rect', { x: D.X(x) + 1, y: D.Y(y) + 1, width: D.c - 2, height: D.c - 2, fill: x < gw ? '#8fca7a' : '#f2b46d', opacity: .85 }, m);
+  const segs = shpSegs(rows), P = segs.reduce((a, g) => a + g.len, 0), A = p.full.length, G = p.full.filter(([x]) => x < gw).length;
+  const T = [['arFence', P, 'lenM'], ['prjGrass', A, 'arM2'], ['prjGarden', G, 'arM2'], ['prjPlay', A - G, 'arM2']], x0 = 326;
+  for (const [i, [k, v, u]] of T.entries()) { const y = 52 + i * 44; el('rect', { x: 188, y: y - 26, width: 146, height: 38, rx: 8, fill: '#fffdf6', stroke: css('--line'), 'stroke-width': 2 }, svg); const t = el('text', { x: x0, y, 'text-anchor': 'start', 'font-size': 15, 'font-weight': 800, fill: ARC.ink, direction: 'rtl' }, svg); t.textContent = `${labelText(k)} ${v} ${labelText(u)}`; SFX.tick(); await sleep(FAST ? 10 : 400); }
+  for (const l of L) await S(l); };
 SCENES.m2Show = async c => { const L = c.lines; let svg = arStage(232); el('rect', { x: 110, y: 46, width: 140, height: 140, fill: '#f6e7c8', stroke: '#c8392d', 'stroke-width': 5, 'stroke-dasharray': '12 6' }, svg); const t = el('text', { x: 180, y: 124, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: ARC.ink, direction: 'rtl' }, svg); t.textContent = `1 ${labelText('arM2')}`; await S(L[0]);
   svg = arStage(232); const Rl = rectLab(svg, c.w || 3, c.h || 2, { grid: 'full', showH: true, unit: 'm', fill: '#8fca7a' }); await axPredictNum((c.w || 3) * (c.h || 2), 'gen.ar.pr.m2'); await S(L[1]); if (L[2]) await S(L[2]); };
 /* التذكّر */
