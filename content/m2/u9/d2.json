@@ -203,14 +203,9 @@
    {
     "t": "rectCheck",
     "q": "pr.rect",
-    "w": 6,
+    "w": 7,
     "h": 4,
-    "sides": [
-     6,
-     4,
-     6,
-     5
-    ],
+    "ang": 88,
     "twin": {
      "t": "rectCheck",
      "q": "pr.rect",

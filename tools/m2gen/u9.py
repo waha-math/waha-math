@@ -158,7 +158,7 @@ d2={"id":"m2.u9.d2","title":"مُثَلَّثُ الرَّسْمِ","icon":["cps
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(ss('perp',6),ss('para',5)), tw(rc(6,3),rc(5,3,80)), tw(rdim(8,3),rdim(5,5))],
-  "challenge":[tw(rc(6,4,90,[6,4,6,5]),rc(4,4)), tw(ss('para',7),ss('perp',10)), tw(tp('perp'),tp('para'))]},
+  "challenge":[tw(rc(7,4,88),rc(4,4)), tw(ss('para',7),ss('perp',10)), tw(tp('perp'),tp('para'))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":rc(6,3,75),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
    "C231":[ss('perp',7), ss('para',3), dict(reason("ms.1",{"kind":"cpsq"},["ms.1a","ms.1b","ms.1c"]),x240="السؤال عن سبب تثبيت المسطرة يحتاج صورة الأداتين نفسها، والسبب لا يُرسم فيها (المراجع A لبوابة U8/U9، 5 (ح))")],
