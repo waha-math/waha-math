@@ -68,7 +68,7 @@ ITEM.toolPick = cpItem({ tLine: 'gen.cp.together.tool', hint: 'gen.cp.hint.tool'
   make: s => ({ want: CP_TASK[s.task], tag: 'tool-pick' }),
   draw(svg, item) { const t = el('text', { x: 180, y: 118, 'text-anchor': 'middle', 'font-size': 21, 'font-weight': 800, fill: CPC.ink }, svg); t.textContent = labelText('cp.task.' + item.task); return {}; },
   sayQ: it => S('gen.cp.task.' + it.task, { append: true }),
-  pick: item => choosePick((item.tools || ['ruler', 'prot', 'setsq', 'compass']).map(k => [k, labelText('cpTool.' + k), CP_TOOL_IC[k], 'gen.cp.tool.' + k]), item.want),
+  pick: item => { const T = item.tools || ['ruler', 'prot', 'setsq', 'compass']; return choosePick(T.map(k => [k, labelText('cpTool.' + k), CP_TOOL_IC[k], 'gen.cp.tool.' + k]), item.want, T.length === 4 ? { cls: 'four' } : {}); },   /* الأدوات الأربع صفّاً واحداً، فلا يصغر المسرح تحت شبكة 3 + 1 (المراجع B لبوابة U8/U9، 22) */
   errOf: () => 'toolOff' });
 /* ================= ④ مثلّث الرسم ينزلق (C231، إنتاج): mode perp (ينزلق على المستقيم حتى يمرّ ضلعه الرأسي بالنقطة) | para (ينزلق على مسطرة ثابتة حتى يمرّ ضلعه الأفقي بالنقطة)؛ p موضع النقطة بالسنتيمتر ================= */
 ITEM.squareSlide = {
@@ -76,7 +76,7 @@ ITEM.squareSlide = {
   async ask(item, mode, tries) { const svg = cpStage(276), perp = item.mode === 'perp', L0 = 214, X0 = 70, g = el('g', {}, svg), tool = el('g', {}, svg); let v = item.start ?? (perp ? (item.p <= 6 ? 10 : 1) : 0);
     geoLine(g, 30, L0, 330, L0, { color: CPC.ink, w: 3.4 }); const P = perp ? [X0 + item.p * CM, L0 - (item.h || 5) * CM] : [X0 + 6 * CM, L0 - item.p * CM]; el('circle', { cx: P[0], cy: P[1], r: 6, fill: CPC.bad }, g); const nm = el('text', { x: P[0] + 12, y: P[1] - 8, 'font-size': 18, 'font-weight': 800, fill: CPC.bad }, g); nm.textContent = LTR.n || 'ن';
     if (!perp) { el('rect', { x: 36, y: 40, width: 26, height: 190, fill: RUL.body, stroke: RUL.edge, 'stroke-width': 2 }, g); for (let i = 0; i <= 9; i++) geoLine(g, 50, L0 - i * CM, 62, L0 - i * CM, { color: RUL.ink, w: 1.2 }); }
-    const draw = () => { tool.innerHTML = ''; if (perp) setSquareAt(tool, X0 + v * CM, L0, X0 + v * CM > 190 ? -110 : 110, -150);   /* يُقلب المثلث بعد المنتصف فلا يخرج من المسرح، وضلعه الرأسي في موضعه */ else setSquareAt(tool, 62, L0 - v * CM, 180, 110 > (L0 - v * CM) - 30 ? -100 : -100); /*T*/window.__slideV = v; window.__slideWant = item.p;/*/T*/ if (reg) reg(); };
+    const draw = () => { tool.innerHTML = ''; if (perp) setSquareAt(tool, X0 + v * CM, L0, X0 + v * CM > 190 ? -110 : 110, -150);   /* يُقلب المثلث بعد المنتصف فلا يخرج من المسرح، وضلعه الرأسي في موضعه */ else setSquareAt(tool, 62, L0 - v * CM, 180, (L0 - v * CM) - 100 < 44 ? 100 : -100);   /* عالياً على المسطرة ينقلب المثلث تحت حافّته فلا يخرج من الورقة (المراجع B لبوابة U8/U9، 18) */ /*T*/window.__slideV = v; window.__slideWant = item.p;/*/T*/ if (reg) reg(); };
     let reg = null; draw();
     const btns = svgSteppers(svg, perp ? [[44, 252], [316, 252]] : [[316, 250], [316, 60]], d => { v = Math.max(0, Math.min(perp ? 12 : 8, v + d)); SFX.tick(); draw(); }, { key: 'sq', labels: perp ? ['cpLeft', 'cpRight'] : ['cpDown', 'cpUp'], glyphs: perp ? ['l', 'r'] : ['d', 'u'] });
     if (tries >= 3) { const m = helpG(svg); if (perp) geoLine(m, P[0], P[1] - 20, P[0], L0, { color: css('--think'), w: 2.4, dash: '6 5' }); else geoLine(m, 70, P[1], P[0] + 30, P[1], { color: css('--think'), w: 2.4, dash: '6 5' }); }
@@ -96,9 +96,11 @@ ITEM.squareSlide = {
 ITEM.rectCheck = cpItem({ tLine: 'gen.cp.together.rect', hint: 'gen.cp.hint.rect', rLine: it => 'gen.cp.reveal.rect.' + it.want, H: 244,
   make: s => ({ want: (s.ang || 90) === 90 && (!s.sides || (s.sides[0] === s.sides[2] && s.sides[1] === s.sides[3])) ? 'yes' : 'no', tag: 'rect-check' }),
   draw(svg, item, tries) { const a = (item.ang || 90) * Math.PI / 180, W = item.w * CM, Hh = item.h * CM, dx = Hh * Math.cos(a), A = [180 - W / 2 - dx / 2, 186], B = [A[0] + W, 186], D = [A[0] + dx, 186 - Hh * Math.sin(a)], C = [B[0] + dx, D[1]];
+    /* ضلعان متقابلان مختلفان: يُرسم الشكل بأطواله المكتوبة (شبه منحرف قائم)، وزاويتاه العلويتان بقياسهما، فما يُكتب يقوله الرسم (المراجع B لبوابة U8/U9، 24) */
+    let angTop = null; if (item.sides && item.sides[1] !== item.sides[3] && (item.ang || 90) === 90) { C[1] = 186 - item.sides[1] * CM; D[1] = 186 - item.sides[3] * CM; const t = Math.round(Math.atan2(Math.abs(item.sides[3] - item.sides[1]), item.w) * 180 / Math.PI); angTop = item.sides[3] > item.sides[1] ? [90 - t, 90 + t] : [90 + t, 90 - t]; }
     el('polygon', { points: polyStr([A, B, C, D]), fill: '#eef6fb', stroke: CPC.ink, 'stroke-width': 3 }, svg); const s = item.sides || [item.w, item.h, item.w, item.h], u = labelText('rulCm');
-    [[[(A[0] + B[0]) / 2, 210], s[0]], [[(B[0] + C[0]) / 2 + 30, (B[1] + C[1]) / 2], s[1]], [[(C[0] + D[0]) / 2, D[1] - 12], s[2]], [[(D[0] + A[0]) / 2 - 30, (D[1] + A[1]) / 2], s[3]]].forEach(([p, v]) => { const t = el('text', { x: p[0], y: p[1], 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg); t.textContent = `${v} ${u}`; });
-    const ang = item.ang || 90, angs = [[A, ang], [B, 180 - ang], [C, ang], [D, 180 - ang]], m = tries >= 3 ? helpG(svg) : null;
+    [[[(A[0] + B[0]) / 2, 210], s[0]], [[(B[0] + C[0]) / 2 + 30, (B[1] + C[1]) / 2], s[1]], [[(C[0] + D[0]) / 2, Math.min(C[1], D[1]) - 12], s[2]], [[(D[0] + A[0]) / 2 - 30, (D[1] + A[1]) / 2], s[3]]].forEach(([p, v]) => { const t = el('text', { x: p[0], y: p[1], 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg); t.textContent = `${v} ${u}`; });
+    const ang = item.ang || 90, angs = angTop ? [[A, 90], [B, 90], [C, angTop[0]], [D, angTop[1]]] : [[A, ang], [B, 180 - ang], [C, ang], [D, 180 - ang]], m = tries >= 3 ? helpG(svg) : null;
     angs.forEach(([p, v], i) => { const dx2 = i === 0 || i === 3 ? 14 : -14, dy2 = i < 2 ? -12 : 20; degText(m || svg, p[0] + dx2 * 1.6, p[1] + dy2, v, { size: 13, color: m ? (v === 90 ? CPC.ok : CPC.bad) : CPC.ink }); }); return {}; },   /* اللون حكمٌ: في الحلّ المشترك وحده (المراجع B لبوابة U8/U9، 3) */
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.want === 'yes' ? 'rectMissed' : (it.ang || 90) !== 90 ? 'rectAngles' : 'rectSides' });
@@ -125,7 +127,7 @@ ITEM.sasBuild = {
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
 /* ================= ⑦ أكمل متوازي الأضلاع (C234، إنتاج): a وb وd رؤوس على الشبكة؛ يلمس الطفل ج ================= */
-const PG = { c: 28, cols: 10, rows: 6, x0: 40, y0: 206 };
+const PG = { c: 36, cols: 8, rows: 5, x0: 36, y0: 206 };   /* نقاط الشبكة كل 36 وحدة: نحو 32 بكسلاً على أضيق شاشة، والنقاط كلها في مدى البنود (المراجع B لبوابة U8/U9، 21) */
 ITEM.paraComplete = {
   make(spec) { const c = [spec.b[0] + spec.d[0] - spec.a[0], spec.b[1] + spec.d[1] - spec.a[1]]; return { ...spec, cpt: c, want: c.join(','), tag: 'para-complete' }; },
   async ask(item, mode, tries) { const svg = newStage(262, { oasis: false, ground: 0 }), { c, cols, rows, x0, y0 } = PG, P = (r, u) => [x0 + r * c, y0 - u * c], g = el('g', {}, svg); let cur = null, mark = null;
@@ -188,7 +190,7 @@ ITEM.compassDraw = {
 /* ================= ⑪ أيّ القطع بطول أب؟ (C238): ab وopts ثلاثة أطوال بالسنتيمتر (واحد يساويه) ================= */
 ITEM.transferPick = {
   make(spec) { const want = spec.opts.indexOf(spec.ab); /*T*/if (TESTHOOK && spec.opts.filter(x => x === spec.ab).length !== 1) testBug('transferPick: قطعة واحدة بالطول');/*/T*/ return { ...spec, want, tag: 'transfer-pick' }; },
-  async ask(item, mode, tries) { const svg = cpStage(290), Y = [154, 200, 246], g = el('g', {}, svg), A = [70, 104];
+  async ask(item, mode, tries) { const svg = cpStage(312), Y = [142, 206, 270], g = el('g', {}, svg), A = [70, 104];   /* الصفوف كل 64 وحدة: نحو 57 بكسلاً على أضيق شاشة (D255؛ المراجع B لبوابة U8/U9، 21) */
     geoLine(g, A[0], A[1], A[0] + item.ab * CM, A[1], { color: CPC.ink, w: 4 }); [[A, 'a'], [[A[0] + item.ab * CM, A[1]], 'b']].forEach(([p, k]) => { const t = el('text', { x: p[0], y: p[1] - 10, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: CPC.ink }, g); t.textContent = LTR[k]; });
     const T = item.opts.map((L, i) => { const s = el('g', {}, svg), x1 = 300 - L * CM; el('rect', { x: x1 - 10, y: Y[i] - 22, width: L * CM + 20, height: 44, fill: 'transparent' }, s); geoLine(s, x1, Y[i], 300, Y[i], { color: CPC.toolEdge, w: 4 }); return { g: s, k: i, label: labelText('cpSeg' + (i + 1)) }; });
     if (tries >= 3) { const m = helpG(svg); cpCompassAt(m, A, [A[0] + item.ab * CM, A[1]]); { const i = item.opts.findIndex(L => L !== item.ab), L = item.opts[i]; if (i >= 0) el('path', { d: arcPath([300 - L * CM, Y[i]], item.ab * CM, -12, 12), fill: 'none', stroke: CPC.arc, 'stroke-width': 3 }, m); }   /* القوس عند قطعة واحدة لا تساوي، والباقي للطفل (المراجع A لبوابة U8/U9، 16 (أ)) */ await S('gen.cp.together.transfer'); } else await S(item.q);
