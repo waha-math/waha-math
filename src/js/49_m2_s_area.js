@@ -9,8 +9,8 @@
 const ARC = { fill: '#cfe6f5', edge: '#24323a', grid: '#d5e2ea', tile: '#f2d38a', tileEd: '#b9862a', fence: '#b9794e', perim: '#c8392d', ok: '#2f9d6b', ink: '#33454c' };
 const AR_U = { cm: ['rulCm', 'arCm2'], m: ['lenM', 'arM2'] };
 /* الوحدة منطوقة بعد عددها: «اثنا عشر سنتيمتراً»، «ستة أمتار مربعة» */
-async function sayArea(n, u = 'cm', opt = {}) { const k = u + '2'; opt = { append: true, ...opt }; if (n === 1) return S(`gen.ar.${k}.one`, opt); if (n === 2) return S(`gen.ar.${k}.two`, opt); await S(numw(n), { noGap: true, append: opt.append }); return S(`gen.ar.${k}.${n <= 10 ? 'few' : 'many'}`, opt); }
-async function sayLenU(n, u = 'cm', opt = {}) { if (u === 'cm') return sayLen(n, 'cm', opt); opt = { append: true, ...opt }; if (n === 1) return S('gen.ar.m.one', opt); if (n === 2) return S('gen.ar.m.two', opt); await S(numw(n), { noGap: true, append: opt.append }); return S(`gen.ar.m.${n <= 10 ? 'few' : 'many'}`, opt); }
+async function sayArea(n, u = 'cm', opt = {}) { const k = u + '2'; opt = { append: true, ...opt }; if (n === 1) return S(`gen.ar.${k}.one`, opt); if (n === 2) return S(`gen.ar.${k}.two`, opt); await S(numc(n), { noGap: true, append: opt.append }); return S(`gen.ar.${k}.${n <= 10 ? 'few' : 'many'}`, opt); }
+async function sayLenU(n, u = 'cm', opt = {}) { if (u === 'cm') return sayLen(n, 'cm', opt); opt = { append: true, ...opt }; if (n === 1) return S('gen.ar.m.one', opt); if (n === 2) return S('gen.ar.m.two', opt); await S(numc(n), { noGap: true, append: opt.append }); return S(`gen.ar.m.${n <= 10 ? 'few' : 'many'}`, opt); }
 /* ---------- الشكل على الشبكة ---------- */
 function shpParse(rows) { const full = [], half = [], H = rows.length, W = Math.max(...rows.map(r => r.length)); rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch === '#') full.push([x, y]); else if ('abcd'.includes(ch)) half.push([x, y, ch]); })); return { full, half, W, H }; }
 const shpArea = rows => { const p = shpParse(rows); return p.full.length + p.half.length / 2; };
