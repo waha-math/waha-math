@@ -179,6 +179,13 @@ const saveRead = () => store.set('hp_reading', READ);
 const SPD = () => SET.slow ? 'slow' : READ.fast ? 'fast' : 'normal';
 /* الأرقام: شرقية (١٢٣) أو غربية (123) باختيار الطالب، والكلام كلمات دائماً */
 const DG = n => SET.digits === 'east' ? String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]) : String(n);
+/* أرقام القياس والصيغ (D279، قرار فراس 25 نوفمبر 2026، الخيار «أ»): الأطوال والدرجات المكتوبة على الأشكال وفي الخيارات والصيغ تتبع «أرقامي»،
+   والفاصلة العشرية «٫» مع المشرقية و«.» مع الغربية؛ ويبقى ترقيم المسطرة وشريط القياس والمنقلة غربياً كالأداة الحقيقية (D229 (4)).
+   MS: نصّ فيه أعداد (كل رقم ونقطة عشرية بين رقمين). MF: صيغة رموزها بين مسافات، تُعرض من اليمين مع المشرقية (D251): الرموز معكوسة والأقواس في موضعها،
+   وتُرسم بـ mfSet (ltr مع bidi-override، فلا يقلب المتصفّح رقمي العدد) */
+const MS = s => SET.digits === 'east' ? String(s).replace(/(\d)\.(?=\d)/g, '$1٫').replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]) : String(s);
+const MF = s => SET.digits === 'east' ? String(s).split(' ').reverse().map(t => t.startsWith('(') ? t.slice(1) + ')' : t.endsWith(')') ? '(' + t.slice(0, -1) : t).map(MS).join(' ') : String(s);
+const mfSet = (t, s) => { t.setAttribute('direction', 'ltr'); t.setAttribute('unicode-bidi', 'bidi-override'); t.textContent = MF(s); return t; };
 const fmt = {
   num: DG,
   date: t => { try { return new Intl.DateTimeFormat(SET.digits === 'west' ? 'ar-EG-u-nu-latn' : 'ar-EG-u-nu-arab', { day: 'numeric', month: 'long' }).format(new Date(t)); } catch (e) { return new Date(t).toLocaleDateString(); } },

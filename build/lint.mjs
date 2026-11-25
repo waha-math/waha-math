@@ -1068,7 +1068,7 @@ export function lint(content, js) {
     const UI = (content.labels && content.labels.ui) || {}, names = new Set(['شريط', 'قلم', 'دودة']);   /* أنواع الطول في lenAt: strip وribbon شريط، وpencil قلم، وworm دودة */
     for (const [k, v] of Object.entries(UI)) if (/^[hw]\./.test(k)) names.add(first(v));
     for (const L of Object.values(lessons)) for (const it of ((L.bag && L.bag.items) || [])) if (it && it.label) names.add(first((L.labels || {})[it.label] || UI[it.label] || ''));
-    const OTHER = new Set(['كتابة', 'كتابتين', 'طريقة', 'قطعة', 'قطعتين', 'قطعتان', 'ورق', 'علب', 'كف', 'مربعة', 'مسطحة', 'مثلثة', 'بقية', 'عشر', 'عشرين', 'ثلاث', 'ثلاثة', 'ست', 'ستة']);   /* كلمات أخرى، لا صيغة للشيء (و«قطعة» ومثنّاها مفرد «قطع»: «أَبْعِدْ قِطْعَتَيْنِ»؛ و«مثلثة» صفة «شطيرة مثلثة» لا مؤنث «مثلث الرسم»، S2-U9) */
+    const OTHER = new Set(['كتابة', 'كتابتين', 'طريقة', 'قطعة', 'قطعتين', 'قطعتان', 'ورق', 'علب', 'كف', 'مربعة', 'مسطحة', 'مثلثة', 'بقية', 'عشر', 'عشرين', 'ثلاث', 'ثلاثة', 'ست', 'ستة', 'ثلاثين', 'ستين', 'عشران', 'طريقتين', 'طريقتان']);   /* وألفاظ العدد ليست صيغة لشيء: «وَخَمْسَةٍ وَثَلَاثِينَ» و«عُشْرَانِ» (S3-U0)، و«بِالطَّرِيقَتَيْنِ» مثنّى «طريقة» */   /* كلمات أخرى، لا صيغة للشيء (و«قطعة» ومثنّاها مفرد «قطع»: «أَبْعِدْ قِطْعَتَيْنِ»؛ و«مثلثة» صفة «شطيرة مثلثة» لا مؤنث «مثلث الرسم»، S2-U9) */
     const variants = new Map();
     for (const n of names) { if (n.length < 3) continue; const V = /ة$/.test(n) ? [n.slice(0, -1), n.slice(0, -1) + 'ان', n.slice(0, -1) + 'ين'] : [n + 'ة', n + 'تان', n + 'تين', n + 'تي', n + 'تا'];
       for (const v of V) if (v.length > 2 && !OTHER.has(v) && !names.has(v)) variants.set(v, n); }

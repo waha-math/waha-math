@@ -38,7 +38,8 @@ function protAt(parent, V, base, o = {}) { const R = o.R || 140, g = el('g', { '
 /* إطار الزاوية (مسرح 232) */
 const angFrame = svg => rayFrame(svg);
 /* عدد بالدرجات: الرقم ودائرة صغيرة فوقه (رمز الدرجة لا يغطّيه خط القراءة، D256) */
-function degText(parent, x, y, n, o = {}) { const fs = o.size || 18, g = el('g', { 'pointer-events': 'none' }, parent), t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 700, fill: o.color || GEO.ink, direction: 'ltr', 'font-family': 'var(--font-read)' }, g); t.textContent = String(n); el('circle', { cx: x + String(n).length * fs * .29 + fs * .22, cy: y - fs * .66, r: fs * .13, fill: 'none', stroke: o.color || GEO.ink, 'stroke-width': fs * .09 }, g); return g; }
+/* الدرجة بأرقام الطفل (D279)، وعلامتها بعد العدد: يمينه مع الغربية ويساره مع المشرقية (السطر من اليمين، D251) */
+function degText(parent, x, y, n, o = {}) { const fs = o.size || 18, g = el('g', { 'pointer-events': 'none' }, parent), t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 700, fill: o.color || GEO.ink, direction: 'ltr', 'font-family': 'var(--font-read)' }, g); t.textContent = MS(n); const e = SET.digits === 'east' ? -1 : 1; el('circle', { cx: x + e * (String(n).length * fs * .29 + fs * .22), cy: y - fs * .66, r: fs * .13, fill: 'none', stroke: o.color || GEO.ink, 'stroke-width': fs * .09 }, g); return g; }
 
 /* ================= ① المس الرأس، أو ضلعاً (C130): deg، rot، ask v | s ================= */
 ITEM.angleParts = {

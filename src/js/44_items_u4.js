@@ -63,6 +63,7 @@ function reasonPic(svg, P) { const g = el('g', {}, svg);
   else if (P.kind === 'argrid') { rayFrame(g); shpDraw(g, P.rows, { at: [180, 116] }); }
   else if (P.kind === 'tape') { rayFrame(g); ITEM.tapeRead.draw({ len: P.len, thing: P.thing || 'table' }, g); }   /* S2-U6 */
   else if (P.kind === 'thing') { rayFrame(g); lenThing(g, P.thing, 180, 112, 1.3); }
+  else if (P.kind === 'len') { rayFrame(g); const V = P.vals || []; V.forEach((v, i) => lenCard(g, V.length > 1 ? (i ? 98 : 262) : 180, 110, v, { w: 150, h: 60, fs: 24 })); }   /* S3-U0: بطاقة طول أو اثنتان */
   else if (P.kind === 'conv') { rayFrame(g); convEq(g, { v: P.v, to: P.to }, 112); }
   else if (P.kind === 'calc') { const T = calcTable(g, { a: P.a, b: P.b, op: P.op }, 20); if (P.res) { T.r1.textContent = String(P.res[0]); T.r2.textContent = String(P.res[1]); } }
   else if (P.kind === 'axgrid') { const Gd = axGrid(g, P.ax || 'v', P.a ?? 5, { c: 24, cols: 10, rows: 6, x0: 60, y0: 176 }); axFigAt(g, Gd, P.pts, P.segs); if (P.img) axFigAt(g, Gd, P.img, P.segs, { color: AXC.img }); }

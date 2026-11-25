@@ -21,7 +21,22 @@ function nextBtn(lbl) { AUTO({ kind: 'go', ok: () => go.click() }); return gate(
 function setSteps(n) { const s = $('#steps'); s.innerHTML = ''; s.style.setProperty('--n', n); for (let i = 0; i < n; i++) s.appendChild(document.createElement('i')); s.hidden = !n; }
 function setStep(i) { [...$('#steps').children].forEach((d, k) => { d.className = k < i ? 'done' : (k === i ? 'now' : ''); }); }
 let STAGE_RO = null, STAGE_MO = null;   /* إن تغيّر حجم المسرح (فقاعة أطول، أو شاشة قصيرة، أو تدوير) أُعيد حساب مناطق اللمس بالبكسل الفعلي */
-function newStage(H = 300, bg = {}, aria) { const st = $('#stage'); st.innerHTML = ''; STAGE_T = performance.now(); HIST = []; BACK_I = null; if (typeof updateSkip === 'function') updateSkip(); if (PEND_INTRO) Promise.resolve().then(flushIntro);   /* المقدّمة بعد رسم المشهد (D270) */ const svg = el('svg', { viewBox: `0 0 360 ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': aria || (CUR ? plain(CUR.title || '') : '') }); st.appendChild(svg);
+/* أعداد المسرح بأرقام الطفل (D279، الخيار «أ»): كل نصّ يُكتب على المسرح بأرقام غربية يُحوَّل حين تكون «أرقامي» مشرقية — أطوال الأشكال ودرجاتها
+   والصيغ والخيارات والبطاقات — إلا ترقيم الأدوات الحقيقية (المسطرة وشريط القياس والمنقلة والعدسة، وما عُلِّم data-west كمقابلة الأرقام في digitPairs).
+   الصيغة (نصّ ltr فيه + − × ÷ = بلا حروف) تُعكس رموزها لتُقرأ من اليمين (D251) بـ mfSet، والنصّ ltr الذي فيه كلمات («1 ملم = 0.1 سم») يصير rtl.
+   مراقبٌ واحد على المسرح بدل ضبط كل موضع: ما يُكتب بعد اليوم في م3 يتبع القرار وحده */
+const WEST_TOOL = '[data-ruler],[data-tape],[data-prot],[data-lens],[data-west]';
+function measFix(t) { if (SET.digits !== 'east' || !t || !t.closest || t.closest(WEST_TOOL)) return;
+  if (t instanceof SVGElement) { if (t.tagName !== 'text' || t.hasAttribute('data-sent') || t.childElementCount) return; const s = t.textContent; if (!/[0-9]/.test(s)) return;
+    const ltr = t.getAttribute('direction') === 'ltr'; if (/[\u0621-\u064A]/.test(s)) { if (ltr) t.setAttribute('direction', 'rtl'); t.textContent = MS(s); } else if (ltr && /[+−×÷=]/.test(s)) mfSet(t, s); else t.textContent = MS(s); return; }
+  const w = document.createTreeWalker(t, NodeFilter.SHOW_TEXT); for (let n = w.nextNode(); n; n = w.nextNode()) if (/[0-9]/.test(n.nodeValue) && !(n.parentElement && n.parentElement.closest(WEST_TOOL)) && !(n.parentElement instanceof SVGElement)) n.nodeValue = MS(n.nodeValue); }
+let MEAS_MO = null;
+function measWatch(st) { if (MEAS_MO || !st || typeof MutationObserver === 'undefined') return;
+  MEAS_MO = new MutationObserver(muts => { if (SET.digits !== 'east') return; for (const m of muts) { const tg = m.type === 'characterData' ? m.target.parentElement : m.target;
+    if (tg instanceof SVGElement && tg.tagName === 'text') measFix(tg);
+    for (const n of m.addedNodes || []) { if (n.nodeType === 3) { if (n.parentElement instanceof SVGElement) measFix(n.parentElement); else if (n.parentElement) measFix(n.parentElement); } else if (n.nodeType === 1) { if (n instanceof SVGElement) { if (n.tagName === 'text') measFix(n); n.querySelectorAll && n.querySelectorAll('text').forEach(measFix); } else { measFix(n); n.querySelectorAll('svg text').forEach(measFix); } } } } });
+  MEAS_MO.observe(st, { childList: true, subtree: true, characterData: true }); }
+function newStage(H = 300, bg = {}, aria) { const st = $('#stage'); measWatch(st); st.innerHTML = ''; STAGE_T = performance.now(); HIST = []; BACK_I = null; if (typeof updateSkip === 'function') updateSkip(); if (PEND_INTRO) Promise.resolve().then(flushIntro);   /* المقدّمة بعد رسم المشهد (D270) */ const svg = el('svg', { viewBox: `0 0 360 ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': aria || (CUR ? plain(CUR.title || '') : '') }); st.appendChild(svg);
   try { if (STAGE_RO) STAGE_RO.disconnect(); STAGE_RO = new ResizeObserver(() => refreshPads(svg)); STAGE_RO.observe(svg); } catch (e) {}
   /* وحين تظهر الخيارات تحت المسرح أو تزول يصغر أو يكبر قبل أن يُبلغ ResizeObserver: يُعاد الحساب فوراً، فلا تبقى منطقة لمس دون حدّها لحظةً
      (الفحصان المستقلان C وD: زرّ تحريك الطريق 55 بكسلاً، وقطعة الورشة 61، على iPhone SE) */
@@ -34,7 +49,7 @@ function label(svgOrKey, x, y, text, size = 19, color) {
 function labelFit(svg, x, y, text, size, color, maxW) { if (!text) return null; const t = label(svg, x, y, text, size, color); try { if (t.getComputedTextLength() <= maxW) return t;
   const w = G(text).split(' '); if (w.length < 2) { t.setAttribute('font-size', size * maxW / t.getComputedTextLength()); return t; } const mid = Math.ceil(w.length / 2); t.textContent = '';
   [w.slice(0, mid).join(' '), w.slice(mid).join(' ')].forEach((s, i) => { const sp = el('tspan', { x, dy: i ? size * 1.15 : -size * .2 }, t); sp.textContent = s; }); } catch (e) {} return t; }
-function labelText(k) { const D = CUR ? LDATA[CUR.id] : null; return (D && D.labels && D.labels[k]) || LABELS.ui[k] || k; }
+function labelText(k) { const D = CUR ? LDATA[CUR.id] : null, t = (D && D.labels && D.labels[k]) || LABELS.ui[k] || k; return k === 'myDigits' ? t : MS(t); }   /* أعداد التسميات بأرقام الطفل (D279)، إلا زرّ «أرقامي» نفسه */
 /* شارة العدّ: لون النص يُختار بحسب الخلفية (T10) */
 function badge(parent, x, y, n, col) { const bg = col || css('--compass'); const m = el('g', { transform: `translate(${x} ${y})`, 'pointer-events': 'none', 'data-badge': 1 }, parent);
   el('circle', { r: 15, fill: bg, stroke: '#fff', 'stroke-width': 3 }, m);
@@ -168,7 +183,7 @@ function numberPick(nums, ok, opt = {}) {
   const box = document.createElement('div'); box.className = 'choices nums'; (opt.host || $('#stage')).appendChild(box);
   const showDigits = opt.digits ?? digitsKnown(), teens = teenDigits(), W = opt.word || numw;   /* word: كلمة العدد مع تمييزه (الدرجات في S2-U3: «تسعون درجة») */
   const btns = nums.map(n => { const b = document.createElement('button'); b.className = 'pick num'; b.dataset.k = n;
-    b.innerHTML = (opt.west ? `<b dir="ltr">${n}</b>` : showDigits && (n <= 10 || teens) ? `<b>${DG(n)}</b>` : '') + `<span>${esc(T(W(n)))}</span>`; b.setAttribute('aria-label', plain(T(W(n))));
+    b.innerHTML = (opt.west ? `<b dir="ltr">${MS(n)}</b>` : showDigits && (n <= 10 || teens) ? `<b>${DG(n)}</b>` : '') + `<span>${esc(T(W(n)))}</span>`; b.setAttribute('aria-label', plain(T(W(n))));
     /*T*/if (TESTHOOK) b.dataset.ok = n === ok;/*/T*/ box.appendChild(b); return b; });
   let answered = false;
   AUTO({ kind: 'num', ok: () => btns.find(b => +b.dataset.k === ok).click(), wrong: () => (btns.find(b => +b.dataset.k !== ok) || btns[0]).click() });

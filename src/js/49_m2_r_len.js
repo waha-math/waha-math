@@ -8,10 +8,15 @@
 const LENC = { tape: '#e8c24a', tapeEd: '#a67c1e', bar: '#3d7cc0', bar2: '#e07b39', ok: '#2f9d6b', ink: '#33454c', soft: '#9fb4c0' };
 const LEN_U = ['mm', 'cm', 'm', 'km'], LEN_MM = { mm: 1, cm: 10, m: 1000, km: 1000000 }, LEN_LB = { mm: 'rulMm', cm: 'rulCm', m: 'lenM', km: 'lenKm' };
 /* القيمة بالمليمتر، ونصّها، وجملتها */
-const lenMM = v => v[1] === 'mc' ? v[0] * 10 : v[1] === 'pair' ? (v[0][0] * 100 + v[0][1]) * 10 : v[0] * LEN_MM[v[1]];
+/* وفي S3-U0 الطول العشري: [7.4، 'dcm'] «7.4 سم» و[2.35، 'dm'] «2.35 م»، و[74، 'cmm'] مركّباً «7 سم 4 ملم» (بالمليمتر) */
+const lenMM = v => v[1] === 'mc' ? v[0] * 10 : v[1] === 'pair' ? (v[0][0] * 100 + v[0][1]) * 10 : v[1] === 'dcm' ? Math.round(v[0] * 100) / 10 : v[1] === 'dm' ? Math.round(v[0] * 1000) : v[1] === 'cmm' ? v[0] : v[0] * LEN_MM[v[1]];
+/* العدد العشري مكتوباً: بالنقطة مع أرقام المسطرة (D279: النصّ هنا بالنقطة، ومراقب المسرح يجعلها «٫» مع الأرقام المشرقية) */
+const decFmt = (n, min = 0) => { let t = String(n); if (min && !t.includes('.')) t += '.' + '0'.repeat(min); return t; };
+const decId = n => String(n).replace('.', '_');
 const mcTxt = (m, c) => (m ? `${m} ${labelText('lenM')}` : '') + (m && c ? ' ' : '') + (c || !m ? `${c} ${labelText('rulCm')}` : '');
-const lenTxt = v => v[1] === 'mc' ? mcTxt(Math.floor(v[0] / 100), v[0] % 100) : v[1] === 'pair' ? mcTxt(v[0][0], v[0][1]) : `${v[0]} ${labelText(LEN_LB[v[1]])}`;
-const lenLn = v => v[1] === 'mc' ? `gen.len.mc.${Math.floor(v[0] / 100)}.${v[0] % 100}` : v[1] === 'pair' ? `gen.len.mc.${v[0][0]}.${v[0][1]}` : `gen.len.${v[1]}.${v[0]}`;
+const cmmTxt = mm => { const c = Math.floor(mm / 10), r = mm % 10; return (c ? `${c} ${labelText('rulCm')}` : '') + (c && r ? ' ' : '') + (r || !c ? `${r} ${labelText('rulMm')}` : ''); };
+const lenTxt = v => v[1] === 'mc' ? mcTxt(Math.floor(v[0] / 100), v[0] % 100) : v[1] === 'pair' ? mcTxt(v[0][0], v[0][1]) : v[1] === 'dcm' ? `${decFmt(v[0], 1)} ${labelText('rulCm')}` : v[1] === 'dm' ? `${decFmt(v[0])} ${labelText('lenM')}` : v[1] === 'cmm' ? cmmTxt(v[0]) : `${v[0]} ${labelText(LEN_LB[v[1]])}`;
+const lenLn = v => v[1] === 'mc' ? `gen.len.mc.${Math.floor(v[0] / 100)}.${v[0] % 100}` : v[1] === 'pair' ? `gen.len.mc.${v[0][0]}.${v[0][1]}` : v[1] === 'cmm' ? `gen.len.cmm.${Math.floor(v[0] / 10)}.${v[0] % 10}` : v[1] === 'dcm' || v[1] === 'dm' ? `gen.len.${v[1]}.${decId(v[0])}` : `gen.len.${v[1]}.${v[0]}`;
 const lenKey = v => v[1] === 'pair' ? v[0].join('_') : String(v[0]) + v[1];
 /* بطاقة طول على المسرح: نصّه بأرقام المسطرة */
 function lenCard(parent, x, y, v, o = {}) { const g = el('g', { transform: `translate(${x} ${y})`, 'data-len': lenKey(v) }, parent), w = o.w || 132, h = o.h || 56;
@@ -267,14 +272,16 @@ ITEM.lenRound = {
 
 /* ================= ⑩ بنّاء السور (C190، إنتاج): fence طول السور بالسنتيمتر، pieces قطع بالسنتيمتر؛ يلمس الطفل القطع (لمسة ثانية تعيدها)، والمجموع مكتوب ================= */
 const FENCE_XY = i => [300 - (i % 3) * 120, 172 + Math.floor(i / 3) * 78];   /* بطاقات 70 وحدة بينها ثمانٍ (أضيق شاشة) */
+/* قيمة قطعة السور: بالسنتيمتر «2 م 35 سم» (mc)، أو مترٌ عشري «2.35 م» (u: 'dm'، S3-U0) — والقطع والهدف أعداد صحيحة بالسنتيمتر في الحالتين */
+const FV = (item, c) => item.u === 'dm' ? [c / 100, 'dm'] : [c, 'mc'];
 ITEM.fenceBuild = {
   make(spec) { const n = spec.pieces.length, goal = spec.fence; let ok = null; for (let m = 1; m < 1 << n; m++) { let s = 0; for (let i = 0; i < n; i++) if (m >> i & 1) s += spec.pieces[i]; if (s === goal) { ok = m; break; } } /*T*/if (TESTHOOK && ok == null) testBug('fenceBuild: لا قطع مجموعها الهدف');/*/T*/ return { ...spec, goal, okMask: ok, want: goal, tag: 'fence-build' }; },
   async ask(item, mode, tries) { const svg = newStage(290, { oasis: false, ground: 0 }), on = new Set(), g = el('g', {}, svg), W = 280, x0 = 40, k = W / item.goal;
-    const goalBox = el('rect', { x: x0, y: 70, width: W, height: 22, rx: 4, fill: 'none', stroke: LENC.ink, 'stroke-width': 2, 'stroke-dasharray': '6 4' }, g); const gl = el('text', { x: 180, y: 56, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, g); gl.textContent = labelText('lenGoal') + ' ' + lenTxt([item.goal, 'mc']);
+    const goalBox = el('rect', { x: x0, y: 70, width: W, height: 22, rx: 4, fill: 'none', stroke: LENC.ink, 'stroke-width': 2, 'stroke-dasharray': '6 4' }, g); const gl = el('text', { x: 180, y: 56, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, g); gl.textContent = labelText('lenGoal') + ' ' + lenTxt(FV(item, item.goal));
     const built = el('g', {}, g), tot = el('text', { x: 180, y: 122, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: LENC.bar, direction: 'rtl' }, g);
     /* ما زاد على السور يُرى بمقياسه: يصغر المقياس حتى يتّسع المجموع، فيمتدّ السور المبني خارج الإطار المتقطّع بقدر الزيادة (المراجع B لبوابة U6/U7، 22) */
-    const redraw = () => { built.innerHTML = ''; const sel = [...on].sort((a, b) => a - b), sum = sel.reduce((a, i) => a + item.pieces[i], 0), kk = W / Math.max(item.goal, sum); goalBox.setAttribute('x', x0 + W - item.goal * kk); goalBox.setAttribute('width', item.goal * kk); let x = x0 + W, s = 0; sel.forEach(i => { const w = item.pieces[i] * kk; s += item.pieces[i]; el('rect', { x: x - w, y: 72, width: w, height: 18, fill: i % 2 ? '#b9794e' : '#d39a66', stroke: '#8a5a3a', 'stroke-width': 1.5 }, built); x -= w; }); tot.textContent = labelText('lenSum') + ' ' + lenTxt([s, 'mc']); tot.setAttribute('fill', s > item.goal && !NEUTRAL_ANS ? '#c8392d' : LENC.bar);   /* بلا لون حكم في الإتقان والاختبار (B-7) */ /*T*/window.__fenceSum = s;/*/T*/ return s; };
-    const P = item.pieces.map((c, i) => { const [x, y] = FENCE_XY(i), pg = lenCard(svg, x, y, [c, 'mc'], { w: 112, h: 70, fs: 16 }); pg.setAttribute('role', 'button'); pg.setAttribute('tabindex', 0); pg.setAttribute('aria-label', plain(lenTxt([c, 'mc']))); pg.setAttribute('aria-pressed', 'false'); pg.style.cursor = 'pointer';
+    const redraw = () => { built.innerHTML = ''; const sel = [...on].sort((a, b) => a - b), sum = sel.reduce((a, i) => a + item.pieces[i], 0), kk = W / Math.max(item.goal, sum); goalBox.setAttribute('x', x0 + W - item.goal * kk); goalBox.setAttribute('width', item.goal * kk); let x = x0 + W, s = 0; sel.forEach(i => { const w = item.pieces[i] * kk; s += item.pieces[i]; el('rect', { x: x - w, y: 72, width: w, height: 18, fill: i % 2 ? '#b9794e' : '#d39a66', stroke: '#8a5a3a', 'stroke-width': 1.5 }, built); x -= w; }); tot.textContent = labelText('lenSum') + ' ' + lenTxt(FV(item, s)); tot.setAttribute('fill', s > item.goal && !NEUTRAL_ANS ? '#c8392d' : LENC.bar);   /* بلا لون حكم في الإتقان والاختبار (B-7) */ /*T*/window.__fenceSum = s;/*/T*/ return s; };
+    const P = item.pieces.map((c, i) => { const [x, y] = FENCE_XY(i), pg = lenCard(svg, x, y, FV(item, c), { w: 112, h: 70, fs: 16 }); pg.setAttribute('role', 'button'); pg.setAttribute('tabindex', 0); pg.setAttribute('aria-label', plain(lenTxt(FV(item, c)))); pg.setAttribute('aria-pressed', 'false'); pg.style.cursor = 'pointer';
       const tog = () => { if (on.has(i)) on.delete(i); else on.add(i); pg.querySelector('rect').setAttribute('fill', on.has(i) ? '#f2d38a' : '#fffdf6'); pg.setAttribute('aria-pressed', on.has(i)); SFX.tick(); redraw(); }; pg.onclick = tog; pg.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); tog(); } }; return { pg, tog }; });
     redraw(); if (tries >= 3) { const i0 = item.pieces.findIndex((c, i) => item.okMask >> i & 1); P[i0].tog(); await S('gen.len.together.fence'); } else await S(item.q);
     /*T*/window.__fenceAt = i => { const r = P[i].pg.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }; window.__fenceWant = item.pieces.map((c, i) => i).filter(i => item.okMask >> i & 1);/*/T*/
@@ -283,7 +290,7 @@ ITEM.fenceBuild = {
     return { ans: redraw(), ctx: { svg, redraw } }; },
   judge(item, s) { return s === item.goal ? { ok: true } : { ok: false, err: s > item.goal ? 'fenceOver' : 'fenceShort' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const got = typeof r.ans === 'number' ? r.ans : null; if (got != null && got !== item.goal) hintCard(r.ctx.svg, 180, 150, got < item.goal ? `${labelText('lenLeft')} ${lenTxt([item.goal - got, 'mc'])}` : `${labelText('lenOver')} ${lenTxt([got - item.goal, 'mc'])}`); } await S('gen.len.hint.fence'); }, async together() {},   /* ما بقي أو ما زاد على الهدف */
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const got = typeof r.ans === 'number' ? r.ans : null; if (got != null && got !== item.goal) hintCard(r.ctx.svg, 180, 150, got < item.goal ? `${labelText('lenLeft')} ${lenTxt(FV(item, item.goal - got))}` : `${labelText('lenOver')} ${lenTxt(FV(item, got - item.goal))}`); } await S('gen.len.hint.fence'); }, async together() {},   /* ما بقي أو ما زاد على الهدف */
   async reveal(item) { await S('gen.len.reveal.fence'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
