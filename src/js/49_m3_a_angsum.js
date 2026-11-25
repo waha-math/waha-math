@@ -212,3 +212,56 @@ SCENES.tessShow = async c => { const L = c.lines, rounds = c.rounds || [[3, 6], 
     await S(L[2 * ri + 1]); }
   for (const l of L.slice(2 * rounds.length)) await S(l); };
 WRAP_ART.tessArt = svg => { const V = [180, 130]; for (let k = 0; k < 3; k++) el('polygon', { points: polyStr(regPoly(V, 6, 46, k * 120)), fill: ['#f2d38a', '#bfe0b5', '#c9dcf2'][k], stroke: GEO.ink, 'stroke-width': 2 }, svg); el('circle', { cx: V[0], cy: V[1], r: 5, fill: '#c8392d' }, svg); };
+
+/* =====================================================================
+   د4: زاويتا القاعدة في المتساوي الساقين (C330)، و«أقنعني بسببين»، ومشروع «الزاوية الناقصة»
+   ===================================================================== */
+/* مثلث متساوي الساقين رأسه أعلى: زاوية الرأس apex، وعلامتا التساوي على الساقين */
+/* show لكل رأس: عدد، أو null («؟»)، أو 'arc' (قوس بلا رقم)؛ وزاويتا القاعدة بلون واحد لأنهما متساويتان */
+function isoDraw(parent, apex, box, show) { const b = (180 - apex) / 2, T = triDraw(parent, b, b, box, { corners: false }); const [A, B, C] = T.P;
+  T.cs = [[A, B, C, 0], [B, C, A, 0], [C, A, B, 2]].map(([V, P, Q, k], i) => triCorner(T.g, V, P, Q, show[i], TRI_COL[k], { label: show[i] !== 'arc' }));
+  for (const [P, Q] of [[A, C], [B, C]]) { const m = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2], d = dirOf(P, Q) + 90, a1 = angP(m, d, 7), a2 = angP(m, d + 180, 7); geoLine(T.g, a1[0], a1[1], a2[0], a2[1], { color: GEO.ink, w: 2.4 }); }
+  return T; }
+/* ================= ⑥ زوايا المتساوي الساقين (C330): ask base (الرأس معلوم) أو apex (زاوية القاعدة معلومة) ================= */
+ITEM.isoAngle = { ...numItem,
+  make(spec) { const apex = spec.ask === 'base' ? spec.apex : 180 - 2 * spec.base, base = (180 - apex) / 2; /*T*/if (TESTHOOK && (base % 5 || apex <= 0)) testBug('isoAngle: زوايا غير صالحة');/*/T*/
+    const want = spec.ask === 'base' ? base : apex, errs = [...(spec.ask === 'base' ? [180 - apex, 90, apex] : [180 - base, base]), want - 10, want + 10, want + 20];   /* أخطاء المرجع: بلا قسمة، و180 ÷ 2، والمتساويتان عند الرأس، وقاعدة واحدة */
+    return { ...spec, apex, base, want, nums: rankMix(want, errs.filter(v => v > 0 && v < 360 && v % 5 === 0 && v !== want), 5, 355), tag: 'iso-' + spec.ask }; },
+  async ask(item, mode, tries) { const svg = m3Stage(250), T = isoDraw(svg, item.apex, [80, 30, 200, 160], item.ask === 'base' ? [null, null, item.apex] : [item.base, 'arc', null]);
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 222, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = item.ask === 'base' ? `(180 − ${item.apex}) ÷ 2 = ؟` : `180 − ${item.base} − ${item.base} = ؟`; await S('gen.as.together.iso'); }
+    else await S(item.q || (item.ask === 'base' ? 'gen.as.q.isoBase' : 'gen.as.q.isoApex'));
+    const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); return { ans: await np.p, ctx: { svg, np, T } }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.ask === 'base' ? (k === 180 - item.apex ? 'isoNoHalf' : k === 90 ? 'isoHalfAll' : k === item.apex ? 'isoAtApex' : 'isoOff') : (k === 180 - item.base ? 'isoOneBase' : 'isoOff') }; },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 222, labelText('asIsoHint')); await S('gen.as.hint.iso'); }, async together() {},
+  async reveal(item) { await S('gen.as.reveal.missing', { noGap: true }); await S(degw(item.want), { append: true }); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
+/* ================= ⑦ «أقنعني بسببين» (D244): ثلاث بطاقات، اثنتان صحيحتان؛ يلمس الطفل اثنتين ثم «تمّ» ================= */
+ITEM.twoReasons = {
+  make(spec) { return { ...spec, want: 'ab', tag: 'two-reasons' }; },
+  async ask(item, mode, tries) { newStage(24, null); const ids = item.opts.map(o => o.id);   /* بلا رسم: ثلاث بطاقات وزرّ «تمّ» تحتاج المسرح كلّه */ await S(tries >= 3 ? 'gen.as.together.two' : item.q);   /* opts: [صحيح، صحيح، مشتّت] */
+    const box = document.createElement('div'); box.className = 'choices cards'; $('#stage').appendChild(box); const on = new Set(), order = shuffle([0, 1, 2]);
+    const btns = order.map(i => { const b = document.createElement('button'); b.className = 'pick card'; b.innerHTML = `<span>${esc(T(ids[i]))}</span>`; b.setAttribute('aria-pressed', 'false'); b.dataset.k = 'abc'[i]; /*T*/if (TESTHOOK) b.dataset.ok = i < 2;/*/T*/
+      b.onclick = () => { if (on.has(i)) on.delete(i); else on.add(i); b.classList.toggle('sel', on.has(i)); b.setAttribute('aria-pressed', on.has(i)); SFX.tick(); }; box.appendChild(b); return b; });
+    if (tries >= 3) { const b0 = btns[order.indexOf(0)]; b0.click(); }   /* الحلّ المشترك: البطاقة الأولى الصحيحة مختارة، والثانية للطفل */
+    if (!tries || tries >= 3) for (const i of order) await S(ids[i], { keep: true, free: true });   /* تُقرأ البطاقات أول مرة وفي الحلّ المشترك */
+    AUTO({ kind: 'two', ok: () => { [0, 1].forEach(i => { if (!on.has(i)) btns[order.indexOf(i)].click(); }); if (on.has(2)) btns[order.indexOf(2)].click(); rulDoneBtn().click(); }, wrong: () => { [0, 2].forEach(i => { if (!on.has(i)) btns[order.indexOf(i)].click(); }); if (on.has(1)) btns[order.indexOf(1)].click(); rulDoneBtn().click(); } });
+    await rulDone(() => { btns.forEach(b => b.onclick = null); });
+    const ans = [...on].sort().map(i => 'abc'[i]).join(''); box.remove(); return { ans, ctx: {} }; },
+  judge(item, k) { return k === 'ab' ? { ok: true } : { ok: false, err: k.includes('c') ? 'reasonFalse' : 'reasonOne' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2() { await S('gen.as.hint.two'); }, async together() {},
+  async reveal(item) { await S(item.opts[0].id); await S(item.opts[1].id); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
+/* ================= المقطع: طيّ المتساوي الساقين على محوره — زاويتا القاعدة تنطبقان ================= */
+SCENES.isoFold = async c => { const L = c.lines, apex = c.apex || 40, svg = m3Stage(262), T = isoDraw(svg, apex, [90, 30, 180, 160], ['arc', 'arc', apex]), [A, B, C] = T.P, M = [(A[0] + B[0]) / 2, A[1]];
+  await S(L[0]); geoLine(svg, C[0], C[1] - 10, M[0], M[1] + 10, { color: '#8e6bbf', w: 2.6, dash: '6 5' }); svg.appendChild(T.cs[2].g); T.cs[2].g.querySelectorAll('text').forEach(t => { t.setAttribute('stroke', '#fdf7e8'); t.setAttribute('stroke-width', 5); t.setAttribute('paint-order', 'stroke'); }); SFX.tick();   /* المحور تحت رقم زاوية الرأس، وحوله هالة */
+  await axPredictYN('yes', 'gen.as.pr.isoEq');
+  const half = el('polygon', { points: polyStr([B, C, M]), fill: '#c9dcf2', opacity: .8, stroke: GEO.ink, 'stroke-width': 2 }, svg);
+  const an = anim(half, [{ transform: 'scale(1,1)' }, { transform: `translate(${2 * M[0]}px,0px) scale(-1,1)` }], { duration: FAST ? 10 : 900, fill: 'forwards' }); await an.done; SFX.tick();
+  await S(L[1]); await anim(half, [{ transform: `translate(${2 * M[0]}px,0px) scale(-1,1)` }, { transform: 'scale(1,1)' }], { duration: FAST ? 10 : 700, fill: 'forwards' }).done; half.remove();   /* نفتح الطيّة: الزاويتان في مكانيهما، والرقمان ظاهران */
+  const b = (180 - apex) / 2; T.cs[0].g.remove(); T.cs[1].g.remove(); triCorner(T.g, A, B, C, b, TRI_COL[0]); triCorner(T.g, B, C, A, b, TRI_COL[0]);
+  const t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: ARC.ok, direction: 'ltr' }, svg); t.textContent = `(180 − ${apex}) ÷ 2 = ${b}`; SFX.tick();
+  for (const l of L.slice(2)) await S(l); };
+WRAP_ART.isoArt = svg => { isoDraw(svg, 40, [110, 40, 140, 150], [70, 70, 40]); };
