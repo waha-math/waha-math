@@ -65,7 +65,7 @@ ITEM.fracEqual = {
     const k = await tapOne(T, { ok: item.want, pad: 76 }); return { ans: k, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'unequalParts' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.fr.hint.equal'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('frHEqual')); await S('gen.fr.hint.equal'); },   /* المستوى الثاني بطاقة على المسرح بالحقيقة التي يحتاجها الطفل الآن (المراجع A لبوابة U8/U9، 15؛ وB، 5) */ async together() {},
   async reveal() { await S('gen.fr.reveal.equal'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -105,7 +105,7 @@ ITEM.fracColor = {
     return { ans: on.size, ctx: { svg, Sh, on } }; },
   judge(item, n) { return n === item.f[0] ? { ok: true } : { ok: false, err: n === item.fig.n - item.f[0] ? 'colorRest' : 'colorOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.fr.hint.color'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `${DG(item.f[0])} ${labelText('frOf')} ${DG(item.f[1])}`); await S('gen.fr.hint.color'); }, async together() {},
   async reveal(item, r) { r.ctx.Sh.P.forEach((p, i) => r.ctx.Sh.shadeSet(i, i < item.f[0])); await S('gen.fr.reveal.color', { noGap: true }); await sayFrac(item.f); },
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
@@ -151,7 +151,7 @@ ITEM.cellColor = {
     return { ans: on.size, ctx: { svg, Sh, on } }; },
   judge(item, n) { return n === item.want ? { ok: true } : { ok: false, err: n === item.f[0] ? 'cellsNumerator' : 'cellsOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.fr.hint.cells'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `${DG(item.N)} ÷ ${DG(item.f[1])} × ${DG(item.f[0])}`); await S('gen.fr.hint.cells'); }, async together() {},
   async reveal(item, r) { r.ctx.Sh.P.forEach((p, i) => r.ctx.Sh.shadeSet(i, i < item.want)); await S('gen.fr.reveal.cells', { noGap: true }); await S(numw(item.want), { num: true, append: true }); },
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
@@ -193,7 +193,7 @@ ITEM.linePlace = {
     await rulDone(() => { input.off(); kg.remove(); }); return { ans: cur, ctx: { svg, Ln, set } }; },
   judge(item, i) { return i === item.a ? { ok: true } : { ok: false, err: i === item.a - 1 ? 'countMarks' : i === item.a + 1 ? 'fromOne' : 'placeOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.fr.hint.place'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `${DG(item.a)} ${labelText('frSpacesFrom0')}`); await S('gen.fr.hint.place'); }, async together() {},
   async reveal(item, r) { r.ctx.set(item.a); await S('gen.fr.reveal.place', { noGap: true }); await sayFrac([item.a, item.b]); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -207,7 +207,7 @@ ITEM.eqvFill = {
     const add = item.f[0] + item.m - item.f[1], np = numberPick(shuffle([...fillOpts(new Set([item.want].concat(add >= 1 && add <= item.m && add !== item.want ? [add] : [])), item.want, 1, item.m)].slice(0, 3)), item.want); return { ans: await np.p, ctx: { svg, B, np } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.f[0] + (item.m - item.f[1]) ? 'addSame' : k === item.f[0] ? 'eqvSameNum' : 'eqvOff' }; },
   onOk: numItem.onOk, onWrong: numItem.onWrong,
-  async hint2() { await S('gen.fr.hint.eqv'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `× ${DG(item.m / item.f[1])}`); await S('gen.fr.hint.eqv'); }, async together() {},
   async reveal(item, r) { for (let i = 0; i < item.want; i++) r.ctx.B.shadeSet(i, true); await S('gen.fr.reveal.eqv', { noGap: true }); await sayFrac([item.want, item.m]); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -246,7 +246,7 @@ ITEM.fracOrder = {
     cards.forEach(g => { g.onclick = null; g.onkeydown = null; g.removeAttribute('role'); }); return { ans: picked.join(','), ctx: { svg } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const byDen = item.fs.map((f, i) => i).sort((i, j) => item.fs[i][1] - item.fs[j][1]).join(','); return { ok: false, err: k === byDen ? 'biggerDen' : 'frOrderOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.fr.hint.order'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('frHHalf')); await S('gen.fr.hint.order'); }, async together() {},
   async reveal() { await S('gen.fr.reveal.order'); },
   praise: () => 'praiseCompare', twin(item) { return item.twin || null; },
 };
@@ -267,7 +267,7 @@ ITEM.setFrac = {
     const np = numberPick(nearNums(item.want, item.n, 1), item.want); return { ans: await np.p, ctx: { svg, G, np } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.f[1] ? 'setDen' : k === item.n / item.f[1] && item.f[0] > 1 ? 'setOneGroup' : 'setOff' }; },
   onOk: numItem.onOk, onWrong: numItem.onWrong,
-  async hint2() { await S('gen.fr.hint.set'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `${DG(item.n)} ÷ ${DG(item.f[1])} = ؟`); await S('gen.fr.hint.set'); }, async together() {},
   async reveal(item, r) { await frGroups(r.ctx.svg, r.ctx.G, item.n / item.f[1], item.f[0]); await S('gen.fr.reveal.set', { noGap: true }); await S(numw(item.want), { num: true, append: true }); },
   praise: () => 'praiseCount', twin(item) { return item.twin || null; },
 };
@@ -290,7 +290,7 @@ ITEM.setColor = {
     return { ans: on.size, ctx: { svg, G } }; },
   judge(item, n) { return n === item.want ? { ok: true } : { ok: false, err: n === item.f[0] ? 'setNumerator' : 'setOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.fr.hint.setC'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `${DG(item.n)} ÷ ${DG(item.f[1])} × ${DG(item.f[0])}`); await S('gen.fr.hint.setC'); }, async together() {},
   async reveal(item, r) { await S('gen.fr.reveal.set', { noGap: true }); await S(numw(item.want), { num: true, append: true }); },
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };

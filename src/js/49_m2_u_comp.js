@@ -88,7 +88,7 @@ ITEM.squareSlide = {
     return { ans: v, ctx: { svg, set: x => { v = x; draw(); } } }; },
   judge(item, v) { return v === item.p ? { ok: true } : { ok: false, err: Math.abs(v - item.p) === 1 ? 'slideNear' : 'slideOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S('gen.cp.hint.slide.' + item.mode); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('cpH.slide.' + item.mode)); await S('gen.cp.hint.slide.' + item.mode); },   /* المستوى الثاني بطاقة بالحقيقة التي يحتاجها الطفل الآن (المراجع A لبوابة U8/U9، 15؛ وB، 5) */ async together() {},
   async reveal(item, r) { r.ctx.set(item.p); await S('gen.cp.reveal.slide.' + item.mode); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -120,7 +120,7 @@ ITEM.sasBuild = {
     return { ans: v.ang + '|' + v.len, ctx: { svg, redraw } }; },
   judge(item, k) { const [a, l] = k.split('|').map(Number); return a === item.deg && l === item.ac ? { ok: true } : { ok: false, err: a === 180 - item.deg ? 'protScale' : a !== item.deg ? 'sasAngle' : 'sasSide' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.cp.hint.sas'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('cpH.sas')); await S('gen.cp.hint.sas'); }, async together() {},
   async reveal(item, r) { r.ctx.redraw({ ang: item.deg, len: item.ac }); await S('gen.cp.reveal.sas'); },
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
@@ -141,7 +141,7 @@ ITEM.paraComplete = {
     await rulDone(() => { input.off(); kg.remove(); }); return { ans: cur ? cur.join(',') : '', ctx: { svg, set } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'paraOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.cp.hint.para'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('cpH.para')); await S('gen.cp.hint.para'); }, async together() {},
   async reveal(item, r) { r.ctx.set(item.cpt); await S('gen.cp.reveal.para'); },
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
@@ -181,7 +181,7 @@ ITEM.compassDraw = {
     return { ans: v, ctx: { svg: s2, K } }; },
   judge(item, v) { return v === item.want ? { ok: true } : { ok: false, err: item.d && v === item.d ? 'openIsDia' : 'openOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.d ? 'gen.cp.hint.cdDia' : 'gen.cp.hint.cd'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('cpH.open')); await S(item.d ? 'gen.cp.hint.cdDia' : 'gen.cp.hint.cd'); }, async together() {},
   async reveal(item, r) { const m = helpG(r.ctx.svg); await drawCircleAnim(m, [180, 146], item.want * r.ctx.K, CPC.ok); await S('gen.cp.reveal.cd', { noGap: true }); await sayLen(item.want, 'cm'); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -195,7 +195,7 @@ ITEM.transferPick = {
     const k = await tapOne(T, { ok: item.want, pad: 64 }); return { ans: k, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'transferOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.cp.hint.transfer'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('cpH.transfer')); await S('gen.cp.hint.transfer'); }, async together() {},
   async reveal() { await S('gen.cp.reveal.transfer'); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -227,7 +227,7 @@ ITEM.sssBuild = {
     return { ans: [v.r1, v.r2].sort().join(','), ctx: { svg, redraw } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k.split(',').map(Number).some(x => x === item.base) ? 'sssBase' : 'sssOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.cp.hint.sss'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('cpH.sss')); await S('gen.cp.hint.sss'); }, async together() {},
   async reveal(item, r) { r.ctx.redraw({ r1: item.a, r2: item.b }); await S('gen.cp.reveal.sss'); },
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
@@ -246,7 +246,7 @@ ITEM.consOrder = {
     cards.forEach(g => { g.onclick = null; g.onkeydown = null; g.removeAttribute('role'); }); return { ans: picked.join(','), ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'stepsOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.cp.hint.order'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `1 · ${labelText('cpStep.' + item.kind + '.' + item.st[0])}`); await S('gen.cp.hint.order'); }, async together() {},
   async reveal(item) { for (const s of item.st) await S('gen.cp.step.' + item.kind + '.' + s); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -269,7 +269,7 @@ ITEM.hexStep = {
     return { ans: v, ctx: { svg } }; },
   judge(item, v) { return v === item.r ? { ok: true } : { ok: false, err: 'hexOpen' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.cp.hint.hex'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, labelText('cpH.open')); await S('gen.cp.hint.hex'); }, async together() {},
   async reveal(item) { await S('gen.cp.reveal.hex', { noGap: true }); await sayLen(item.r, 'cm'); },
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
