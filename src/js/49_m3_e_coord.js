@@ -17,7 +17,7 @@ function coPlane(svg, o = {}) { const N = o.n || 10, Mx = o.m || 8, H = o.H || 2
   if (o.axes !== false) { geoLine(g, x0, y0, x0 + N * c + 12, y0, { color: CO.ax, w: 3.4 }); geoArrow(g, x0 + N * c + 14, y0, 0, CO.ax, 8); geoLine(g, x0, y0, x0, y0 - Mx * c - 10, { color: CO.ax, w: 3.4 }); geoArrow(g, x0, y0 - Mx * c - 12, -90, CO.ax, 8);
     const T = (x, y, s, fs = 12, col = CO.ink) => { const t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 700, fill: col }, g); t.textContent = s; return t; };
     if (o.nums !== false) { for (let i = 0; i <= N; i++) T(x0 + i * c, y0 + 16, String(i)); for (let j = 1; j <= Mx; j++) T(x0 - 12, y0 - j * c + 4, String(j)); }
-    T(x0 + N * c + 14, y0 + 20, labelText('coX'), CO.ax, 14); T(x0 - 14, y0 - Mx * c - 6, labelText('coY'), CO.ax, 14); }
+    T(x0 + N * c + 14, y0 + 20, labelText('coX'), 14, CO.ax); T(x0 - 14, y0 - Mx * c - 6, labelText('coY'), 14, CO.ax); }
   const P = (x, y) => [x0 + x * c, y0 - y * c];
   return { g, P, c, x0, y0, N, M: Mx, snap(q, half) { const s = half ? 2 : 1, f = v => Math.round(v * s) / s; return [Math.max(0, Math.min(N, f((q[0] - x0) / c))), Math.max(0, Math.min(Mx, f((y0 - q[1]) / c)))]; } }; }
 /* نصّ الزوج: من اليسار بتجاوز الاتجاه، فلا تنقلب الأرقام المشرقية (D84) */
@@ -64,9 +64,9 @@ ITEM.coordPlace = {
     for (let y = Pl.M; y >= 0; y -= st) { const row = el('g', { role: 'row' }, kg); for (let x = 0; x <= Pl.N; x += st) { const [px, py] = Pl.P(x, y), b = el('g', { role: 'gridcell', tabindex: 0, 'aria-label': `${labelText('coRight')} ${x}، ${labelText('coUp')} ${y}` }, row); el('circle', { cx: px, cy: py, r: 8, fill: 'transparent', 'pointer-events': 'none' }, b); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); set(x, y); SFX.tick(); } }; } }
     AUTO({ kind: 'gridPt', ok: () => { set(item.x, item.y); rulDoneBtn().click(); }, wrong: () => { set(item.y <= Pl.N && item.x <= Pl.M && item.x !== item.y ? item.y : Math.min(Pl.N, item.x + 1), item.x !== item.y ? item.x : item.y); rulDoneBtn().click(); } });
     await rulDone(() => { done = true; REPLAY_HOOK = null; input.off(); kg.remove(); }); return { ans: cur || [-1, -1], ctx: { svg, Pl, set, walk } }; },
-  judge(item, a) { if (a[0] === item.x && a[1] === item.y) return { ok: true }; return { ok: false, err: a[0] === item.y && a[1] === item.x ? 'coordSwap' : (a[0] === item.x - 1 && a[1] === item.y - 1) || (a[0] === item.x + 1 && a[1] === item.y + 1) ? 'coordFromOne' : item.half && (a[0] === Math.floor(item.x) || a[0] === Math.ceil(item.x) || a[1] === Math.floor(item.y) || a[1] === Math.ceil(item.y)) && (item.x % 1 || item.y % 1) ? 'coordHalf' : item.given ? 'coordVertex' : 'coordOff' }; },
+  judge(item, a) { if (a[0] === item.x && a[1] === item.y) return { ok: true }; if (item.mid) return { ok: false, err: 'rotMid' }; return { ok: false, err: a[0] === item.y && a[1] === item.x ? 'coordSwap' : (a[0] === item.x - 1 && a[1] === item.y - 1) || (a[0] === item.x + 1 && a[1] === item.y + 1) ? 'coordFromOne' : item.half && (a[0] === Math.floor(item.x) || a[0] === Math.ceil(item.x) || a[1] === Math.floor(item.y) || a[1] === Math.ceil(item.y)) && (item.x % 1 || item.y % 1) ? 'coordHalf' : item.given ? 'coordVertex' : 'coordOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (item.given) { await S('gen.co.hint.vertex'); return; } const m = await coWalk(r.ctx.svg, r.ctx.Pl, item.x, item.y, { ms: 230 }); await S('gen.co.hint.place'); m.remove(); }, async together() {},
+  async hint2(item, r) { if (item.mid) { await S('gen.xf.hint.mid'); return; } if (item.given) { await S('gen.co.hint.vertex'); return; } const m = await coWalk(r.ctx.svg, r.ctx.Pl, item.x, item.y, { ms: 230 }); await S('gen.co.hint.place'); m.remove(); }, async together() {},
   async reveal(item, r) { if (r.ctx.walk) r.ctx.walk.remove(); if (!item.given) await coWalk(r.ctx.svg, r.ctx.Pl, item.x, item.y, { ms: 140 }); r.ctx.set(item.x, item.y); await S('gen.co.reveal.place', { noGap: true }); await S(coLine(item.x, item.y), { append: true }); },
   praise: () => 'praisePlace', twin(item) { return item.twin || null; },
 };

@@ -23,7 +23,7 @@ const rectKey = (w, h) => `R${Math.min(w, h)}x${Math.max(w, h)}`;
 const PIC1 = /^(plyis|plycnt|plyfix|qname|diagd|diagn|fam|pname|reg|concv|axn|trleg|parts|axis|pic|pg|ac|ae|ca|cp|hg|rp|ra)\|([^|]+)/, PIC2 = /^(tri|qopp|qchk)\|[^|]+\|([^|]+)/;
 export const picOf = f => { const m = PIC1.exec(f) || PIC2.exec(f); return m ? m[2] : null; };
 
-const PROD = new Set(['coordPlace', 'coordDraw', 'kiteTune', 'twoReasons',   /* م3: يعيّن النقطة، ويصل الرؤوس، ويضبط الطائرة، ويختار سببين (D244) */
+const PROD = new Set(['coordPlace', 'coordDraw', 'kiteTune', 'twoReasons', 'xfDraw',   /* م3: يعيّن النقطة، ويصل الرؤوس، ويضبط الطائرة، ويختار سببين (D244) */
   'convMachine', 'lenOrder', 'fenceBuild', 'trackDesign', 'rectDraw', 'maxArea', 'fracColor', 'cellColor', 'linePlace', 'fracOrder', 'setColor',
   'squareSlide', 'sasBuild', 'paraComplete', 'compassDraw', 'sssBuild', 'consOrder', 'hexStep',   /* S2-U9: يرسم بمثلّث الرسم وبالمنقلة، ويكمل، ويضبط الفرجار، ويرتّب خطوات الإنشاء */   /* S2-U8: يلوّن ويضع ويرتّب */   /* S2-U7: يرسم المستطيل، ويبحث عن أكبر أرض */   /* S2-U6: يضبط آلة التحويل، ويرتّب، ويبني السور، ويصمّم المضمار */
   'axisHunt', 'ptImage', 'axisFind', 'designSym',   /* S2-U5: يجد المحاور بالطيّ، ويرسم الصورة، ويجد المحور، ويصمّم بمحاور */
@@ -309,6 +309,14 @@ export const factOf = it => { const t = it.t;
   if (t === 'coordAlign') return `cal|${it.a.join(',')}|${it.b.join(',')}`;
   if (t === 'coordDraw') return `cdr|${it.pts.map(p => p.join(',')).join(' ')}`;
   if (t === 'coordShape') return `csh|${it.ask || 'area'}|${it.pts.map(p => p.join(',')).join(' ')}`;
+  if (t === 'xfDraw') return `xfd|${JSON.stringify(it.xf)}|${it.pts.map(p => p.join(',')).join(' ')}`;
+  if (t === 'xfWhich') return `xfw|${JSON.stringify(it.xf)}|${it.pts.map(p => p.join(',')).join(' ')}`;
+  if (t === 'refLine') return `rfl|${it.axis}|${it.k}|${it.pts.map(p => p.join(',')).join(' ')}`;
+  if (t === 'trVector') return `trv|${it.a.join(',')}|${it.dx}|${it.dy}`;
+  if (t === 'rotSym') return `rs|${it.k}|${it.ask || 'count'}`;
+  if (t === 'congJudge') return `cj|${it.mv}|${it.ask || 'yn'}|${it.pts.map(p => p.join(',')).join(' ')}`;
+  if (t === 'congPart') return `cpart|${it.side}|${JSON.stringify(it.xf)}|${it.pts.map(p => p.join(',')).join(' ')}`;
+  if (t === 'triDet') return `tdet|${it.case}`;
   if (t === 'estPick') return `est|${it.thing}`;
   if (t === 'trackDesign') return `track|${it.n || 4}`;
   /* S2-U7: المحيط والمساحة؛ الشكل على الشبكة بصفوفه، والمستطيل بطوليه (الشبكة لا تجعل السؤال جديداً) */
@@ -383,6 +391,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'reason' && it.pic && it.pic.kind === 'conv') return `conv|${it.pic.v.join('')}|${it.pic.to}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'calc') return `lcalc|${it.pic.a.join('.')}|${it.pic.op}|${it.pic.b.join('.')}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'axis') return `pic|${it.pic.k ? C(it.pic.k) : it.pic.sym}`;   /* صورة التعليل: شكلٌ لم يُرَ في الدرس بأي مهمة (picOf) */
+  if (t === 'reason' && it.pic && it.pic.kind === 'xfpic') return `xfpic|${JSON.stringify(it.pic)}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'axgrid') return `axgpic|${JSON.stringify(it.pic.pts)}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'poly') return `pic|${C(it.pic.k)}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'angle') return `angpic|${it.pic.deg}|${it.pic.rot || 0}`;
@@ -595,7 +604,7 @@ export function d240(lessons, code, MAKERS) {
     return out; };
   /* ما يرسمه المشهد بنفسه (لا من بياناته) من أشياء لها مولّد: عجلات العربتين في الإشعال، وبابا الزرافة. لكل مشهد في الكود سطر هنا (ولو فارغاً)، فلا يُضاف مشهد يرسم شيئاً دون أن يراه الفحص */
   const SCENE_DRAWS = { cartsRace: [['wheel', 'cls']], giraffeDoors: [['door', 'cls']] };
-  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
+  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'mirrorHook', 'refShow', 'trHook', 'trShow', 'rotHook', 'rotShow', 'rsHook', 'rsShow', 'congHook', 'congShow', 'tileShow2', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
     'bagFeel', 'pushLab', 'poses', 'faceLab', 'coneRoll', 'cylRoll', 'towersPredict', 'paperPush', 'stampLab', 'towerBuild', 'mosque', 'takeHook', 'facesCount', 'roomHunt', 'feelBox', 'shelvesWalk',
     'simonSays', 'lidCheck', 'chaosLid', 'queueBadge', 'queueSwap', 'trainOrdinals', 'chaosTrainBadge', 'ribbonHook', 'bodyMoves', 'robotIntro', 'chaosTurn', 'mapChaosHook', 'birdView', 'chaosSideDraw',
     'roadChaosHook', 'roadListen', 'roadCountChaos', 'chaosSkipBack', 'jumpChaosHook', 'roadRace', 'chaosSubForward', 'recallPic', 'queueOrdinals',   /* S1-U3: أشياؤها رسوم المواضع لا مولّدات */
