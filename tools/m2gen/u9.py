@@ -364,6 +364,7 @@ L_6={
  "colr.01":"{زَخْرِفْ|زَخْرِفِي} {زَهْرَتَكَ|زَهْرَتَكِ}: كُلُّ لَمْسَةٍ عَلَى بَتَلَةٍ تُبَدِّلُ لَوْنَهَا.",
  "pr.flowerC3":"{لَوِّنِ|لَوِّنِي} البَتَلَاتِ بِلَوْنَيْنِ بِنَمَطٍ لَهُ ثَلَاثَةُ مَحَاوِرِ تَمَاثُلٍ، ثُمَّ «تَمَّ».",
  "pr.flowerC1":"{لَوِّنِ|لَوِّنِي} البَتَلَاتِ بِنَمَطٍ لَهُ مِحْوَرُ تَمَاثُلٍ وَاحِدٌ، ثُمَّ «تَمَّ».",
+ "pr.flowerC0":"{لَوِّنِ|لَوِّنِي} البَتَلَاتِ بِنَمَطٍ لَا مِحْوَرَ تَمَاثُلٍ لَهُ، ثُمَّ «تَمَّ».",
  "pr.flowerC2":"{لَوِّنِ|لَوِّنِي} البَتَلَاتِ بِنَمَطٍ لَهُ مِحْوَرَا تَمَاثُلٍ، ثُمَّ «تَمَّ».",
  "fl.01":"وَالزَّهْرَةُ: مِنْ كُلِّ نُقْطَةٍ قَوْسٌ بِالفَتْحَةِ نَفْسِهَا.",
  "fl.02":"سِتُّ بَتَلَاتٍ!",
@@ -397,7 +398,7 @@ d6={"id":"m2.u9.d6","title":"زَخْرَفَةُ القَصْرِ","icon":["cpf
  "flow":[
   {"s":"hook","scene":"hexShow","r":4,"lines":["hx.01","hx.02","hx.03"]},
   {"s":"explore","scene":"flowerShow","mat":MAT(),"lines":["fl.01","fl.02","fl.03"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"colr.01","items":[tw({"t":"flowerColor","q":"pr.flowerC3","ax":3},{"t":"flowerColor","q":"pr.flowerC1","ax":1}),tw({"t":"flowerColor","q":"pr.flowerC1","ax":1},{"t":"flowerColor","q":"pr.flowerC2","ax":2})]},   # الطفل يلوّن زهرته (المرجع)
+  {"s":"game","scene":"items","mode":"practice","intro":"colr.01","items":[tw({"t":"flowerColor","q":"pr.flowerC3","ax":3},{"t":"flowerColor","q":"pr.flowerC2","ax":2}),tw({"t":"flowerColor","q":"pr.flowerC1","ax":1},{"t":"flowerColor","q":"pr.flowerC0","ax":0})]},   # الطفل يلوّن زهرته (المرجع)
   {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(hx(4),hx(6)), tw(hx(2),hx(7))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",

@@ -342,7 +342,7 @@ const flwPt = C => (deg, r) => [C[0] + r * Math.cos(deg * Math.PI / 180), C[1] -
 const flwAxes = p => [0, 1, 2, 3, 4, 5].filter(a => p.every((c, i) => c === p[((a - i) % 6 + 6) % 6]));
 ITEM.flowerColor = {
   make(spec) { return { ...spec, want: spec.ax, tag: 'flower-color' }; },
-  sol(item) { return FLW_PAT[Object.keys(FLW_PAT).find(k => FLW_AX[k] === item.ax)]; },
+  sol(item) { return ({ 0: [0, 0, 1, 0, 1, 1], 1: [1, 0, 0, 0, 0, 0], 2: [1, 0, 0, 1, 0, 0], 3: [0, 1, 0, 1, 0, 1] })[item.ax]; },
   async ask(item, mode, tries) { const svg = cpStage(262), C = [180, 128], R = 96, p = [0, 0, 0, 0, 0, 0], cols = ['#e9894a', '#3d7cc0'], g = el('g', {}, svg), axG = el('g', { 'pointer-events': 'none' }, svg), pt = flwPt(C);
     el('circle', { cx: C[0], cy: C[1], r: R, fill: '#fffdf6', stroke: '#9fb4c0', 'stroke-width': 2 }, g);
     const pet = [0, 1, 2, 3, 4, 5].map(i => { const a = 90 + 60 * i, b = el('g', { role: 'button', tabindex: 0, 'aria-label': `${plain(labelText('cpPetal'))} ${DG(i + 1)}`, style: 'cursor:pointer' }, g), P = pt(a, R / 2);

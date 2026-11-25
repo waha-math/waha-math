@@ -80,16 +80,16 @@ ITEM.triMissing = { ...numItem,
 };
 /* ================= ② هل تكون هذه زوايا مثلث؟ (C301): degs ثلاث زوايا تُرسم قطاعاتٍ منفصلة، والجواب بمجموعها ================= */
 ITEM.triPossible = {
-  make(spec) { const s = spec.degs.reduce((x, y) => x + y, 0), T = spec.degs.length === 4 ? 360 : 180; return { ...spec, sum: s, T, want: s === T ? 'yes' : 'no', tag: spec.degs.length === 4 ? 'quad-possible' : 'tri-possible' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(240), xs = item.degs.length === 4 ? [300, 216, 132, 48] : [290, 180, 70], g = el('g', {}, svg);
-    item.degs.forEach((d, i) => { const V = [xs[i] - (d > 90 ? 0 : 20), 140]; const w = wedgeAt(g, d, item.degs.length === 4 ? 34 : 44, POLY_COL[i]); w.setAttribute('transform', `translate(${V[0]} ${V[1]})`); degText(g, xs[i], 190, d, { size: 16, color: POLY_COL[i] }); });
-    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${item.degs.join(' + ')} = ؟`; await S(item.T === 360 ? 'gen.as.together.possQ' : 'gen.as.together.possible'); }
-    else await S(item.q || (item.T === 360 ? 'gen.as.q.possQ' : 'gen.as.q.possible'));
+  make(spec) { const s = spec.degs.reduce((x, y) => x + y, 0), T = spec.tess || spec.degs.length === 4 ? 360 : 180; return { ...spec, sum: s, T, sfx: spec.tess ? 'T' : T === 360 ? 'Q' : '', want: s === T ? 'yes' : 'no', tag: spec.tess ? 'tess-fit' : spec.degs.length === 4 ? 'quad-possible' : 'tri-possible' }; },   /* tess: زوايا حول رأس واحد في البلاط (C339) */
+  async ask(item, mode, tries) { const svg = m3Stage(240), n = item.degs.length, xs = n === 3 ? [290, 180, 70] : Array.from({ length: n }, (_, i) => 318 - i * (276 / Math.max(1, n - 1))), g = el('g', {}, svg);
+    item.degs.forEach((d, i) => { const V = [xs[i] - (d > 90 ? 0 : 20), 140]; const w = wedgeAt(g, d, n >= 5 ? 22 : n === 4 ? 34 : 44, POLY_COL[i % POLY_COL.length]); w.setAttribute('transform', `translate(${V[0]} ${V[1]})`); degText(g, xs[i], 190, d, { size: n >= 5 ? 13 : 16, color: POLY_COL[i % POLY_COL.length] }); });
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${item.degs.join(' + ')} = ؟`; await S(item.sfx === 'T' ? 'gen.as.together.possT' : item.sfx === 'Q' ? 'gen.as.together.possQ' : 'gen.as.together.possTri'); }
+    else await S(item.q || (item.sfx === 'T' ? 'gen.as.q.possT' : item.sfx === 'Q' ? 'gen.as.q.possQ' : 'gen.as.q.possTri'));
     const k = await choosePick([['yes', labelText('yes'), PICKICON.yes, 'gen.opt.yes'], ['no', labelText('no'), PICKICON.no, 'gen.opt.no']], item.want); return { ans: k, ctx: { svg } }; },
-  judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.T === 180 && item.want === 'no' && item.degs.filter(d => d >= 90).length >= 2 ? 'twoBig' : item.T === 360 ? 'sumNot360' : 'sumNot180' }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.tess ? (item.want === 'no' ? 'tessAny' : 'tessMissed') : item.T === 180 && item.want === 'no' && item.degs.filter(d => d >= 90).length >= 2 ? 'twoBig' : item.T === 360 ? 'sumNot360' : 'sumNot180' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 40, labelText(item.T === 360 ? 'asSum360' : 'asSum180')); await S(item.T === 360 ? 'gen.as.hint.possQ' : 'gen.as.hint.possible'); }, async together() {},
-  async reveal(item, r) { if (r && r.ctx && r.ctx.svg) { const t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: item.want === 'yes' ? ARC.ok : '#c8392d', direction: 'ltr' }, r.ctx.svg); t.textContent = `${item.degs.join(' + ')} = ${item.sum}`; } await S((item.want === 'yes' ? 'gen.as.reveal.possYes' : 'gen.as.reveal.possNo') + (item.T === 360 ? 'Q' : '')); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 40, labelText(item.T === 360 ? 'asSum360' : 'asSum180')); await S(item.sfx === 'T' ? 'gen.as.hint.possT' : item.sfx === 'Q' ? 'gen.as.hint.possQ' : 'gen.as.hint.possTri'); }, async together() {},
+  async reveal(item, r) { if (r && r.ctx && r.ctx.svg) { const t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: item.want === 'yes' ? ARC.ok : '#c8392d', direction: 'ltr' }, r.ctx.svg); t.textContent = `${item.degs.join(' + ')} = ${item.sum}`; } await S((item.want === 'yes' ? 'gen.as.reveal.possYes' : 'gen.as.reveal.possNo') + item.sfx); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 /* ================= الختام ================= */
@@ -103,7 +103,7 @@ const POLY_COL = ['#e9894a', '#3d7cc0', '#4f9a6a', '#8e6bbf', '#c8392d', '#b9862
 const M3_SH = { tri: [[0, 0], [4, 0], [1.6, 3]], hex: [0, 1, 2, 3, 4, 5].map(i => [Math.cos(i * Math.PI / 3) * 2, Math.sin(i * Math.PI / 3) * 2]), sq: [[0, 0], [3, 0], [3, 3], [0, 3]],
   arrow: [[0, 0], [4, 1.6], [0, 3.2], [1.3, 1.6]], ell: [[0, 0], [3, 0], [3, 1], [1, 1], [1, 3], [0, 3]], kite: [[0, 0], [2, -1.2], [4, 0], [2, 2.6]], dart: [[0, 0], [2, 1], [4, 0], [2, 3]], gen: [[0, 0], [4, 0], [3.4, 2.6], [0.6, 2]], para: [[0, 0], [3.4, 0], [4.4, 2], [1, 2]], chev: [[0, 0], [2, 1.2], [4, 0], [4, 1.6], [2, 2.8], [0, 1.6]],
   trap: [[0, 0], [4, 0], [3, 2], [1, 2]], pent: [[0, 0], [3, 0], [3.8, 1.8], [1.5, 3], [-0.8, 1.8]], notch: [[0, 0], [4, 0], [4, 3], [2, 1.5], [0, 3]], boom: [[0, 0], [3.5, 0.6], [1.2, 1.2], [0.6, 3.4]],
-  zig: [[0, 0], [4, 0], [4, 2], [2.5, 1], [1.5, 2.5], [0, 1.5]], oct: [0, 1, 2, 3, 4, 5, 6, 7].map(i => [Math.cos((i + .5) * Math.PI / 4) * 2, Math.sin((i + .5) * Math.PI / 4) * 2]) };
+  zig: [[0, 0], [4, 0], [4, 2], [2.5, 1], [1.5, 2.5], [0, 1.5]], house: [[0, 0], [3, 0], [3, 2], [1.5, 3.2], [0, 2]], arrow6: [[0, 0], [3, 0], [3, 1.2], [4.4, 1.2], [1.5, 3.2], [-1.2, 1.2]], oct: [0, 1, 2, 3, 4, 5, 6, 7].map(i => [Math.cos((i + .5) * Math.PI / 4) * 2, Math.sin((i + .5) * Math.PI / 4) * 2]) };
 /* زوايا داخلية بالدرجات لرؤوسٍ عكس عقارب الساعة */
 const polyAng = pts => pts.map((V, i) => { const P = pts[(i + pts.length - 1) % pts.length], N = pts[(i + 1) % pts.length], d1 = Math.atan2(N[1] - V[1], N[0] - V[0]), d2 = Math.atan2(P[1] - V[1], P[0] - V[0]); return ((d2 - d1) * 180 / Math.PI % 360 + 360) % 360; });
 /* رباعي بزواياه الأربع (مجموعها 360) وضلعين أوّلين: يُغلق بالضلعين الباقيين */
@@ -170,3 +170,45 @@ ITEM.quadMissing = { ...numItem,
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 WRAP_ART.quadSum = svg => { const D = polyDraw(svg, quadFromAngles([85, 95, 110, 70]), [100, 40, 160, 150], { arcs: true }); geoLine(svg, D.P[0][0], D.P[0][1], D.P[2][0], D.P[2][1], { color: '#8e6bbf', w: 3, dash: '7 5' }); };
+
+/* =====================================================================
+   د3: تعميق (لا مثلث مقعّر، ومنعكسة واحدة على الأكثر في الرباعي)، والتبليط بالمضلّعات المنتظمة (C339)
+   ===================================================================== */
+/* ================= ⑤ ممكن أم مستحيل؟ (C301، C302، C161): cl عبارة من CLAIMS، ورسمها رمزٌ لا يكشف الجواب ================= */
+const CLAIMS = { tri2obt: ['tri', 0], tri2right: ['tri', 0], triConcave: ['tri', 0], quad2rfx: ['quad', 0], quad4obt: ['quad', 0], tri1obt: ['tri', 1], triRight: ['tri', 1], quad1rfx: ['quad', 1], quad3obt: ['quad', 1], quad4right: ['quad', 1] };
+ITEM.claimJudge = {
+  make(spec) { const [pic, ok] = CLAIMS[spec.cl]; return { ...spec, pic, want: ok ? 'yes' : 'no', tag: 'claim-' + (ok ? 'yes' : 'no') }; },
+  async ask(item, mode, tries) { const svg = m3Stage(230), g = el('g', {}, svg);
+    el('rect', { x: 40, y: 40, width: 280, height: 150, rx: 14, fill: '#fffdf6', stroke: css('--line'), 'stroke-width': 2 }, g);
+    el('path', { d: item.pic === 'tri' ? 'M150 112 L210 112 L186 64 Z' : 'M146 112 L214 112 L204 70 L156 78 Z', fill: '#fdf7e8', stroke: GEO.ink, 'stroke-width': 2.4, 'stroke-linejoin': 'round' }, g);
+    const t = el('text', { x: 180, y: 158, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: GEO.ink, direction: 'rtl' }, g); t.textContent = labelText('asC.' + item.cl);
+    if (tries >= 3) { const m = helpG(svg), h = el('text', { x: 180, y: 216, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, m); h.textContent = labelText(item.pic === 'tri' ? 'asSum180' : 'asSum360'); await S('gen.as.together.claim'); }
+    else { await S(item.q || 'gen.as.q.claim', { noGap: true }); await S('gen.as.c.' + item.cl, { append: true }); }
+    const k = await choosePick([['yes', labelText('asPossible'), PICKICON.yes, 'gen.as.possible'], ['no', labelText('asImpossible'), PICKICON.no, 'gen.as.impossible']], item.want); return { ans: k, ctx: { svg } }; },
+  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.want === 'no' ? 'claimYes' : 'claimNo' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 216, labelText(item.pic === 'tri' ? 'asSum180' : 'asSum360')); await S('gen.as.hint.claim'); }, async together() {},
+  async reveal(item) { await S('gen.as.why.' + item.cl); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
+/* ================= الإشعال: «مثلث مقعّر» لفوضى ================= */
+SCENES.concaveTriHook = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', {}, svg);
+  el('path', { d: 'M90 200 L270 200 L180 150 L200 70 Z', fill: '#fdf7e8', stroke: GEO.ink, 'stroke-width': 3, 'stroke-linejoin': 'round' }, g);   /* شكلٌ منبعج تسمّيه فوضى «مثلثاً» */
+  await S(L[0]); await axPredictNum(4, 'gen.as.pr.sides');
+  [[90, 200], [270, 200], [180, 150], [200, 70]].forEach(([x, y], i) => { badge(g, x, y - (i === 2 ? -16 : 16), i + 1, css('--think')); }); SFX.tick();
+  for (const l of L.slice(1)) await S(l); };
+/* ================= التبليط: نسخ مضلّع منتظم حول رأس واحد — تكمل الدورة أم يبقى فراغ؟ ================= */
+const regPoly = (V, n, s, rot) => { const P = [V], ext = 360 / n; let p = V, h = rot; for (let i = 0; i < n - 1; i++) { p = angP(p, h, s); P.push(p); h += ext; } return P; };
+SCENES.tessShow = async c => { const L = c.lines, rounds = c.rounds || [[3, 6], [4, 4], [6, 3], [5, 3]];
+  for (const [ri, [n, cnt]] of rounds.entries()) { const svg = m3Stage(262), V = [180, 132], s = n === 3 ? 62 : n === 4 ? 56 : n === 6 ? 46 : 52, ang = 180 - 360 / n, g = el('g', {}, svg);
+    el('circle', { cx: V[0], cy: V[1], r: 5, fill: '#c8392d' }, svg);
+    await S(L[2 * ri]);
+    if (n === 5) await axPredictYN('no', 'gen.as.pr.pentTile'); else await axPredictNum(cnt, 'gen.as.pr.tessCount');
+    let rot = 0; const total = n === 5 ? 4 : cnt; for (let k = 0; k < total; k++) { const over = n === 5 && k === 3, P = regPoly(V, n, s, rot);
+      const pg = el('polygon', { points: polyStr(P), fill: over ? '#f6b8b0' : POLY_COL[k % POLY_COL.length], 'fill-opacity': over ? .55 : .55, stroke: over ? '#c8392d' : GEO.ink, 'stroke-width': 2, 'stroke-dasharray': over ? '5 4' : null }, g);
+      anim(pg, [{ opacity: 0 }, { opacity: 1 }], { duration: 300 }); SFX.tick(); await sleep(FAST ? 10 : 350); rot += ang; }
+    if (n === 5) { const gap = el('path', { d: `M${V[0]} ${V[1]} L${angP(V, 3 * ang, 40)} A40 40 0 0 0 ${angP(V, 360, 40)} Z`, fill: '#c8392d', opacity: .35 }, svg); }
+    const t = el('text', { x: 180, y: 240, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: n === 5 ? '#c8392d' : ARC.ok, direction: 'ltr' }, svg); t.textContent = n === 5 ? '108 × 3 = 324 · 108 × 4 = 432' : `${ang} × ${cnt} = 360`;
+    await S(L[2 * ri + 1]); }
+  for (const l of L.slice(2 * rounds.length)) await S(l); };
+WRAP_ART.tessArt = svg => { const V = [180, 130]; for (let k = 0; k < 3; k++) el('polygon', { points: polyStr(regPoly(V, 6, 46, k * 120)), fill: ['#f2d38a', '#bfe0b5', '#c9dcf2'][k], stroke: GEO.ink, 'stroke-width': 2 }, svg); el('circle', { cx: V[0], cy: V[1], r: 5, fill: '#c8392d' }, svg); };
