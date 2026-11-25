@@ -338,3 +338,5 @@ html.lpause #confetti { visibility: hidden; }
 }
 @media (max-width: 340px) { #who { display: none; } #talk { grid-template-columns: 1fr; } .cover .talk { grid-template-columns: 64px 1fr; } .cover .talk .who { width: 64px; height: 74px; }
   .avatars { gap: 8px; } .av { min-height: 62px; padding: 4px; } }   /* صور الملف الأربع في 288 بكسلاً، لا تخرج عن الشاشة */
+/* خيار برمزه وحده (اسم الكسر سؤالُ البند): النصّ للقارئ الآلي فقط */
+.choices.symonly .pick > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -113,6 +113,8 @@ ITEM.fracColor = {
 ITEM.fracName = frItem({ tLine: 'gen.fr.together.nameF', hint: 'gen.fr.hint.nameF', rLine: 'gen.fr.reveal.nameF', sayQ: it => sayFrac(it.f), rSay: it => sayFrac(it.f),
   make: s => ({ want: s.f, tag: 'frac-name' }),
   opts: it => frOpts(it.f, [[it.f[1], it.f[0]]]),
+  /* الخيارات بالرمز وحده، بلا اسم مكتوب ولا مقروء (المراجع A لبوابة U8/U9، 10: كان يُحلّ بمطابقة الكلمة)، والاسم يُقال بعد الاختيار */
+  pick: it => choosePick(frOpts(it.f, [[it.f[1], it.f[0]]]).map(f => [frKey(f), `${f[0]}/${f[1]}`, fracIcon(f)]), frKey(it.want), { cls: 'symonly' }),
   draw(svg, item, tries) { const t = el('text', { x: 180, y: 110, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: FRC.ink }, svg); t.textContent = labelText('fr.' + item.f[0] + '.' + item.f[1]);
     if (tries >= 3) { const m = helpG(svg), t2 = el('text', { x: 180, y: 160, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think') }, m); t2.textContent = labelText('frDenIs') + ' ' + DG(item.f[1]) + ' · ' + labelText('frNumIs') + ' ' + DG(item.f[0]); } return {}; },
   errOf: (it, k) => { const [a, b] = frParse(k); return a === it.f[1] && b === it.f[0] ? 'fracFlip' : 'fracOff'; } });
