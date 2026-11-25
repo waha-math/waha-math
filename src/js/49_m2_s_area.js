@@ -179,6 +179,13 @@ function arSitAt(parent, k, x, y, s = 1) { const g = el('g', { transform: `trans
   else if (k === 'cake') { el('rect', { x: -60, y: -6, width: 120, height: 50, fill: '#e9a7b4' }, g); el('ellipse', { cx: 0, cy: 44, rx: 60, ry: 14, fill: '#e9a7b4' }, g); el('ellipse', { cx: 0, cy: -6, rx: 60, ry: 18, fill: '#fff3e0', stroke: '#e9c9a0', 'stroke-width': 2 }, g); for (const [cx, cy] of [[-28, -8], [0, -14], [26, -6], [6, 2]]) el('circle', { cx, cy, r: 5, fill: '#c8392d' }, g); }
   else if (k === 'paint') { el('rect', { x: -70, y: -50, width: 140, height: 100, fill: '#f6e7c8' }, g); el('rect', { x: -70, y: -50, width: 80, height: 100, fill: '#7fb6d9' }, g); el('rect', { x: 4, y: -20, width: 30, height: 12, rx: 3, fill: '#8a5a3a', transform: 'rotate(-30 20 -14)' }, g); }
   return g; }
+function paIcons(svg, item) { const m = helpG(svg), u = item.unit || 'cm';
+  [[304, 'p', 'arAroundIt', item.ask === 'unit' ? AR_U[u][0] : 'arPerim0'], [56, 'a', 'arCoversIt', item.ask === 'unit' ? AR_U[u][1] : 'arArea0']].forEach(([x, k, l1, l2]) => { const g = el('g', { 'pointer-events': 'none' }, m);
+    el('rect', { x: x - 32, y: 52, width: 64, height: 118, rx: 10, fill: '#fff', stroke: css('--think'), 'stroke-width': 2 }, g);
+    if (k === 'p') el('rect', { x: x - 17, y: 64, width: 34, height: 34, fill: 'none', stroke: css('--think'), 'stroke-width': 3.5, 'stroke-dasharray': '6 4' }, g);
+    else for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) el('rect', { x: x - 17 + i * 34 / 3, y: 64 + j * 34 / 3, width: 34 / 3, height: 34 / 3, fill: '#f2e0b8', stroke: css('--think'), 'stroke-width': 1.2 }, g);
+    [[l1, 124, 13], [l2, 152, 15]].forEach(([l, y, fs]) => { const t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, g); t.textContent = labelText(l); });
+    anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 300 }); }); }
 ITEM.pOrA = {
   make(spec) { const want = AR_SIT[spec.sit]; return { ...spec, want: spec.ask === 'unit' ? want + (spec.unit || 'cm') : want, tag: 'p-or-a-' + (spec.ask || 'kind') }; },
   async ask(item, mode, tries) { const svg = arStage(222); arSitAt(svg, item.sit, 180, 112, 1.1); const t = el('text', { x: 180, y: 200, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ink }, svg); t.textContent = labelText('ar.sit.' + item.sit);
@@ -187,7 +194,7 @@ ITEM.pOrA = {
     const k = await choosePick(opts, item.want); return { ans: k, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.ask === 'unit' ? (AR_SIT[item.sit] === 'a' ? 'unitSquare' : 'unitLen') : 'perimOrArea' }; },   /* سؤال الخطأ بنوع الموقف (المراجع A لبوابة U6/U7، 17 (و)) */
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.ar.hint.pa'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) paIcons(r.ctx.svg, item); await S('gen.ar.hint.pa'); }, async together() {},   /* المستوى الثاني: المعنيان مرسومان على جانبي الموقف (سورٌ يدور، وبلاطٌ يغطّي)، والحكم للطفل (المراجع B لبوابة U6/U7، 5) */
   async reveal(item) { await S('gen.ar.reveal.pa.' + AR_SIT[item.sit]); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -240,7 +247,7 @@ ITEM.sameCmp = {
     if (item.ask === 'area' && P(item[k]) > P(item[k === 'a' ? 'b' : 'a']) && Ar(item[k]) <= Ar(item[k === 'a' ? 'b' : 'a'])) return { ok: false, err: 'perimBigArea' };
     return { ok: false, err: 'sameOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.ar.hint.same'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg); [[item.a, 264], [item.b, 96]].forEach(([[w, h], cx]) => { const t = el('text', { x: cx, y: 34, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = item.ask === 'perim' ? `2 × (${w} + ${h}) = ؟` : `${w} × ${h} = ؟`; }); } await S('gen.ar.hint.same'); }, async together() {},   /* حساب كل أرض فوقها، والناتج للطفل */
   async reveal(item) { await S(`gen.ar.reveal.same.${item.ask}.${item.want}`); },
   praise: () => 'praiseCompare', twin(item) { return item.twin || null; },
 };
@@ -259,10 +266,13 @@ ITEM.rectDraw = {
     const kg = el('g', { role: 'grid', 'aria-label': labelText('geoGrid') }, svg); for (let u = rows; u >= 1; u--) { const row = el('g', { role: 'row' }, kg); for (let r = 1; r <= cols; r++) { const [x, y] = P(r, u), b = el('g', { role: 'gridcell', tabindex: 0, 'aria-label': `${DG(r)} × ${DG(u)}` }, row); el('circle', { cx: x, cy: y, r: 10, fill: 'transparent', 'pointer-events': 'none' }, b); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); set(r, u); } }; } }
     /*T*/window.__rdAt = (r, u) => { const m = svg.getScreenCTM(), [x, y] = P(r, u); return { x: m.a * x + m.e, y: m.d * y + m.f }; }; window.__rdWant = rdSol(item);/*/T*/
     AUTO({ kind: 'rectDraw', ok: () => { set(...rdSol(item)); rulDoneBtn().click(); }, wrong: () => { const [w, h] = rdSol(item); set(w + 1, h); rulDoneBtn().click(); } });
-    await rulDone(() => { input.off(); kg.remove(); }); const v = cur ? (item.need === 'dims' ? [...cur].sort((a, b) => a - b).join('x') : item.need === 'perim' ? 2 * (cur[0] + cur[1]) : cur[0] * cur[1]) : 0; return { ans: v, ctx: { svg, cur, set } }; },
+    await rulDone(() => { input.off(); kg.remove(); }); const v = cur ? (item.need === 'dims' ? [...cur].sort((a, b) => a - b).join('x') : item.need === 'perim' ? 2 * (cur[0] + cur[1]) : cur[0] * cur[1]) : 0; return { ans: v, ctx: { svg, cur, set, rd } }; },
   judge(item, v) { return v === item.want ? { ok: true } : { ok: false, err: item.need === 'perim' ? 'drawPerim' : item.need === 'dims' ? 'drawDims' : 'drawArea' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.need === 'perim' ? 'gen.ar.hint.drawP' : item.need === 'dims' ? 'gen.ar.hint.drawD' : 'gen.ar.hint.drawA'); }, async together() {},
+  async hint2(item, r) { const svg = r && r.ctx && r.ctx.svg; if (svg) { const { c, cols, rows, x0, y0 } = RD;   /* الطول والعرض معدودان على الحافتين، وللمحيط والمساحة علاقتهما بالقيمة المطلوبة */
+      if (item.need === 'dims') { const m = helpG(svg); for (let i = 1; i <= cols; i++) { const t = el('text', { x: x0 + i * c - c / 2, y: y0 + 26, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: css('--think') }, m); t.textContent = DG(i); } for (let j = 1; j <= rows; j++) { const t = el('text', { x: x0 - 22, y: y0 - j * c + c / 2 + 5, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: css('--think') }, m); t.textContent = DG(j); } }
+      else { if (r.ctx.rd) r.ctx.rd.setAttribute('y', 252); hintCard(svg, 180, 220, `${labelText(item.need === 'perim' ? 'arLplusW' : 'arLxW')} ${item.need === 'perim' ? item.val / 2 : item.val}`); } }
+    await S(item.need === 'perim' ? 'gen.ar.hint.drawP' : item.need === 'dims' ? 'gen.ar.hint.drawD' : 'gen.ar.hint.drawA'); }, async together() {},
   async reveal(item, r) { const [w, h] = rdSol(item); if (r && r.ctx && r.ctx.set) r.ctx.set(w, h); await S('gen.ar.reveal.draw', { noGap: true }); await S(numw(w), { num: true, append: true }); await S('gen.ar.andW', { noGap: true, append: true }); await S(numw(h), { num: true, append: true }); },
   praise: () => 'praiseNewWay', twin(item) { return item.twin || null; },
 };
@@ -273,7 +283,9 @@ ITEM.maxArea = {
   make(spec) { const half = spec.fence / 2, w = Math.floor(half / 2); return { ...spec, want: w * (half - w), tag: 'max-area' }; },
   async ask(item, mode, tries) { const svg = newStage(270, { oasis: false, ground: 0 }), half = item.fence / 2, g = el('g', {}, svg); let w = 1;
     const land = el('g', {}, g), dm = el('text', { x: 180, y: 32, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ink, direction: 'ltr' }, svg), rd = el('text', { x: 180, y: 58, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: ARC.ok, direction: 'rtl' }, svg), k = Math.min(150 / (half - 1), 18);
-    let reg = null; const draw = () => { land.innerHTML = ''; const h = half - w, x0 = 180 - w * k / 2, y0 = 146 - h * k / 2; el('rect', { x: x0, y: y0, width: w * k, height: h * k, fill: '#8fca7a', stroke: ARC.fence, 'stroke-width': 4 }, land); dm.textContent = `${w} × ${h}`; rd.textContent = NEUTRAL_ANS ? '' : `${labelText('arArea0')}: ${w * h}` + (item.m2 ? ` ${labelText('arM2')}` : ''); /*T*/window.__maxW = w; window.__maxWant = Math.floor(half / 2);/*/T*/ if (reg) reg(); };
+    let reg = null, hint = false; const draw = () => { land.innerHTML = ''; const h = half - w, x0 = 180 - w * k / 2, y0 = 146 - h * k / 2; el('rect', { x: x0, y: y0, width: w * k, height: h * k, fill: '#8fca7a', stroke: ARC.fence, 'stroke-width': 4 }, land);
+      if (hint) { for (let a = 1; a < w; a++) geoLine(land, x0 + a * k, y0, x0 + a * k, y0 + h * k, { color: '#5f9a4e', w: 1.2 }); for (let b = 1; b < h; b++) geoLine(land, x0, y0 + b * k, x0 + w * k, y0 + b * k, { color: '#5f9a4e', w: 1.2 }); }
+      dm.textContent = hint ? `${w} + ${h} = ${half}` : `${w} × ${h}`; dm.setAttribute('fill', hint ? css('--think') : ARC.ink); rd.textContent = NEUTRAL_ANS ? '' : `${labelText('arArea0')}: ${w * h}` + (item.m2 ? ` ${labelText('arM2')}` : ''); /*T*/window.__maxW = w; window.__maxWant = Math.floor(half / 2);/*/T*/ if (reg) reg(); };
     const btns = [-1, 1].map(d => { const b = el('g', { role: 'button', tabindex: 0, 'aria-label': plain(labelText(d < 0 ? 'stepLess' : 'stepMore')), style: 'cursor:pointer', 'data-step': d }, svg), x = d < 0 ? 44 : 316; el('circle', { cx: x, cy: 146, r: 26, fill: '#eef6fb', stroke: css('--compass'), 'stroke-width': 2.5 }, b); const t = el('text', { x, y: 156, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: css('--compass'), 'pointer-events': 'none' }, b); t.textContent = d < 0 ? '−' : '+'; hitPad(b, 64);
       const go = () => { w = Math.max(1, Math.min(half - 1, w + d)); SFX.tick(); draw(); }; b.onclick = go; b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); go(); } }; return b; });
     const ft = el('text', { x: 180, y: 258, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: ARC.fence, direction: 'rtl' }, svg); ft.textContent = `${labelText('arFence')} ${item.fence} ${labelText('lenM')}`;
@@ -283,10 +295,10 @@ ITEM.maxArea = {
     const t = Math.floor(half / 2), tap = b => b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     reg = () => AUTO({ kind: 'maxArea', ok: () => w === t ? rulDoneBtn().click() : tap(btns[w < t ? 1 : 0]), wrong: () => w === 1 ? rulDoneBtn().click() : tap(btns[0]) });
     const fin = rulDone(() => { reg = null; btns.forEach(b => { b.onclick = null; b.onkeydown = null; b.removeAttribute('role'); }); }); reg(); await fin;
-    return { ans: w * (half - w), ctx: { svg, set: v => { w = v; draw(); } } }; },
+    return { ans: w * (half - w), ctx: { svg, set: v => { w = v; draw(); }, hint: () => { hint = true; draw(); } } }; },
   judge(item, a) { return a === item.want ? { ok: true } : { ok: false, err: 'maxNotSquare' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.ar.hint.max'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.hint) r.ctx.hint(); await S('gen.ar.hint.max'); }, async together() {},   /* مربعات الأرض مرسومة، ومجموع الطول والعرض ثابت بطول السور */
   async reveal(item, r) { if (r && r.ctx && r.ctx.set) r.ctx.set(Math.floor(item.fence / 4)); await S('gen.ar.reveal.max'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
