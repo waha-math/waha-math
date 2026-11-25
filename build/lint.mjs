@@ -1125,7 +1125,7 @@ export function lint(content, js) {
   // 4ج5) أنماط تكشف الصحيح في بطاقات التعليل (مراجعة بوابة S2-U4/U5، 3)، في م2: (أ) في بنود «نعم/لا» لا يكون الصحيح القطبَ الوحيد (مشتّتٌ بقطبه بسبب خاطئ)؛
   //      (ب) «لِأَنَّ» في البطاقات الثلاث أو في لا شيء منها؛ (ج) لفظ مطلق (دائماً، أبداً، تماماً، فقط، مهما) لا يكون في المشتّتات وحدها
   { const plain = t => String(t || '').replace(/\{([^|{}]*)\|[^{}]*\}/g, '$1').replace(/[\u064B-\u0652\u0670]/g, '').trim();
-    const ABS = /دائما|أبدا|تماما|فقط|مهما/, POL = t => (/^(نعم|لا)\s*[:،]/.exec(t) || [])[1] || null, WHY = t => /(^|[\s،:؛])لأن/.test(t);
+    const ABS = /دائما|أبدا|تماما|فقط|مهما|يجب/, POL = t => (/^(نعم|لا)\s*[:،]/.exec(t) || [])[1] || null, WHY = t => /(^|[\s،:؛])لأن/.test(t);
     const walkP = (v, where, L) => { if (Array.isArray(v)) return v.forEach(x => walkP(x, where, L)); if (!v || typeof v !== 'object') return;
       if (v.t === 'reason' && Array.isArray(v.opts)) { const txt = id => plain((L.lines && L.lines[id]) || (content.gen.lines || {})[id] || ''), T = v.opts.map(o => ({ ok: !!o.ok, t: txt(o.id) })), ok = T.filter(o => o.ok), bad = T.filter(o => !o.ok);
         const P = T.map(o => POL(o.t)); if (P.every(Boolean) && ok.length === 1 && !bad.some(o => POL(o.t) === POL(ok[0].t))) errors.push(`${where}: في بند التعليل «${v.q}» الصحيح وحده «${POL(ok[0].t)}»: يُعرف بقطبه (4ج5 أ)`);
@@ -1133,6 +1133,13 @@ export function lint(content, js) {
         if (bad.some(o => ABS.test(o.t)) && !ok.some(o => ABS.test(o.t))) errors.push(`${where}: في بند التعليل «${v.q}» لفظ مطلق في المشتّتات وحدها (${bad.filter(o => ABS.test(o.t)).map(o => ABS.exec(o.t)[0]).join('، ')}) (4ج5 ج)`); }
       for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkP(x, where, L); };
     for (const L of Object.values(lessons)) if (/^m2\./.test(L.id)) walkP(L, L.id, L); }
+  // 4ج6) في كل وحدة من م2: الصحيح أطول البطاقات وحده (أو أقصرها وحده) في ثلث بنود التعليل على الأكثر (D266 (6)؛ المراجع A لبوابة U8/U9، 17)
+  { const U = {}; const walkU = (v, L) => { if (Array.isArray(v)) return v.forEach(x => walkU(x, L)); if (!v || typeof v !== 'object') return;
+      if (v.t === 'reason' && Array.isArray(v.opts) && v.opts.length > 2) { const txt = id => (L.lines && L.lines[id]) || (content.gen.lines || {})[id] || '', ok = v.opts.filter(o => o.ok).map(o => bare(txt(o.id))), bad = v.opts.filter(o => !o.ok).map(o => bare(txt(o.id)));
+        if (ok.length === 1 && bad.length) { const u = L.id.split('.').slice(0, 2).join('.'), r = U[u] = U[u] || { n: 0, long: 0, short: 0 }; r.n++; if (ok[0] > Math.max(...bad)) r.long++; if (ok[0] < Math.min(...bad)) r.short++; } }
+      for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkU(x, L); };
+    for (const L of Object.values(lessons)) if (/^m2\./.test(L.id)) walkU(L, L);
+    for (const [u, r] of Object.entries(U)) { if (r.long * 3 > r.n) errors.push(`${u}: الصحيح أطول بطاقات التعليل وحده في ${r.long} من ${r.n} بنود (الحدّ الثلث، 4ج6)`); if (r.short * 3 > r.n) errors.push(`${u}: الصحيح أقصر بطاقات التعليل وحده في ${r.short} من ${r.n} بنود (الحدّ الثلث، 4ج6)`); } }
   // 4ج2) وعلى مستوى التقييم كله (مراجعة الخصم A-13: في 6 من 10 بنود تعليل في الإتقان والاختبار كان الصحيح أطولَ البطاقات وحده، والطفل يسمعها فالأطول أطول زمناً):
   //      عدد بنود التعليل في التقييم (الإتقان ومشتبكه، والمراجعة، والاختبار) التي الصحيحُ فيها أطولُ البطاقات وحده لا يزيد على ثلثها (مقرَّباً إلى أعلى)، وكذلك أقصرها وحده
   { const R = []; const grab = (v, L, where) => { if (Array.isArray(v)) return v.forEach(x => grab(x, L, where)); if (!v || typeof v !== 'object') return;
