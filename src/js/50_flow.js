@@ -10,6 +10,9 @@ function show(id) { if (PAUSED) { hush(); resumeLesson(); $('#confetti').innerHT
 const progOf = id => (PROG[id] = isObj(PROG[id]) ? PROG[id] : {});
 
 /* حقيبة الدرس (D238): هل الأشياء معك؟ «معي» أو «على الشاشة». المسار على الشاشة يوسم الدرس «مدخل» */
+/* أجوبة اختبارٍ لم يُتمّ (P.trun): ما بقي من بنوده المعروفة والخطأ منها، لاختبار الوحدة وللمراجعة الختامية (D266 (2)) */
+function testRun(P, ids) { const known = new Set(ids), run = isObj(P.trun) ? P.trun : { a: [], w: [] };
+  run.a = (run.a || []).filter(id => known.has(id)); run.w = (run.w || []).filter(id => run.a.includes(id)); P.trun = run; return run; }
 async function bagStage(L) {
   const P = progOf(L.id); const B = L.bag;
   if (!B || B.screenOnly) { P.path = 'screen'; saveProg(); return; }
@@ -178,8 +181,7 @@ async function testStage(L) {
   introOnStage(T.intro || 'gen.test.intro');
   /* ما أُجيب من بنوده محفوظٌ بعد كل بند (P.trun): من خرج قبل آخره يُكمل من حيث ترك بأجوبته، ولو اختار «من البداية»؛ فلا يُعاد الاختبار
      في اليوم نفسه بالخروج قبل آخره (الفحص المستقل للقرارات، 2: كان الخارج قبل آخره يعيده كاملاً فوراً) */
-  const known = new Set(T.items.map(q => q.id)), run = isObj(P.trun) ? P.trun : { a: [], w: [] };
-  run.a = (run.a || []).filter(id => known.has(id)); run.w = (run.w || []).filter(id => run.a.includes(id)); P.trun = run;
+  const run = testRun(P, T.items.map(q => q.id));
   const order = (T.keepOrder ? T.items : shuffle(T.items)).filter(q => !run.a.includes(q.id)); let ok = run.a.length - run.w.length; const wrong = T.items.filter(q => run.w.includes(q.id));
   for (const q of order) { const r = await runItem(q.item, 'test', { scene: 'test' }); run.a.push(q.id); if (r.ok) { ok++; const Cs = LDATA[q.of] ? srsConcepts(LDATA[q.of]) : []; if (Cs.length === 1) maintCredit(q.of, Cs[0]); } else { wrong.push(q); run.w.push(q.id); } saveProg(); await sleep(700); }   // بند اختبار صحيح يُحسب صيانةً لمفهوم درسه إن كان له مفهوم واحد (R02)
   delete P.trun; const n = T.items.length, band = ok >= testNeed(n) ? 'pass' : ok >= supportNeed(n) ? 'support' : 'low';

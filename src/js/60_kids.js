@@ -2,6 +2,8 @@
    أطفال الجهاز (D200)، وأول تشغيل بلا قراءة (D246)، والمعرض وصيد الكاميرا (D201)
    ===================================================================== */
 /* غطاء بنصّ ظاهر يطابق المسموع (المبدأ 13): الأغطية تحجب فقاعة المرشد، فتحمل فقاعتها */
+/* صورةٌ حُفظت في الذاكرة وحدها (لا IndexedDB): يُنبَّه الكبير أنها لن تبقى، لصيد الأشكال ولمهمة البيت المصوّرة (مراجعة الخصم C-11) */
+function photoMemNote(sv) { if (sv === 'mem') { STORE_ISSUES.photoMem = true; try { onStoreIssue(); } catch (x) {} } }
 function cover(id, html) { const c = $('#' + id); c.innerHTML = html; delete c.dataset.ask; c.hidden = false; return c; }   /* وسؤاله المحفوظ (يُعاد عند ظهور الصفحة) يُمحى إذا أُعيد بناؤه */
 function coverSay(box, id) { box.dataset.ask = id; const p = box.querySelector('.coversay'); const [who, , text] = lineOf(id); if (p) p.textContent = G(text); return say(who, id, text, { cover: box }); }
 const coverHead = () => `<div class="talk"><div class="who">${compassSVG()}</div><div class="bubble"><span class="coversay" aria-live="polite"></span></div></div>`;
@@ -149,7 +151,7 @@ async function openGallery() {
       cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
       const sv = await IDB.put({ id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kid: KID, k: want, t: Date.now(), data: cv.toDataURL('image/jpeg', .72) });   // rng-ok: معرّف الصورة
       if (sv === 'tab') return;   /* فقد التبويب القفل أثناء الحفظ: لم تُحفظ، فلا احتفال ولا «حُفظت» (الفحص المستقل WM101-R1-02) */
-      if (sv === 'mem') { STORE_ISSUES.photoMem = true; try { onStoreIssue(); } catch (x) {} }   /* صيدٌ صحيح، والصورة في الذاكرة وحدها: يُقال للكبير إنها لن تبقى (مراجعة الخصم C-11) */
+      photoMemNote(sv);   /* صيدٌ صحيح، والصورة في الذاكرة وحدها: يُقال للكبير إنها لن تبقى (مراجعة الخصم C-11) */
       logAttempt({ scene: 'hunt', tag: want, ok: true }); SFX.win(); confetti(); await coverSay(c, 'gen.hunt.saved'); openGallery(); };
       img.onerror = () => { SFX.soft(); coverSay(c, 'gen.hunt.again'); };   /* ملفٌ ليس صورة أو تالف: يُقال له لا صمت (مراجعة الخصم X-09) */
       img.src = rd.result; }; rd.onerror = () => { SFX.soft(); coverSay(c, 'gen.hunt.again'); }; rd.readAsDataURL(f); };
