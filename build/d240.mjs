@@ -275,6 +275,15 @@ export const factOf = it => { const t = it.t;
   if (t === 'decCmp') return `deccmp|${[it.a.join(''), it.b.join('')].sort().join(',')}`;
   if (t === 'decOrder') return `deco|${it.vals.map(v => v.join('')).sort().join(',')}`;
   if (t === 'decCalc') return `decx|${it.a.join('')}|${it.op}|${it.b.join('')}`;
+  if (t === 'diagProp') return `dqp|${it.prop}|${it.k}|${it.p || ''}|${it.r || ''}|${it.th || ''}`;
+  if (t === 'diagJudge') return `dqj|${it.p}|${it.r}|${it.a || 8}|${it.b || 6}`;
+  if (t === 'diagHalf') return `dqh|${it.p}`;
+  if (t === 'diagBalance') return `dqb|${it.p}|${it.r}|${it.th || 64}|${it.s0 ?? 2}`;
+  if (t === 'diagPerp') return `dqpp|${it.p}|${it.r}|${it.s ?? .5}|${it.th0 ?? 50}`;
+  if (t === 'rhombAngle') return `rha|${it.ask}|${it.ang}`;
+  if (t === 'diagMake') return `dqm|${it.k}|${it.p || ''}|${it.r || ''}`;
+  if (t === 'quadNames') return `qnm|${it.k}`;
+  if (t === 'quadIs') return `qis|${it.k}|${it.as}`;
   if (t === 'estPick') return `est|${it.thing}`;
   if (t === 'trackDesign') return `track|${it.n || 4}`;
   /* S2-U7: المحيط والمساحة؛ الشكل على الشبكة بصفوفه، والمستطيل بطوليه (الشبكة لا تجعل السؤال جديداً) */
@@ -561,7 +570,7 @@ export function d240(lessons, code, MAKERS) {
     return out; };
   /* ما يرسمه المشهد بنفسه (لا من بياناته) من أشياء لها مولّد: عجلات العربتين في الإشعال، وبابا الزرافة. لكل مشهد في الكود سطر هنا (ولو فارغاً)، فلا يُضاف مشهد يرسم شيئاً دون أن يراه الفحص */
   const SCENE_DRAWS = { cartsRace: [['wheel', 'cls']], giraffeDoors: [['door', 'cls']] };
-  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
+  const SCENE_NONE = ['items', 'material', 'lines', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
     'bagFeel', 'pushLab', 'poses', 'faceLab', 'coneRoll', 'cylRoll', 'towersPredict', 'paperPush', 'stampLab', 'towerBuild', 'mosque', 'takeHook', 'facesCount', 'roomHunt', 'feelBox', 'shelvesWalk',
     'simonSays', 'lidCheck', 'chaosLid', 'queueBadge', 'queueSwap', 'trainOrdinals', 'chaosTrainBadge', 'ribbonHook', 'bodyMoves', 'robotIntro', 'chaosTurn', 'mapChaosHook', 'birdView', 'chaosSideDraw',
     'roadChaosHook', 'roadListen', 'roadCountChaos', 'chaosSkipBack', 'jumpChaosHook', 'roadRace', 'chaosSubForward', 'recallPic', 'queueOrdinals',   /* S1-U3: أشياؤها رسوم المواضع لا مولّدات */

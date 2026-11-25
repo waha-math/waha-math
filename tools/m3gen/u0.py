@@ -255,6 +255,9 @@ def walk(x):
             b=x['b']; c,r=b//10,b%10; add([b/10,'dcm']); add([c+r/100,'dcm']); add([(b+(-1 if r==9 else 1))/10,'dcm'])
         elif t=='decConv': add(x['v']); [add(v if i==0 else v[0]) for i,v in enumerate(x['ch'])]
         elif t=='decPointer': add([x['want']/10,'dcm'])
+        elif t=='diagHalf':   # S3-U2 (49_m3_b_diag.js): النصف، وقسمة كل رقم وحده أو قريبٌ منه، والقطر كله
+            mm=round(x['p']*10); want=mm/20; c=int(x['p']); r=mm%10; dig=c//2+(r//2)/10
+            add([want,'dcm']); add([x['p'],'dcm']); add([dig,'dcm'] if fmt(dig)!=fmt(want) else [mm/20+.5,'dcm'])
         elif t=='decCmp': add(x['a']); add(x['b'])
         elif t=='decOrder': [add(v) for v in x['vals']]
         elif t=='decCalc': [add(v if i==0 else v[0]) for i,v in enumerate(x['ch'])]
