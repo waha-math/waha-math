@@ -261,7 +261,7 @@
     {
      "t": "consOrder",
      "q": "pr.order",
-     "kind": "hex",
+     "kind": "flower",
      "shown": [
       2,
       1,

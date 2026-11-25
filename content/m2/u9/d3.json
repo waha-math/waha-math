@@ -85,7 +85,10 @@
   },
   {
    "s": "explore",
-   "scene": "lines",
+   "scene": "paraShow",
+   "ab": 6,
+   "ad": 4,
+   "deg": 60,
    "mat": {
     "prompt": "mat.01",
     "show": [],

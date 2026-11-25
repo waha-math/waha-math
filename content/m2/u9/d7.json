@@ -396,13 +396,11 @@
     "id": "t11",
     "of": "m2.u9.d5",
     "item": {
-     "t": "triExists",
-     "q": "q.tri",
-     "s": [
-      4,
-      5,
-      10
-     ]
+     "t": "sssBuild",
+     "q": "q.sss",
+     "base": 8,
+     "a": 6,
+     "b": 4
     }
    },
    {

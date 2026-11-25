@@ -63,6 +63,8 @@ G={
  "gen.cp.hint.order":"مَاذَا نَحْتَاجُ قَبْلَ أَنْ نَرْسُمَ القَوْسَيْنِ؟",
  "gen.cp.step.equi.ab":"نَرْسُمُ أ ب.","gen.cp.step.equi.open":"نَفْتَحُ الفِرْجَارَ بِطُولِ أ ب.","gen.cp.step.equi.arcs":"قَوْسٌ مِنْ أ وَقَوْسٌ مِنْ ب.","gen.cp.step.equi.join":"نَصِلُ أ ج وَب ج.",
  "gen.cp.step.sss.base":"نَرْسُمُ الضِّلْعَ الأَطْوَلَ.","gen.cp.step.sss.arc1":"قَوْسٌ بِالضِّلْعِ الثَّانِي مِنْ طَرَفٍ.","gen.cp.step.sss.arc2":"قَوْسٌ بِالضِّلْعِ الثَّالِثِ مِنَ الطَّرَفِ الآخَرِ.","gen.cp.step.sss.join":"نَصِلُ نُقْطَةَ الالْتِقَاءِ بِالطَّرَفَيْنِ.",
+ "gen.cp.pr.para":"أَيْنَ يَلْتَقِي الخَطَّانِ المُوَازِيَانِ؟ {اِلْمِسِ|اِلْمِسِي} المَكَانَ.",
+ "gen.cp.step.flower.circle":"نَرْسُمُ دَائِرَةً.","gen.cp.step.flower.mark":"نُعَلِّمُ عَلَيْهَا سِتَّ نُقَاطٍ بِفَتْحَةٍ ثَابِتَةٍ.","gen.cp.step.flower.arcs":"نَرْسُمُ قَوْسًا مِنْ كُلِّ نُقْطَةٍ.","gen.cp.step.flower.color":"نُلَوِّنُ أَوْرَاقَ الزَّهْرَةِ.",
  "gen.cp.step.hex.circle":"نَرْسُمُ دَائِرَةً.","gen.cp.step.hex.keep":"لَا نُغَيِّرُ فَتْحَةَ الفِرْجَارِ.","gen.cp.step.hex.mark":"نُعَلِّمُ سِتَّ نُقَاطٍ عَلَى الدَّائِرَةِ.","gen.cp.step.hex.join":"نَصِلُ النُّقَاطَ.",
  "gen.cp.step.copy.line":"نَرْسُمُ خَطًّا وَنُعَلِّمُ عَلَيْهِ ج.","gen.cp.step.copy.open":"نَفْتَحُ الفِرْجَارَ مِنْ أ إِلَى ب.","gen.cp.step.copy.move":"نَضَعُ المِسْمَارَ عَلَى ج دُونَ أَنْ نُغَيِّرَ الفَتْحَةَ.","gen.cp.step.copy.arc":"نَرْسُمُ قَوْسًا يَقْطَعُ الخَطَّ.",
  "gen.cp.step.circle.measure":"نَضْبِطُ الفَتْحَةَ عَلَى المِسْطَرَةِ.","gen.cp.step.circle.pin":"نُثَبِّتُ المِسْمَارَ فِي المَرْكَزِ.","gen.cp.step.circle.turn":"نُدِيرُ القَلَمَ دَوْرَةً كَامِلَةً.","gen.cp.step.circle.check":"نَقِيسُ القُطْرَ لِنَتَحَقَّقَ.",
@@ -98,7 +100,7 @@ LB={"cpWant":"المَطْلُوبُ:","cpDiff":"الفَرْقُ","cpDeg":"دَ
  "cp.task.len":"خَطٌّ 6 سم","cp.task.angle":"زَاوِيَةٌ 40 دَرَجَةً","cp.task.perp":"خَطٌّ عَمُودِيٌّ","cp.task.para":"خَطٌّ مُوَازٍ","cp.task.circle":"دَائِرَةٌ","cp.task.copy":"نَقْلُ طُولٍ",
  "cpStep.equi.ab":"القِطْعَةُ أ ب","cpStep.equi.open":"فَتْحَةٌ بِطُولِ أ ب","cpStep.equi.arcs":"قَوْسٌ مِنْ أ وَمِنْ ب","cpStep.equi.join":"وَصْلُ أ ج وَب ج",
  "cpStep.sss.base":"الضِّلْعُ الأَطْوَلُ","cpStep.sss.arc1":"قَوْسٌ مِنْ طَرَفٍ","cpStep.sss.arc2":"قَوْسٌ مِنَ الآخَرِ","cpStep.sss.join":"وَصْلُ الالْتِقَاءِ",
- "cpStep.hex.circle":"دَائِرَةٌ","cpStep.hex.keep":"الفَتْحَةُ ثَابِتَةٌ","cpStep.hex.mark":"سِتُّ نُقَاطٍ","cpStep.hex.join":"وَصْلُ النُّقَاطِ",
+ "cpStep.flower.circle":"دَائِرَةٌ","cpStep.flower.mark":"سِتُّ نُقَاطٍ","cpStep.flower.arcs":"قَوْسٌ مِنْ كُلِّ نُقْطَةٍ","cpStep.flower.color":"تَلْوِينٌ","cpStep.hex.circle":"دَائِرَةٌ","cpStep.hex.keep":"الفَتْحَةُ ثَابِتَةٌ","cpStep.hex.mark":"سِتُّ نُقَاطٍ","cpStep.hex.join":"وَصْلُ النُّقَاطِ",
  "cpStep.copy.line":"خَطٌّ عَلَيْهِ ج","cpStep.copy.open":"فَتْحَةٌ مِنْ أ إِلَى ب","cpStep.copy.move":"المِسْمَارُ عَلَى ج","cpStep.copy.arc":"قَوْسٌ يَقْطَعُ الخَطَّ",
  "cpStep.circle.measure":"الفَتْحَةُ عَلَى المِسْطَرَةِ","cpStep.circle.pin":"المِسْمَارُ فِي المَرْكَزِ","cpStep.circle.turn":"القَلَمُ يَدُورُ","cpStep.circle.check":"قِيَاسُ القُطْرِ",
  "homeDates":"حَبَّاتٌ","homeSegs":"فُصُوصٌ","homeDen":"المَقَامُ"}

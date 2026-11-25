@@ -211,7 +211,7 @@ d3={"id":"m2.u9.d3","title":"مُضَلَّعَاتٌ بِزَوَايَا مَ�
  "labels":{"bagProt":"مِنْقَلَةٌ","bagRuler":"مِسْطَرَةٌ"},"lines":L_3,
  "flow":[
   {"s":"hook","scene":"sasShow","ab":6,"ac":5,"deg":50,"lines":["sa.01","sa.02","sa.03","sa.04"]},
-  {"s":"explore","scene":"lines","mat":MAT(),"lines":["pq.01","pq.02"]},
+  {"s":"explore","scene":"paraShow","ab":6,"ad":4,"deg":60,"mat":MAT(),"lines":["pq.01","pq.02"]},
   {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(sas(5,4,90),sas(6,5,40)), tw(sas(6,4,120),sas(5,5,60))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
@@ -401,7 +401,7 @@ d6={"id":"m2.u9.d6","title":"زَخْرَفَةُ القَصْرِ","icon":["cpf
  "chaos":{"kind":"scene","scene":"chaosItem","item":hx(5,q='pr.hex'),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
    "C241":[hx(3,q='pr.hex'), hs(5), reason("ms.1",{"kind":"cphex"},["ms.1a","ms.1b","ms.1c"])],
-   "C242":[fa('pairs'), fa('half'), co('hex',[2,1,3,0])]},
+   "C242":[fa('pairs'), fa('half'), co('flower',[2,1,3,0])]},
   "recall":{"C241":{"scene":"recallComp","hex":True,"lines":["ms.recall"]},"C242":{"scene":"recallComp","hex":True,"lines":["ms.recall2"]}},
   "remedial":{"C241":[tw(hs(3),hx(8))],"C242":[tw(fa('skip'),fa('quad'))]},
   "mixed":{"lesson":"m2.u9.d5","concept":"C240","item":te([6,6,3])},
@@ -469,7 +469,7 @@ d7={"id":"m2.u9.d7","title":"حَارِسُ القَصْرِ الأَخِيرُ"
    T(3,2,ss('perp',11,q='q.perp')), T(4,2,ss('para',2,q='q.para')), T(5,2,rdim(9,4,q='q.rectD')),
    T(6,3,sas(6,5,70,q='q.sas')), T(7,3,pc([1,1],[5,2],[2,4],q='q.paraC')),
    T(8,4,rdd(20,q='q.rad')), T(9,4,cdr(5,q='q.cdR')),
-   T(10,5,sss(8,8,8,q='q.sss')), T(11,5,te([4,5,10],q='q.tri')),
+   T(10,5,sss(8,8,8,q='q.sss')), T(11,5,sss(8,6,4,q='q.sss')),
    T(12,6,hx(10,q='q.hex')),
    T(13,4,reason("ts.13",{"kind":"cpcirc","d":8},["ts.13a","ts.13b","ts.13c"])),
    T(14,5,reason("ts.14",{"kind":"cptri","s":[3,4,8]},["ts.14a","ts.14b","ts.14c"]))]},

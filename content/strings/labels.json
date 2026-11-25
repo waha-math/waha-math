@@ -787,6 +787,10 @@
   "lenTool.ruler": "مِسْطَرَةٌ",
   "lenTool.tape": "شَرِيطُ قِيَاسٍ",
   "lenTool.car": "عَدَّادُ السَّيَّارَةِ",
-  "lenToolRule": "طُولُ المِسْطَرَةِ: 30 سم"
+  "lenToolRule": "طُولُ المِسْطَرَةِ: 30 سم",
+  "cpStep.flower.circle": "دَائِرَةٌ",
+  "cpStep.flower.mark": "سِتُّ نُقَاطٍ",
+  "cpStep.flower.arcs": "قَوْسٌ مِنْ كُلِّ نُقْطَةٍ",
+  "cpStep.flower.color": "تَلْوِينٌ"
  }
 }
