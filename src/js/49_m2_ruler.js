@@ -52,15 +52,18 @@ const rulNear = (w, ...alts) => { const out = [w]; for (const a of [...alts, w +
 /* ================= ① اقرأ الطول على المسطرة (C181 من الصفر؛ C183 من غير الصفر أو بمسطرة مكسورة)
    b نهاية الشيء، a بدايته (0)، brk: المسطرة مكسورة وتبدأ من brk، thing نوع الشيء ================= */
 ITEM.rulerRead = { ...numItem,
-  make(spec) { const a = spec.a || 0, w = spec.b - a, from = spec.brk || 0; return { ...spec, a, from, want: w, nums: a ? rulNear(w, spec.b, w + 1) : rulNear(w, w + 1, w - 1), tag: a ? (spec.brk ? 'ruler-broken' : 'ruler-diff') : 'ruler-read' }; },
+  make(spec) { const a = spec.a || 0, w = spec.b - a, from = spec.brk || 0;
+    /* inMm: القراءة ثم التحويل إلى الملّيمتر (الختامي: «قراءة المسطرة وتحويل الوحدات»، المراجع A لبوابة U8/U9، 22)؛ المشتّتان: نسي التحويل، وعامل 100 */
+    if (spec.inMm) return { ...spec, a, from, w, want: w * 10, nums: [w * 10, w, w * 100], tag: 'ruler-mm' };
+    return { ...spec, a, from, want: w, nums: a ? rulNear(w, spec.b, w + 1) : rulNear(w, w + 1, w - 1), tag: a ? (spec.brk ? 'ruler-broken' : 'ruler-diff') : 'ruler-read' }; },
   draw(item, svg, tries) { const to = Math.max(item.from + 10, item.b + 1), R = rulerAt(svg, { x: 30, y: 128, pxcm: 300 / (to - item.from), from: item.from, to, mm: false, broken: !!item.brk }); rulThingAt(svg, item.thing || 'pencil', R.X(item.a), R.X(item.b), 126, item.color);
     for (const v of [item.a, item.b]) el('line', { x1: R.X(v), y1: 96, x2: R.X(v), y2: 128, stroke: css('--compass'), 'stroke-width': 1.6, 'stroke-dasharray': '3 3', 'pointer-events': 'none' }, svg); return R; },
   async ask(item, mode, tries) { const svg = newStage(214, { oasis: false, ground: 0 }), R = this.draw(item, svg, tries); let hops = null;
     if (tries >= 3) { await S('gen.rul.together.read'); hops = await rulerHops(svg, R, item.a, item.b, { silent: true }); }   /* الحلّ المشترك: القفزات مرسومة، والعدّ للطفل */
     else await S(item.q); const np = numberPick(shuffle(item.nums), item.want, { digits: true, west: true }); return { ans: await np.p, ctx: { svg, np, R, hops } }; },
-  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.a && k === item.b ? 'rulerEnd' : k === item.want + 1 ? 'rulerLines' : 'rulerWrong' }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; if (item.inMm) return { ok: false, err: k === item.w ? 'convDir' : 'convFactor' }; return { ok: false, err: item.a && k === item.b ? 'rulerEnd' : k === item.want + 1 ? 'rulerLines' : 'rulerWrong' }; },
   async hint2(item, r) { const m = await rulerHops(r.ctx.svg, r.ctx.R, item.a, item.b, { silent: true, ms: 260 }); await sleep(700); m.remove(); }, async together() {},
-  async reveal(item, r) { if (!r.ctx.hops) await rulerHops(r.ctx.svg, r.ctx.R, item.a, item.b); await sayLen(item.want); },
+  async reveal(item, r) { if (!r.ctx.hops) await rulerHops(r.ctx.svg, r.ctx.R, item.a, item.b); await sayLen(item.want, item.inMm ? 'mm' : 'cm'); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
 
@@ -189,7 +192,7 @@ ITEM.rulerMm = { ...numItem,
   hops(item, svg, D) { const m = helpG(svg), Z = D.Ln.Z; for (let i = 0; i < item.mm; i++) { const x1 = Z.X(item.cm + i / 10), x2 = Z.X(item.cm + (i + 1) / 10); el('path', { d: `M${x1} ${D.Ln.yr - 16} Q${(x1 + x2) / 2} ${D.Ln.yr - 30} ${x2} ${D.Ln.yr - 16}`, fill: 'none', stroke: css('--compass'), 'stroke-width': 2.4 }, m); } Z.mark(item.cm); return m; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.ask === 'mm' && k === item.cm ? 'mmAsCm' : item.ask === 'near' ? 'nearWrong' : 'mmReadWrong' }; },
   async hint2(item, r) { const m = this.hops(item, r.ctx.svg, r.ctx.D); await sleep(1300); m.remove(); }, async together() {},
-  async reveal(item, r) { if (!r.ctx.hops) this.hops(item, r.ctx.svg, r.ctx.D); await sayLen(item.cm, 'cm', { noGap: true }); await S('gen.rul.and', { noGap: true, append: true }); await sayLen(item.mm, 'mm'); if (item.ask === 'near') { await S('gen.rul.reveal.near'); await sayLen(item.want); } },
+  async reveal(item, r) { if (!r.ctx.hops) this.hops(item, r.ctx.svg, r.ctx.D); await sayLen(item.cm, 'cm', { noGap: true }); await S('gen.rul.and', { noGap: true, append: true }); await sayLen(item.mm, 'mm', { sep: '' }); if (item.ask === 'near') { await S('gen.rul.reveal.near'); await sayLen(item.want); } },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
 
@@ -204,7 +207,7 @@ ITEM.drawLen = {
     const set = n => { v = Math.max(5, Math.min(100, Math.round(n))); const x = R.X(v / 10); line.setAttribute('x2', x); tip.setAttribute('transform', `translate(${x} ${y - 10})`); if (Ln) Ln.remove(); Ln = rulerLens(svg, R, v / 10, { y: 8, cx: 180 }); el('line', { x1: Ln.Z.X(v / 10 - 3), y1: Ln.yr - 8, x2: Ln.Z.X(v / 10), y2: Ln.yr - 8, stroke: RUL.ink, 'stroke-width': 5, 'stroke-linecap': 'round', 'clip-path': Ln.g.children[2].getAttribute('clip-path') }, Ln.g); /*T*/window.__drawV = v;/*/T*/ }; set(v);
     /* الطول المطلوب مكتوب على المسرح ومنطوق: «ارسم خطاً طوله» ثم العدد ووحدته (والسؤال يُعاد بزرّ الإعادة) */
     { const g = el('g', { 'pointer-events': 'none' }, svg); const t = el('text', { x: 180, y: 262, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 700, fill: RUL.ink }, g); t.textContent = item.cm + ' ' + labelText('rulCm') + (item.mm ? '  ' + item.mm + ' ' + labelText('rulMm') : ''); }
-    let done = false; const askQ = async () => { await S(tries >= 3 ? 'gen.rul.together.draw' : (item.q || 'gen.rul.drawQ'), { noGap: true }); await sayLen(item.cm, 'cm', item.mm ? { noGap: true } : {}); if (item.mm) { await S('gen.rul.and', { noGap: true, append: true }); await sayLen(item.mm, 'mm'); } };
+    let done = false; const askQ = async () => { await S(tries >= 3 ? 'gen.rul.together.draw' : (item.q || 'gen.rul.drawQ'), { noGap: true }); await sayLen(item.cm, 'cm', item.mm ? { noGap: true } : {}); if (item.mm) { await S('gen.rul.and', { noGap: true, append: true }); await sayLen(item.mm, 'mm', { sep: '' }); } };
     askQ(); REPLAY_HOOK = () => askQ(); REPLAY_HOOK.live = () => !done && svg.isConnected;
     const input = fingerInput(svg, { map: e => { const q = svgPoint(svg, e); return [q.x, q.y]; }, down(q) { if (q[1] < y - 50 || q[1] > y + RUL_H + 6) return false; set((q[0] - R.X(0)) / 3); }, move(q) { set((q[0] - R.X(0)) / 3); }, up() {} });
     /*T*/window.__drawWant = item.want; window.__drawAt = n => { const m = svg.getScreenCTM(); return { x: m.a * R.X(n / 10) + m.e, y: m.d * (y - 10) + m.f }; };/*/T*/
@@ -213,7 +216,7 @@ ITEM.drawLen = {
   judge(item, v) { return Math.abs(v - item.want) <= 1 ? { ok: true } : { ok: false, err: item.mm && Math.abs(v - item.cm * 10) <= 1 ? 'drawNoMm' : 'drawOff' }; },
   onOk(item, r) { SFX.good(); r.ctx.set(item.want); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { r.ctx.R.mark(item.cm); await sleep(900); }, async together() {},
-  async reveal(item, r) { const a = r.ans; await symTween(700, t => r.ctx.set(a + (item.want - a) * t)); r.ctx.set(item.want); await sayLen(item.cm, 'cm', item.mm ? { noGap: true } : {}); if (item.mm) { await S('gen.rul.and', { noGap: true, append: true }); await sayLen(item.mm, 'mm'); } },
+  async reveal(item, r) { const a = r.ans; await symTween(700, t => r.ctx.set(a + (item.want - a) * t)); r.ctx.set(item.want); await sayLen(item.cm, 'cm', item.mm ? { noGap: true } : {}); if (item.mm) { await S('gen.rul.and', { noGap: true, append: true }); await sayLen(item.mm, 'mm', { sep: '' }); } },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
 
@@ -257,7 +260,7 @@ SCENES.cardSteps = async c => { const svg = newStage(250, { oasis: false, ground
 /* الرسم بطول معلوم مع فرجار: يسحب الطفل طرف الخط حتى الطول المطلوب. c: cm، mm، lines: [الدعوة، بعد] */
 SCENES.drawShow = async c => { const [l1, l2] = c.lines, it = ITEM.drawLen.make({ cm: c.cm, mm: c.mm, q: l1, start: c.start }); let n = 0;
   while (true) { const r = await ITEM.drawLen.ask(it, 'explore', n >= 2 ? 3 : 0), ok = ITEM.drawLen.judge(it, r.ans).ok; logAttempt({ scene: c.s || 'explore', tag: 'drawShow', ok, firstTry: n === 0 }); n++; if (ok) { ITEM.drawLen.onOk(it, r); break; } SFX.soft(); await S('gen.rul.drawAgain'); }
-  await sayLen(c.cm, 'cm', c.mm ? { noGap: true } : {}); if (c.mm) { await S('gen.rul.and', { noGap: true, append: true }); await sayLen(c.mm, 'mm'); } await S(l2); };
+  await sayLen(c.cm, 'cm', c.mm ? { noGap: true } : {}); if (c.mm) { await S('gen.rul.and', { noGap: true, append: true }); await sayLen(c.mm, 'mm', { sep: '' }); } await S(l2); };
 /* الخيط: طريق منحنٍ، يلمسه الطفل فيُفرد على المسطرة. c: len، span، lines: [الدعوة، بعد] */
 SCENES.stringShow = async c => { const svg = newStage(250, { oasis: false, ground: 0 }), R = rulerAt(svg, { x: 30, y: 176, pxcm: 30, from: 0, to: 10, mm: false }), St = stringAt(svg, R, c.len, c.span, 84), [l1, l2] = c.lines;
   const hot = el('g', { role: 'button', tabindex: 0, style: 'cursor:pointer' }, svg); el('rect', { x: 26, y: 30, width: St.W0 + 8, height: 108, rx: 12, fill: '#fff', opacity: .01 }, hot);

@@ -128,7 +128,7 @@ function speakNow(who, id, text, opt = {}) {
   const bubble = opt.cover ? opt.cover.querySelector('.coversay') : $('#say');
   if (!opt.cover) { $('#who').innerHTML = CHAR[who](); $('#bubble').classList.toggle('chaos', who === 'chaos'); $('#bubble').classList.toggle('hidetext', !!opt.hideText); }
   let words = [];   /* كلمات الجملة في الفقاعة، يتلوّن منها ما يُقرأ الآن (D270) */
-  if (bubble && !opt.keep && !opt.num) { if (opt.hideText) bubble.textContent = '؟'; else words = fillBubble(bubble, text, opt.append && bubble.textContent ? (opt.sep || ' ') : null); }   /* append: تتمة السؤال (العدد بعد «حتى يصير:») تُضاف إلى نصّه؛ وsep فاصلها إن بدأت جملة جديدة */
+  if (bubble && !opt.keep && !opt.num) { if (opt.hideText) bubble.textContent = '؟'; else words = fillBubble(bubble, text, opt.append && bubble.textContent ? (opt.sep != null ? opt.sep : ' ') : null); }   /* append: تتمة السؤال (العدد بعد «حتى يصير:») تُضاف إلى نصّه؛ وsep فاصلها إن بدأت جملة جديدة */
   if (!opt.cover && !opt.keep && !opt.num) { const sy = $('#say'); if (sy) { sy.scrollTop = 0; bubbleMore(); } }
   const talk = $('#talk'); talk.classList.add('speaking');
   const full = (id.startsWith('gen.') ? id : (CUR ? CUR.id : 'm1.u1') + '.' + id) + gSuffix(raw);

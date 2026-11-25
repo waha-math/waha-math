@@ -56,7 +56,7 @@ ITEM.accCheck = cpItem({ tLine: 'gen.cp.together.acc', hint: 'gen.cp.hint.acc', 
   draw(svg, item, tries) { const lab = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg);
     if (item.kind === 'ang') { lab.textContent = `${labelText('cpWant')} ${item.aim} ${labelText('cpDeg')}`; const V = [180, 196]; protAt(svg, V, 0, { R: 128 }); angleAt(svg, V, 0, item.drawn, { arc: 'in', l1: 150, l2: 150 });
       if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 222, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: css('--think') }, m); t.textContent = `${item.drawn} ${labelText('cpDeg')} · ${labelText('cpWant')} ${item.aim}`; } }   /* الحلّ المشترك يكتب القيمتين ويترك الفرق للطفل (المراجع A لبوابة U8/U9، 16 (أ)) */
-    else { const cm = Math.floor(item.aim / 10), mm = item.aim % 10; lab.textContent = `${labelText('cpWant')} ${cm} ${labelText('rulCm')}` + (mm ? ` ${labelText('homeAnd')} ${mm} ${labelText('rulMm')}` : ''); const R = rulerAt(svg, { x: 34, y: 132, pxcm: 30, from: 0, to: 10, mm: true }); geoLine(svg, R.X(0), 120, R.X(item.drawn / 10), 120, { color: RUL.ink, w: 4 });
+    else { const cm = Math.floor(item.aim / 10), mm = item.aim % 10; lab.textContent = `${labelText('cpWant')} ${cm} ${labelText('rulCm')}` + (mm ? ` ${labelText('homeAnd')}${mm} ${labelText('rulMm')}` : ''); const R = rulerAt(svg, { x: 34, y: 132, pxcm: 30, from: 0, to: 10, mm: true }); geoLine(svg, R.X(0), 120, R.X(item.drawn / 10), 120, { color: RUL.ink, w: 4 });
       if (tries >= 3) { const m = helpG(svg); geoLine(m, R.X((item.aim - 1) / 10), 98, R.X((item.aim - 1) / 10), 126, { color: css('--think'), w: 2.4, dash: '4 3' }); geoLine(m, R.X((item.aim + 1) / 10), 98, R.X((item.aim + 1) / 10), 126, { color: css('--think'), w: 2.4, dash: '4 3' }); el('rect', { x: R.X((item.aim - 1) / 10), y: 100, width: R.X(.2) - R.X(0), height: 10, fill: css('--think'), opacity: .25 }, m); } }
     return {}; },
   pick: item => yesNo(item.want),
@@ -222,7 +222,7 @@ ITEM.sssBuild = {
       rd.textContent = `${labelText('cpArcA')} ${V.r1} · ${labelText('cpArcB')} ${V.r2} ${labelText('rulCm')}`; /*T*/window.__sssCur = [V.r1, V.r2];/*/T*/ };
     redraw({ r1: 2, r2: 2 });
     if (tries >= 3) { const m = helpG(svg); el('circle', { cx: A[0], cy: A[1], r: item.a * CM, fill: 'none', stroke: css('--think'), 'stroke-width': 1.6, 'stroke-dasharray': '5 5' }, m); }
-    await S(tries >= 3 ? 'gen.cp.together.sss' : item.q, { noGap: true }); await sayLen(item.a, 'cm'); await S('gen.cp.and', { noGap: true, append: true }); await sayLen(item.b, 'cm');
+    await S(tries >= 3 ? 'gen.cp.together.sss' : item.q, { noGap: true }); await sayLen(item.a, 'cm'); await S('gen.cp.and', { noGap: true, append: true }); await sayLen(item.b, 'cm', { sep: '' });   /* «وَ» موصولة بما بعدها (المراجع A لبوابة U8/U9، 23 (ج)) */
     const v = await stepperAsk([{ key: 'r1', min: 1, max: 9, val: 2, unit: 'rulCm' }, { key: 'r2', min: 1, max: 9, val: 2, unit: 'rulCm' }], { kind: 'sss', onChange: redraw, bare: true, auto: { ok: { r1: item.a, r2: item.b }, wrong: { r1: item.a, r2: item.a === item.b ? item.b + 1 : item.a } } });
     return { ans: [v.r1, v.r2].sort().join(','), ctx: { svg, redraw } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: !(item.a === item.base && item.b === item.base) && k.split(',').map(Number).some(x => x === item.base) ? 'sssBase' : 'sssOff' }; },

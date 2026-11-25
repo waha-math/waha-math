@@ -16,7 +16,7 @@ function homeBars(svg, it) { const k = 10, x0 = 30, g = el('g', {}, svg), R = ru
   for (const v of Object.keys(R.labels)) if (v % 5) R.labels[v].setAttribute('opacity', 0);
   /* فوق كل شريط اسمه وعدده (بأرقام المسطرة)، فلا يُبحث عن التسمية بعيداً عنه */
   const bar = (y, len, col, key, txt) => { el('rect', { x: x0, y, width: Math.max(2, len * k), height: 16, rx: 4, fill: col, opacity: .9 }, g); const e = el('text', { x: x0, y: y - 6, 'text-anchor': 'end', 'font-size': 14, 'font-weight': 700, fill: css('--ink'), direction: 'rtl' }, g); e.textContent = labelText(key) + ': ' + txt; };
-  bar(74, it.est, css('--think'), 'homeEst', it.est + ' ' + labelText('rulCm')); bar(120, it.cm + it.mm / 10, css('--compass'), 'homeMeas', it.cm + ' ' + labelText('rulCm') + (it.mm ? ' ' + labelText('homeAnd') + ' ' + it.mm + ' ' + labelText('rulMm') : '')); return g; }
+  bar(74, it.est, css('--think'), 'homeEst', it.est + ' ' + labelText('rulCm')); bar(120, it.cm + it.mm / 10, css('--compass'), 'homeMeas', it.cm + ' ' + labelText('rulCm') + (it.mm ? ' ' + labelText('homeAnd') + it.mm + ' ' + labelText('rulMm') : '')); return g; }
 /* c: unit (الوحدة صاحبة المهمة)، n (عدد الأشياء، 3)، cup (يُسأل عن خيط الكوب)، again (سؤال المراجعة: شيء واحد يُقاس من جديد)، lines: [خطّاف العودة] */
 SCENES.homeMeasure = async c => { const unit = c.unit, n = c.n || 3, H = PROG.home = isObj(PROG.home) ? PROG.home : {}, [back] = c.lines; let rec = H[unit];
   /* again: سؤال «بعد أسبوع» (شيء واحد يُقاس من جديد، وأين وُضع الصفر). يُسأل متى مضت سبعة أيام على إدخال المهمة، في أول درس يحمله بعدها؛
@@ -28,7 +28,7 @@ SCENES.homeMeasure = async c => { const unit = c.unit, n = c.n || 3, H = PROG.ho
   await S(again ? 'gen.home.askAgain' : 'gen.home.ask'); const cp = cardPick([{ id: 'gen.home.yes', k: 'yes', ok: true }, { id: 'gen.home.no', k: 'no' }], { keepOrder: true, intro: again ? 'gen.home.askAgain' : 'gen.home.ask' }), pick = await cp.p; cp.done(); cp.box.remove();
   if (pick.k === 'no') { logAttempt({ scene: c.s || 'hook', tag: 'homeLater', ok: true }); await S('gen.home.later'); if (back && !c.quiet) await S(back); return; }
   if (again) { const svg = newStage(230, { oasis: false, ground: 0 }); rulerAt(svg, { x: 30, y: 96, pxcm: 30, from: 0, to: 10, mm: false }); S('gen.home.measQ', { free: true }); const v = await stepperAsk([{ key: 'cm', min: 0, max: 30, val: 10, unit: 'rulCm' }, { key: 'mm', min: 0, max: 9, val: 0, unit: 'rulMm' }]);
-    if (v.cm || !v.mm) await sayLen(v.cm, 'cm', { append: false, ...(v.mm ? { noGap: true } : {}) }); if (v.mm) { if (v.cm) await S('gen.rul.and', { noGap: true, append: true }); await sayLen(v.mm, 'mm', v.cm ? {} : { append: false }); }   /* بلا «صفر سنتيمترات» */
+    if (v.cm || !v.mm) await sayLen(v.cm, 'cm', { append: false, ...(v.mm ? { noGap: true } : {}) }); if (v.mm) { if (v.cm) await S('gen.rul.and', { noGap: true, append: true }); await sayLen(v.mm, 'mm', { sep: '', ...(v.cm ? {} : { append: false }) }); }   /* بلا «صفر سنتيمترات» */
     await S('gen.home.zeroQ'); const zp = cardPick([{ id: 'gen.home.zeroA', k: 'start', ok: true }, { id: 'gen.home.zeroB', k: 'edge' }], { intro: 'gen.home.zeroQ' }), z = await zp.p; zp.done(); zp.box.remove();
     rec.again = { cm: v.cm, mm: v.mm, zero: z.k }; saveProg(); logAttempt({ scene: c.s || 'hook', tag: 'homeAgain', ok: z.k === 'start' }); await S('gen.home.zeroSay'); if (back && !c.quiet) await S(back); return; }
   const items = [];
