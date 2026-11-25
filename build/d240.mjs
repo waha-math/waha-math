@@ -313,11 +313,11 @@ export const factOf = it => { const t = it.t;
   if (t === 'sasBuild') return `sas|${it.ab}|${it.ac}|${it.deg}`;
   if (t === 'paraComplete') return `pc|${it.a}|${it.b}|${it.d}`;
   if (t === 'circPart') return it.part === 'center' ? 'cpp|center' : `cpp|${it.part}|${it.rot ?? (it.part === 'radius' ? 35 : 160)}`;
-  if (t === 'radDia') return it.r ? `crd|r${it.r}` : `crd|d${it.d}`;
-  if (t === 'compassDraw') return it.r ? `cd|r${it.r}` : `cd|d${it.d}`;
+  if (t === 'radDia') return it.r ? `dbl|${it.r}` : `half|${it.d}`;   /* بحسابها: «القطر 14، فنصفه؟» و«افتح الفرجار لقطر 14» حسابٌ واحد (المراجع A لبوابة U8/U9، 5 (ح)) */
+  if (t === 'compassDraw') return it.r ? `cd|r${it.r}` : `half|${it.d}`;
   if (t === 'transferPick') return `tf|${it.ab}|${[...it.opts].sort((a, b) => a - b).join(',')}`;
-  if (t === 'triExists') return `te|${[...it.s].sort((a, b) => b - a).join(',')}`;
-  if (t === 'sssBuild') return `sss|${it.base}|${[it.a, it.b].sort((a, b) => a - b).join(',')}`;
+  if (t === 'triExists') return `tri|${[...it.s].sort((a, b) => b - a).join(',')}`;   /* المثلث بأضلاعه: «هل يوجد؟» و«ابنِه» مسألة واحدة */
+  if (t === 'sssBuild') return `tri|${[it.base, it.a, it.b].sort((a, b) => b - a).join(',')}`;
   if (t === 'consOrder') return `co|${it.kind}`;
   if (t === 'hexStep') return `hx|${it.r}`;
   if (t === 'hexSide') return `hs|${it.r}`;
