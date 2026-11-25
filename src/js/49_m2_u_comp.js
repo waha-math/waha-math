@@ -35,7 +35,7 @@ const cpItem = d => ({
     const k = await d.pick(item, ctx); return { ans: k, ctx }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: d.errOf(item, k) }; },
   onOk(item, r) { if (d.num) numItem.onOk(item, r); else SFX.good(); }, onWrong(item, r) { if (d.num) numItem.onWrong(item, r); else SFX.soft(); },
-  async hint2() { await S(d.hint); }, async together() {},
+  async hint2(item, r) { if (d.h2 && r && r.ctx && r.ctx.svg) await d.h2(item, r.ctx); await S(d.hint); }, async together() {},   /* المستوى الثاني فعلٌ على المسرح حيث له معنى (المراجع B لبوابة U8/U9، 5) */
   async reveal(item, r) { if (d.show) await d.show(item, r.ctx); await S(typeof d.rLine === 'function' ? d.rLine(item) : d.rLine, { noGap: !!d.rSay }); if (d.rSay) await d.rSay(item); },
   praise: () => d.praise || 'praiseThink', twin(item) { return item.twin || null; } });
 const yesNo = want => choosePick([['yes', labelText('frYes'), '<i></i>', 'gen.fr.yes'], ['no', labelText('frNo'), '<i></i>', 'gen.fr.no']], want);
@@ -154,7 +154,8 @@ ITEM.circPart = cpItem({ tLine: 'gen.cp.together.part', hint: 'gen.cp.hint.part'
   pick: item => choosePick(['center', 'radius', 'diameter'].map(k => [k, labelText('cpPart.' + k), '<i></i>', 'gen.cp.part.' + k]), item.want),
   errOf: (it, k) => it.want === 'diameter' && k === 'radius' || it.want === 'radius' && k === 'diameter' ? 'radDiaMix' : 'partOff' });
 /* ================= ⑨ القطر ونصف القطر (C236): r معلوم يُسأل عن القطر، أو d معلوم يُسأل عن نصف القطر (فتحة الفرجار) ================= */
-ITEM.radDia = cpItem({ tLine: 'gen.cp.together.rd', hint: 'gen.cp.hint.rd', rLine: it => it.r ? 'gen.cp.reveal.dia' : 'gen.cp.reveal.rad', rSay: it => sayLen(it.want, 'cm'), num: true, praise: 'praiseCount',
+ITEM.radDia = cpItem({ h2: async (item, ctx) => { const m = helpG(ctx.svg), C = [180, 132], R = 76; geoLine(m, C[0] - R, C[1] + 1, C[0], C[1] + 1, { color: css('--think'), w: 4 }); geoLine(m, C[0], C[1] + 1, C[0] + R, C[1] + 1, { color: '#2f9d6b', w: 4 }); el('circle', { cx: C[0], cy: C[1], r: 5, fill: CPC.ink }, m); SFX.tick(); await sleep(FAST ? 10 : 300); },   /* القطر نصفا قطر متتاليان من المركز */
+  tLine: 'gen.cp.together.rd', hint: 'gen.cp.hint.rd', rLine: it => it.r ? 'gen.cp.reveal.dia' : 'gen.cp.reveal.rad', rSay: it => sayLen(it.want, 'cm'), num: true, praise: 'praiseCount',
   make: s => ({ want: s.r ? 2 * s.r : s.d / 2, tag: s.r ? 'rad-to-dia' : 'dia-to-rad' }),
   draw(svg, item, tries) { const C = [180, 132], R = 76; circleFig(svg, C, R, item.r ? 'radius' : 'diameter', item.r ? CPC.bad : CPC.ok); const t = el('text', { x: 180, y: 38, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg); t.textContent = item.r ? `${labelText('cpPart.radius')}: ${item.r} ${labelText('rulCm')}` : `${labelText('cpPart.diameter')}: ${item.d} ${labelText('rulCm')}`;
     if (tries >= 3) { const m = helpG(svg); if (item.r) { const P1 = angP(C, 215, R); geoLine(m, C[0], C[1], P1[0], P1[1], { color: css('--think'), w: 4, dash: '7 4' }); } else { const Q = angP(C, 90, R); geoLine(m, C[0], C[1], Q[0], Q[1], { color: css('--think'), w: 4, dash: '7 4' }); } } return {}; },
@@ -201,7 +202,8 @@ async function arcsShow(svg, s, o = {}) { const [c, a, b] = [...s].sort((p, q) =
   geoLine(m, A[0], A[1], B[0], B[1], { color: CPC.ink, w: 4 }); const meet = arcsMeet(c, a, b);
   el('path', { d: arcPath(A, a * CM, 5, 120), fill: 'none', stroke: CPC.arc, 'stroke-width': 2.6 }, m); SFX.tick(); await sleep(FAST ? 10 : 300); el('path', { d: arcPath(B, b * CM, 60, 175), fill: 'none', stroke: CPC.toolEdge, 'stroke-width': 2.6 }, m); SFX.tick(); await sleep(FAST ? 10 : 300);
   if (meet && !o.noClose) { const Cp = [A[0] + meet[0] * CM, A[1] - meet[1] * CM]; geoLine(m, A[0], A[1], Cp[0], Cp[1], { color: CPC.ok, w: 3 }); geoLine(m, B[0], B[1], Cp[0], Cp[1], { color: CPC.ok, w: 3 }); el('circle', { cx: Cp[0], cy: Cp[1], r: 5, fill: CPC.ok }, m); } return { m, meet }; }
-ITEM.triExists = cpItem({ tLine: 'gen.cp.together.tri', hint: 'gen.cp.hint.tri', rLine: it => 'gen.cp.reveal.tri.' + it.want, H: 256,
+ITEM.triExists = cpItem({ h2: async (item, ctx) => { const [c, a2, b2] = [...item.s].sort((p, q) => q - p), m = helpG(ctx.svg), y = 150, x0 = 180 - c * CM / 2; geoLine(m, x0, y, x0 + c * CM, y, { color: CPC.ink, w: 4 }); geoLine(m, x0, y + 14, x0 + a2 * CM, y + 14, { color: css('--think'), w: 4 }); geoLine(m, x0 + a2 * CM, y + 14, x0 + (a2 + b2) * CM, y + 14, { color: '#2f9d6b', w: 4 }); SFX.tick(); await sleep(FAST ? 10 : 300); },   /* الضلعان الأقصران متتاليين تحت الأطول: هل يبلغانه؟ */
+  tLine: 'gen.cp.together.tri', hint: 'gen.cp.hint.tri', rLine: it => 'gen.cp.reveal.tri.' + it.want, H: 256,
   make: s => { const [c, a, b] = [...s.s].sort((p, q) => q - p); return { want: a + b > c ? 'yes' : 'no', tag: 'tri-exists' }; },
   draw(svg, item) { item.s.forEach((L, i) => { const y = 54 + i * 26, x1 = 300 - L * CM; geoLine(svg, x1, y, 300, y, { color: ['#c8392d', '#2f9d6b', '#2a5f94'][i], w: 5 }); const t = el('text', { x: x1 - 10, y: y + 6, 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: CPC.ink, direction: 'rtl' }, svg); t.textContent = `${L} ${labelText('rulCm')}`; }); return {}; },
   async together(item, ctx) { await arcsShow(ctx.svg, item.s, { y: 230, noClose: true }); },   /* القوسان وحدهما: هل يلتقيان؟ للطفل (B-6) */

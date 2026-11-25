@@ -50,7 +50,7 @@ const frItem = d => ({
     const k = await (d.pick ? d.pick(item) : frAsk(d.opts(item), item.want)); return { ans: k, ctx }; },
   judge(item, k) { const w = Array.isArray(item.want) ? frKey(item.want) : item.want; return k === w ? { ok: true } : { ok: false, err: d.errOf(item, k) }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { await S(d.hint); }, async together() {},
+  async hint2(item, r) { const c = r && r.ctx; if (d.h2 && c) await d.h2(item, c); else if (c && c.svg && c.Sh && c.Sh.P) { const m = helpG(c.svg); c.Sh.P.forEach((p, i) => { if (p.c) badge(m, p.c[0], p.c[1], i + 1, css('--think')); }); SFX.tick(); } await S(d.hint); }, async together() {},   /* المستوى الثاني: الأجزاء معدودة على الشكل (المقام)، والبسط للطفل (المراجع B لبوابة U8/U9، 5) */
   async reveal(item, r) { if (d.show) await d.show(item, r.ctx); await S(typeof d.rLine === 'function' ? d.rLine(item) : d.rLine, { noGap: !!d.rSay }); if (d.rSay) await d.rSay(item); },
   praise: () => d.praise || 'praiseThink', twin(item) { return item.twin || null; } });
 /* الأجزاء تُعدّ: شارة على كل جزء (الكلّ أو الملوّن) */
