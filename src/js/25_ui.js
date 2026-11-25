@@ -24,15 +24,17 @@ let STAGE_RO = null, STAGE_MO = null;   /* إن تغيّر حجم المسرح (
 /* أعداد المسرح بأرقام الطفل (D279، الخيار «أ»): كل نصّ يُكتب على المسرح بأرقام غربية يُحوَّل حين تكون «أرقامي» مشرقية — أطوال الأشكال ودرجاتها
    والصيغ والخيارات والبطاقات — إلا ترقيم الأدوات الحقيقية (المسطرة وشريط القياس والمنقلة والعدسة، وما عُلِّم data-west كمقابلة الأرقام في digitPairs).
    الصيغة (نصّ ltr فيه + − × ÷ = بلا حروف) تُعكس رموزها لتُقرأ من اليمين (D251) بـ mfSet، والنصّ ltr الذي فيه كلمات («1 ملم = 0.1 سم») يصير rtl.
-   مراقبٌ واحد على المسرح بدل ضبط كل موضع: ما يُكتب بعد اليوم في م3 يتبع القرار وحده */
+   مراقبٌ واحد على المسرح بدل ضبط كل موضع: ما يُكتب بعد اليوم في م3 يتبع القرار وحده. ومع الأرقام الغربية يقلب النصَّ الذي فيه حرف عربي وحده إلى rtl (D280) */
 const WEST_TOOL = '[data-ruler],[data-tape],[data-prot],[data-lens],[data-west]';
-function measFix(t) { if (SET.digits !== 'east' || !t || !t.closest || t.closest(WEST_TOOL)) return;
+function measFix(t) { if (!t || !t.closest || t.closest(WEST_TOOL)) return;
+  /* وبالأرقام الغربية (D280): النصّ ltr الذي فيه حرف عربي وعدد يصير rtl كما يصير مع المشرقية، فالحرف العربي يُقرأ من اليمين بالكتابتين؛ والصيغة بالأعداد وحدها تبقى من اليسار (D251) */
+  if (SET.digits !== 'east') { if (t instanceof SVGElement && t.tagName === 'text' && !t.hasAttribute('data-sent') && !t.childElementCount && !t.hasAttribute('unicode-bidi') && t.getAttribute('direction') === 'ltr' && /[0-9]/.test(t.textContent) && /[\u0621-\u064A]/.test(t.textContent)) t.setAttribute('direction', 'rtl'); return; }
   if (t instanceof SVGElement) { if (t.tagName !== 'text' || t.hasAttribute('data-sent') || t.childElementCount) return; const s = t.textContent; if (!/[0-9]/.test(s)) return;
     const ltr = t.getAttribute('direction') === 'ltr'; if (/[\u0621-\u064A]/.test(s)) { if (ltr) t.setAttribute('direction', 'rtl'); t.textContent = MS(s); } else if (ltr && /[+−×÷=]/.test(s)) mfSet(t, s); else t.textContent = MS(s); return; }
   const w = document.createTreeWalker(t, NodeFilter.SHOW_TEXT); for (let n = w.nextNode(); n; n = w.nextNode()) if (/[0-9]/.test(n.nodeValue) && !(n.parentElement && n.parentElement.closest(WEST_TOOL)) && !(n.parentElement instanceof SVGElement)) n.nodeValue = MS(n.nodeValue); }
 let MEAS_MO = null;
 function measWatch(st) { if (MEAS_MO || !st || typeof MutationObserver === 'undefined') return;
-  MEAS_MO = new MutationObserver(muts => { if (SET.digits !== 'east') return; for (const m of muts) { const tg = m.type === 'characterData' ? m.target.parentElement : m.target;
+  MEAS_MO = new MutationObserver(muts => { for (const m of muts) { const tg = m.type === 'characterData' ? m.target.parentElement : m.target;
     if (tg instanceof SVGElement && tg.tagName === 'text') measFix(tg);
     for (const n of m.addedNodes || []) { if (n.nodeType === 3) { if (n.parentElement instanceof SVGElement) measFix(n.parentElement); else if (n.parentElement) measFix(n.parentElement); } else if (n.nodeType === 1) { if (n instanceof SVGElement) { if (n.tagName === 'text') measFix(n); n.querySelectorAll && n.querySelectorAll('text').forEach(measFix); } else { measFix(n); n.querySelectorAll('svg text').forEach(measFix); } } } } });
   MEAS_MO.observe(st, { childList: true, subtree: true, characterData: true }); }

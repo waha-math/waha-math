@@ -2,12 +2,14 @@
    S3-U5 «الإحداثيات (الربع الأول)» (المرحلة 3، نوفمبر 2026)
    د1 المحوران والزوج المرتب (C311 أ) · د2 قراءة الإحداثيين وترتيبهما والمحوران وأنصاف الوحدة (C311 ب) · د3 المسافة على خط أفقي أو رأسي (C336)
    د4 الأشكال من إحداثيات رؤوسها والرأس المجهول (C337) ومشروع «خريطة مدينتي»
-   الزوج المرتب يُكتب (الأفقي ، الرأسي) والأعداد داخل القوسين من اليسار إلى اليمين بالكتابتين (D84)، ويُقال ترتيبه بالكلمات: «… يميناً، و… لأعلى»
+   الزوج المرتب يُكتب (الأفقي ، الرأسي) باتجاه خطّه: من اليمين مع الأرقام المشرقية، ومن اليسار مع الغربية (D280، يعدّل D84)، ويُقال ترتيبه بالكلمات: «… يميناً، و… لأعلى»
    المحوران «س وص» ذهبيان (هوية م3)، والنقاط عند التقاطعات لا داخل المربعات
    ===================================================================== */
 const CO = { grid: '#d9e4ea', ax: '#c9971c', ink: '#33454c', pt: '#3d7cc0', pt2: '#e07b39', ok: '#2f9d6b', bad: '#c8392d', fill: '#eef4f8', path: '#8e6bbf' };
-/* الزوج المرتب نصّاً: معزولٌ من اليسار إلى اليمين (D84)، فلا يقلبه اتجاه السطر العربي */
-const coPair = (x, y) => `\u202D(${x} ، ${y})\u202C`;   /* تجاوزٌ من اليسار (LRO): الأرقام المشرقية تنقلب داخل العزل وحده */
+/* الزوج المرتب نصّاً (D280، قرار فراس 26 نوفمبر 2026، يعدّل D84): الاتجاه يتبع خطّ الرموز. مع الأرقام المشرقية أو الحروف العربية من اليمين،
+   فالإحداثي الأول في أقصى اليمين والسالب على يمين العدد، معزولاً (RLI) لا مقلوباً فيبقى رقما العدد في موضعهما؛ ومع الأرقام الغربية من اليسار (LRO) */
+const coRtl = (...s) => SET.digits === 'east' || /[\u0621-\u064A]/.test(s.join(''));
+const coPair = (x, y) => coRtl(x, y) ? `\u2067(${x} ، ${y})\u2069` : `\u202D(${x} ، ${y})\u202C`;
 const coKey = v => String(v).replace('.', '_');
 const coLine = (x, y) => 'gen.co.p.' + coKey(x) + '.' + coKey(y);
 /* المستوى الإحداثي: n تدريج المحور الأفقي، وm الرأسي؛ الأصل أسفل اليسار، والمحوران ذهبيان بسهمين واسميهما «س» و«ص» */
@@ -20,8 +22,9 @@ function coPlane(svg, o = {}) { const N = o.n || 10, Mx = o.m || 8, H = o.H || 2
     T(x0 + N * c + 14, y0 + 20, labelText('coX'), 14, CO.ax); T(x0 - 14, y0 - Mx * c - 6, labelText('coY'), 14, CO.ax); }
   const P = (x, y) => [x0 + x * c, y0 - y * c];
   return { g, P, c, x0, y0, N, M: Mx, snap(q, half) { const s = half ? 2 : 1, f = v => Math.round(v * s) / s; return [Math.max(0, Math.min(N, f((q[0] - x0) / c))), Math.max(0, Math.min(Mx, f((y0 - q[1]) / c)))]; } }; }
-/* نصّ الزوج: من اليسار بتجاوز الاتجاه، فلا تنقلب الأرقام المشرقية (D84) */
-function coPairText(parent, px, py, x, y, anchor = 'middle', fs = 14, col = CO.ink) { const t = el('text', { x: px, y: py, 'text-anchor': anchor, 'font-size': fs, 'font-weight': 800, fill: col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'ltr', 'unicode-bidi': 'bidi-override', 'pointer-events': 'none' }, parent); t.textContent = `(${x} ، ${y})`; return t; }
+/* نصّ الزوج على المسرح: من اليمين (rtl بلا تجاوز) مع المشرقية، ومن اليسار بتجاوز الاتجاه مع الغربية (D280) */
+function coPairText(parent, px, py, x, y, anchor = 'middle', fs = 14, col = CO.ink) { const rtl = coRtl(x, y), an = rtl ? ({ start: 'end', end: 'start' }[anchor] || anchor) : anchor;   /* بـ rtl تتبادل البداية والنهاية، فيبقى الزوج في جهته من النقطة */
+  const t = el('text', { x: px, y: py, 'text-anchor': an, 'font-size': fs, 'font-weight': 800, fill: col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: rtl ? 'rtl' : 'ltr', ...(rtl ? {} : { 'unicode-bidi': 'bidi-override' }), 'pointer-events': 'none' }, parent); t.textContent = `(${x} ، ${y})`; return t; }
 /* نقطة باسمها وزوجها (pair) إن طُلب؛ at: side (يميناً، ويساراً عند الحافة) أو up (فوقها) أو away (بعيداً عن مركز الشكل from) */
 function coDot(parent, Pl, x, y, o = {}) { const [px, py] = Pl.P(x, y), g = el('g', { 'pointer-events': 'none' }, parent), left = x > Pl.N - 2.5;
   if (o.art === 'treasure') { el('path', { d: `M${px - 8} ${py - 8} L${px + 8} ${py + 8} M${px + 8} ${py - 8} L${px - 8} ${py + 8}`, stroke: CO.bad, 'stroke-width': 4, 'stroke-linecap': 'round' }, g); }
@@ -43,7 +46,7 @@ async function coWalk(svg, Pl, x, y, o = {}) { const m = helpG(svg); let last = 
   return m; }
 /* بطاقة الهدف فوق المستوى: الحرف والزوج */
 function coCard(svg, x, y, name, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || (name ? 126 : 106), col = o.col || CO.pt; el('rect', { x: 352 - w, y: 4, width: w, height: 30, rx: 10, fill: '#fff', stroke: col, 'stroke-width': 2 }, g);
-  coPairText(g, 352 - w / 2 - (name ? 9 : 0), 25, x, y, 'middle', 17, col);   /* الزوج وحده نصٌّ من اليسار (D84)، والحرف نصٌّ آخر */
+  coPairText(g, 352 - w / 2 - (name ? 9 : 0), 25, x, y, 'middle', 17, col);   /* الزوج وحده نصٌّ باتجاه خطّه (D280)، والحرف نصٌّ آخر */
   if (name) { const a = el('text', { x: 342, y: 25, 'text-anchor': 'start', 'font-size': 17, 'font-weight': 800, fill: col, direction: 'rtl' }, g); a.textContent = LTR[name]; } return g; }
 
 /* ================= ① عيّن النقطة (C311): x، y، name، half (أنصاف الوحدة، د2)، given نقاط مرسومة [[x، y، حرف]]، poly أضلاع متقطّعة بينها، art treasure ================= */
