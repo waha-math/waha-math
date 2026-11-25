@@ -158,7 +158,7 @@ d2={"id":"m2.u9.d2","title":"مُثَلَّثُ الرَّسْمِ","icon":["cps
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(ss('perp',6),ss('para',5)), tw(rc(6,3),rc(5,3,80)), tw(rdim(8,3),rdim(5,5))],
-  "challenge":[tw(rc(7,4,88),rc(4,4)), tw(ss('para',7),ss('perp',10)), tw(tp('perp'),tp('para'))]},
+  "challenge":[tw(rc(7,4,88),rc(4,4)), tw(ss('para',7),ss('perp',10)), tw(tp('perp'),tp('angle2'))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":rc(6,3,75),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
    "C231":[ss('perp',7), ss('para',3), dict(reason("ms.1",{"kind":"cpsq"},["ms.1a","ms.1b","ms.1c"]),x240="السؤال عن سبب تثبيت المسطرة يحتاج صورة الأداتين نفسها، والسبب لا يُرسم فيها (المراجع A لبوابة U8/U9، 5 (ح))")],
@@ -277,7 +277,7 @@ d4={"id":"m2.u9.d4","title":"الفِرْجَارُ وَالدَّائِرَةُ
   {"s":"game","scene":"items","mode":"practice","intro":"game.01","items":[tw(cdr(3),cdr(2)), tw(cdd(8),cdd(6)), tw(cdr(4),cdd(14))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(cp('radius'),cp('radius',145)), tw(rdr(3),rdr(10)), tw(cdr(6),cdd(4))],
+  "normal":[tw(cp('radius'),rdr(6)), tw(rdr(3),rdr(10)), tw(cdr(6),cdd(4))],
   "challenge":[tw(rdr(7),rdd(4)), tw(cp('diameter'),rdr(1)), tw(cdd(12),cdr(9))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":rdd(10),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{

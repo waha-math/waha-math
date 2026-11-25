@@ -185,10 +185,9 @@
     "q": "pr.part",
     "part": "radius",
     "twin": {
-     "t": "circPart",
-     "q": "pr.part",
-     "part": "radius",
-     "rot": 145
+     "t": "radDia",
+     "q": "pr.dia",
+     "r": 6
     }
    },
    {

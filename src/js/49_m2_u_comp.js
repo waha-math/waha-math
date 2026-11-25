@@ -60,7 +60,7 @@ ITEM.accCheck = cpItem({ tLine: 'gen.cp.together.acc', hint: 'gen.cp.hint.acc', 
       if (tries >= 3) { const m = helpG(svg); geoLine(m, R.X((item.aim - 1) / 10), 98, R.X((item.aim - 1) / 10), 126, { color: css('--think'), w: 2.4, dash: '4 3' }); geoLine(m, R.X((item.aim + 1) / 10), 98, R.X((item.aim + 1) / 10), 126, { color: css('--think'), w: 2.4, dash: '4 3' }); el('rect', { x: R.X((item.aim - 1) / 10), y: 100, width: R.X(.2) - R.X(0), height: 10, fill: css('--think'), opacity: .25 }, m); } }
     return {}; },
   pick: item => yesNo(item.want),
-  errOf: it => it.want === 'yes' ? 'tolStrict' : 'tolLoose' });
+  errOf: it => it.want === 'yes' ? 'tolStrict' : it.kind === 'ang' && it.drawn === 180 - it.aim ? 'protScale' : 'tolLoose' });   /* المقياس الآخر في المنقلة (المراجع A لبوابة U8/U9، 19 (ب)) */
 /* ================= ③ أيّ أداة؟ (C230، C231، C237): task، opts من ruler | prot | setsq | compass ================= */
 const CP_TASK = { len: 'ruler', angle: 'prot', perp: 'setsq', para: 'setsq', circle: 'compass', copy: 'compass', measure: 'ruler', angle2: 'prot' };
 const CP_TOOL_IC = { ruler: CP_LVL_IC.tools, prot: '<svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><path d="M4 30 A16 16 0 0 1 36 30 Z" fill="#eaf4fa" stroke="#4f86a8" stroke-width="2"/></svg>', setsq: '<svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><polygon points="6,34 34,34 6,8" fill="rgba(127,182,217,.6)" stroke="#2a5f94" stroke-width="2"/></svg>', compass: CP_LVL_IC.cons };

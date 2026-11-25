@@ -264,7 +264,7 @@ ITEM.setFrac = {
   async ask(item, mode, tries) { const Ly = setLay(item.n, item.f[1], 50), svg = frStage(Math.max(240, Ly.H + 70)), P = Ly.at(170, 36 + Ly.H / 2), G = P.map(([x, y]) => frThing(svg, item.what || 'cookie', x, y, .9));
     fracText(svg, 326, 44, item.f, { fs: 18 });
     if (tries >= 3) { await S('gen.fr.together.set'); await frGroups(svg, G, item.n / item.f[1], item.f[0]); } else { await S(item.q, { noGap: true }); await sayFrac(item.f); }
-    const np = numberPick(nearNums(item.want, item.n, 1), item.want); return { ans: await np.p, ctx: { svg, G, np } }; },
+    const np = numberPick(rankMix(item.want, [item.f[1], item.n / item.f[1], item.want + 1, item.want - 1], 1, item.n), item.want); return { ans: await np.p, ctx: { svg, G, np } }; },   /* المقام ومجموعة واحدة مشتّتان (المراجع A لبوابة U8/U9، 19 (أ)) */
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.f[1] ? 'setDen' : k === item.n / item.f[1] && item.f[0] > 1 ? 'setOneGroup' : 'setOff' }; },
   onOk: numItem.onOk, onWrong: numItem.onWrong,
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 24, `${DG(item.n)} ÷ ${DG(item.f[1])} = ؟`); await S('gen.fr.hint.set'); }, async together() {},

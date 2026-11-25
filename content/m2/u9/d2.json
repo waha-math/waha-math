@@ -232,7 +232,7 @@
     "twin": {
      "t": "toolPick",
      "q": "pr.tool",
-     "task": "para"
+     "task": "angle2"
     }
    }
   ]
