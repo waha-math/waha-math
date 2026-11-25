@@ -250,7 +250,7 @@ ITEM.twoReasons = {
     const ans = [...on].sort().map(i => 'abc'[i]).join(''); box.remove(); return { ans, ctx: {} }; },
   judge(item, k) { return k === 'ab' ? { ok: true } : { ok: false, err: k.includes('c') ? 'reasonFalse' : 'reasonOne' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.as.hint.two'); }, async together() {},
+  async hint2(item) { await S(item.hint || 'gen.as.hint.two'); }, async together() {},   /* hint: تلميح خاصّ بالبند (S3-U4) */
   async reveal(item) { await S(item.opts[0].id); await S(item.opts[1].id); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };

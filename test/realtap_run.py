@@ -49,7 +49,8 @@ LESSONS = ['m1.u1.d1', 'm1.u1.d2', 'm1.u1.d3', 'm1.u1.d4', 'm1.u1.d5', 'm1.u1.d6
            'm2.u0.d0', 'm2.u3.d0', 'm2.u6.d0', 'm2.u7.d0', 'm2.u8.d0', 'm2.u9.d1', 'm2.u9.d2', 'm2.u9.d3', 'm2.u9.d4', 'm2.u9.d5', 'm2.u9.d6', 'm2.u9.d7',
            'm2.u10.d1', 'm2.u10.d2', 'm2.u10.d3', 'm2.u10.d4',
            'm3.u0.d1', 'm3.u0.d2', 'm3.u0.d3', 'm3.u1.d1', 'm3.u1.d2', 'm3.u1.d3', 'm3.u1.d4', 'm3.u1.d5',
-           'm3.u2.d1', 'm3.u2.d2', 'm3.u2.d3', 'm3.u2.d4', 'm3.u2.d5', 'm3.u3.d1', 'm3.u3.d2', 'm3.u3.d3', 'm3.u3.d4', 'm3.u3.d5', 'm3.u3.d6']
+           'm3.u2.d1', 'm3.u2.d2', 'm3.u2.d3', 'm3.u2.d4', 'm3.u2.d5', 'm3.u3.d1', 'm3.u3.d2', 'm3.u3.d3', 'm3.u3.d4', 'm3.u3.d5', 'm3.u3.d6',
+           'm3.u4.d1', 'm3.u4.d2', 'm3.u4.d3', 'm3.u4.d4', 'm3.u4.d5', 'm3.u4.d6']
 if os.environ.get('ONLY'): LESSONS = [l for l in LESSONS if l in os.environ['ONLY'].split(',')]   # تشغيل جزئي أثناء التطوير
 # ما خرج من نافذة الشريط (القطار، الطريق) مخفيّ لا يُلمس: يُلمس زرّ التحريك نحوه حتى يظهر
 REVEAL = """(sel) => { const g = document.querySelector(sel); if (!g || getComputedStyle(g).visibility !== 'hidden') return null;
@@ -359,10 +360,15 @@ async def run(p, dev):
             if got != xy['n']: tried['grid-miss'] = tried.get('grid-miss', 0) + 1; print('  grid miss: wanted', xy['n'], 'picked', got, st['scene'])
           else: await pg.evaluate('() => { const a = window.__auto; if (a) a.ok(); }')
           await pg.wait_for_timeout(60); continue
-        if k in ('tapAll', 'tap', 'house', 'sort', 'produce', 'fill', 'splitMake', 'place', 'prog', 'road') + U4 or kam:
+        if k in ('tapAll', 'diagFit', 'tap', 'house', 'sort', 'produce', 'fill', 'splitMake', 'place', 'prog', 'road') + U4 or kam:
           await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1
           if k == 'tapAll':
             for c in await pg.evaluate(CENTRES, '[role=button]'): await tap(c['x'], c['y']); await pg.wait_for_timeout(80)
+          elif k == 'diagFit':   # S3-U4: لمسات حقيقية على الأشكال التي قطراها متعامدان، ثم «تمّ»
+            for c in await pg.evaluate(CENTRES, '[role=button]'):
+              if c['ok'] == 'true': await tap(c['x'], c['y']); await pg.wait_for_timeout(80)
+            xy = await pg.evaluate("() => { const e = document.querySelector('.pick.done'); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }")
+            if xy: await tap(*xy)
           elif k == 'tap':
             if await pg.evaluate("() => !!document.querySelector('#stage svg [data-car][data-ok=true], #stage svg [data-n][data-ok=true]')"): await reveal('#stage svg [role=button][data-ok=true]')   # عربة أو بلاطة خارج النافذة
             cs = [c for c in await pg.evaluate(CENTRES, '[role=button]') if c['ok'] == 'true']

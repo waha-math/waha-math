@@ -133,7 +133,7 @@ ITEM.areaTune = {
     const draw = () => { if (sh) sh.remove(); sh = el('g', {}, svg); const T = item.fig === 'tri' ? htTri(sh, G, item.b, h, Math.round(item.b / 2)) : htPara(sh, G, item.b, h, 2), top = item.fig === 'tri' ? T.C : T.D;
       htHeight(sh, G, { A: T.A, B: T.B }, htCm(h, u), { top, foot: [top[0], T.A[1]] }); htLab(sh, [(T.A[0] + T.B[0]) / 2, T.A[1] + 16], htCm(item.b, u)); };
     draw(); if (tries >= 3) { h = item.want + (h < item.want ? -1 : 1); draw(); await S('gen.ht.together.tune'); } else await S(item.q || 'gen.ht.q.tune');
-    const St = dqSteps(['htLower', 'htHigher'], d => { const n = Math.max(1, Math.min(6, h + d)); if (n === h) return false; h = n; draw(); return true; });
+    const St = dqSteps(['htLower', 'htHigher'], d => { const n = Math.max(1, Math.min(6, h + d)); if (n === h) return false; h = n; draw(); return true; }, { vert: true });
     /*T*/window.__htH = () => h;/*/T*/
     AUTO({ kind: 'htTune', ok: () => { h = item.want; draw(); rulDoneBtn().click(); }, wrong: () => { h = item.want === 6 ? 5 : item.want + 1; draw(); rulDoneBtn().click(); } });
     await rulDone(() => St.off()); return { ans: h, ctx: { svg, set: v => { h = v; draw(); } } }; },
