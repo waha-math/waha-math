@@ -200,9 +200,9 @@
      "q": "pr.perim",
      "k": "tScaA",
      "lens": [
-      6,
-      7,
-      6
+      12,
+      14,
+      13
      ],
      "twin": {
       "t": "perimSides",

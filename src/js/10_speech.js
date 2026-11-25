@@ -102,6 +102,7 @@ function say(who, id, text, opt = {}) {
 /* تلوين الكلمة المقروءة (D270): الجملة كلماتٌ في الفقاعة (span.w)، ونصّها كما هو (textContent لا يتغيّر). والتوقيت تقديرٌ بطول الكلمة ووقفات الترقيم
    على زمن الجملة: مدّة التسجيل، أو تقدير سرعة صوت الجهاز وتصحّحه أحداث الحدود (onboundary) حيث يُطلقها، أو زمن القراءة الصامتة. وكلمةٌ تسمّي شيئاً
    في المشهد (aria-label يبدأ بها) يتوهّج الشيء معها (التمييز) */
+function bubbleBack([who, id, text]) { const b = $('#say'); if (!b || openCover()) return; $('#who').innerHTML = CHAR[who](); $('#bubble').classList.toggle('chaos', who === 'chaos'); $('#bubble').classList.remove('hidetext'); fillBubble(b, G(text)); b.scrollTop = 0; bubbleMore(); }   /* نصّ السؤال في الفقاعة بلا صوت */
 function fillBubble(b, text, sep) { if (sep == null) b.textContent = ''; else b.appendChild(document.createTextNode(sep)); const out = [];
   for (const part of String(text).split(/(\s+)/)) { if (!part) continue; if (/^\s+$/.test(part)) { b.appendChild(document.createTextNode(part)); continue; } const s = document.createElement('span'); s.className = 'w'; s.textContent = part; b.appendChild(s); out.push(s); }
   return out; }

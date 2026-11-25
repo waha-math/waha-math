@@ -123,7 +123,9 @@ function cardPick(cards, opt = {}) {   // cards: [{id(line), k, ok, icon, hide, 
     if (withIntro && intro) { await say(...intro, { free: true }); if (answered || me !== run) return;
       if (opt.replayPre) { await opt.replayPre(); if (answered || me !== run) return; } }   /* replayPre: ما يُعاد مع السؤال، كحركة الروبوت في «أيّ أمر اتّبع؟» */
     for (const [i, b] of btns.entries()) { if (PAUSED) await PAUSED.p; if (answered || me !== run) break; b.classList.add('reading'); const c = list[i]; if (c.pre) await c.pre(); if (answered || me !== run) break;   /* والدرس موقوف لا تضيء البطاقة التالية ولا تدقّ نغمتها (H2 (4أ)) */
-      await say(...lines[i], { hideText: c.hide && !opt.keepQ, keep: !!opt.keepQ, free: true, question: true, onSilent: c.hide ? showAll : undefined }); b.classList.remove('reading'); } };   /* keepQ: بطاقات الأعداد المسموعة تُقرأ والسؤال باقٍ في الفقاعة (S1-U3) */
+      await say(...lines[i], { hideText: c.hide && !opt.keepQ, keep: !!opt.keepQ, free: true, question: true, onSilent: c.hide ? showAll : undefined }); b.classList.remove('reading'); }
+    /* بعد آخر بطاقة مكتوبة يعود السؤال إلى الفقاعة بلا صوت: الخيار المقروء لا يحلّ محلّ السؤال (D254 (5)؛ المراجع A لبوابة U6/U7، 26) */
+    if (!answered && me === run && intro && !opt.keepQ && list.every(c => !c.hide) && flow === FLOW) bubbleBack(intro); };   /* keepQ: بطاقات الأعداد المسموعة تُقرأ والسؤال باقٍ في الفقاعة (S1-U3) */
   /* الخطّاف حيّ ما دامت البطاقات على الشاشة في المسار نفسه: الخروج إلى الخريطة أو مسرح جديد يُسقطه (الدرس الآخر لا يسمع بطاقات هذا) */
   REPLAY_HOOK = () => readAll(true); REPLAY_HOOK.live = () => !answered && !box.dataset.done && flow === FLOW && box.isConnected;
   readAll(false);
