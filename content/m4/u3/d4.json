@@ -177,7 +177,8 @@
        "sas",
        "measure"
       ],
-      "q": "gen.pf.q.reason"
+      "q": "gen.pf.q.reason",
+      "v": 1
      }
     },
     {
@@ -193,7 +194,8 @@
      "twin": {
       "t": "prChain",
       "pf": "rectDiag",
-      "q": "gen.pf.q.chain"
+      "q": "gen.pf.q.chain",
+      "v": 1
      }
     }
    ]
@@ -233,7 +235,8 @@
       "asa",
       "looks"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     }
    },
    {
@@ -249,7 +252,8 @@
     "twin": {
      "t": "prChain",
      "pf": "rhombDiag",
-     "q": "gen.pf.q.chain"
+     "q": "gen.pf.q.chain",
+     "v": 1
     }
    },
    {
@@ -326,7 +330,8 @@
       "corr",
       "looks"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     }
    }
   ]
@@ -362,7 +367,8 @@
       "sss",
       "looks"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     },
     {
      "t": "prReason",
@@ -373,7 +379,8 @@
       "rhomb",
       "measure"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     },
     {
      "t": "reason",
@@ -408,7 +415,8 @@
       "corr",
       "measure"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     },
     {
      "t": "diagMake",
@@ -523,7 +531,8 @@
    "t": "prChain",
    "pf": "paraDiag",
    "q": "gen.pf.q.chainR",
-   "c": "C421"
+   "c": "C421",
+   "v": 1
   },
   {
    "t": "reason",

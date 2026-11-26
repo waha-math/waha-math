@@ -254,7 +254,8 @@
     "twin": {
      "t": "prChain",
      "pf": "bisPf",
-     "q": "gen.pf.q.chain"
+     "q": "gen.pf.q.chain",
+     "v": 1
     }
    }
   ],
@@ -289,7 +290,8 @@
       "sss",
       "looks"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     }
    },
    {

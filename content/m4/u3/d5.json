@@ -300,7 +300,8 @@
     "twin": {
      "t": "prChain",
      "pf": "conv",
-     "q": "gen.pf.q.chain"
+     "q": "gen.pf.q.chain",
+     "v": 1
     }
    },
    {
@@ -428,7 +429,8 @@
       "sss",
       "measure"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     },
     {
      "t": "perpArea",
@@ -471,7 +473,8 @@
       "sas",
       "measure"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     },
     {
      "t": "perpArea",
@@ -566,7 +569,8 @@
     "looks"
    ],
    "q": "gen.pf.q.reason",
-   "c": "C421"
+   "c": "C421",
+   "v": 2
   },
   {
    "t": "perpArea",

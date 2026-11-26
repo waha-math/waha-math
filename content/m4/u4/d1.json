@@ -297,7 +297,8 @@
     "twin": {
      "t": "prChain",
      "pf": "pyth",
-     "q": "gen.pf.q.chain"
+     "q": "gen.pf.q.chain",
+     "v": 1
     }
    },
    {
@@ -476,7 +477,8 @@
     "looks"
    ],
    "q": "gen.pf.q.reason",
-   "c": "C407"
+   "c": "C407",
+   "v": 1
   }
  ],
  "wrap": {

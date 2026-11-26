@@ -118,8 +118,8 @@
      "ctx": "ladder",
      "twin": {
       "t": "pyLeg",
-      "hyp": 10,
-      "a": 6,
+      "hyp": 20,
+      "a": 12,
       "q": "gen.py.q.leg.ladder",
       "ctx": "ladder"
      }

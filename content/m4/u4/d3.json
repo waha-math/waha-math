@@ -188,8 +188,8 @@
      "ctx": "perp",
      "twin": {
       "t": "pyLeg",
-      "hyp": 15,
-      "a": 9,
+      "hyp": 35,
+      "a": 21,
       "q": "gen.py.q.leg.perp",
       "ctx": "perp"
      }
@@ -264,7 +264,8 @@
     "twin": {
      "t": "prChain",
      "pf": "perpPf",
-     "q": "gen.pf.q.chain"
+     "q": "gen.pf.q.chain",
+     "v": 1
     }
    }
   ],
@@ -331,7 +332,8 @@
       "pos",
       "measure"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     },
     {
      "t": "reason",
@@ -395,8 +397,8 @@
    "C407": [
     {
      "t": "pyLeg",
-     "hyp": 13,
-     "a": 12,
+     "hyp": 25,
+     "a": 24,
      "q": "gen.py.q.leg.perp",
      "ctx": "perp"
     },
@@ -545,7 +547,8 @@
     "looks"
    ],
    "q": "gen.pf.q.reason",
-   "c": "C407"
+   "c": "C407",
+   "v": 1
   },
   {
    "t": "cgCase",

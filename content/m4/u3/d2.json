@@ -163,7 +163,8 @@
     "twin": {
      "t": "cgCase",
      "cs": "ssa",
-     "q": "gen.pre.q.case"
+     "q": "gen.pre.q.case",
+     "v": 5
     }
    },
    {

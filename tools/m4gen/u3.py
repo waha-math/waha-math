@@ -25,7 +25,7 @@ def cpick(orig,cands,rots=None):
     d={"t":"cgPick","orig":orig,"cands":cands,"q":"gen.cg.q.pick"}
     if rots: d['rots']=rots
     return d
-def case(cs,v=0): assert 0<=v<5, v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
+def case(cs,v=0): assert 0<=v<7, v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
 def part(pts,xf,side): return {"t":"congPart","pts":pts,"xf":xf,"side":side,"q":"gen.xf.q.part."+side}
 def smiss(s,k,ask): assert all(float(v*k).is_integer() for v in s) and tri_ok(s); return {"t":"simMiss","s":s,"k":k,"ask":ask,"q":"gen.pre.q.sim"}
 def syn(fig,a,b): return {"t":"simYN","fig":fig,"a":a,"b":b,"q":"gen.cg.q.simYN."+fig}
@@ -154,7 +154,7 @@ d2={"id":"m4.u3.d2","title":"ضِلْعَانِ وَزَاوِيَةٌ، أَو�
   {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(case('sas',v=1),case('ssa',v=1)), tw(case('asa',v=1),case('aaa',v=1))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(case('sas'),case('ssa')), tw(case('asa'),case('aaa')), tw(case('sas',v=4),sides([5,5,7],[7,5,5],rot=30))],
+  "normal":[tw(case('sas'),case('ssa',v=5)), tw(case('asa'),case('aaa')), tw(case('sas',v=4),sides([5,5,7],[7,5,5],rot=30))],
   "challenge":[tw(reason("pr.r1",pfp(cs='ssa',v=1),["pr.r1a","pr.r1b","pr.r1c"]),case('aaa',v=4)), tw(reason("pr.r2",pfp(cs='sas',v=2),["pr.r2a","pr.r2b","pr.r2c"]),sides([4,6,8],[8,6,4],flip=True))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":case('ssa',v=2),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{"C405":[case('sas',v=2), case('asa',v=2), reason("ms.1",pfp(cs='sas',v=1),["ms.1a","ms.1b","ms.1c"])]},
@@ -212,10 +212,10 @@ d3={"id":"m4.u3.d3","title":"التَّشَابُهُ","icon":["cgicon"],
   {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(endims(4,2,1.5,[[6,3,None],[5.5,3.5,"enAdd"],[6,2,"enOneSide"]]),endims(4,4,0.5,[[2,2,None],[3.5,3.5,"enAdd"],[2,4,"enOneSide"]])), tw(endims(4,4,1.5,[[6,6,None],[5.5,5.5,"enAdd"],[6,4,"enOneSide"]]),endims(6,2,0.5,[[3,1,None],[3,2,"enOneSide"],[5.5,1.5,"enAdd"]]))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(syn('rect',[4,2],[3,2]),syn('tri',[3,4,5],[6,8,10])), tw(smiss([3,4,5],2,1),smiss([4,6,8],1.5,1)), tw(syn('sq',[3],[5]),sides([2,4,5],[4,8,10]))],
+  "normal":[tw(syn('rect',[4,2],[3,2]),syn('tri',[3,4,5],[6,8,10])), tw(smiss([3,4,5],2,1),smiss([8,10,12],1.5,1)), tw(syn('sq',[3],[5]),sides([2,4,5],[4,8,10]))],
   "challenge":[tw(reason("pr.r1",pfp(sim={"fig":"rect","a":[4,2],"b":[5,2]}),["pr.r1a","pr.r1b","pr.r1c"]),smiss([6,8,10],0.5,2)), tw(syn('rect',[6,4],[9,6]),smiss([2,4,5],3,0))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":syn('rect',[5,2],[6,3]),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C406":[smiss([4,6,8],1.5,0), syn('rect',[8,4],[6,3]), reason("ms.1",pfp(cg=[[4,5,6],[6,4,5]],u=13,rot=30),["ms.1a","ms.1b","ms.1c"])]},
+ "mastery":{"concepts":{"C406":[smiss([6,8,10],1.5,0), syn('rect',[8,4],[6,3]), reason("ms.1",pfp(cg=[[4,5,6],[6,4,5]],u=13,rot=30),["ms.1a","ms.1b","ms.1c"])]},
   "alt":{"C406":[smiss([6,8,10],1.5,1), syn('rect',[5,2],[10,4]), reason("ms.x1",pfp(sim={"fig":"rect","a":[3,2],"b":[6,4]}),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C406":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C406":[tw(smiss([2,3,4],2,2),syn('sq',[2],[7]))]},

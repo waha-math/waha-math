@@ -310,8 +310,8 @@
     "of": "m4.u4.d1",
     "item": {
      "t": "pySq",
-     "a": 4,
-     "b": 3,
+     "a": 3,
+     "b": 5,
      "q": "gen.py.q.sq"
     }
    },
@@ -327,7 +327,8 @@
       "measure",
       "sss"
      ],
-     "q": "gen.pf.q.reasonT"
+     "q": "gen.pf.q.reasonT",
+     "v": 1
     }
    },
    {

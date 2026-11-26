@@ -210,7 +210,8 @@
       "sas",
       "measure"
      ],
-     "q": "gen.pf.q.reason"
+     "q": "gen.pf.q.reason",
+     "v": 1
     }
    }
   ]
@@ -245,7 +246,8 @@
       "asa",
       "looks"
      ],
-     "q": "gen.pf.q.reasonT"
+     "q": "gen.pf.q.reasonT",
+     "v": 1
     }
    },
    {
@@ -271,7 +273,8 @@
       "tri",
       "measure"
      ],
-     "q": "gen.pf.q.reasonT"
+     "q": "gen.pf.q.reasonT",
+     "v": 1
     }
    },
    {

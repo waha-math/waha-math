@@ -26,7 +26,17 @@ const pfDot = (g, P) => el('circle', { cx: P[0], cy: P[1], r: 4.5, fill: ANG.v, 
 const PF_TRI = [{ L: ['أ', 'ب', 'ج'], P: [[170, 38], [84, 112], [290, 112]] }, { L: ['د', 'هـ', 'و'], P: [[250, 38], [60, 112], [300, 112]] }, { L: ['ل', 'م', 'ن'], P: [[110, 38], [70, 112], [296, 112]] }, { L: ['س', 'ص', 'ع'], P: [[206, 38], [46, 112], [272, 112]] }, { L: ['ف', 'ق', 'ر'], P: [[136, 38], [62, 112], [300, 112]] }];   /* الرأس الأعلى 38 لا 30: حرفه داخل الإطار (المراجعان لبوابة M4-U1/U2) */
 const PF_MK = { vert: [[40, [0, 1, 2]], [65, [1, 2, 3]], [110, [2, 3, 0]]], alt: [[3, 7, 6], [4, 8, 5], [2, 6, 7]], coint: [[3, 7, 5], [4, 8, 6]] }, PF_INEQ = [{ L: ['أ', 'ب', 'ج'], P: [[70, 104], [196, 38], [300, 104]] }, { L: ['د', 'هـ', 'و'], P: [[60, 100], [120, 40], [304, 100]] }, { L: ['س', 'ص', 'ع'], P: [[56, 106], [238, 44], [300, 106]] }]   /* صورة ثالثة للمتقابلتين وللتبادل وللمتباينة (المراجع A لبوابة M4-U1/U2، 2) */, PF_POLY = [5, 6, 7];
 const pfKey = (k, v, n) => `pf.${k}${v ? '.v' + v : ''}.${n + 1}`;
-function pfFig(g, k, o = {}) { if (['paraSide', 'paraDiag', 'rectDiag', 'rhombDiag', 'conv'].includes(k)) return cgQuad(g, k, { y0: o.y0, s: o.s });   /* براهين الرباعيات (M4-U3) */
+/* متغيّرات الحروف لبراهين م4 التي ليس لها متغيّرات مرسومة (الرباعيات وفيثاغورس والدائرة والإنشاء): الشكل والخطوات بأسماء أخرى، فبند التقييم ليس مسألة المشهد
+   نفسها (D240، المراجع B لبوابة M4-U1/U2، 14). الحرف يُبدَّل حين يكون اسماً قائماً وحده (أو بعد «وَ») لا حرفاً في كلمة */
+const PF_GENERIC = ['paraSide', 'paraDiag', 'rectDiag', 'rhombDiag', 'conv', 'pyth', 'pyConv', 'perpPf', 'chordPf', 'inscPf', 'bisPf', 'pbPf', 'bisCon', 'perpCon'];
+const PF_LMAP = { 1: { 'أ': 'س', 'ب': 'ص', 'ج': 'ع', 'د': 'ل', 'م': 'ك', 'ن': 'ط', 'ر': 'ح', 'ق': 'ف', 'و': 'ز' },
+  2: { 'أ': 'ل', 'ب': 'ك', 'ج': 'ط', 'د': 'ي', 'م': 'ف', 'ن': 'س', 'ر': 'ع', 'ق': 'ص', 'و': 'ح' },
+  3: { 'أ': 'ف', 'ب': 'ح', 'ج': 'ك', 'د': 'ط', 'م': 'س', 'ن': 'ل', 'ر': 'ص', 'ق': 'ع', 'و': 'ي' } };
+const pfLetters = (s, v) => { const M = PF_LMAP[v]; return M ? String(s).replace(/(^|[^\u0621-\u064A\u064B-\u0652]|وَ)([أبجدمنرقو])(?![\u0621-\u064A\u064B-\u0652])/g, (m, p, c) => p + (M[c] || c)) : s; };
+function pfText(k, v, n) { const key = pfKey(k, v, n), D = CUR ? LDATA[CUR.id] : null; if (!v || (D && D.labels && D.labels[key]) || LABELS.ui[key] || !PF_GENERIC.includes(k)) return labelText(key); return pfLetters(labelText(pfKey(k, 0, n)), v); }
+function pfFig(g, k, o = {}) { if (o.v && PF_LMAP[o.v] && PF_GENERIC.includes(k)) { const h = el('g', {}, g), r = pfFig0(h, k, { ...o, v: 0 }), w = document.createTreeWalker(h, NodeFilter.SHOW_TEXT), L = []; while (w.nextNode()) L.push(w.currentNode); L.forEach(t => { t.data = pfLetters(t.data, o.v); }); return r; }
+  return pfFig0(g, k, o); }
+function pfFig0(g, k, o = {}) { if (['paraSide', 'paraDiag', 'rectDiag', 'rhombDiag', 'conv'].includes(k)) return cgQuad(g, k, { y0: o.y0, s: o.s });   /* براهين الرباعيات (M4-U3) */
   if (['pyth', 'pyConv', 'perpPf'].includes(k)) return pyFig(g, k, o);   /* براهين فيثاغورس (M4-U4) */
   if (['chordPf', 'inscPf'].includes(k)) return c6Fig(g, k, o);   /* براهين الدائرة (M4-U6) */
   if (['bisPf', 'pbPf', 'bisCon', 'perpCon'].includes(k)) return c8Fig(g, k, o);   /* الإنشاء وبرهاناه (M4-U8) */
@@ -59,7 +69,7 @@ function polyFig(g, n, o = {}) { const P = o.pts || polyPts(n, o.cx ?? 180, o.cy
 
 /* ---------- نصّ خطوة: عبارة ثم «لأن…» بخطّ أصغر ---------- */
 function pfStep(g, y, k, n, o = {}) { const rs = PF_PROOFS[k].rs[n], t = el('text', { x: o.x ?? 324, y, 'text-anchor': 'start', 'font-size': o.fs || 15, 'font-weight': 800, fill: o.col || PF.ink, direction: 'rtl', 'pointer-events': 'none' }, g);
-  t.textContent = MX(labelText(pfKey(k, o.v, n))); if (o.reason === false) return t;   /* الخطوة العددية الخالصة بالغربية من اليسار (D280 (2)، المراجع A لبوابة M4-U1/U2، 1) */
+  t.textContent = MX(pfText(k, o.v, n)); if (o.reason === false) return t;   /* الخطوة العددية الخالصة بالغربية من اليسار (D280 (2)، المراجع A لبوابة M4-U1/U2، 1) */
   const r = o.two ? el('text', { x: o.x ?? 324, y: y + (o.fs || 15) + 5, 'text-anchor': 'start', direction: 'rtl', 'pointer-events': 'none' }, g) : el('tspan', {}, t);   /* two: السبب سطرٌ ثانٍ تحت العبارة */
   r.setAttribute('font-size', (o.fs || 15) - (o.two ? 1 : 2));   /* السبب في سطره الثاني بخطّ يُقرأ (المراجع B لبوابة M4-U1/U2، 11) */ r.setAttribute('font-weight', 700); r.setAttribute('fill', o.ask ? PF.q : o.rcol || '#5b6b75');
   r.textContent = (o.two ? '' : '  ') + labelText('pfBecause') + ' ' + (o.ask ? '؟' : labelText('pf.rs.' + rs)); return t; }
@@ -83,7 +93,7 @@ ITEM.prChain = {
     return { ...spec, order, okSet: ok, want: ok[0], tag: 'pf-chain-' + spec.pf }; },
   async ask(item, mode, tries) { const svg = m3Stage(390), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0, cg = ['sas', 'asa', 'sss'].some(r => PF_PROOFS[item.pf].rs.includes(r)); pfFitFig(g, item.pf, 18, 120, { v, sMax: .7, y0: 8, s: cg ? .5 : .56 });
     const cards = item.order.map((n, i) => { const c = el('g', { role: 'button', tabindex: 0, style: 'cursor:pointer' }, svg), y = PF_CY(i);
-      el('rect', { x: 20, y, width: 320, height: 70, rx: 10, fill: PF.card, stroke: PF.edge, 'stroke-width': 2 }, c); pfStep(c, y + 30, item.pf, n, { x: 330, fs: 15, two: true, v }); c.setAttribute('aria-label', plain(labelText(pfKey(item.pf, v, n)) + ' ' + labelText('pfBecause') + ' ' + labelText('pf.rs.' + PF_PROOFS[item.pf].rs[n]))); return c; });
+      el('rect', { x: 20, y, width: 320, height: 70, rx: 10, fill: PF.card, stroke: PF.edge, 'stroke-width': 2 }, c); pfStep(c, y + 30, item.pf, n, { x: 330, fs: 15, two: true, v }); c.setAttribute('aria-label', plain(pfText(item.pf, v, n) + ' ' + labelText('pfBecause') + ' ' + labelText('pf.rs.' + PF_PROOFS[item.pf].rs[n]))); return c; });
     if (tries >= 3) { const m = helpG(svg); badge(m, 38, PF_CY(item.order.indexOf(0)) + 35, 1, THINK_INK); await S('gen.pf.together.chain'); }
     else await S(item.q || 'gen.pf.q.chain');
     const picked = await orderTap(svg, cards, item.want, i => [38, PF_CY(i) + 35]); return { ans: picked.join(','), ctx: { svg, cards, fig: g } }; },

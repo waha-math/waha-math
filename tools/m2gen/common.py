@@ -11,7 +11,27 @@ def dump(path, obj):
             _old = json.load(open(path, encoding='utf8'))
             if 'workshop' in _old: obj['workshop'] = _old['workshop']
         except ValueError: pass
+    if '/content/m4/' in path.replace(os.sep, '/') and isinstance(obj, dict) and 'flow' in obj: pf_vary(obj)
     json.dump(obj, open(path,'w'), ensure_ascii=False, indent=1); open(path,'a').write('\n')
+# D240 (المراجع B لبوابة M4-U1/U2، 14): بنود البرهان في التقييم والتوائم لبراهين بلا متغيّرات مرسومة (الرباعيات وفيثاغورس والدائرة والإنشاء)
+# بأسماء حروفٍ أخرى (v، PF_LMAP في 49_m4_c_proof.js)، فلا تكون مسألة المشهد نفسها؛ والعدّاد عامٌّ في التشغيل فلا تتكرّر بين الدروس
+PF_GENERIC={'paraSide','paraDiag','rectDiag','rhombDiag','conv','pyth','pyConv','perpPf','chordPf','inscPf','bisPf','pbPf','bisCon','perpCon'}
+_PFV={}
+def pf_vary(d):
+    def nxt(pf, step):
+        k=(pf, step); _PFV[k]=_PFV.get(k,0)%3+1; return _PFV[k]
+    def item(it, assess):
+        if assess and it.get('t') in ('prChain','prReason') and it.get('pf') in PF_GENERIC and not it.get('v'): it['v']=nxt(it['pf'], it.get('step', 'c'))
+        if isinstance(it.get('twin'), dict): item(it['twin'], True)
+    def walk(x, assess):
+        if isinstance(x, dict):
+            if 't' in x: item(x, assess)
+            for k, v in x.items():
+                if k!='twin': walk(v, assess)
+        elif isinstance(x, list):
+            for v in x: walk(v, assess)
+    for k in ('flow','practice','chaos'): walk(d.get(k), False)
+    for k in ('mastery','review','test'): walk(d.get(k), True)
 def merge_json(path, fn):
     d=json.load(open(path)); fn(d); json.dump(d, open(path,'w'), ensure_ascii=False, indent=1); open(path,'a').write('\n')
 

@@ -24,7 +24,7 @@ def chain(pf,q=None): return {"t":"prChain","pf":pf,"q":q or "gen.pf.q.chain"}
 def why(pf,step,opts,q=None):
     assert opts[0]==RS[pf][step] and len(set(opts))==3, (pf,step,opts)
     return {"t":"prReason","pf":pf,"step":step,"cands":opts,"q":q or "gen.pf.q.reason"}
-def case(cs,v=0): assert 0<=v<5, v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
+def case(cs,v=0): assert 0<=v<7, v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
 def smiss(s,k,ask): return {"t":"simMiss","s":s,"k":k,"ask":ask,"q":"gen.pre.q.sim"}
 dump(U+'/unit.json', {"id":"m4.u4","title":"نَظَرِيَّةُ فِيثَاغُورْسَ","sub":"المَرْحَلَةُ الرَّابِعَةُ: المُخْتَرِعُونَ","district":"حَيُّ فِيثَاغُورْسَ","hosts":["triangle","square","rect"],"hunt":[]})
 ADULT={"title":"نظرية فيثاغورس: سلّم الأداء (المرجع M4-U4، مشروع «السلّم والجدار»)","how":"اسألوه بالسلّم والجدار والشريط، ثم اختاروا لكل معيار:","levels":True,
@@ -213,7 +213,7 @@ d3={"id":"m4.u4.d3","title":"العَمُودِيُّ أَقْصَرُ","icon":[
   {"s":"hook","scene":"pyPumpShow","lines":["pu.01","pu.02","pu.03","pu.04"]},
   {"s":"explore","scene":"quadProof","pfs":["perpPf"],"mat":MAT(),"lines":["pf.00","pf.01","pf.02","pf.03"]},
   {"s":"explore","scene":"pfPicHook","pic":{"cs":"rhs"},"lines":["rh.01","rh.02"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(leg(13,5,'perp'),leg(15,9,'perp')), tw(leg(10,8,'perp'),leg(17,15,'perp'))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(leg(13,5,'perp'),leg(35,21,'perp')), tw(leg(10,8,'perp'),leg(17,15,'perp'))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(leg(20,12,'perp'),leg(5,4,'perp')), tw(case('rhs'),case('rhs',v=1)), tw(why('perpPf',1,['pos','pyth','looks']),chain('perpPf'))],
@@ -221,7 +221,7 @@ d3={"id":"m4.u4.d3","title":"العَمُودِيُّ أَقْصَرُ","icon":[
  "chaos":{"kind":"scene","scene":"chaosItem","item":leg(13,5),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{"C407":[leg(25,15,'perp'), why('perpPf',2,['so2','pos','measure']), reason("ms.1",pfp(py='perpPf',rm=1),["ms.1a","ms.1b","ms.1c"])],
                         "C405":[case('rhs',v=2), case('ssa',v=2), reason("ms.2",pfp(cs='rhs',v=1),["ms.2a","ms.2b","ms.2c"])]},
-  "alt":{"C407":[leg(13,12,'perp'), leg(25,20,'perp'), reason("ms.x1",pfp(py='perpPf',rm=2),["ms.x1a","ms.x1b","ms.x1c"])], "C405":[case('rhs',v=4), case('ssa',v=3), reason("ms.x2",pfp(cs='rhs',v=3),["ms.x2a","ms.x2b","ms.x2c"])]},
+  "alt":{"C407":[leg(25,24,'perp'), leg(25,20,'perp'), reason("ms.x1",pfp(py='perpPf',rm=2),["ms.x1a","ms.x1b","ms.x1c"])], "C405":[case('rhs',v=4), case('ssa',v=3), reason("ms.x2",pfp(cs='rhs',v=3),["ms.x2a","ms.x2b","ms.x2c"])]},
   "recall":{"C407":{"scene":"lines","lines":["ms.recall"]},"C405":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C407":[tw(leg(10,6,'perp'),leg(5,3,'perp'))],"C405":[tw(case('sas',v=1),case('ssa',v=1))]},
   "mixed":{"lesson":"m4.u4.d2","concept":"C407","item":isr(9,10,13)},
@@ -271,7 +271,7 @@ d4={"id":"m4.u4.d4","title":"مَشْرُوعُ: السُّلَّمُ وَالج
  "labels":{"bagTape":"شَرِيطُ قِيَاسٍ","bagGrid":"وَرَقُ مُرَبَّعَاتٍ"},"lines":L4,
  "flow":[
   {"s":"explore","scene":"ladderShow","mat":MAT(),"lines":["ld.01","ld.02","ld.03"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"prj.intro","items":[tw(leg(13,5,'ladder'),leg(10,6,'ladder')), tw(leg(17,8,'ladder'),leg(15,12,'ladder'))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"prj.intro","items":[tw(leg(13,5,'ladder'),leg(20,12,'ladder')), tw(leg(17,8,'ladder'),leg(15,12,'ladder'))]},
   {"s":"explore","scene":"lines","table":True,"lines":["tb.01","tb.02"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
@@ -332,7 +332,7 @@ d5={"id":"m4.u4.d5","title":"بَوَّابَةُ حَيِّ فِيثَاغُو�
  "test":{"remedial":"ts.rem","stoneLine":"ts.stone","winLines":["ts.win1","ts.win2"],"items":[   # أقسام المرجع: 3 الوتر والضلع، 2 العكس، 2 البرهان بالمربعات، 2 العمودي أقصر، 1 الوتر وضلع قائم، 1 خطأ، 1 مفتوح
    T5(1,1,hyp(24,10)), T5(2,1,leg(39,15)), T5(3,1,approx(2,3)),
    T5(4,2,isr(20,21,29)), T5(5,2,isr(6,9,10)),
-   T5(6,1,sq(4,3)), T5(7,1,why('pyth',2,['algebra','measure','sss'],q="gen.pf.q.reasonT")),
+   T5(6,1,sq(3,5)), T5(7,1,why('pyth',2,['algebra','measure','sss'],q="gen.pf.q.reasonT")),
    T5(8,3,leg(30,18,'perp')), T5(9,3,leg(50,30,'perp')),
    T5(10,3,case('rhs',v=3)|{"v":3}),
    T5(11,1,reason("ts.11",pfp(py='pyth',rm=1),["ts.11a","ts.11b","ts.11c"])),

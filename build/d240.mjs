@@ -616,6 +616,7 @@ export function d240(lessons, code, MAKERS) {
   const ASSESS_ONLY = /^(count|friend|fglance)\|/;
   const arSubs = (...M) => { const out = []; for (let k = 1; k < 1 << M.length; k++) out.push(M.filter((_, i) => k >> i & 1).sort().join(',')); return out; };
   const arPairs = (phi, M) => M.flatMap(g => M.filter(a => a !== g).map(a => artK(phi, g, a)));
+  const simShown = (a, k) => { const b = a.map(v => v * k); return [`smy|tri|${a}|${b}`, `smy|tri|${b}|${a}`, ...a.map((v, i) => `sim|${a}|${k}|${i}`)]; };
   const pfShown = k => [`pfc|${k}|0`, `pfr|${k}|0|0`, `pfr|${k}|0|1`, `pfr|${k}|0|2`, `pfpic|fig|${k}|0`];
   const SCENE_FACTS = {
     /* S2-U0 وS2-U1: ما يعرضه المشهد بجوابه على المسطرة والشبكة والطرق (الفحص المستقل لبوابة S2-U0/U1 (9)) */
@@ -662,6 +663,15 @@ export function d240(lessons, code, MAKERS) {
     pfAltShow: c => [...pfShown('alt'), ...(c.coint ? pfShown('coint') : [])],
     ineqShow: c => (c.sets || [[2, 3, 8], [4, 5, 6]]).flatMap(s => [`iyn|${[...s].sort((x, y) => x - y)}`, pfpicK({ ineq: s })]),
     polyShow: () => ['pfpic|poly|5|0'],
+    /* M4-U3/U4: ما يعرضه المشهد بجوابه (D240، D253): المتشابهان بأضلاعهما ومعاملهما، وحالات التطابق، وبراهين الرباعيات، وفيثاغورس بأعداده */
+    cgHook: c => simShown(c.a || [3, 4, 5], c.k || 2), simShow: c => simShown(c.a || [4, 6, 8], c.k || 1.5),
+    cgSasShow: () => ['cgc|sas|0', 'cgc|ssa|0', 'cgc|asa|0'],
+    quadProof: c => (c.pfs || [c.pf]).flatMap(pfShown),
+    cgPerpShow: c => { const [a, b, cc, d] = c.dims || [3, 7, 4, 2]; return [`ppa|${a}|${b}|${cc}|${d}`, `ppa|${b}|${a}|${d}|${cc}`]; },
+    pyHook: () => ['pyh|3,4', 'pys|3|4', 'pys|4|3'],
+    pySqShow: c => { const [a, b] = c.ab || [3, 4]; return [`pys|${a}|${b}`, `pys|${b}|${a}`, `pyh|${[a, b].sort((x, y) => x - y)}`]; },
+    pyPumpShow: c => { const h = c.h || 12; return (c.ds || [9, 5, 0]).filter(d => d).flatMap(d => { const L = Math.sqrt(h * h + d * d); return [`pyh|${[h, d].sort((x, y) => x - y)}`, `pya|${[h, d].sort((x, y) => x - y)}`, `pyl|${+L.toFixed(1)}|${h}|perp`, `pyl|${+L.toFixed(1)}|${d}|perp`]; }); },
+    ladderShow: () => ['pyl|5|3|ladder', 'pyl|5|4|ladder', 'pyl|10|6|ladder', 'pyl|10|8|ladder', 'pyh|3,4', 'pyh|6,8'],
     polyTable: () => [3, 4, 5, 6].flatMap(n => [`ptr|${n}`, `psm|${n}`, `pfpic|poly|${n}|1`]),
     regExShow: () => ['prg|6|in', 'prg|6|ex', 'pfpic|poly|6|0'],
     trapShow: () => ['itp|70|base', 'itp|70|top', 'pfpic|trap|70|1', 'pfpic|trap|70|0'],

@@ -280,7 +280,8 @@
     "twin": {
      "t": "prChain",
      "pf": "chordPf",
-     "q": "gen.pf.q.chain"
+     "q": "gen.pf.q.chain",
+     "v": 1
     }
    },
    {
