@@ -91,6 +91,10 @@
     "cy.02",
     "cy.03",
     "cy.04"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u7d1.0"
    ]
   },
   {

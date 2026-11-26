@@ -101,6 +101,10 @@
     "vs.01",
     "vs.02",
     "vs.03"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u2d2.0"
    ]
   },
   {
@@ -115,6 +119,10 @@
     "cs.01",
     "cs.02",
     "cs.03"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u2d2.1"
    ]
   },
   {

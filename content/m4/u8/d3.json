@@ -93,6 +93,10 @@
     "tb.02",
     "tb.03",
     "tb.04"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u8d3.0"
    ]
   },
   {
@@ -101,6 +105,10 @@
    "lines": [
     "sm.01",
     "sm.02"
+   ],
+   "predBefore": [
+    "no",
+    "gen.pr.m4u8d3.1"
    ]
   },
   {

@@ -105,6 +105,10 @@
     "pf.01",
     "pf.02",
     "pf.03"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u4d3.0"
    ]
   },
   {
@@ -116,6 +120,10 @@
    "lines": [
     "rh.01",
     "rh.02"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u4d3.1"
    ]
   },
   {

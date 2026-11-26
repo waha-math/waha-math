@@ -98,6 +98,10 @@
     "ch.02",
     "ch.03",
     "ch.04"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u6d1.0"
    ]
   },
   {

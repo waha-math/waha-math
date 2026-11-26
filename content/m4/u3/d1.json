@@ -91,6 +91,10 @@
     "sb.02",
     "sb.03",
     "sb.04"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u3d1.0"
    ]
   },
   {

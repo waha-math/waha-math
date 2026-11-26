@@ -98,6 +98,10 @@
     "pt.03",
     "pt.04",
     "pt.05"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u9d3.0"
    ]
   },
   {
@@ -143,6 +147,10 @@
     "tm.03",
     "tm.04",
     "tm.05"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u9d3.1"
    ]
   },
   {

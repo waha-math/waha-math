@@ -105,6 +105,10 @@
     "cv.02",
     "cv.03",
     "cv.04"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u3d5.0"
    ]
   },
   {
@@ -113,6 +117,10 @@
    "lines": [
     "fm.01",
     "fm.02"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u3d5.1"
    ]
   },
   {
@@ -127,6 +135,10 @@
    "lines": [
     "pa.01",
     "pa.02"
+   ],
+   "predBefore": [
+    "no",
+    "gen.pr.m4u3d5.2"
    ]
   },
   {

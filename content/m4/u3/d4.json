@@ -126,6 +126,10 @@
     "qp.06",
     "qp.07",
     "qp.08"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u3d4.0"
    ]
   },
   {
@@ -144,6 +148,10 @@
     "qh.1",
     "qh.2",
     "qh.3"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m4u3d4.1"
    ]
   },
   {

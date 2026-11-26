@@ -404,6 +404,9 @@ export function lint(content, js) {
         if (v.t === 'linePick') for (const o of v.opts || []) if (typeof o !== 'number' || o < 1 || o > train) errors.push(`${where}: linePick: الخيار ${o} خارج قطار من ${train}`); } }
     for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkNum(x, where, top); };
   for (const L of Object.values(lessons)) walkNum(L, L.id, L.id);
+  /* والتوقّع العددي قبل المشهد (predBefore): جوابه وخياراه أعدادٌ تُقال، فلكلٍّ منها كلمة (gen.numw.N) — كان يتوقّف الدرس في التشغيل بـ«جملة غير موجودة» */
+  for (const L of Object.values(lessons)) for (const st of L.flow || []) { const p = st && st.predBefore; if (!Array.isArray(p) || typeof p[0] !== 'number') continue;
+    for (const n of [p[0], ...(p[2] || [])]) if (!LINES.has('gen.numw.' + (n < 10 ? '0' + n : n))) errors.push(`${L.id}: توقّع «${st.scene}» يقول ${n} ولا كلمة له (gen.numw.${n})`); }
   // 4ب2) «أين هو في الخريطة؟» (S1-U3): الشيء على الأرض في خانة فارغة، أو فوق قطعة موجودة، أو تحت طاولة قريبة منا (فيُرى ما تحتها)
   const walkMap = (v, where) => { if (Array.isArray(v)) return v.forEach(x => walkMap(x, where)); if (!v || typeof v !== 'object') return;
     if (v.t === 'mapFind') { const m = v.mark || {}, items = (v.lay && v.lay.items) || [], key = i => i.col + ',' + i.row;
