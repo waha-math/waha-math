@@ -341,7 +341,7 @@
      "pic": {
       "kind": "pfpic",
       "py": "perpPf",
-      "rm": 1
+      "v": 1
      },
      "opts": [
       {
@@ -415,7 +415,7 @@
      "pic": {
       "kind": "pfpic",
       "py": "perpPf",
-      "rm": 2
+      "v": 2
      },
      "opts": [
       {

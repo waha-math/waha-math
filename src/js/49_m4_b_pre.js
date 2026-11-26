@@ -54,10 +54,10 @@ function preCaseTris(svg, cs, v = 0) { const g = el('g', { 'pointer-events': 'no
   return { g, A, B: B2 }; }
 ITEM.cgCase = cpItem({ H: 236, tLine: 'gen.pre.together.case', hint: 'gen.pre.hint.case', rLine: it => 'gen.pre.reveal.case.' + it.want, praise: 'praiseThink',
   make: s => ({ want: PRE_CASE_OK[s.cs], tag: 'pre-case-' + s.cs }),
-  draw(svg, item, tries) { const D = preCaseTris(svg, item.cs, item.v || 0); if (tries >= 3) ciRule(helpG(svg), 180, 30, labelText('preRuleCase'), PRE.hl, 15); return D; },
+  draw(svg, item, tries) { const D = preCaseTris(svg, item.cs, item.v || 0); if (tries >= 3) ciRule(helpG(svg), 180, 30, labelText('preCaseIs.' + item.cs), PRE.hl, 15); return D; },   /* الحلّ المشترك يسمّي المعطى، والحكم للطفل (المراجع A لبوابة M4-U3/U4، 5 (ب)) */
   h2: async (item, ctx) => { const m = helpG(ctx.svg), [S2, A2] = PRE_CASE_MK[item.cs] || [[], []];   /* المستوى الثاني رسمٌ: الأضلاع المعلَّمة ملوّنة والزوايا المعلَّمة بحلقة: أين الزاوية من الضلعين؟ */
     for (const T of [ctx.A, ctx.B]) if (T) { S2.forEach(([i, j]) => hlSeg(m, T[i], T[j], H2C[0])); A2.forEach(k => hlRing(m, T[k], 17)); }
-    ciRule(m, 180, 30, labelText('preRuleCase'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, 30, labelText('preRuleCase.' + item.cs), PRE.hl, 15); await sleep(FAST ? 10 : 250); },   /* القاعدة التي تخصّ ما في الرسم (5 (ج)) */
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.want === 'yes' ? 'preCaseNo' : it.cs === 'aaa' ? 'preCaseAaa' : 'preCaseSsa' });
 
@@ -75,7 +75,7 @@ ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hi
       preSideLabs(g, sm, item.s.map(v => MS(String(v))), [PRE.ink, PRE.ink, PRE.ink]); labs = preSideLabs(g, bg, item.s.map((v, i) => i === item.ask ? '؟' : MS(String(v * item.k))), item.s.map((v, i) => i === item.ask ? PRE.q : PRE.ink)); }
     else { const mx = Math.max(...item.s) * Math.max(1, item.k), u = Math.min(13, 150 / mx), big = item.k >= 1;   /* مثلث عامّ بأطوال أضلاعه (M4-U3)؛ الأصل يمين والمكبَّر أو المصغَّر يسار */
       const P1 = cgTri(g, item.s, { cx: 266, y: 196, u }), P2 = cgTri(g, item.s.map(v => v * item.k), { cx: 96, y: 196, u, col: PRE.b, fill: PRE.fillB, ask: item.ask }); labs = P2.labs; T2 = [{ P: P1, s: item.s }, { P: P2, s: item.s.map(v => v * item.k) }]; }
-    if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.s[0] * item.k} ÷ ${item.s[0]} = ${item.k}`, PRE.hl, 17); return { q: labs[item.ask], T2 }; },
+    if (tries >= 3) { const j = item.ask === 0 ? 1 : 0; ciEq(helpG(svg), 110, 34, `${item.s[j] * item.k} ÷ ${item.s[j]} = ${item.k}`, PRE.hl, 17); } return { q: labs[item.ask], T2 }; },   /* المعامل من ضلعٍ معلوم غير المجهول (5 (د)) */
   h2: async (item, ctx) => { const m = helpG(ctx.svg); for (const T of ctx.T2 || []) rankSides(m, T.P, T.s);   /* المستوى الثاني رسمٌ: المتناظر بلونٍ واحد */
     ciRule(m, 120, 34, labelText('preRuleSim'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) { ctx.q.textContent = MS(String(item.want)); ctx.q.setAttribute('fill', PRE.ok); } },
@@ -86,7 +86,10 @@ ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hi
 ITEM.pyHyp = cpItem({ H: 250, tLine: 'gen.pre.together.py', hint: 'gen.pre.hint.py', rLine: 'gen.pre.reveal.py', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const want = Math.round(Math.hypot(s.a, s.b)); /*T*/if (TESTHOOK && want * want !== s.a * s.a + s.b * s.b) testBug('pyHyp: الوتر ليس عدداً صحيحاً');/*/T*/
     return { want, nums: [want, s.a + s.b, s.a * s.a + s.b * s.b <= 100 ? s.a * s.a + s.b * s.b : want + 2], tag: 'pre-py' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(36, 150 / Math.max(item.a, item.b * 1.1)), T = preRightTri(g, [262, 206], item.a, item.b, u);
+  draw(svg, item, tries) { const g = el('g', {}, svg);
+    if (item.ctx === 'ladder') { const L = pyScene(g, 'ladder', item.want, item.a, item.b, {}); L.hyp.textContent = '؟'; L.hyp.setAttribute('fill', PRE.q); L.q.textContent = ciTxt(item.b, 'm'); L.q.setAttribute('fill', PRE.ink); L.q.setAttribute('font-size', 15); L.q.setAttribute('direction', 'rtl');   /* سؤال السلّم بسلّمٍ لا بمثلثٍ مجرّد (المراجع A لبوابة M4-U3/U4، 7) */
+      if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: L.hyp, T: { A: L.pts.k[0], C: L.pts.C, B: L.pts.h[1] } }; }
+    const u = Math.min(36, 150 / Math.max(item.a, item.b * 1.1)), T = preRightTri(g, [262, 206], item.a, item.b, u);
     const labs = preSideLabs(g, T, [MS(String(item.a)), MS(String(item.b)), '؟'], [PRE.ink, PRE.ink, PRE.q]);
     if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: labs[2], T }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), T = ctx.T; if (T) { hlSeg(m, T.A, T.C, H2C[0]); hlSeg(m, T.C, T.B, H2C[1]); hlRing(m, T.C, 18); }   /* المستوى الثاني رسمٌ: الضلعان القائمان */

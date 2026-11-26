@@ -261,7 +261,8 @@ function pfReasonPic(g, P) { const sc = el('g', {}, g);
   else if (P.cs) preCaseTris(sc, P.cs, P.v || 0);
   else if (P.sim) { const mx = Math.max(...P.sim.a, ...P.sim.b), u = Math.min(22, 120 / mx); simShape(sc, P.sim.fig, P.sim.a, { cx: 262, y: 160, u, col: CG.a, fill: CG.fa }); simShape(sc, P.sim.fig, P.sim.b, { cx: 96, y: 160, u, col: CG.b, fill: CG.fb }); }
   else if (P.trapD) { const Q = isoTrapAt(sc, P.trapD, { y1: 50, y2: 150 }); geoLine(sc, Q.B1[0], Q.B1[1], Q.T2[0], Q.T2[1], { color: CG.c, w: 2.6 }); geoLine(sc, Q.B2[0], Q.B2[1], Q.T1[0], Q.T1[1], { color: CG.c, w: 2.6 }); }
-  else if (P.qd) pfFig(sc, P.qd, { y0: 30, s: 1, v: P.v });   /* v: حروفٌ أخرى (PF_LMAP)، فصورة التقييم ليست صورة المشهد */
+  else if (P.qd) pfFig(sc, P.qd, { y0: 30, s: 1, v: P.v });
+  else if (P.pysq) pySquares(sc, [214, 130], P.pysq[0], P.pysq[1], 16);   /* مربعٌ على كل ضلع (U4) */   /* v: حروفٌ أخرى (PF_LMAP)، فصورة التقييم ليست صورة المشهد */
   else if (P.py) (PF_GENERIC.includes(P.py) ? pfFig : pyFig)(sc, P.py, { y0: 20, s: 1, ...P });
   else if (P.c4) c4Pic(sc, P.c4);   /* M4-U5 */
   else if (P.ci4) c6Pic(sc, P.ci4);   /* M4-U6 */

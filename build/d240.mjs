@@ -117,7 +117,7 @@ export const arvK = (th, g, a) => { const v = n => n % 2 ? th : 180 - th; return
 export const arpicK = P => P.tr != null ? `arpic|tr|${P.tr}|${P.tilt || 0}|${[...(P.mark || [])].sort().join(',')}|${P.vals ? 1 : 0}` : P.cross != null ? `arpic|cross|${P.cross}|${[...(P.mark || [])].sort().join(',')}|${P.vals ? 1 : 0}`
   : P.adj ? `arpic|adj|${P.adj.join('|')}` : 'arpic|' + JSON.stringify(P);
 export const pfpicK = P => P.fig ? `pfpic|fig|${P.fig}|${P.v || 0}` : P.ineq ? `pfpic|ineq|${[...P.ineq].sort((x, y) => x - y).join(',')}` : P.poly ? `pfpic|poly|${P.poly}|${P.diag ? 1 : 0}`
-  : P.trap ? `pfpic|trap|${P.trap}|${P.axis ? 1 : 0}` : 'pfpic|' + JSON.stringify(P);
+  : P.trap ? `pfpic|trap|${P.trap}|${P.axis ? 1 : 0}` : 'pfpic|' + JSON.stringify(Object.fromEntries(Object.entries(P).filter(([k]) => k !== 'kind' && k !== 'rm').sort()));   /* بلا kind ولا rm (لا يغيّر الرسم)، فصورة المشهد وصورة البند مفتاحٌ واحد (المراجع A لبوابة M4-U3/U4، 6) */
 export const factOf = it => { const t = it.t;
   if (t === 'split') return `part|${it.n}|${s2(it.k, it.n - it.k)}`;
   if (t === 'eqPair') return `part|${it.n}|${s2(...(it.parts || []))}`;

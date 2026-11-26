@@ -350,7 +350,7 @@
      "pic": {
       "kind": "pfpic",
       "py": "pyth",
-      "rm": 2
+      "v": 2
      },
      "opts": [
       {
@@ -386,8 +386,10 @@
      "q": "ms.x1",
      "pic": {
       "kind": "pfpic",
-      "py": "pyth",
-      "rm": 1
+      "pysq": [
+       3,
+       4
+      ]
      },
      "opts": [
       {

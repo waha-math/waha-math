@@ -78,7 +78,8 @@ ITEM.pyIsRight = cpItem({ H: 236, tLine: 'gen.py.together.isRight', hint: 'gen.p
 /* ---------- براهين الوحدة: النظرية بالمربع ذي الضلع أ + ب، والعكس بالأضلاع الثلاثة، والعمودي أقصر ---------- */
 Object.assign(PF_PROOFS, { pyth: { rs: ['sas', 'areaSum', 'algebra'] }, pyConv: { rs: ['draw2', 'pyth', 'sss'] }, perpPf: { rs: ['pyth', 'pos', 'so2'], alt: ['1,0,2'] } });
 function pyFig(g, k, o = {}) { const y0 = o.y0 ?? 0, s = o.s || 1, T = (x, y) => [180 + (x - 180) * s, y0 + y * s];
-  if (k === 'ladder') { pyScene(g, 'ladder', 5, 3, 4, { u: 26 }); return {}; }
+  if (k === 'ladder') { const [h, a, b] = o.dims || [5, 3, 4], L = pyScene(g, 'ladder', h, a, b, { u: Math.min(26, 150 / b) });   /* dims: سلّمٌ آخر؛ askHyp: المجهول طول السلّم (المراجع A لبوابة M4-U3/U4، 7) */
+    if (o.askHyp) { L.hyp.textContent = '؟'; L.hyp.setAttribute('fill', PY.q); L.q.textContent = ciTxt(b, 'm'); L.q.setAttribute('fill', PY.ink); L.q.setAttribute('font-size', 15); L.q.setAttribute('direction', 'rtl'); } return {}; }
   if (k === 'pyth') { const a = 28, b = 56, z = 1.3 * s, S2 = (a + b) * z, O = [180 - S2 / 2, y0 + 32], P = (x, y) => [O[0] + x * z, O[1] + y * z];
     el('rect', { x: O[0], y: O[1], width: S2, height: S2, fill: 'none', stroke: PY.ink, 'stroke-width': 3, 'pointer-events': 'none' }, g);
     const Q = [P(a, 0), P(a + b, a), P(b, a + b), P(0, b)]; el('polygon', { points: polyStr(Q), fill: PY.fc, stroke: PY.c, 'stroke-width': 2.6, 'pointer-events': 'none' }, g);

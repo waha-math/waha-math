@@ -33,11 +33,12 @@ ITEM.cgSides = cpItem({ H: 236, tLine: 'gen.cg.together.sides', hint: 'gen.cg.hi
 /* ================= ② القطع المتطابقة (C405): orig أضلاع الأصل، cands [ثلاث ثلاثيات، الأولى المطابقة]، rots ================= */
 ITEM.cgPick = cpItem({ H: 262, tLine: 'gen.cg.together.pick', hint: 'gen.cg.hint.pick', rLine: 'gen.cg.reveal.pick', praise: 'praiseThink',
   make: s => { const order = shuffle([0, 1, 2]); /*T*/if (TESTHOOK && s.cands.filter(c => cgRel(s.orig, c) === 'cong').length !== 1) testBug('cgPick: ليست ثلاثية واحدة مطابقة');/*/T*/ return { order, want: String(order.indexOf(0)), tag: 'cg-pick' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), mx = Math.max(...item.cands.flat()), u = Math.min(10, 80 / mx), uo = Math.min(11, 62 / Math.max(...item.orig)), X = [284, 180, 76];
-    const Po = cgTri(g, item.orig, { cx: 196, y: 88, u: uo, col: CG.c, fill: CG.fc }), Pc = []; preLab(g, 318, 40, labelText('cgOrig'), { dir: 'rtl', fs: 15, anchor: 'start' });
-    item.order.forEach((ci, pos) => { el('rect', { x: X[pos] - 50, y: 104, width: 100, height: 126, rx: 12, fill: CG.card, stroke: CG.edge, 'stroke-width': 2, 'pointer-events': 'none' }, g);
-      preLab(g, X[pos], 124, labelText('pfSet.' + pos), { dir: 'rtl', fs: 13 }); Pc.push([cgTri(g, item.cands[ci], { cx: X[pos], y: 206, u, rot: (item.rots || [30, -20, 15])[pos], col: CG.a, fill: CG.fa, fs: 13, fit: [X[pos] - 40, X[pos] + 40] }), item.cands[ci]]); });
-    if (tries >= 3) ciRule(helpG(svg), 180, 244, labelText('cgRuleSss'), CG.hl, 15); return { Po, Pc }; },
+  draw(svg, item, tries) { const g = el('g', {}, svg), mx = Math.max(...item.cands.flat()), u = Math.min(10, 80 / mx), uo = u, X = [284, 180, 76];   /* الأصل والمرشّحون بمقياسٍ واحد (المراجع A لبوابة M4-U3/U4، 7) */
+    const Po = cgTri(g, item.orig, { cx: 196, y: 86, u: uo, col: CG.c, fill: CG.fc }), Pc = []; preLab(g, 318, 40, labelText('cgOrig'), { dir: 'rtl', fs: 15, anchor: 'start' });
+    item.order.forEach((ci, pos) => { el('rect', { x: X[pos] - 50, y: 112, width: 100, height: 118, rx: 12, fill: CG.card, stroke: CG.edge, 'stroke-width': 2, 'pointer-events': 'none' }, g);
+      preLab(g, X[pos], 130, labelText('pfSet.' + pos), { dir: 'rtl', fs: 13 }); Pc.push([cgTri(g, item.cands[ci], { cx: X[pos], y: 206, u, rot: (item.rots || [30, -20, 15])[pos], col: CG.a, fill: CG.fa, fs: 13, fit: [X[pos] - 40, X[pos] + 40] }), item.cands[ci]]); });
+    if (tries >= 3) { const m = helpG(svg), srt = s => cgSorted(s).map(v => MS(String(v))).join('، '); preLab(m, 196, 34, srt(item.orig), { col: CG.hl, fs: 15 }); item.order.forEach((ci, pos) => preLab(m, X[pos], 244, srt(item.cands[ci]), { col: CG.hl, fs: 14 })); }   /* الحلّ المشترك: الأطوال مرتّبة تحت كلٍّ، والمقارنة للطفل (5 (ب)) */
+    return { Po, Pc }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Po) { rankSides(m, ctx.Po, item.orig); ctx.Pc.forEach(([P, s]) => rankSides(m, P, s)); }   /* المستوى الثاني رسمٌ: الأضلاع بألوان أطوالها */
     ciRule(m, 180, 244, labelText('cgRuleSss'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick([0, 1, 2].map(p => [String(p), labelText('pfSet.' + p), '<i></i>', 'gen.pf.set.' + p]), item.want),
@@ -63,10 +64,11 @@ ITEM.simYN = cpItem({ H: 236, tLine: 'gen.cg.together.simYN', hint: 'gen.cg.hint
 
 /* ================= ④ الرباعي من قطريه (C421 ب): info { mid، eq، perp } بطاقاتٍ؛ الجواب اسمه، أو «لا نعرف» (شبه المنحرف متساوي الساقين قطراه متساويان) ================= */
 /* القطران كما تقول البطاقات: يتناصفان أو لا، ومتساويان أو لا، ومتعامدان أو لا (بلا أضلاع الرباعي: لا يُرسم اسمه) */
-function qdSketch(m, info, C) { const L = 40, th = (info.perp ? 90 : 55) * Math.PI / 180, L2 = info.eq ? L : L * .62, f = info.mid ? .5 : .32;
+function qdSketch(m, info, C, outline) { const L = 40, th = (info.perp ? 90 : 55) * Math.PI / 180, L2 = info.eq ? L : L * .62, f = info.mid ? .5 : .32;
   const A = [C[0] - L, C[1]], Cc = [C[0] + L, C[1]], O = [A[0] + 2 * L * f, C[1]], u = [Math.cos(th), -Math.sin(th)], B = [O[0] + u[0] * L2 * (info.mid ? 1 : 1.3), O[1] + u[1] * L2 * (info.mid ? 1 : 1.3)], D = [O[0] - u[0] * L2 * (info.mid ? 1 : .7), O[1] - u[1] * L2 * (info.mid ? 1 : .7)];
   geoLine(m, A[0], A[1], Cc[0], Cc[1], { color: H2C[0], w: 3.4 }); geoLine(m, B[0], B[1], D[0], D[1], { color: H2C[1], w: 3.4 });
   if (info.mid) { preTicks(m, A, O, 1); preTicks(m, O, Cc, 1); preTicks(m, B, O, 2); preTicks(m, O, D, 2); }
+  if (outline) el('polygon', { points: polyStr([A, B, Cc, D]), fill: 'none', stroke: CG.ink, 'stroke-width': 2.6, 'pointer-events': 'none' }, m);
   if (info.perp) preRight(m, O, Cc, B, 9); [A, Cc, B, D, O].forEach(P => el('circle', { cx: P[0], cy: P[1], r: 3.5, fill: CG.ink, 'pointer-events': 'none' }, m)); }
 const QD_OF = i => i.mid ? (i.eq && i.perp ? 'square' : i.eq ? 'rect' : i.perp ? 'rhom' : 'para') : 'unk';
 ITEM.quadDiag = cpItem({ H: 262, tLine: 'gen.cg.together.qd', hint: 'gen.cg.hint.qd', rLine: it => 'gen.cg.reveal.qd.' + it.want, praise: 'praiseThink',
@@ -74,8 +76,8 @@ ITEM.quadDiag = cpItem({ H: 262, tLine: 'gen.cg.together.qd', hint: 'gen.cg.hint
   draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg); ['mid', 'eq', 'perp'].forEach((k, i) => { const y = 34 + i * 52, on = !!item.info[k];
       el('rect', { x: 108, y, width: 222, height: 42, rx: 10, fill: on ? 'rgba(47,157,107,.10)' : '#f6f2ea', stroke: on ? CG.ok : CG.edge, 'stroke-width': 2 }, g);   /* والرسم يساراً في المستوى الثاني */
       preLab(g, 318, y + 27, labelText('qdInfo.' + k), { dir: 'rtl', fs: 14, anchor: 'start' }); preLab(g, 132, y + 28, on ? labelText('qdYes') : labelText('qdNo'), { dir: 'rtl', fs: 14, col: on ? CG.ok : '#8a7f6e' }); });
-    if (tries >= 3) ciRule(helpG(svg), 180, 204, labelText('cgRuleQd'), CG.hl, 15); return {}; },
-  h2: async (item, ctx) => { const m = helpG(ctx.svg); qdSketch(m, item.info, [64, 110]); ciRule(m, 180, 204, labelText('cgRuleQd'), CG.hl, 15); await sleep(FAST ? 10 : 250); },   /* المستوى الثاني رسمٌ: القطران كما تقول البطاقات */
+    if (tries >= 3) { const m = helpG(svg); qdSketch(m, item.info, [64, 110], true); ciRule(m, 180, 228, labelText('cgRuleQd'), CG.hl, 15); } return {}; },   /* الحلّ المشترك: الرباعي من قطريه مرسوماً، والاسم للطفل */
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); qdSketch(m, item.info, [64, 110]); ciRule(m, 180, 228, labelText('cgRuleQd'), CG.hl, 15); await sleep(FAST ? 10 : 250); },   /* المستوى الثاني رسمٌ: القطران كما تقول البطاقات */
   pick: item => choosePick(item.cands.map(k => [k, labelText('qdName.' + k), '<i></i>', 'gen.cg.qd.' + k]), item.want),
   errOf: (it, k) => it.want === 'unk' ? 'qdEqOnly' : k === 'para' ? 'qdMissProp' : k === 'unk' ? 'qdNoConv' : 'qdWrongName' });
 
