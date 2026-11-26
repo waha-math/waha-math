@@ -224,7 +224,7 @@ function voiceNote() { const n = $('#voiceNote'); if (!n) return; const st = voi
 function showHome() {
   show('home'); CUR = null; FLOW++; disarmIdle(); gateEnd(); SCENE_NOW = 'home'; /*T*/window.__scene = 'home';/*/T*/
   $('#helloName').textContent = PROFILE && PROFILE.name ? G(labelText('hello')).replace('{name}', PROFILE.name) : '';
-  const me = $('#meBtn'); me.innerHTML = ''; me.appendChild(avatarNode(PROFILE)); $('#galBtn').innerHTML = ICON.gallery; renderDigits(); renderMute();
+  const me = $('#meBtn'); me.innerHTML = ''; me.appendChild(avatarNode(PROFILE)); $('#galBtn').innerHTML = ICON.gallery; renderDigits(); renderMute(); renderGear();
   $('#oasisBanner').innerHTML = oasisBanner(); voiceNote();
   const path = $('#path'); path.innerHTML = ''; let nowSet = false; const resting = needBreak();
   if (reviewWaiting()) { const rb = document.createElement('button'); rb.className = 'stop review now'; nowSet = true; rb.dataset.review = '1';

@@ -103,12 +103,13 @@ async function runLesson(id, opt = {}) {
     if (st.s === 'test' && !P.mastered) { await nextBtn(); await facesAsk(L); break; }   // لم يبلغ العتبة: نشاط علاجي ومراجعة الدرس الأضعف، بلا ختام الشارة
     if (i < L.flow.length - 1 && st.s !== 'wrap') await nextBtn(labelText(L.flow[i + 1].s === 'practice' ? 'tryYou' : i === 0 ? 'letsGo' : 'next'));
   }
-  setStep(L.flow.length);
+  setStep(L.flow.length); const firstDone = !P.done;
   P.done = true; P.at = Date.now(); delete P.resume; if (P.path === 'screen' && !(L.bag && L.bag.screenOnly)) P.entry = true; else if (P.path === 'mat') P.entry = false;
   if (L.review && L.review.length) srsStart(id);
   if (PROG.review === id && P.done) delete PROG.review;
   if (isObj(PROG.redo) && PROG.redo[id]) delete PROG.redo[id];   /* أُعيد الدرس بعد خطأين في المراجعة */
   saveProg(); countLesson();
+  if (firstDone && id === 'm4.u10.d2') await gearScene('a2:m4');   /* مصباح البرهان بالجزء أ2 (هوية م4) */
   await nextBtn(labelText('toMap')); showHome();
 }
 async function runStage(L, st) {
@@ -206,7 +207,7 @@ async function stoneScene(L) {
   const fz = chaosAt(svg, 290, 120, .55); const st = el('g', { transform: 'translate(270 150) scale(.32)' }, svg); stoneArt(st, L.unit, 0, 0);
   await S(L.test.stoneLine); await anim(st, [{ transform: 'translate(270px,150px) scale(.32)' }, { transform: 'translate(180px,236px) scale(.24)' }], { duration: 1200, fill: 'forwards', easing: 'cubic-bezier(.3,1.2,.6,1)' }).done;
   SFX.win(); confetti(); sp.remove(); springAt(svg, 180, 240, 1.3, { stones: placed, total: TT, level: placed / TT });
-  await S(L.test.winLines);
+  await S(L.test.winLines); await gearScene(L.unit);
 }
 /* شارة م2 وم3 وم4 بمكافأة مرحلتها في الواحة نفسها (D230، والجمل كذلك): فوضى «تشقّ القناة» فتجري؛ أو «تُرجع الحجر» إلى حلقة نبع م3
    فيُزهر البستان؛ أو تأتي بجزء الناعورة فيُركَّب، والتاسع يُديرها فيجري الماء في عشرين موضعاً. وكان الحجر يطير إلى حلقةٍ في المراحل كلها والجمل تقول غيره */
@@ -223,4 +224,4 @@ async function stageRewardScene(L, U, placed, TT) { const m = stageOf(U.id), k =
   else { const n = TT, [rx, ry] = noriaRim(k, n), to = [228 + rx, Y + 106 + ry], b = el('rect', { x: -4, y: -4, width: 8, height: 8, rx: 1.5, fill: css('--water'), stroke: css('--trunk-dk'), 'stroke-width': 1.2 }, svg);
     await anim(b, [{ transform: 'translate(290px,96px) scale(2)' }, { transform: `translate(${to[0]}px,${to[1]}px) scale(1)` }], { duration: 1100, fill: 'forwards', easing: 'cubic-bezier(.3,1.2,.6,1)' }).done; b.remove(); noriaPart(A.nor.wheel, k, n); }
   SFX.win(); confetti(); art.innerHTML = ''; A = oasisArt(art, { noSky: true, groundH: 140, spring: m === 'm3' ? { stones: placed, total: TT, level: 1 } : undefined });   /* بعد القطعة: الواحة كما ستبقى (والناعورة التاسعة تدور) */
-  await S(L.test.winLines); }
+  await S(L.test.winLines); await gearScene(U.id); }
