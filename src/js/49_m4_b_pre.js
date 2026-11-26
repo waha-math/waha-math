@@ -101,11 +101,13 @@ ITEM.pyHyp = cpItem({ H: 250, tLine: 'gen.pre.together.py', hint: 'gen.pre.hint.
   draw(svg, item, tries) { const g = el('g', {}, svg);
     if (item.ctx === 'ladder') { const L = pyScene(g, 'ladder', item.want, item.a, item.b, {}); L.hyp.textContent = '؟'; L.hyp.setAttribute('fill', PRE.q); L.q.textContent = ciTxt(item.b, 'm'); L.q.setAttribute('fill', PRE.ink); L.q.setAttribute('font-size', 15); L.q.setAttribute('direction', 'rtl');   /* سؤال السلّم بسلّمٍ لا بمثلثٍ مجرّد (المراجع A لبوابة M4-U3/U4، 7) */
       if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: L.hyp, T: { A: L.pts.k[0], C: L.pts.C, B: L.pts.h[1] } }; }
+    if (item.ctx === 'perp') { const L = pyScene(g, 'perp', item.want, item.a, item.b, {}); L.hyp.textContent = '؟'; L.hyp.setAttribute('fill', PRE.q); L.q.textContent = MS(String(item.b)); L.q.setAttribute('fill', PRE.ink); L.q.setAttribute('font-size', 16);   /* أنبوب المضخة المائل: a بُعد القدم، b العمود (المرجع U4 د3؛ المراجع A لبوابة M4-U3/U4، 26) */
+      if (tries >= 3) ciEq(helpG(svg), 250, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: L.hyp, T: { A: L.pts.h[1], C: L.pts.C, B: L.pts.h[0] } }; }
     const u = Math.min(36, 150 / Math.max(item.a, item.b * 1.1)), T = preRightTri(g, [262, 206], item.a, item.b, u, { rot: item.rot, cen: [190, 146], box: [240, 132] });
     const labs = preSideLabs(g, T, [MS(String(item.a)), MS(String(item.b)), '؟'], [PRE.ink, PRE.ink, PRE.q]);
     if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: labs[2], T }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), T = ctx.T; if (T) { hlSeg(m, T.A, T.C, H2C[0]); hlSeg(m, T.C, T.B, H2C[1]); hlRing(m, T.C, 18); }   /* المستوى الثاني رسمٌ: الضلعان القائمان */
-    ciRule(m, 120, 34, labelText('preRulePy'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, item.ctx === 'perp' ? 250 : 120, 34, labelText('preRulePy'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) { ctx.q.textContent = MS(String(item.want)); ctx.q.setAttribute('fill', PRE.ok); } },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.a + it.b ? 'pyAdd' : k === it.a * it.a + it.b * it.b ? 'pyNoRoot' : 'pyOff' });
