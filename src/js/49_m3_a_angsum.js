@@ -274,7 +274,7 @@ ITEM.twoReasons = {
       b.onclick = () => { if (on.has(i)) on.delete(i); else on.add(i); b.classList.toggle('sel', on.has(i)); b.setAttribute('aria-pressed', on.has(i)); SFX.tick(); upd(); }; box.appendChild(b); return b; });
     let db = null; const upd = () => { if (db) { db.disabled = on.size !== 2; db.setAttribute('aria-disabled', String(on.size !== 2)); } };   /* «تمّ» حين تُختار بطاقتان بالضبط، فلا تُستهلك محاولة بلمسة عارضة (المراجع B لبوابة S3-U0/U1، 7) */
     fitDense();   /* سؤالٌ وثلاث بطاقات طويلة (م4): الدرس الكثيف */
-    if (tries >= 2 && item._last && item._last.includes('c')) btns[order.indexOf(2)].classList.add('no', 'tried');   /* المستوى الثاني: البطاقة غير الصحيحة التي اختارها معلَّمة، وتبقى حتى يجيب (D240) */
+    /* المستوى الثاني بلا شطب: الجواب الخاطئ فيه المشتّت دائماً، فشطبه يكشف البطاقتين (المراجع A لبوابة S3-U8/U9، 9) */
     if (tries >= 3) { const b0 = btns[order.indexOf(0)]; b0.click(); }   /* الحلّ المشترك: البطاقة الأولى الصحيحة مختارة، والثانية للطفل */
     /* البطاقات تُقرأ أول مرة وفي الحلّ المشترك، وتضيء المقروءة، ويعيدها «أعد الجملة» بعد السؤال؛ والقراءة بـ readChoices تقف عند الخروج (المراجع B لبوابة S3-U0/U1، 1 و6) */
     readChoices(order.map((i, j) => ({ line: lineOf(ids[i]), el: btns[j] })), { intro: [lineOf(tries >= 3 ? 'gen.as.together.two' : item.q)], host: box, quiet: !!tries && tries < 3 });
@@ -283,7 +283,7 @@ ITEM.twoReasons = {
     const ans = [...on].sort().map(i => 'abc'[i]).join(''); box.remove(); return { ans, ctx: {} }; },
   judge(item, k) { item._last = k; return k === 'ab' ? { ok: true } : { ok: false, err: k.includes('c') ? (item.errFalse || 'reasonFalse') : 'reasonOne' }; },   /* errFalse: وسمٌ لبطاقات غير المثلثات (U0: «reasonWrong») */
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.hint || 'gen.as.hint.two'); }, async together() {},   /* hint: تلميح خاصّ بالبند (S3-U4) */
+  async hint2(item) { await S(item.hint || 'gen.as.hint.two'); if (item.hint) await S('gen.as.hint.twoOne'); }, async together() {},   /* hint: تلميح خاصّ بالبند (S3-U4) */
   async reveal(item) { await S(item.opts[0].id); await S(item.opts[1].id); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };

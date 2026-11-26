@@ -132,7 +132,7 @@ d1={"id":"m3.u10.d1","title":"النِّسَبُ المُتَكَافِئَةُ"
   "alt":{"C324":[tab('dough',[[2,5],[6,None]]), req(2,5,4,7), reason("ms.x1",rap(ra=[1,2]),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C324":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C324":[tw(tab('juice',[[1,3],[2,None]]),tab('juice',[[1,3],[3,None]]))]},
-  "mixed":{"lesson":"m3.u9.d2","concept":"C326","item":{"t":"voCalc","w":6,"d":5,"h":2,"u":"cm","ch":[[60,None],[13,"voSum"],[30,"voTwo"]],"q":"gen.vo.q.calc"}},
+  "mixed":{"lesson":"m3.u9.d2","concept":"C326","item":{"t":"voCalc","w":6,"d":6,"h":2,"u":"cm","ch":[[72,None],[14,"voSum"],[36,"voTwo"]],"q":"gen.vo.q.calc"}},
   "ok":"ms.ok"},
  "review":[tab('dough',[[3,1],[9,None]])|{"c":"C324"}, req(5,15,1,3)|{"c":"C324"}, tab('band',[[3,9],[12,None]])|{"c":"C324"}, req(2,8,1,5)|{"c":"C324"}],
  "wrap":{"art":"mapArt","lines":["wrap.01"],"home":"wrap.home"},

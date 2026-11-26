@@ -93,6 +93,16 @@ const mapKey = it => { const m = it.mark || {}; const on = m.on && it.lay.items.
 /* والمسألة العددية بجوابها وخياراتها: مجموعٌ آخر بالجواب نفسه والخيارات نفسها سؤالٌ حُفظ جوابه (المراجع A لبوابة U6/U7، 3 (ب)) */
 export const fact2Of = it => { if (it.t !== 'lenCalc' || !Array.isArray(it.a) || !Array.isArray(it.b)) return null; const cm = v => v[0] * 100 + v[1], r = it.op === '-' ? cm(it.a) - cm(it.b) : cm(it.a) + cm(it.b);
   return `lres|${r}|${(it.ch || []).map(v => v.join('.')).sort().join(',')}`; };
+/* المجسّمات والحجوم بلا ترتيب (المراجع A لبوابة S3-U8/U9، 3): الصندوق نفسه بأبعاد مبدّلة مسألةٌ واحدة، والشبكة نفسها مُدارةً أو مقلوبة شبكةٌ واحدة */
+const sortD = a => [...a].map(Number).sort((x, y) => x - y).join(',');
+const NET_T = [([x, y]) => [x, y], ([x, y]) => [-y, x], ([x, y]) => [-x, -y], ([x, y]) => [y, -x], ([x, y]) => [-x, y], ([x, y]) => [y, x], ([x, y]) => [x, -y], ([x, y]) => [-y, -x]];
+export const netCanon = n => NET_T.map(f => { const p = n.map(f), mx = Math.min(...p.map(q => q[0])), my = Math.min(...p.map(q => q[1])); return JSON.stringify(p.map(([x, y]) => [x - mx, y - my]).sort((a, b) => a[0] - b[0] || a[1] - b[1])); }).sort()[0];
+/* تُطوى الشبكة مكعّباً إن دحرجنا المكعّب عليها فلمس كلَّ خانة وجهٌ مختلف */
+export const netFolds = n => { const key = c => c.join(','), cells = new Set(n.map(key)), seen = new Map([[key(n[0]), 'B']]), st = [[n[0], { T: 'T', B: 'B', N: 'N', S: 'S', E: 'E', W: 'W' }]];
+  const R = { E: s => ({ ...s, B: s.E, E: s.T, T: s.W, W: s.B }), W: s => ({ ...s, B: s.W, W: s.T, T: s.E, E: s.B }), N: s => ({ ...s, B: s.N, N: s.T, T: s.S, S: s.B }), S: s => ({ ...s, B: s.S, S: s.T, T: s.N, N: s.B }) }, D = { E: [1, 0], W: [-1, 0], N: [0, 1], S: [0, -1] };
+  while (st.length) { const [c, s] = st.pop(); for (const d in D) { const nc = [c[0] + D[d][0], c[1] + D[d][1]], k = key(nc); if (!cells.has(k) || seen.has(k)) continue; const ns = R[d](s); seen.set(k, ns.B); st.push([nc, ns]); } }
+  return n.length === 6 && seen.size === 6 && new Set(seen.values()).size === 6; };
+const SO_DIMS = { box: [6, 3, 4], cube: [4, 4, 4] };   /* الصندوق الافتراضي في soSolid */
 export const factOf = it => { const t = it.t;
   if (t === 'split') return `part|${it.n}|${s2(it.k, it.n - it.k)}`;
   if (t === 'eqPair') return `part|${it.n}|${s2(...(it.parts || []))}`;
@@ -390,21 +400,19 @@ export const factOf = it => { const t = it.t;
   if (t === 'scDraw') return `scw|${it.n}|${it.k}`;
   if (t === 'scRoom') return `scr|${it.a}|${it.b}|${it.k}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'rapic') return `rapic|${JSON.stringify(it.pic)}`;
-  if (t === 'voCount') return `voc|${it.w}|${it.d}|${it.h}`;
-  if (t === 'voFill') return `vof|${it.w}|${it.d}|${it.h}`;
-  if (t === 'voCalc') return `voa|${it.w}|${it.d}|${it.h}`;   /* بلا الوحدة: الحساب نفسه (كالدائرة، D286 (4)) */
+  if (t === 'voCount' || t === 'voFill' || t === 'voCalc') return `vol|${sortD([it.w, it.d, it.h])}`;   /* العدّ والملء والضرب لصندوق واحد: حجمٌ واحد يُحفظ (D286 (4)) */   /* بلا الوحدة: الحساب نفسه (كالدائرة، D286 (4)) */
   if (t === 'voUnit') return `vou|${it.u}|${it.ctx}`;
-  if (t === 'voDims') return `vod|${it.v}|${JSON.stringify(it.opts)}`;
-  if (t === 'voSmart') return `vos|${JSON.stringify(it.boxes)}|${it.ask || 'least'}`;
+  if (t === 'voDims') return `vod|${it.v}|${it.opts.map(sortD).sort().join(';')}`;
+  if (t === 'voSmart') return `vos|${it.boxes.map(sortD).sort().join(';')}`;   /* «الأقلّ» و«الأكثر» للعلب نفسها: المساحات الثلاث نفسها */
   if (t === 'reason' && it.pic && it.pic.kind === 'vopic') return `vopic|${JSON.stringify(it.pic)}`;
-  if (t === 'soCount') return `soc|${it.solid}|${it.ask}|${(it.dims || []).join(',')}`;
-  if (t === 'soEdgeHunt') return `seh|${(it.dims || []).join(',')}`;
-  if (t === 'soKind') return `sok|${it.w}|${it.h}|${it.d}|${it.faces ? 'f' : ''}`;
+  if (t === 'soCount') return `soc|${it.solid}|${it.ask}|${SO_DIMS[it.solid] || it.dims ? sortD(it.dims || SO_DIMS[it.solid]) : ''}`;
+  if (t === 'soEdgeHunt') return `seh|${sortD(it.dims || SO_DIMS.cube)}`;
+  if (t === 'soKind') return `sok|${sortD([it.w, it.h, it.d])}|${it.faces ? 'f' : ''}`;
   if (t === 'soOpp') return `sop|${it.w}|${it.h}|${it.d}|${it.face}|${it.ask || 'opp'}`;
-  if (t === 'soNetYN') return `sny|${JSON.stringify(it.net)}`;
-  if (t === 'soNetPick') return `snp|${JSON.stringify(it.nets)}`;
+  if (t === 'soNetYN') return `net|${netCanon(it.net)}`;
+  if (t === 'soNetPick') { const ok = it.nets.find(netFolds); return `net|${ok ? netCanon(ok) : '?'}`; }   /* المسألة الشبكة التي تُطوى، والطفل رآها تُطوى */
   if (t === 'soNetMatch') return `snm|${it.solid}`;
-  if (t === 'soArea') return `soa|${it.w}|${it.h}|${it.d}|${it.wrap ? 'w' : ''}`;
+  if (t === 'soArea') return `soa|${sortD([it.w, it.h, it.d])}`;   /* «كم مساحة السطح؟» و«أيّ ورقة تكفي؟» حسابٌ واحد */
   if (t === 'soView') return `sov|${it.w}|${it.h}|${it.d}|${it.view}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'sopic') return `sopic|${JSON.stringify(it.pic)}`;
   if (t === 'circCalc') return `cc|${it.ask}|${it.fig}|${it.v}`;   /* بلا الوحدة ولا الحديقة: الحساب نفسه بالسنتيمتر أو بالمتر مسألةٌ واحدة (المراجع A لبوابة S3-U6/U7، 3) */
@@ -624,13 +632,15 @@ export function d240(lessons, code, MAKERS) {
     ciDoubleShow: () => ['csc|2|2', 'cc|area|r|2', 'cc|area|r|4'],
     gardenShow: () => ['cc|perim|r|5', 'cc|area|r|5', 'cc|half|r|5', 'cc|perim|d|10', 'cc|area|d|10'],
     /* S3-U8..U10 (قبل مراجعة بوابتيها، D286 (4)) */
-    soHook: () => ['soc|cube|faces|'], soEdgesShow: () => ['soc|cube|edges|', 'soc|cube|verts|'],
-    boxHook: () => ['sok|8|3|6|'], boxShow: () => ['sok|8|3|6|', ...['front', 'top', 'right'].flatMap(f => [`sop|8|3|6|${f}|opp`, `sop|8|3|6|${f}|equal`])],
-    netShow: () => ['sny|[[1,0],[0,1],[1,1],[2,1],[3,1],[1,2]]'],
-    wrapHook: () => ['soa|4|2|3|', 'soa|4|2|3|w'], saShow: () => ['soa|4|2|3|', 'soa|4|2|3|w'],
-    viewsShow: () => ['front', 'side', 'top'].map(v => `sov|4|2|3|${v}`), giftShow: () => ['soa|6|3|4|', 'soa|6|3|4|w', ...['front', 'side', 'top'].map(v => `sov|6|3|4|${v}`)],
-    voHook: () => ['voc|3|2|4', 'vof|3|2|4'], voFillShow: () => ['voc|3|2|4', 'vof|3|2|4'], voToMul: () => ['voc|3|2|4', 'voa|3|2|4'], voVsArea: () => ['voc|3|2|2', 'voa|3|2|2'],
-    voSumHook: () => ['voa|5|4|3'], voMulShow: () => ['voc|5|4|3', 'voa|5|4|3'], voSameShow: () => ['voc|4|3|2', 'voc|6|4|1', 'voa|4|3|2', 'voa|6|4|1'], treasureShow: () => ['voa|5|4|6', 'voa|10|3|4'],
+    soHook: () => ['soc|cube|faces|4,4,4'], soEdgesShow: () => ['soc|cube|edges|4,4,4', 'soc|cube|verts|4,4,4'],
+    /* وجدول أويلر بأعداده (المراجع A لبوابة S3-U8/U9، 3) */
+    eulerShow: () => ['cube', 'triPyr', 'sqPyr'].flatMap(s => ['faces', 'edges', 'verts'].map(a => `soc|${s}|${a}|${s === 'cube' ? '4,4,4' : ''}`)),
+    boxHook: () => ['sok|3,6,8|'], boxShow: () => ['sok|3,6,8|', ...['front', 'top', 'right'].flatMap(f => [`sop|8|3|6|${f}|opp`, `sop|8|3|6|${f}|equal`])],
+    netShow: () => [[[1, 0], [0, 1], [1, 1], [2, 1], [3, 1], [1, 2]], [[0, 0], [1, 0], [1, 1], [2, 1], [2, 2], [3, 2]], [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [2, 1]], [[0, 0], [1, 0], [0, 1], [1, 1], [2, 1], [1, 2]]].map(n => `net|${netCanon(n)}`),
+    wrapHook: () => ['soa|2,3,4'], saShow: () => ['soa|2,3,4', 'soa|3,3,3'],
+    viewsShow: () => ['front', 'side', 'top'].map(v => `sov|4|2|3|${v}`), giftShow: () => ['soa|3,4,6', ...['front', 'side', 'top'].map(v => `sov|6|3|4|${v}`)],
+    voHook: () => ['vol|2,3,4'], voFillShow: () => ['vol|2,3,4'], voToMul: () => ['vol|2,3,4'], voVsArea: () => ['vol|2,2,3', 'soa|2,2,3'],
+    voSumHook: () => ['vol|3,4,5'], voMulShow: () => ['vol|3,4,5', 'vol|3,3,3'], voSameShow: () => ['vol|2,3,4', 'vol|1,4,6', 'soa|2,3,4', 'soa|1,4,6'], treasureShow: s => s.setup ? [] : ['vol|4,5,6', 'vol|3,4,10', 'soa|4,5,6'],
     raHook: () => ['raq|2,6|1,3', 'raq|1,3|2,6'], raShow: () => ['raq|2,6|1,3', 'raq|1,3|2,6'],
     enHook: () => ['end|tri|2|2|2', 'ena|tri|2|2|2'], enSqShow: () => ['end|sq|2|2|2', 'ena|sq|2|2|2'], enTriShow: () => ['end|tri|1|2|3', 'ena|tri|1|2|3'],
     roomShow: () => ['scr|9|6|3'],

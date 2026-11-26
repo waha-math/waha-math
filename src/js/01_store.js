@@ -192,6 +192,8 @@ const DG = n => SET.digits === 'east' ? String(n).replace(/\d/g, d => '٠١٢٣�
    وتُرسم بـ mfSet (ltr مع bidi-override، فلا يقلب المتصفّح رقمي العدد) */
 const MS = s => SET.digits === 'east' ? String(s).replace(/(\d)\.(?=\d)/g, '$1٫').replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]) : String(s);
 const MF = s => SET.digits === 'east' ? String(s).split(' ').reverse().map(t => t.startsWith('(') ? t.slice(1) + ')' : t.endsWith(')') ? '(' + t.slice(0, -1) : t).map(MS).join(' ') : String(s);
+/* «a × b» بالأرقام الغربية يُكتب من اليسار داخل جملة عربية: عزلٌ باتجاه اليسار (D280 (2)، المراجع A لبوابة S3-U8/U9، 22)؛ وبالمشرقية من اليمين كما هو */
+const MX = s => SET.digits === 'west' && /[0-9]/.test(s) && !/[\u0621-\u064A]/.test(s) ? '\u2066' + s + '\u2069' : s;   /* بلا حرف عربي: «120 سم مكعب» يبقى من اليمين */
 const mfSet = (t, s) => { t.setAttribute('direction', 'ltr'); t.setAttribute('unicode-bidi', 'bidi-override'); t.textContent = MF(s); return t; };
 const fmt = {
   num: DG,

@@ -101,7 +101,7 @@ function c7Pic(g, P) { if (P.three) { for (const x of [60, 130, 200]) c7Shape(g,
   if (P.layers) { c7Shape(g, 'cyl', { cx: 180, bot: 176, rx: 56, ry: 14, H: 120 }); for (let i = 1; i <= 5; i++) el('ellipse', { cx: 180, cy: 176 - i * 20, rx: 56, ry: 14, fill: 'rgba(80,160,220,.15)', stroke: C7.edge, 'stroke-width': 1.2 }, g); return; }
   if (P.tank) { const F = c7Shape(g, 'cyl', { cx: 196, bot: 176, rx: 58, ry: 15, H: 120 }); c7RLine(g, F.ctr, F.rEnd, ciTxt(50, 'cm')); c7HArrow(g, F.cx - F.rx - 22, F.top, F.bot, ciTxt(1, 'm')); return; }
   if (P.pour) { c7Shape(g, 'cone', { cx: 110, bot: 160, rx: 44, ry: 12, H: 110 }); const F = c7Shape(g, 'cyl', { cx: 250, bot: 160, rx: 44, ry: 12, H: 110 }); el('rect', { x: F.cx - F.rx, y: F.bot - 110 / 3, width: 2 * F.rx, height: 110 / 3, fill: C7.water }, g); return; }
-  if (P.litre) { soBox(g, 3, 3, 3, { s: P.small ? 26 : 34, cx: 180, cy: 104 }); if (!P.small) preLab(g, 180, 190, MS('10') + ' × ' + MS('10') + ' × ' + MS('10'), { fs: 15 }); else ciEq(g, 180, 190, '10 × 10 × 10 = 1000', C7.ok, 15); return; }
+  if (P.litre) { soBox(g, 3, 3, 3, { s: P.small ? 26 : 34, cx: 180, cy: 104 }); if (!P.small) preLab(g, 180, 190, MX(MS('10') + ' × ' + MS('10') + ' × ' + MS('10')), { fs: 15 }); else ciEq(g, 180, 190, '10 × 10 × 10 = 1000', C7.ok, 15); return; }
   if (P.net && P.perim) { const N = c7Net(g, 2, 3, { y0: 60, hmax: 86 }); preLab(g, 180, N.y0 + N.Hh / 2 + 6, labelText('c7Perim'), { fs: 13, col: C7.edge, dir: 'rtl' }); return; }
   if (P.net) { c7Net(g, 2, 3, { y0: 60, hmax: 86 }); return; }
   c7Shape(g, P.fig || 'cyl', { cx: 180, bot: 176, rx: 56, ry: 14, H: 120, R: 70 }); }

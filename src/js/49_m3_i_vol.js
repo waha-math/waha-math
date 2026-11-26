@@ -64,40 +64,49 @@ ITEM.voCalc = cpItem({ H: 250, tLine: 'gen.vo.together.calc', hint: 'gen.vo.hint
 ITEM.voCalc.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v, , u]) => String(v) + (u || '') === k) || [])[1] || 'voOff' };
 
 /* ================= ④ وحدة الحجم (C325): u cm | m؛ المكعب الوحدة حرفه 1 سم أو 1 م (بالصورة) ================= */
+/* الشيء نفسه بلا «1 م»: حجمه من سياقه (حوض أم نرد)، والخيارات بكتابةٍ واحدة: مكعّبتان بالسنتيمتر والمتر ومربّعة (المراجع A لبوابة S3-U8/U9، 4) */
+const VO_CTX = { die: { d: [1, 1, 1], pips: 1 }, sugar: { d: [1, 1, 1] }, juice: { d: [2, 1, 3] }, box: { d: [5, 1, 2] }, pool: { d: [8, 4, 1], water: 1 },
+  tank: { d: [3, 3, 3], water: 1 }, truck: { d: [7, 3, 3] }, room: { d: [6, 4, 3] } };
+const voUW = k => labelText({ cm3: 'voCm3w', m3: 'voM3w', cm2: 'arCm2w', m2: 'arM2w' }[k]);
 ITEM.voUnit = cpItem({ H: 230, tLine: 'gen.vo.together.unit', hint: 'gen.vo.hint.unit', rLine: it => 'gen.vo.unit.' + it.want, praise: 'praiseThink',
   make: s => ({ want: s.u + '3', tag: 'vo-unit' }),
-  draw(svg, item, tries) { const B = soBox(svg, 1, 1, 1, { s: 96, cy: 116, dims: false }); htLab(svg, [130, 196], `1 ${item.u === 'm' ? labelText('lenM') : labelText('rulCm')}`.replace('1', MS('1')), SO.ink, 16);
+  draw(svg, item, tries) { const C = VO_CTX[item.ctx]; let B;
+    if (!C) { B = soBox(svg, 1, 1, 1, { s: 96, cy: 124, dims: false }); htLab(svg, [130, 204], `${MS('1')} ${item.u === 'm' ? labelText('lenM') : labelText('rulCm')}`, SO.ink, 16); }   /* «ما وحدة حجم مكعب حرفه 1 م؟» (المرجع) */
+    else { const [w, h, d] = C.d; B = soBox(svg, w, h, d, { s: soFit(w, h, d, 170, 112), cy: 136, dims: false });
+      if (C.water) el('polygon', { points: polyStr(B.G.F.top.map(v => B.G.P[v])), fill: '#7fbfe8', opacity: .85, 'pointer-events': 'none' }, svg);
+      if (C.pips) { const Q = B.G.F.front.map(v => B.G.P[v]), cx = Q.reduce((a, p) => a + p[0], 0) / 4, cy = Q.reduce((a, p) => a + p[1], 0) / 4; el('circle', { cx, cy, r: 7, fill: SO.ink, 'pointer-events': 'none' }, svg); } }
     if (tries >= 3) ciRule(helpG(svg), 180, 26, labelText('voUnitHint'), VO.hl, 14); return { G: B.G }; },
-  h2: async (item, ctx) => { if (ctx.G) { const m = helpG(ctx.svg), P = ctx.G.P; for (const [a, b] of [['flb', 'frb'], ['flb', 'flt'], ['frb', 'brb']]) geoLine(m, P[a][0], P[a][1], P[b][0], P[b][1], { color: VO.hl, w: 5 }); } await sleep(FAST ? 10 : 250); },   /* طولٌ وعرضٌ وارتفاع: مكعّب */
-  pick: item => { const u = item.u; return choosePick(shuffle([u + '3', u + '2', u]).map(k => [k, voU(k), '<i></i>', 'gen.vo.unit.' + k]), item.want); },
-  errOf: (it, k) => k.endsWith('2') ? 'voUnitSq' : 'voUnitLen' });
+  /* المستوى الثاني: مكعّبا المقارنة، حرفه سنتيمتر وحرفه متر، في ركنين، والطفل يقارن بهما الشيء */
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); soBox(m, 1, 1, 1, { s: 9, cx: 52, cy: 34, dims: false }); htLab(m, [52, 58], `${MS('1')} ${labelText('rulCm')}`, VO.hl, 13);
+    soBox(m, 1, 1, 1, { s: 30, cx: 306, cy: 38, dims: false }); htLab(m, [306, 76], `${MS('1')} ${labelText('lenM')}`, VO.hl, 13); await sleep(FAST ? 10 : 250); },
+  pick: item => { const u = item.u, o = u === 'm' ? 'cm' : 'm'; return choosePick(shuffle([u + '3', o + '3', u + '2']).map(k => [k, voUW(k), '<i></i>', 'gen.vo.unit.' + k]), item.want); },
+  errOf: (it, k) => k.endsWith('2') ? 'voUnitSq' : 'voUnitSize' });
 
 /* ================= ⑤ أيّ الأبعاد تعطي هذا الحجم؟ (C326 عكساً، المشروع): v؛ opts ثلاثة أبعاد (الأول الصحيح) ================= */
 ITEM.voDims = cpItem({ H: 200, tLine: 'gen.vo.together.dims', hint: 'gen.vo.hint.dims', rLine: 'gen.vo.reveal.dims', praise: 'praiseThink',
   make: s => ({ want: s.opts[0].join('x'), tag: 'vo-dims' }),
   draw(svg, item, tries) { soBox(svg, 3, 2, 2, { s: 30, cy: 96 }); htLab(svg, [180, 166], voTxt(item.v, item.u + '3'), VO.ok, 20);   /* فوق حافة الإطار (المراجع B) */ if (tries >= 3) ciRule(helpG(svg), 180, 26, labelText('voRule'), VO.hl, 14); return {}; },
   h2: async (item, ctx) => { ciEq(helpG(ctx.svg), 180, 30, `؟ × ؟ × ؟ = ${item.v}`, VO.hl, 17); await sleep(FAST ? 10 : 250); },   /* ضربٌ لا جمع */
-  pick: item => choosePick(shuffle(item.opts.map(o => [o.join('x'), o.map(x => MS(String(x))).join(' × '), '<i></i>', 'gen.vo.dims.' + o.join('x')])), item.want),
+  pick: item => choosePick(shuffle(item.opts.map(o => [o.join('x'), MX(o.map(x => MS(String(x))).join(' × ')), '<i></i>', 'gen.vo.dims.' + o.join('x')])), item.want),
   errOf: (it, k) => { const o = k.split('x').map(Number); return o[0] + o[1] + o[2] === it.v ? 'voSum' : 'voDimsOff'; } });
 
 /* ================= ⑥ «علبة الهدية الذكية»: علب بالحجم نفسه، أيّها أقلّ ورقاً؟ (C326، C321): boxes [[w h d]…] ================= */
 ITEM.voSmart = cpItem({ H: 250, tLine: 'gen.vo.together.smart', hint: 'gen.vo.hint.smart', rLine: 'gen.vo.reveal.smart', praise: 'praiseThink',
   make: s => { const sa = s.boxes.map(([w, h, d]) => 2 * (w * h + w * d + h * d)), i = sa.indexOf(s.ask === 'most' ? Math.max(...sa) : Math.min(...sa)); return { want: 'b' + i, sa, tag: 'vo-smart-' + (s.ask || 'least') }; },
-  draw(svg, item, tries) { item.boxes.forEach(([w, h, d], i) => { const cx = [288, 180, 72][i]; soBox(svg, w, h, d, { s: soFit(w, h, d, 84, 100), cx, cy: 112 }); htLab(svg, [cx, 196], [w, h, d].map(x => MS(String(x))).join(' × '), SO.ink, 14); badge(svg, cx, 222, i + 1);
+  draw(svg, item, tries) { item.boxes.forEach(([w, h, d], i) => { const cx = [288, 180, 72][i]; soBox(svg, w, h, d, { s: soFit(w, h, d, 84, 100), cx, cy: 112 }); htLab(svg, [cx, 196], MX([w, h, d].map(x => MS(String(x))).join(' × ')), SO.ink, 14); badge(svg, cx, 222, i + 1);
       if (tries >= 3) htLab(helpG(svg), [cx, 30], voTxt(item.sa[i], 'cm2'), VO.hl, 14); }); return {}; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 28, labelText('soRule.sa'), SO.hl, 14); await sleep(FAST ? 10 : 250); },   /* الورق مساحة السطح */
   pick: item => choosePick(item.boxes.map((b, i) => ['b' + i, labelText('voBox.' + (i + 1)), '<i></i>', 'gen.vo.box.' + (i + 1)]), item.want),
   errOf: () => 'voMostPaper' });
 
 /* ================= صورة التعليل (vopic): stack [w d h] أو box مع dims، وf حساب ================= */
-function voReasonPic(g, P) { if (P.stack) voStack(g, P.stack[0], P.stack[1], P.stack[2], { cy: 100, W: 200, H: 120 }); else if (P.boxes) P.boxes.forEach(([w, h, d], i) => { const cx = [255, 105][i]; soBox(g, w, h, d, { s: soFit(w, h, d, 110, 100), cx, cy: 96 }); htLab(g, [cx, 172], [w, h, d].map(x => MS(String(x))).join(' × '), SO.ink, 15); });
+function voReasonPic(g, P) { if (P.stack) voStack(g, P.stack[0], P.stack[1], P.stack[2], { cy: 100, W: 200, H: 120 }); else if (P.boxes) P.boxes.forEach(([w, h, d], i) => { const cx = [255, 105][i]; soBox(g, w, h, d, { s: soFit(w, h, d, 110, 100), cx, cy: 96 }); htLab(g, [cx, 172], MX([w, h, d].map(x => MS(String(x))).join(' × ')), SO.ink, 15); });
   if (P.f) ciEq(g, 180, 200, P.f, P.bad ? SO.bad : SO.ink, 18); }
 
 /* ================= المشاهد ================= */
 const voSay = async (L, i) => { if (L[i]) await S(L[i]); };
 /* د1 الإشعال: «تسع 50 قطعة!»: نملؤها فإذا هي 24 */
-SCENES.voHook = async c => { const L = c.lines, svg = m3Stage(250); voStack(svg, 3, 2, 4, { layers: 0, cy: 124 }); const t = htLab(svg, [180, 30], MS('50') + '؟', VO.bad, 22); await voSay(L, 0); t.remove();
-  const host = el('g', {}, svg); for (let n = 1; n <= 4; n++) { host.innerHTML = ''; voStack(host, 3, 2, 4, { layers: n, cy: 124 }); SFX.tick(); await sleep(FAST ? 2 : 400); } htLab(svg, [180, 30], MS('24'), VO.ok, 22); await voSay(L, 1); };
+SCENES.voHook = async c => { const L = c.lines, svg = m3Stage(250); voStack(svg, 3, 2, 4, { layers: 0, cy: 124 }); htLab(svg, [180, 30], MS('50') + '؟', VO.bad, 22); for (const i of L.keys()) await voSay(L, i); };   /* الإشعال يقف عند ادّعاء فوضى وسؤال، والنتيجة بعد التوقّع (D244، المراجع A لبوابة S3-U8/U9، 7) */
 /* د1 الاكتشاف (أ): صندوق 3 × 2 × 4: كل طبقة 6، والطبقات 4، فالمجموع 24 */
 SCENES.voFillShow = async c => { const L = c.lines, svg = m3Stage(250), host = el('g', {}, svg), cnt = el('text', { x: 310, y: 40, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: VO.ok, 'pointer-events': 'none' }, svg);
   for (let n = 1; n <= 4; n++) { host.innerHTML = ''; voStack(host, 3, 2, 4, { layers: n, cy: 124, colOf: (i, j, k) => k === n - 1 ? '#9cc53b' : null }); cnt.textContent = MS(String(6 * n)); SFX.tick(); if (n === 1) await voSay(L, 0); else await sleep(FAST ? 2 : 500); } await voSay(L, 1); };
@@ -108,8 +117,7 @@ SCENES.voVsArea = async c => { const L = c.lines, svg = m3Stage(250), g = el('g'
 /* د1 الاكتشاف (ج): الطبقة = الطول × العرض، والطبقات = الارتفاع */
 SCENES.voToMul = async c => { const L = c.lines, svg = m3Stage(250); voStack(svg, 3, 2, 4, { cy: 120, colOf: (i, j, k) => k % 2 ? '#9cc53b' : '#7fb6d9' }); ciEq(svg, 180, 230, '3 × 2 = 6 ، 6 × 4 = 24', VO.ok, 17); for (const l of L) await S(l); };
 /* د2 الإشعال: «الحجم مجموع الأطوال!»: 5 + 4 + 3 = 12، والمكعبات 60 */
-SCENES.voSumHook = async c => { const L = c.lines, svg = m3Stage(250); soBox(svg, 5, 3, 4, { s: 24, cy: 116, dims: true }); const t = ciEq(svg, 180, 232, '5 + 4 + 3 = 12', VO.bad, 18); await voSay(L, 0); t.remove();
-  const host = el('g', {}, svg); voStack(host, 5, 4, 3, { s: 24, cy: 116 }); ciEq(svg, 180, 232, '5 × 4 × 3 = 60', VO.ok, 18); SFX.tick(); await voSay(L, 1); };
+SCENES.voSumHook = async c => { const L = c.lines, svg = m3Stage(250); soBox(svg, 5, 3, 4, { s: 24, cy: 116, dims: true }); ciEq(svg, 180, 232, '5 + 4 + 3 = 12', VO.bad, 18); for (const i of L.keys()) await voSay(L, i); };   /* الإشعال يقف عند ادّعاء فوضى وسؤال، والنتيجة بعد التوقّع (D244، المراجع A لبوابة S3-U8/U9، 7) */
 /* د2 الاكتشاف: 5 × 4 × 3 بطبقاته، ثم المكعب الوحدة سم ومتر، ثم المكعب 3 × 3 × 3 */
 SCENES.voMulShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', {}, svg); voStack(g, 5, 4, 3, { s: 24, cy: 116, dims: true, colOf: (i, j, k) => k === 0 ? '#9cc53b' : null }); ciEq(g, 180, 232, '5 × 4 = 20 ، 20 × 3 = 60', VO.ok, 17); await voSay(L, 0);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 1, 1, 1, { s: 40, cx: 90, cy: 120 }); htLab(g, [90, 190], `${MS('1')} ${labelText('rulCm')}`, SO.ink, 15); htLab(g, [90, 220], labelText('voCm3w'), VO.ok, 16);
@@ -117,15 +125,19 @@ SCENES.voMulShow = async c => { const L = c.lines, svg = m3Stage(250); let g = e
   g.remove(); g = el('g', {}, svg); voStack(g, 3, 3, 3, { s: 30, cy: 116, dims: true }); ciEq(g, 180, 232, '3 × 3 × 3 = 27', VO.ok, 18); await voSay(L, 2); for (const l of L.slice(3)) await S(l); };
 /* د3: علبتان حجم كلٍّ 24: 4 × 3 × 2 مساحتها 52، و6 × 4 × 1 مساحتها 68 */
 SCENES.voSameShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg);
-  const s = Math.min(soFit(4, 2, 3, 130, 110), soFit(6, 1, 4, 130, 110)); voStack(g, 4, 3, 2, { cx: 262, cy: 118, s }); voStack(g, 6, 4, 1, { cx: 98, cy: 118, s }); await voSay(L, 0);
-  htLab(g, [262, 40], `24 ${labelText('voCm3')}`.replace('24', MS('24')), VO.ok, 15); htLab(g, [98, 40], `24 ${labelText('voCm3')}`.replace('24', MS('24')), VO.ok, 15); SFX.tick(); await voSay(L, 1);
-  htLab(g, [262, 196], `52 ${labelText('arCm2')}`.replace('52', MS('52')), SO.edge, 15); htLab(g, [98, 196], `68 ${labelText('arCm2')}`.replace('68', MS('68')), SO.edge, 15); SFX.tick(); await voSay(L, 2); for (const l of L.slice(3)) await S(l); };
+  const s = Math.min(soFit(4, 2, 3, 130, 110), soFit(6, 1, 4, 130, 110)); voStack(g, 4, 3, 2, { cx: 262, cy: 118, s }); voStack(g, 6, 4, 1, { cx: 98, cy: 118, s });
+  /* الإشعال: ادّعاء فوضى والحجمان؛ والمساحتان بعد التوقّع في خطوة الاكتشاف (reveal) (المراجع A لبوابة S3-U8/U9، 6) */
+  const vols = () => { htLab(g, [262, 40], `${MS('24')} ${labelText('voCm3')}`, VO.ok, 15); htLab(g, [98, 40], `${MS('24')} ${labelText('voCm3')}`, VO.ok, 15); };
+  if (!c.reveal) { await voSay(L, 0); vols(); SFX.tick(); for (const i of L.keys()) if (i) await voSay(L, i); return; }
+  vols(); htLab(g, [262, 196], `${MS('52')} ${labelText('arCm2')}`, SO.edge, 15); htLab(g, [98, 196], `${MS('68')} ${labelText('arCm2')}`, SO.edge, 15); SFX.tick(); for (const i of L.keys()) await voSay(L, i); };
 /* د4 المشروع «صندوق الكنز»: 120 سم مكعب بأبعاد مختلفة، ثم الجدول */
 SCENES.treasureShow = async c => { const L = c.lines, svg = m3Stage(262);
+  /* المشروع: الحجم المطلوب وحده قبل بنود الطفل، والأبعاد والورق بعدها (D286 (1)، المراجع A لبوابة S3-U8/U9، 2) */
+  if (c.setup) { const g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 4, 3, 3, { s: 30, cx: 180, cy: 140 }); htLab(g, [180, 40], `${MS('120')} ${labelText('voCm3')}`, VO.ok, 18); await voSay(L, 0); return; }
   if (c.table) { const rows = [['voT.dims', '5 × 4 × 6 ، 10 × 3 × 4'], ['voT.vol', `120 ${labelText('voCm3')}`], ['voT.sa', `148 ${labelText('arCm2')}`]], g = el('g', { 'pointer-events': 'none' }, svg);
-    rows.forEach(([k, v], i) => { const y = 40 + i * 64; el('rect', { x: 28, y, width: 304, height: 54, rx: 12, fill: i % 2 ? '#f6eccf' : '#fff', stroke: SO.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 318, y: y + 33, 'text-anchor': 'start', 'font-size': 15, 'font-weight': 800, fill: SO.ink, direction: 'rtl' }, g); a.textContent = labelText(k); const b = el('text', { x: 42, y: y + 33, 'text-anchor': 'end', 'font-size': 14, 'font-weight': 800, fill: SO.ok, direction: 'rtl' }, g); b.textContent = MS(v); });
+    rows.forEach(([k, v], i) => { const y = 40 + i * 64; el('rect', { x: 28, y, width: 304, height: 54, rx: 12, fill: i % 2 ? '#f6eccf' : '#fff', stroke: SO.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 318, y: y + 33, 'text-anchor': 'start', 'font-size': 15, 'font-weight': 800, fill: SO.ink, direction: 'rtl' }, g); a.textContent = labelText(k); const b = el('text', { x: 42, y: y + 33, 'text-anchor': 'end', 'font-size': 14, 'font-weight': 800, fill: SO.ok, direction: 'rtl' }, g); b.textContent = MX(MS(v)); });
     for (const l of L) await S(l); return; }
-  let g = el('g', { 'pointer-events': 'none' }, svg); [[5, 6, 4, 288], [10, 4, 3, 180], [4, 5, 6, 72]].forEach(([w, h, d, cx]) => { soBox(g, w, h, d, { s: soFit(w, h, d, 84, 110), cx, cy: 120, dims: false }); htLab(g, [cx, 206], [w, d, h].map(x => MS(String(x))).join(' × '), SO.ink, 14); });
-  await voSay(L, 0); htLab(g, [180, 30], `120 ${labelText('voCm3')}`.replace('120', MS('120')), VO.ok, 18); SFX.tick(); await voSay(L, 1);
-  g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 5, 6, 4, { s: 22, cy: 116, dims: true }); ciEq(g, 180, 236, '2 × (20 + 30 + 24) = 148', VO.ok, 17); await voSay(L, 2); };
+  let g = el('g', { 'pointer-events': 'none' }, svg); [[5, 6, 4, 288], [10, 4, 3, 180], [4, 5, 6, 72]].forEach(([w, h, d, cx]) => { soBox(g, w, h, d, { s: soFit(w, h, d, 84, 110), cx, cy: 120, dims: false }); htLab(g, [cx, 206], MX([w, d, h].map(x => MS(String(x))).join(' × ')), SO.ink, 14); });
+  htLab(g, [180, 30], `${MS('120')} ${labelText('voCm3')}`, VO.ok, 18); SFX.tick(); await voSay(L, 0);   /* بعد اللعبة: ما وجده الطفل */
+  g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 5, 6, 4, { s: 22, cy: 116, dims: true }); ciEq(g, 180, 236, '2 × (20 + 30 + 24) = 148', VO.ok, 17); await voSay(L, 1); };
 WRAP_ART.volArt = svg => { voStack(svg, 4, 3, 3, { cx: 180, cy: 116, s: 22 }); };

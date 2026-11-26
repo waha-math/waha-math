@@ -35,22 +35,31 @@ function soPyr(parent, kind, cx = 180, cy = 196, s = 1) { const g = el('g', { 'p
   const hid = kind === 'sq' ? [[B[2], B[3]], [B[3], B[0]], [B[3], T]] : [[B[1], B[2]], [B[2], B[0]], [B[2], T]];
   for (const [p, q] of [[B[0], B[1]], [B[0], T], [B[1], T]].concat(kind === 'sq' ? [[B[1], B[2]], [B[2], T]] : [])) geoLine(g, p[0], p[1], q[0], q[1], { color: SO.edge, w: 3 });
   for (const [p, q] of kind === 'sq' ? hid : [[B[2], B[0]], [B[2], T], [B[1], B[2]]]) geoLine(g, p[0], p[1], q[0], q[1], { color: SO.hid, w: 2, dash: '6 5' });
-  return g; }
+  g.__Y = { kind: 'pyr', B, T, hid, hv: kind === 'sq' ? B[3] : B[2] }; return g; }
 /* مجسّمٌ للعدّ أو للصورة */
 const SO_COUNT = { cube: { faces: 6, edges: 12, verts: 8, vis: [3, 9, 7], meet: 3 }, box: { faces: 6, edges: 12, verts: 8, vis: [3, 9, 7], meet: 3 }, triPyr: { faces: 4, edges: 6, verts: 4, vis: [2, 5, 3], meet: 3 }, sqPyr: { faces: 5, edges: 8, verts: 5, vis: [3, 6, 4], meet: 3 },
   cyl: { faces: 3, vis: [2] }, cone: { faces: 2, vis: [2] } };
 function soSolid(parent, k, o = {}) { if (k === 'cube') return soBox(parent, 4, 4, 4, { s: o.s || 26, cx: o.cx, cy: o.cy });
-  if (k === 'box') { const [w, h, d] = o.dims || [6, 3, 4]; return soBox(parent, w, h, d, { s: o.s || Math.min(24, 150 / Math.max(w, h, d)), cx: o.cx, cy: o.cy }); } if (k === 'triPyr' || k === 'sqPyr') return { g: soPyr(parent, k === 'sqPyr' ? 'sq' : 'tri', o.cx ?? 180, o.cy ?? 200, o.sc || 1) };
-  return { g: solidAt(parent, { solid: k === 'cyl' ? 'cylinder' : 'cone', size: o.size || 150, noShadow: true }, o.cx ?? 180, o.cy ?? 140) }; }
+  if (k === 'box') { const [w, h, d] = o.dims || [6, 3, 4]; return soBox(parent, w, h, d, { s: o.s || Math.min(24, 150 / Math.max(w, h, d)), cx: o.cx, cy: o.cy }); } if (k === 'triPyr' || k === 'sqPyr') { const g = soPyr(parent, k === 'sqPyr' ? 'sq' : 'tri', o.cx ?? 180, o.cy ?? 200, o.sc || 1); return { g, Y: g.__Y }; }
+  const S = o.size || 150, cx = o.cx ?? 180, cy = o.cy ?? 140, rx = S * (k === 'cyl' ? .28 : .31), yb = cy + S * (k === 'cyl' ? .33 : .37), ry = rx * .4, g = solidAt(parent, { solid: k === 'cyl' ? 'cylinder' : 'cone', size: S, noShadow: true }, cx, cy);
+  /* نصف القاعدة الخلفي متقطّعاً، كأحرف العلبة المخفية: «المتقطّع مخفيّ خلفه» تصدق هنا أيضاً (المراجع A لبوابة S3-U8/U9، 11) */
+  geoPath(parent, `M${cx - rx} ${yb} A${rx} ${ry} 0 0 1 ${cx + rx} ${yb}`, { color: SO.hid, w: 2, dash: '6 5' }); return { g, Y: { kind: 'round', cx, rx, ry, yb } }; }
+const geoPath = (parent, d, o = {}) => el('path', { d, fill: 'none', stroke: o.color || SO.edge, 'stroke-width': o.w || 2, 'stroke-dasharray': o.dash || null, 'pointer-events': 'none' }, parent);
+/* المخفيّ ملوّناً: المستوى الثاني يكتفي بالأحرف (أو نصف القاعدة)، والحلّ المشترك يضيف الرأس والقاعدة */
+function soHidHelp(svg, Y, full) { const m = helpG(svg);
+  if (Y.kind === 'round') { if (full) el('ellipse', { cx: Y.cx, cy: Y.yb, rx: Y.rx, ry: Y.ry, fill: SO.hl, 'fill-opacity': .35, stroke: 'none' }, m); geoPath(m, `M${Y.cx - Y.rx} ${Y.yb} A${Y.rx} ${Y.ry} 0 0 1 ${Y.cx + Y.rx} ${Y.yb}`, { color: SO.hl, w: 4, dash: '6 5' }); return; }
+  if (full) el('polygon', { points: polyStr(Y.B), fill: SO.hl, 'fill-opacity': .25, stroke: 'none' }, m);
+  for (const [p, q] of Y.hid) geoLine(m, p[0], p[1], q[0], q[1], { color: SO.hl, w: 4, dash: '6 5' }); if (full) el('circle', { cx: Y.hv[0], cy: Y.hv[1], r: 9, fill: 'none', stroke: SO.hl, 'stroke-width': 3.4 }, m); }
 
 /* ================= ① عدّ الأوجه والأحرف والرؤوس (C318): solid، ask faces | edges | verts | meet ================= */
 const soNumPick = (item, ctx, cands) => { const np = numberPick(rankMix(item.want, cands, 1, 30), item.want, { west: true }); ctx.np = np; return np.p; };
 ITEM.soCount = cpItem({ H: 250, tLine: 'gen.so.together.count', hint: 'gen.so.hint.count', rLine: 'gen.so.reveal.count', rSay: it => S(numw(it.want), { num: true, append: true }), num: true, praise: 'praiseCount',
   make: s => { const T = SO_COUNT[s.solid], want = s.ask === 'meet' ? 3 : T[s.ask]; return { want, tag: 'so-count-' + s.ask }; },
   draw(svg, item, tries) { const S1 = soSolid(svg, item.solid, { dims: item.dims });
+    if (tries >= 3 && S1.Y) soHidHelp(svg, S1.Y, true);
     if (tries >= 3 && S1.G) { const m = helpG(svg), G = S1.G; if (item.ask === 'edges') G.E.filter(e => e.hid).forEach(e => geoLine(m, e.A[0], e.A[1], e.B[0], e.B[1], { color: SO.hl, w: 4, dash: '6 5' })); else if (item.ask === 'verts' || item.ask === 'meet') el('circle', { cx: G.P.blb[0], cy: G.P.blb[1], r: 9, fill: 'none', stroke: SO.hl, 'stroke-width': 3.4 }, m); else for (const k of ['back', 'left', 'bottom']) el('polygon', { points: polyStr(G.F[k].map(v => G.P[v])), fill: SO.hl, 'fill-opacity': .18, stroke: SO.hl, 'stroke-width': 2, 'stroke-dasharray': '6 4' }, m); }
-    return { G: S1.G }; },
-  h2: async (item, ctx) => { if (ctx.G) { const m = helpG(ctx.svg), G = ctx.G; if (item.ask === 'meet' || item.ask === 'verts') { const v = G.P.frt; el('circle', { cx: v[0], cy: v[1], r: 10, fill: 'none', stroke: SO.hl, 'stroke-width': 3.4 }, m); } else G.E.filter(e => e.hid).forEach(e => geoLine(m, e.A[0], e.A[1], e.B[0], e.B[1], { color: SO.hl, w: 3.4, dash: '6 5' })); } await sleep(FAST ? 10 : 250); },
+    return { G: S1.G, Y: S1.Y }; },
+  h2: async (item, ctx) => { if (ctx.Y) soHidHelp(ctx.svg, ctx.Y, false); if (ctx.G) { const m = helpG(ctx.svg), G = ctx.G; if (item.ask === 'meet' || item.ask === 'verts') { const v = G.P.frt; el('circle', { cx: v[0], cy: v[1], r: 10, fill: 'none', stroke: SO.hl, 'stroke-width': 3.4 }, m); } else G.E.filter(e => e.hid).forEach(e => geoLine(m, e.A[0], e.A[1], e.B[0], e.B[1], { color: SO.hl, w: 3.4, dash: '6 5' })); } await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const T = SO_COUNT[item.solid], v = T.vis || []; return soNumPick(item, ctx, item.ask === 'faces' ? [v[0], T.edges, item.want + 2] : item.ask === 'edges' ? [v[1], T.faces, T.verts] : item.ask === 'verts' ? [v[2], T.edges, T.faces] : [2, 4, 6]); },
   errOf: (it, k) => { const T = SO_COUNT[it.solid], v = T.vis || [], vis = { faces: v[0], edges: v[1], verts: v[2] }[it.ask]; return k === vis ? 'soHidden' : [T.faces, T.edges, T.verts].includes(k) ? 'soMix' : 'soCountOff'; } });
 
@@ -118,19 +127,26 @@ function soNetDraw(parent, net, o = {}) { const g = el('g', { 'pointer-events': 
   if (F && !F.ok) { const seen = {}; net.forEach(([c, r], i) => { const f = F.face[i]; if (f === undefined) return; if (seen[f] !== undefined) [seen[f], i].forEach(j => el('rect', { x: x0 + (net[j][0] - c0) * s + 3, y: y0 + (net[j][1] - r0) * s + 3, width: s - 6, height: s - 6, fill: 'none', stroke: SO.bad, 'stroke-width': 4 }, g)); seen[f] = i; });
     if (!F.connected) net.forEach(([c, r], i) => { if (F.face[i] === undefined) el('rect', { x: x0 + (c - c0) * s + 3, y: y0 + (r - r0) * s + 3, width: s - 6, height: s - 6, fill: 'none', stroke: SO.bad, 'stroke-width': 4 }, g); }); }
   return { g, s, x0, y0 }; }
+/* المساعدة بالطيّ المحلّي: خانتان على جانبي خانةٍ في خطّ واحد وجهان متقابلان، في الشبكة الصالحة وغير الصالحة سواء، فلا يكشف الرسم الحكم (المراجع A لبوابة S3-U8/U9، 8)
+   k = 1: القاعدة ومقابلها، وk = 2: وزوجٌ آخر عمودي عليه */
+function soNetPairs(net, k = 1) { const has = (c, r) => net.some(p => p[0] === c && p[1] === r), D = [[1, 0], [-1, 0], [0, 1], [0, -1]], [bc, br] = net[0], out = [];
+  for (const [dc, dr] of D) if (has(bc + dc, br + dr) && has(bc + 2 * dc, br + 2 * dr)) { out.push([[bc, br], [bc + 2 * dc, br + 2 * dr]]);
+    if (k > 1) { const [mc, mr] = [bc + dc, br + dr]; for (const [pc, pr] of [[dr, dc], [-dr, -dc]]) if (has(mc + pc, mr + pr) && has(mc - pc, mr - pr)) { out.push([[mc + pc, mr + pr], [mc - pc, mr - pr]]); break; } } break; }
+  if (!out.length) out.push([[bc, br]]); return out; }
+function soNetHelp(parent, N, net, k = 1) { const m = helpG(parent), c0 = Math.min(...net.map(p => p[0])), r0 = Math.min(...net.map(p => p[1])), { s, x0, y0 } = N;
+  soNetPairs(net, k).forEach((pr, j) => pr.forEach(([c, r], i) => el('rect', { x: x0 + (c - c0) * s + 4, y: y0 + (r - r0) * s + 4, width: s - 8, height: s - 8, fill: SO.pair[2 - j], 'fill-opacity': .55, stroke: THINK_INK, 'stroke-width': 2.6, 'stroke-dasharray': i ? '5 4' : null }, m))); }
 const soNetSvg = net => { const d = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); d.setAttribute('viewBox', '0 0 120 90'); d.setAttribute('width', '84'); d.setAttribute('height', '63'); d.setAttribute('aria-hidden', 'true'); soNetDraw(d, net, { cx: 60, cy: 45, W: 112, H: 84 }); return d.outerHTML; };
-ITEM.soNetYN = cpItem({ H: 250, tLine: 'gen.so.together.net', hint: 'gen.so.hint.net', rLine: it => 'gen.so.reveal.net.' + it.want, praise: 'praiseThink',
+ITEM.soNetYN = cpItem({ H: 250, tLine: 'gen.so.together.net', hint: 'gen.so.hint.net', rLine: it => 'gen.so.reveal.net.' + (it.want === 'no' && !soFold(it.net).connected ? 'sep' : it.want), praise: 'praiseThink',   /* المنفصلة يُحاط فيها وجهٌ واحد (المراجع A لبوابة S3-U8/U9، 28) */
   make: s => ({ want: soFold(s.net).ok ? 'yes' : 'no', tag: 'so-net-yn' }),
-  draw(svg, item, tries) { return { N: soNetDraw(svg, item.net, { fold: tries >= 3 && soFold(item.net).ok }) }; },
-  h2: async (item, ctx) => { if (ctx.N) { const m = helpG(ctx.svg), F = soFold(item.net), { s, x0, y0 } = ctx.N, c0 = Math.min(...item.net.map(p => p[0])), r0 = Math.min(...item.net.map(p => p[1]));   /* القاعدة وما يقابلها بعد الطيّ */
-    item.net.forEach(([c, r], i) => { if (i && F.face[i] !== '0,0,1') return; el('rect', { x: x0 + (c - c0) * s + 4, y: y0 + (r - r0) * s + 4, width: s - 8, height: s - 8, fill: SO.pair[2], 'fill-opacity': .55, stroke: THINK_INK, 'stroke-width': 2.6, 'stroke-dasharray': i ? '5 4' : null }, m); }); } await sleep(FAST ? 10 : 250); },
+  draw(svg, item, tries) { const N = soNetDraw(svg, item.net); if (tries >= 3) soNetHelp(svg, N, item.net, 2); return { N }; },   /* الحلّ المشترك: زوجان متقابلان، والحكم للطفل */
+  h2: async (item, ctx) => { if (ctx.N) soNetHelp(ctx.svg, ctx.N, item.net, 1); await sleep(FAST ? 10 : 250); },   /* القاعدة ومقابلها */
   show: async (item, ctx) => { if (ctx && ctx.svg) { ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); soNetDraw(helpG(ctx.svg), item.net, { fold: true }); } },
   pick: item => yesNo(item.want),
   errOf: it => it.want === 'no' ? 'netAnySix' : 'netNo' });
 /* أيّ الشبكات الثلاث تُطوى مكعباً؟ */
 ITEM.soNetPick = cpItem({ H: 214,   /* الأرقام داخل الإطار لا على حافته (المراجع B) */ tLine: 'gen.so.together.netPick', hint: 'gen.so.hint.net', rLine: 'gen.so.reveal.netPick', praise: 'praiseThink',
   make: s => { const i = s.nets.findIndex(n => soFold(n).ok); return { want: 'n' + i, tag: 'so-net-pick' }; },
-  draw(svg, item, tries) { item.nets.forEach((n, i) => { const cx = [296, 180, 64][i]; soNetDraw(svg, n, { cx, cy: 104, W: 96, H: 140, fold: tries >= 3 }); badge(svg, cx, 186, i + 1); });
+  draw(svg, item, tries) { item.nets.forEach((n, i) => { const cx = [296, 180, 64][i], N = soNetDraw(svg, n, { cx, cy: 104, W: 96, H: 140 }); if (tries >= 3) soNetHelp(svg, N, n, 2); badge(svg, cx, 186, i + 1); });   /* بلا أحمر في الحلّ المشترك (المراجع A لبوابة S3-U8/U9، 8) */
     if (tries >= 3) { const m = helpG(svg); ciRule(m, 180, 22, labelText('soRule.net'), SO.hl, 14); } return {}; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 22, labelText('soRule.net'), SO.hl, 14); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(item.nets.map((n, i) => ['n' + i, labelText('soNet.' + (i + 1)), '<i></i>', 'gen.so.net.' + (i + 1)]), item.want),
@@ -180,7 +196,7 @@ ITEM.soView = cpItem({ H: 240, tLine: 'gen.so.together.view', hint: 'gen.so.hint
     if (tries >= 3) { const h = helpG(svg); el('polygon', { points: polyStr(G.F[item.view === 'side' ? 'right' : item.view].map(v => G.P[v])), fill: SO.hl, 'fill-opacity': .3, stroke: SO.hl, 'stroke-width': 3 }, h); } return { G, eye }; },
   h2: async (item, ctx) => { if (ctx.G) { const m = helpG(ctx.svg), G = ctx.G, ks = G.F[item.view === 'side' ? 'right' : item.view], A = [ks.reduce((a, k) => a + G.P[k][0], 0) / 4, ks.reduce((a, k) => a + G.P[k][1], 0) / 4], E = ctx.eye;   /* خطّ النظر حتى الوجه الذي تلقاه العين */
     geoLine(m, E[0], E[1], A[0], A[1], { color: SO.hl, w: 3, dash: '6 4' }); el('circle', { cx: A[0], cy: A[1], r: 5.5, fill: SO.hl, stroke: '#fff', 'stroke-width': 2 }, m); } await sleep(FAST ? 10 : 250); },
-  pick: item => choosePick(shuffle(['front', 'side', 'top'].map(v => { const [a, b] = SO_VIEW(item, v); return [v, `${MS(String(a))} × ${MS(String(b))}`, soRectIcon(a, b), 'gen.so.view.' + v]; })), item.want),
+  pick: item => choosePick(shuffle(['front', 'side', 'top'].map(v => { const [a, b] = SO_VIEW(item, v); return [v, MX(`${MS(String(a))} × ${MS(String(b))}`), soRectIcon(a, b), 'gen.so.view.' + v]; })), item.want),
   errOf: () => 'viewSwap' });
 
 /* ================= صورة التعليل (sopic): box [w h d] | solid | net | faces ================= */
@@ -191,9 +207,9 @@ function soReasonPic(g, P) { if (P.box) soBox(g, P.box[0], P.box[1], P.box[2], {
 /* ================= المشاهد ================= */
 const soSay = async (L, i) => { if (L[i]) await S(L[i]); };
 /* د1 الإشعال: «للمكعب 4 أوجه وحسب!»: نعلّم الأوجه الظاهرة ثم المخفية حتى ستة */
-SCENES.soHook = async c => { const L = c.lines, svg = m3Stage(250), B = soBox(svg, 4, 4, 4, { s: 30, cy: 132 }), G = B.G; await soSay(L, 0);
+SCENES.soHook = async c => { const L = c.lines, svg = m3Stage(250), B = soBox(svg, 4, 4, 4, { s: 30, cy: 132 }), G = B.G; if (!c.reveal) { for (const i of L.keys()) await soSay(L, i); return; }   /* الإشعال يقف عند ادّعاء فوضى وسؤال، والنتيجة بعد التوقّع (D244، المراجع A لبوابة S3-U8/U9، 7) */
   const m = el('g', { 'pointer-events': 'none' }, svg); let n = 0; for (const k of ['front', 'top', 'right', 'back', 'left', 'bottom']) { const Q = G.F[k].map(v => G.P[v]), cx = Q.reduce((a, p) => a + p[0], 0) / 4, cy = Q.reduce((a, p) => a + p[1], 0) / 4;
-    const hid = ['back', 'left', 'bottom'].includes(k); badge(m, cx + (hid ? (k === 'left' ? -18 : k === 'bottom' ? -10 : 14) : 0), cy + (hid ? (k === 'bottom' ? 10 : -12) : 0), ++n, hid ? SO.hl : SO.ok); SFX.tick(); await sleep(FAST ? 2 : 380); } await soSay(L, 1); };
+    const hid = ['back', 'left', 'bottom'].includes(k); badge(m, cx + (hid ? (k === 'left' ? -18 : k === 'bottom' ? -10 : 14) : 0), cy + (hid ? (k === 'bottom' ? 10 : -12) : 0), ++n, hid ? SO.hl : SO.ok); SFX.tick(); await sleep(FAST ? 2 : 380); } await soSay(L, 0); };
 /* د1 الاكتشاف (أ): المكعب 6 أوجه، والأسطوانة 3 أسطح، والمخروط سطحان */
 SCENES.soFacesShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg);
   soBox(g, 4, 4, 4, { s: 26, cy: 116 }); htLab(g, [180, 220], MS('6'), SO.ok, 20);   /* فوق حافة الإطار */ await soSay(L, 0);
@@ -206,12 +222,14 @@ SCENES.soEdgesShow = async c => { const L = c.lines, svg = m3Stage(250), B = soB
   m.innerHTML = ''; cnt.textContent = ''; [['front', 'back'], ['top', 'bottom'], ['right', 'left']].forEach(([a, b], i) => [a, b].forEach(k => el('polygon', { points: polyStr(G.F[k].map(p => G.P[p])), fill: SO.pair[i], 'fill-opacity': .45, stroke: SO.pair[i], 'stroke-width': 2.4 }, m))); await soSay(L, 2); };
 /* ركن الفضول: سرّ أويلر (يُكتشف ولا يُختبر، D196): الرؤوس − الأحرف + الأوجه = 2 */
 SCENES.eulerShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), rows = [['soN.cube', 8, 12, 6], ['soN.triPyr', 4, 6, 4], ['soN.sqPyr', 5, 8, 5]];
-  const hd = [['soH.name', 300], ['soH.v', 222], ['soH.e', 162], ['soH.f', 102], ['soH.r', 42]]; hd.forEach(([k, x]) => { const t = el('text', { x, y: 40, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: SO.ink, direction: 'rtl' }, g); t.textContent = labelText(k); });
-  for (const [i, [k, v, e, f]] of rows.entries()) { const y = 82 + i * 52; el('rect', { x: 14, y: y - 28, width: 332, height: 44, rx: 10, fill: i % 2 ? '#f6eccf' : '#fff', stroke: SO.grid, 'stroke-width': 2 }, g); htLab(g, [300, y - 6], labelText(k), SO.ink, 14);
-    for (const [val, x] of [[v, 222], [e, 162], [f, 102]]) htLab(g, [x, y - 6], MS(String(val)), SO.edge, 16); if (i === 0) await soSay(L, 0); else await sleep(FAST ? 2 : 300); }
-  for (const i of [0, 1, 2]) { const y = 82 + i * 52; htLab(g, [42, y - 6], MS('2'), SO.ok, 18); SFX.tick(); await sleep(FAST ? 2 : 300); } for (const l of L.slice(1)) await S(l); };
+  const hd = [['soH.name', 300], ['soH.v', 226], ['soH.e', 170], ['soH.f', 114], ['soH.r', 56]]; hd.forEach(([k, x]) => { const t = el('text', { x, y: 40, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: SO.ink, direction: 'rtl' }, g); t.textContent = labelText(k); });
+  for (const [i, [k, v, e, f]] of rows.entries()) { const y = 82 + i * 52; el('rect', { x: 24, y: y - 28, width: 312, height: 44, rx: 10, fill: i % 2 ? '#f6eccf' : '#fff', stroke: SO.grid, 'stroke-width': 2 }, g); htLab(g, [300, y - 6], labelText(k), SO.ink, 14);   /* داخل الإطار الورقي (المراجع A لبوابة S3-U8/U9، 25) */
+    for (const [val, x] of [[v, 226], [e, 170], [f, 114]]) htLab(g, [x, y - 6], MS(String(val)), SO.edge, 16); if (i === 0) await soSay(L, 0); else await sleep(FAST ? 2 : 300); }
+  /* الطفل يحسب ناتج السطر الأول (الرؤوس + الأوجه − الأحرف، بلا عدد سالب)، ثم يُكتب الباقي (المرجع S3-U8 د1: «يملأ الطفل جدولاً ثم يحسب») */
+  say(...lineOf(L[1]), { free: true }); const np = numberPick(shuffle([2, 14, 26]), 2, { west: true }), a = await np.p; hush(); np.box.remove(); logAttempt({ scene: 'explore', tag: 'eulerCalc', ok: a === 2 }); if (a !== 2) await S(L[2]);
+  for (const i of [0, 1, 2]) { const y = 82 + i * 52; htLab(g, [56, y - 6], MS('2'), SO.ok, 18); SFX.tick(); await sleep(FAST ? 2 : 300); } for (const l of L.slice(3)) await S(l); };
 /* د2 الإشعال: «هذه مكعب!»: نقيس الأطوال الثلاثة 8 و6 و3 */
-SCENES.boxHook = async c => { const L = c.lines, svg = m3Stage(250); soBox(svg, 8, 3, 6, { s: 17, cy: 130 }); await soSay(L, 0); soBox(svg, 8, 3, 6, { s: 17, cy: 130, dims: true, fill: false }); SFX.tick(); await soSay(L, 1); };
+SCENES.boxHook = async c => { const L = c.lines, svg = m3Stage(250); soBox(svg, 8, 3, 6, { s: 17, cy: 130 }); for (const i of L.keys()) await soSay(L, i); };   /* الإشعال يقف عند ادّعاء فوضى وسؤال، والنتيجة بعد التوقّع (D244، المراجع A لبوابة S3-U8/U9، 7) */
 /* د2 الاكتشاف: ستة مستطيلات، والأحرف أربعة بكل طول، والمكعب حين تتساوى الأطوال، والمتقابلان متساويان */
 SCENES.boxShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg); const B = soBox(g, 8, 3, 6, { s: 17, cy: 130, dims: true }), G = B.G; await soSay(L, 0);
   const groups = [[0, 2, 4, 6], [1, 3, 5, 7], [8, 9, 10, 11]], m = el('g', { 'pointer-events': 'none' }, g); for (const [i, grp] of groups.entries()) { for (const j of grp) { const e = G.E[j]; geoLine(m, e.A[0], e.A[1], e.B[0], e.B[1], { color: SO.pair[i], w: 5 }); } SFX.tick(); await sleep(FAST ? 2 : 450); } await soSay(L, 1);
@@ -226,8 +244,7 @@ SCENES.netShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el(
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); soNetDraw(g, SO_NETS.cube, { cx: 96, cy: 120, s: 30, fold: true }); soNetDraw(g, [[0, 0], [1, 0], [1, 1], [2, 1], [2, 2], [3, 2]], { cx: 266, cy: 120, s: 30, fold: true }); await soSay(L, 2);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); soNetDraw(g, [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [2, 1]], { cx: 100, cy: 110, s: 30, fold: true }); soNetDraw(g, [[0, 0], [1, 0], [0, 1], [1, 1], [2, 1], [1, 2]], { cx: 270, cy: 110, s: 30, fold: true }); SFX.soft(); await soSay(L, 3); };
 /* د4 الإشعال: «يكفي مستطيل صغير!»: الورقة 30 والعلبة 52 */
-SCENES.wrapHook = async c => { const L = c.lines, svg = m3Stage(250); soBox(svg, 4, 2, 3, { s: 26, cx: 136, cy: 132, dims: true }); el('rect', { x: 244, y: 92, width: 90, height: 60, fill: '#f6cf7e', stroke: SO.bad, 'stroke-width': 2.4, 'pointer-events': 'none' }, svg); htLab(svg, [289, 128], MS('30') + ' ' + labelText('arCm2'), SO.bad, 14); await soSay(L, 0);
-  ciEq(svg, 180, 230, '2 × (12 + 8 + 6) = 52', SO.ok, 18); SFX.tick(); await soSay(L, 1); };
+SCENES.wrapHook = async c => { const L = c.lines, svg = m3Stage(250); soBox(svg, 4, 2, 3, { s: 26, cx: 136, cy: 132, dims: true }); el('rect', { x: 244, y: 92, width: 90, height: 60, fill: '#f6cf7e', stroke: SO.bad, 'stroke-width': 2.4, 'pointer-events': 'none' }, svg); htLab(svg, [289, 128], MS('30') + ' ' + labelText('arCm2'), SO.bad, 14); for (const i of L.keys()) await soSay(L, i); };   /* الإشعال يقف عند ادّعاء فوضى وسؤال، والنتيجة بعد التوقّع (D244، المراجع A لبوابة S3-U8/U9، 7) */
 /* د4 الاكتشاف: علبة 4 و3 و2: كل زوج متقابل بمساحة واحدة، فثلاثة أوجه × 2 = 52 سم²؛ ثم غطاء مكعب ضلعه 3 م: 54 م² */
 SCENES.saShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg); const B = soBox(g, 4, 2, 3, { s: 26, cx: 110, cy: 130, dims: true }), G = B.G, t = el('g', { 'pointer-events': 'none' }, svg);
   const rows = [['front', 'back', '2 × (4 × 2) = 16', 0], ['top', 'bottom', '2 × (4 × 3) = 24', 1], ['right', 'left', '2 × (3 × 2) = 12', 2]];
@@ -235,8 +252,7 @@ SCENES.saShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('
   ciEq(t, 270, 204, '16 + 24 + 12 = 52', SO.ok, 17); await soSay(L, 1);
   g.remove(); t.remove(); g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 3, 3, 3, { s: 30, cy: 120, dims: true, u: 'm' }); ciEq(g, 180, 232, '6 × 3 × 3 = 54', SO.ok, 18); await soSay(L, 2); };
 /* د5 الإشعال: «هذه العلبة مربعة!» من الجانب، والعلبة نفسها من الأمام مستطيل */
-SCENES.viewHook = async c => { const L = c.lines, svg = m3Stage(250), sq = el('rect', { x: 140, y: 80, width: 80, height: 80, fill: SO.side, stroke: SO.bad, 'stroke-width': 3, 'pointer-events': 'none' }, svg); await soSay(L, 0);
-  sq.remove(); const g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 7, 3, 3, { s: 20, cy: 132, dims: true }); SFX.tick(); await soSay(L, 1); };
+SCENES.viewHook = async c => { const L = c.lines, svg = m3Stage(250), sq = el('rect', { x: 140, y: 80, width: 80, height: 80, fill: SO.side, stroke: SO.bad, 'stroke-width': 3, 'pointer-events': 'none' }, svg); for (const i of L.keys()) await soSay(L, i); };   /* الإشعال يقف عند ادّعاء فوضى وسؤال، والنتيجة بعد التوقّع (D244، المراجع A لبوابة S3-U8/U9، 7) */
 /* د5 الاكتشاف: علبة 4 و3 و2: الأمامي 4 × 2، والجانبي 3 × 2، والعلوي 4 × 3؛ ثم المكعب مساقطه مربعات */
 SCENES.viewsShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 4, 2, 3, { s: 24, cx: 180, cy: 110, dims: true }); await soSay(L, 0);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const s = 22; [[4, 2, 'soV.front', 296], [3, 2, 'soV.side', 180], [4, 3, 'soV.top', 64]].forEach(([a, b, k, cx]) => { el('rect', { x: cx - a * s / 2, y: 120 - b * s / 2, width: a * s, height: b * s, fill: SO.face, stroke: SO.edge, 'stroke-width': 2.6 }, g); htLab(g, [cx, 120 + b * s / 2 + 18], `${MS(String(a))} × ${MS(String(b))}`, SO.ink, 15); htLab(g, [cx, 120 - b * s / 2 - 16], labelText(k), SO.edge, 14); });
@@ -245,7 +261,7 @@ SCENES.viewsShow = async c => { const L = c.lines, svg = m3Stage(250); let g = e
 /* د5 المشروع «علبة الهدية»: علبة 6 و4 و3: شبكتها ومساقطها ومساحة سطحها 108 سم²، ثم الجدول */
 SCENES.giftShow = async c => { const L = c.lines, svg = m3Stage(262);
   if (c.table) { const rows = [['soT.net', '6'], ['soT.views', '6 × 3 ، 4 × 3 ، 6 × 4'], ['soT.sa', `108 ${labelText('arCm2')}`]], g = el('g', { 'pointer-events': 'none' }, svg);
-    rows.forEach(([k, v], i) => { const y = 40 + i * 64; el('rect', { x: 28, y, width: 304, height: 54, rx: 12, fill: i % 2 ? '#f6eccf' : '#fff', stroke: SO.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 318, y: y + 33, 'text-anchor': 'start', 'font-size': 15, 'font-weight': 800, fill: SO.ink, direction: 'rtl' }, g); a.textContent = labelText(k); const b = el('text', { x: 42, y: y + 33, 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: SO.ok, direction: 'rtl' }, g); b.textContent = MS(v); });
+    rows.forEach(([k, v], i) => { const y = 40 + i * 64; el('rect', { x: 28, y, width: 304, height: 54, rx: 12, fill: i % 2 ? '#f6eccf' : '#fff', stroke: SO.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 318, y: y + 33, 'text-anchor': 'start', 'font-size': 15, 'font-weight': 800, fill: SO.ink, direction: 'rtl' }, g); a.textContent = labelText(k); const b = el('text', { x: 42, y: y + 33, 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: SO.ok, direction: 'rtl' }, g); b.textContent = MX(MS(v)); });
     for (const l of L) await S(l); return; }
   let g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 6, 3, 4, { s: 22, cy: 128, dims: true }); await soSay(L, 0);
   if (c.setup) return;   /* المشروع: العلبة وحدها قبل بنود الطفل، والشبكة والورق بعدها في الجدول (D286 (1)) */
