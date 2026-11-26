@@ -64,4 +64,6 @@ if __name__ == '__main__':
     n = 0
     for les, P in PRED.items():
         for i, (k, v) in enumerate(P.items()): g['lines'][line_id(les, i)] = v[1]; n += 1
+    # أعداد الخيارات فوق المئة كلماتها هنا (numberPick يقرأ gen.numw.N): ألف وعشرة آلاف في توقّع «المتر المربع» (m3.u4.d4)
+    g['lines']['gen.numw.1000'] = 'أَلْفٌ'; g['lines']['gen.numw.10000'] = 'عَشَرَةُ آلَافٍ'
     open(p, 'w', encoding='utf8').write(json.dumps(g, ensure_ascii=False, indent=1) + '\n'); print('ok', n, 'توقّعاً')

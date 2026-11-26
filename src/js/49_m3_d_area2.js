@@ -29,7 +29,7 @@ const a2Formula = (parent, txt, col = A2.ok, y = 232) => { const t = el('text', 
 /* ================= شبه المنحرف: القاعدة السفلى b من (0،0)، والعليا a على الارتفاع h تبدأ عند off (افتراضاً متساوي الساقين)؛ legs [اليسرى، اليمنى] أطوال الساقين إن كُتبت ================= */
 function a2TrapPts(it) { const off = it.off ?? (it.b - it.a) / 2; return { off, pts: [[0, 0], [it.b, 0], [off + it.a, it.h], [off, it.h]] }; }
 function a2Trap(svg, it, o = {}) { const { off, pts } = a2TrapPts(it), u = it.u || 'cm', F = a2Fig(svg, pts, { rot: it.rot, G: o.G }), M = F.M, Q = pts.map(M), g = el('g', { 'pointer-events': 'none' }, svg);
-  a2Poly(g, Q, o.fill || A2.fill); const L = (p, d, txt, col) => htLab(g, M([p[0] + d[0], p[1] + d[1]]), txt, col);
+  a2Poly(g, Q, o.fill || A2.fill); const k90 = it.rot === 90 ? 1.9 : 1, L = (p, d, txt, col) => htLab(g, M([p[0] + d[0], p[1] + d[1] * k90]), txt, col);   /* القاعدتان قائمتان (rot 90): الطول أبعد عن الضلع، فلا يقطعه (المراجع A لبوابة S3-U4/U5، 17) */
   if (o.bases !== false) { L([it.b / 2, 0], [0, -.75], htCm(it.b, u), A2.ink); L([off + it.a / 2, it.h], [0, .75], htCm(it.a, u), A2.ink); }
   const vL = off === 0 ? 0 : off + it.a === it.b ? it.b : null;   /* القائم: ساقه العمودية هي الارتفاع */
   if (o.height !== false) { if (vL != null) { const s = vL ? 1 : -1; L([vL, it.h / 2], [.85 * s, 0], htCm(it.h, u), A2.h); a2Right(g, M([vL, 0]), M([vL, 1]), M([vL - s, 0]), 9, A2.h); }
@@ -46,13 +46,16 @@ ITEM.trapArea = { ...a2NumItem,
     /*T*/if (TESTHOOK && (A > 100 || !Number.isInteger(A * 2) || off < 0 || off + spec.a > spec.b || (spec.ask === 'perim' && !legs))) testBug('trapArea: أبعاد غير صالحة');/*/T*/
     const want = spec.ask === 'perim' ? P : A, errs = spec.ask === 'perim' ? [P - spec.a, A, spec.a + spec.b + 2 * spec.h] : [big * spec.h, (spec.a + spec.b) * spec.h, legs ? (spec.a + spec.b) * Math.max(...legs) / 2 : Math.min(spec.a, spec.b) * spec.h];
     return { ...spec, A, want, nums: a2Mix(want, errs), tag: 'trap-' + (spec.ask || 'area') + (spec.rot ? '-rot' : '') }; },
-  async ask(item, mode, tries) { const svg = m3Stage(250); a2Trap(svg, item);
-    if (tries >= 3) { hintCard(svg, 180, 26, item.ask === 'perim' ? `${item.a} + ${item.b} + ${item.legs[0]} + ${item.legs[1]} = ؟` : `(${item.a} + ${item.b}) × ${item.h} ÷ 2 = ؟`); await S(item.ask === 'perim' ? 'gen.a2.together.perim' : 'gen.a2.together.trap'); }
+  async ask(item, mode, tries) { const svg = m3Stage(250), D = a2Trap(svg, item);
+    if (tries >= 3) { hintCard(svg, 180, item.rot === 90 ? 222 : 26, item.ask === 'perim' ? `${item.a} + ${item.b} + ${item.legs[0]} + ${item.legs[1]} = ؟` : `(${item.a} + ${item.b}) × ${item.h} ÷ 2 = ؟`); await S(item.ask === 'perim' ? 'gen.a2.together.perim' : 'gen.a2.together.trap'); }
     else await S(item.q || 'gen.a2.q.trap.' + (item.ask || 'area'));
-    const np = await this.askNum(item); return { ans: await np.p, ctx: { svg } }; },
-  judge(item, k) { if (k === item.want) return { ok: true }; if (item.ask === 'perim') return { ok: false, err: k === item.A ? 'perimArea' : 'perimOff' };
+    const np = await this.askNum(item); return { ans: await np.p, ctx: { svg, D } }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; if (item.ask === 'perim') return { ok: false, err: k === item.A ? 'perimInside' : 'perimOff' };
     return { ok: false, err: k === Math.max(item.a, item.b) * item.h ? 'trapBig' : k === (item.a + item.b) * item.h ? 'trapNoHalf' : item.legs && k === (item.a + item.b) * Math.max(...item.legs) / 2 ? 'trapSlant' : 'a2AreaOff' }; },
-  async hint2(item) { await S(item.ask === 'perim' ? 'gen.ht.hint.perim' : 'gen.a2.hint.trap'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.D) { const m = helpG(r.ctx.svg), Q = r.ctx.D.Q;   /* المستوى الثاني (D240؛ المراجع A لبوابة S3-U4/U5، 8): المحيط أضلاعه الأربعة مُبرزة، والمساحة قاعدتاه ملوّنتان */
+      if (item.ask === 'perim') el('polygon', { points: polyStr(Q), fill: 'none', stroke: THINK_INK, 'stroke-width': 5, opacity: .75 }, m);
+      else { geoLine(m, Q[0][0], Q[0][1], Q[1][0], Q[1][1], { color: A2.bot, w: 6 }); geoLine(m, Q[3][0], Q[3][1], Q[2][0], Q[2][1], { color: A2.top, w: 6 }); } }
+    await S(item.ask === 'perim' ? 'gen.ht.hint.perim' : 'gen.a2.hint.trap'); }, async together() {},
   async reveal(item) { await S('gen.ht.reveal.num', { noGap: true }); await S(bigw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -69,7 +72,9 @@ ITEM.trapParts = {
     const k = await choosePick(shuffle(opts), 'bases'); return { ans: k, ctx: { svg, D } }; },
   judge(item, k) { return k === 'bases' ? { ok: true } : { ok: false, err: k === 'legs' ? 'trapLegsBases' : 'trapAdjBases' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.a2.hint.parts'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.D) { const m = helpG(r.ctx.svg), Q = r.ctx.D.Q;   /* الضلعان المتوازيان ممدودان: لا يلتقيان */
+      for (const [P, R] of [[Q[0], Q[1]], [Q[3], Q[2]]]) { const L = Math.hypot(R[0] - P[0], R[1] - P[1]) || 1, d = [(R[0] - P[0]) / L, (R[1] - P[1]) / L]; geoLine(m, P[0] - d[0] * 34, P[1] - d[1] * 34, R[0] + d[0] * 34, R[1] + d[1] * 34, { color: THINK_INK, w: 2.4, dash: '7 5' }); } }
+    await S('gen.a2.hint.parts'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.D) { const Q = r.ctx.D.Q; for (const [P, R] of [[Q[0], Q[1]], [Q[3], Q[2]]]) geoLine(r.ctx.svg, P[0], P[1], R[0], R[1], { color: A2.ok, w: 6 }); } await S('gen.a2.reveal.parts'); },
   praise: () => 'praiseLook', twin(item) { return item.twin || null; },
 };
@@ -88,34 +93,37 @@ function a2Diag(svg, it, o = {}) { const { cut, pts } = a2DiagPts(it), u = it.u 
 ITEM.diagArea = { ...a2NumItem,
   make(spec) { const A = spec.p * spec.r / 2; /*T*/if (TESTHOOK && (A > 100 || !Number.isInteger(A * 2))) testBug('diagArea: أبعاد غير صالحة');/*/T*/
     return { ...spec, want: A, nums: a2Mix(A, [spec.p * spec.r, spec.p + spec.r, A / 2]), tag: 'diag-area-' + spec.k }; },
-  async ask(item, mode, tries) { const svg = m3Stage(250); a2Diag(svg, item);
-    if (tries >= 3) { hintCard(svg, 180, 232, `${item.p} × ${item.r} ÷ 2 = ؟`); await S('gen.a2.together.diag'); } else await S(item.q || 'gen.a2.q.diag.' + item.k);
-    const np = await this.askNum(item); return { ans: await np.p, ctx: { svg } }; },
+  async ask(item, mode, tries) { const svg = m3Stage(250), D = a2Diag(svg, item);
+    if (tries >= 3) { hintCard(svg, 180, 220, `${item.p} × ${item.r} ÷ 2 = ؟`); await S('gen.a2.together.diag'); } else await S(item.q || 'gen.a2.q.diag.' + item.k);
+    const np = await this.askNum(item); return { ans: await np.p, ctx: { svg, D } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: k === item.p * item.r ? 'dgNoHalf' : k === item.p + item.r ? 'dgSum' : k === item.want / 2 ? 'dgQuarter' : 'a2AreaOff' }; },
-  async hint2() { await S('gen.a2.hint.diag'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.D) { const Q = r.ctx.D.Q, xs = Q.map(q => q[0]), ys = Q.map(q => q[1]); el('rect', { x: Math.min(...xs), y: Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys), fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6, 'stroke-dasharray': '7 5' }, helpG(r.ctx.svg)); }   /* المستطيل الذي حوله */
+    await S('gen.a2.hint.diag'); }, async together() {},
   async reveal(item) { await S('gen.ht.reveal.num', { noGap: true }); await S(bigw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 
 /* ================= ④ «مفتّش المساحات» (C334): أربعة أشكال بقطريها؛ يلمس الطفل ما تصحّ عليه صيغة القطرين (القطران متعامدان) ثم «تمّ» ================= */
+const fitK = k => String(k).split('@')[0], FIT_NAME = { rect: 'dqOnly.rectNS', para: 'dqOnly.paraNRh' };
 ITEM.diagFit = {
-  make(spec) { const ks = spec.ks || ['rhom', 'rect', 'kite', 'para']; return { ...spec, ks, want: ks.filter(k => DQ_PERP[k] === 'y').sort().join(), tag: 'diag-fit' }; },
+  make(spec) { const ks = spec.ks || ['rhom', 'rect', 'kite', 'para']; return { ...spec, ks, want: ks.filter(k => DQ_PERP[fitK(k)] === 'y').sort().join(), tag: 'diag-fit' }; },
   async ask(item, mode, tries) { const svg = m3Stage(250), order = item.order || (item.order = shuffle(item.ks.map((_, i) => i))), on = new Set(), marks = el('g', { 'pointer-events': 'none' }, svg);
     const ring = c => { const r = el('rect', { x: c.x - 82, y: c.y - 50, width: 164, height: 104, rx: 16, fill: 'none', stroke: css('--compass'), 'stroke-width': 5 }, marks); return r; };
     const redraw = () => { marks.innerHTML = ''; cells.forEach(c => { if (on.has(c.ki)) ring(c); c.g.setAttribute('aria-pressed', on.has(c.ki)); }); };
-    const cells = order.map((ki, pos) => { const x = pos % 2 ? 92 : 268, y = pos < 2 ? 64 : 178, k = item.ks[ki], g = el('g', { role: 'button', tabindex: 0 }, svg);
-      dqDraw(g, { k }, [x, y - 8, 128, 66], { right: tries >= 3, maxK: 8 }); htLab(g, [x, y + 40], labelText('ply.q.' + k), A2.ink, 14); g.setAttribute('aria-label', plain(labelText('ply.q.' + k))); hitPad(g, 96); g.style.cursor = 'pointer';
-      /*T*/if (TESTHOOK) g.dataset.ok = DQ_PERP[k] === 'y';/*/T*/
-      g.onclick = () => { if (on.has(ki)) on.delete(ki); else on.add(ki); SFX.tick(); redraw(); }; return { g, ki, x, y, k }; });
+    const cells = order.map((ki, pos) => { const x = pos % 2 ? 92 : 268, y = pos < 2 ? 64 : 178, k = item.ks[ki], kk = fitK(k), rot = +(String(k).split('@')[1] || 0), g = el('g', { role: 'button', tabindex: 0 }, svg), nm = labelText(FIT_NAME[kk] || 'ply.q.' + kk);
+      const R = dqDraw(g, { k: kk, ...(rot ? { rot: ((DQ_K[kk] || {}).rot || 0) + rot } : {}) }, [x, y - 8, 128, 66], { right: tries >= 3, maxK: 8, ...(rot ? { level: false } : {}) }); htLab(g, [x, y + 40], nm, A2.ink, 13); g.setAttribute('aria-label', plain(nm)); hitPad(g, 96); g.style.cursor = 'pointer';   /* k@rot: الشكل مُداراً (وضع غير نمطي في الاختبار)؛ والمستطيل ومتوازي الأضلاع بقيدهما (D284 (4)) */
+      /*T*/if (TESTHOOK) g.dataset.ok = DQ_PERP[kk] === 'y';/*/T*/
+      g.onclick = () => { if (on.has(ki)) on.delete(ki); else on.add(ki); SFX.tick(); redraw(); }; return { g, ki, x, y, k, R }; });
     redraw(); await S(tries >= 3 ? 'gen.a2.together.fit' : item.q || 'gen.a2.q.fit');
     const set = keys => { on.clear(); cells.forEach(c => { if (keys.includes(c.k)) on.add(c.ki); }); redraw(); };
-    AUTO({ kind: 'diagFit', ok: () => { set(item.want.split(',')); rulDoneBtn().click(); }, wrong: () => { set([...item.want.split(','), item.ks.find(k => DQ_PERP[k] !== 'y')]); rulDoneBtn().click(); } });
+    AUTO({ kind: 'diagFit', ok: () => { set(item.want.split(',')); rulDoneBtn().click(); }, wrong: () => { set([...item.want.split(','), item.ks.find(k => DQ_PERP[fitK(k)] !== 'y')]); rulDoneBtn().click(); } });
     await rulDone(() => cells.forEach(c => { c.g.onclick = null; c.g.style.cursor = ''; }));
     return { ans: [...on].map(i => item.ks[i]).sort().join(), ctx: { svg, cells } }; },
-  judge(item, k) { if (k === item.want) return { ok: true }; const a = k ? k.split(',') : []; return { ok: false, err: a.some(x => DQ_PERP[x] !== 'y') ? 'dgFitNotPerp' : 'dgFitMiss' }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; const a = k ? k.split(',') : []; return { ok: false, err: a.some(x => DQ_PERP[fitK(x)] !== 'y') ? 'dgFitNotPerp' : 'dgFitMiss' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.a2.hint.fit'); }, async together() {},
-  async reveal(item, r) { if (r && r.ctx && r.ctx.cells) r.ctx.cells.filter(c => DQ_PERP[c.k] === 'y').forEach(c => el('rect', { x: c.x - 82, y: c.y - 50, width: 164, height: 104, rx: 16, fill: 'none', stroke: A2.ok, 'stroke-width': 5, 'pointer-events': 'none' }, r.ctx.svg)); await S('gen.a2.reveal.fit'); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.cells) { const m = helpG(r.ctx.svg); for (const c of r.ctx.cells) { const P = dqPaper(m, c.R.M, dirOf(c.R.M, c.R.Q[2])); P.setAttribute('transform', `scale(.62)`); P.setAttribute('transform-origin', `${c.R.M[0]} ${c.R.M[1]}`); } }   /* ورقة الزاوية القائمة عند كل تقاطع */
+    await S('gen.a2.hint.fit'); }, async together() {},
+  async reveal(item, r) { if (r && r.ctx && r.ctx.cells) r.ctx.cells.filter(c => DQ_PERP[fitK(c.k)] === 'y').forEach(c => el('rect', { x: c.x - 82, y: c.y - 50, width: 164, height: 104, rx: 16, fill: 'none', stroke: A2.ok, 'stroke-width': 5, 'pointer-events': 'none' }, r.ctx.svg)); await S('gen.a2.reveal.fit'); },
   praise: () => 'praiseLook', twin(item) { return item.twin || null; },
 };
 
@@ -124,7 +132,7 @@ ITEM.kiteTune = {
   make(spec) { const want = 2 * spec.A / spec.p; /*T*/if (TESTHOOK && (!Number.isInteger(want) || want < 2 || want > 8)) testBug('kiteTune: قطر غير صالح');/*/T*/ return { ...spec, want, tag: 'kite-tune' }; },
   async ask(item, mode, tries) { const svg = m3Stage(250), u = item.u || 'cm', cut = item.cut ?? Math.round(item.p * .4), G = a2Grid(svg, Math.max(12, item.p + 2), 10); let r = item.r0 ?? 2, sh = null;
     const goal = el('text', { x: 180, y: 240, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: A2.ink, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, svg); goal.textContent = `${labelText('htGoal')} ${item.A} ${a2U2(u)}`;
-    const draw = () => { if (sh) sh.remove(); sh = el('g', {}, svg); svg.insertBefore(sh, goal); a2Diag(sh, { p: item.p, r, cut, u }, { G }); };
+    const draw = () => { if (sh) sh.remove(); sh = el('g', {}, svg); svg.insertBefore(sh, goal); a2Diag(sh, { p: item.p, r, cut, u }, { G }); if (tries >= 2) htAreaNow(sh, { fig: 'tri', b: item.p, u }, r); };   /* المستوى الثاني: المساحة الآن (p × r ÷ 2) */
     draw(); if (tries >= 3) { r = item.want + (r < item.want ? -1 : 1); draw(); await S('gen.a2.together.kite'); } else await S(item.q || 'gen.a2.q.kite');
     const St = dqSteps(['htLower', 'htHigher'], d => { const n = Math.max(2, Math.min(8, r + d)); if (n === r) return false; r = n; draw(); return true; }, { vert: true });
     /*T*/window.__a2R = () => r;/*/T*/
@@ -132,7 +140,7 @@ ITEM.kiteTune = {
     await rulDone(() => St.off()); return { ans: r, ctx: { svg, set: v => { r = v; draw(); } } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k * 2 === item.want ? 'dgNoHalf' : 'dgTuneOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.a2.hint.kite'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) htAreaNow(r.ctx.svg, { fig: 'tri', b: item.p, u: item.u }, r.ans); await S('gen.a2.hint.kite'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.set) r.ctx.set(item.want); await S('gen.a2.reveal.kite'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -176,7 +184,8 @@ ITEM.comp2 = { ...a2NumItem,
   judge(item, k) { if (k === item.want) return { ok: true }; const { F } = a2CompData(item), half = F.parts.find(p => p.full != null), big = F.parts.find(p => p.big != null), para = F.parts.find(p => p.para);
     if (F.ghost) return { ok: false, err: k === F.whole ? 'compWhole' : k === item.want - half.A + half.full ? 'compSubNoHalf' : 'a2AreaOff' };
     return { ok: false, err: half && k === item.want - half.A + half.full ? 'compNoHalf' : big && k === item.want - big.A + big.big ? 'trapBig' : para && k === item.want - para.A / 2 ? 'areaHalf' : k === Math.max(...F.parts.map(p => p.A)) ? 'compPart' : 'a2AreaOff' }; },
-  async hint2(item) { await S(A2_FIG[item.fig](item).ghost ? 'gen.a2.hint.notch' : 'gen.a2.hint.comp'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.C) a2CompParts(r.ctx.svg, r.ctx.C, 0);   /* الأجزاء ملوّنة بلا مساحاتها */
+    await S(A2_FIG[item.fig](item).ghost ? 'gen.a2.hint.notch' : 'gen.a2.hint.comp'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.C) a2CompParts(r.ctx.svg, r.ctx.C); await S('gen.ht.reveal.num', { noGap: true }); await S(bigw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -190,9 +199,10 @@ ITEM.comp2Perim = { ...a2NumItem,
     L([item.w / 2, 0], [0, -.75], item.w); L([0, item.hw / 2], [-.9, 0], item.hw); L([item.w, item.hw / 2], [.9, 0], item.hw); L([item.w / 2, item.hw], [0, .6], item.w, A2.ghost);
     L([item.w / 4, item.hw + item.hr / 2], [-.8, .5], item.s, A2.side); L([item.w * .75, item.hw + item.hr / 2], [.8, .5], item.s, A2.side);
     if (tries >= 3) { const m = helpG(svg); el('polygon', { points: polyStr(Q), fill: 'none', stroke: THINK_INK, 'stroke-width': 6, opacity: .7 }, m); await S('gen.a2.together.perimH'); } else await S(item.q || 'gen.a2.q.perimH');
-    const np = await this.askNum(item); return { ans: await np.p, ctx: { svg } }; },
+    const np = await this.askNum(item); return { ans: await np.p, ctx: { svg, a, b } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.want + item.w ? 'perimInner' : k < item.want ? 'perimMiss' : 'perimOff' }; },
-  async hint2() { await S('gen.a2.hint.perimH'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.a) { const m = helpG(r.ctx.svg), c = [(r.ctx.a[0] + r.ctx.b[0]) / 2, (r.ctx.a[1] + r.ctx.b[1]) / 2]; for (const s of [1, -1]) geoLine(m, c[0] - 11, c[1] - 11 * s, c[0] + 11, c[1] + 11 * s, { color: A2.bad, w: 4 }); }   /* الخطّ الداخلي مشطوب: ليس على الحافة */
+    await S('gen.a2.hint.perimH'); }, async together() {},
   async reveal(item) { await S('gen.ht.reveal.num', { noGap: true }); await S(bigw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -201,13 +211,15 @@ ITEM.comp2Perim = { ...a2NumItem,
 ITEM.compCut = { ...a2NumItem,
   make(spec) { const { want, errs } = a2CompData(spec), ks = shuffle(['a', 'b']); return { ...spec, want, nums: a2Mix(want, errs), good: ks[0], badK: ks[1], tag: 'comp-cut-' + spec.fig }; },
   async ask(item, mode, tries) { const svg = m3Stage(250), C = a2CompDraw(svg, item, { cut: false }), F = C.F, lines = {};
-    for (const [k, seg, col] of [[item.good, F.cut, A2.side], [item.badK, F.bad, A2.mid]]) { const a = C.M(seg[0]), b = C.M(seg[1]), g = el('g', { 'pointer-events': 'none' }, svg); geoLine(g, a[0], a[1], b[0], b[1], { color: col, w: 3, dash: '7 5' }); htLab(g, [(a[0] + b[0]) / 2 + (k === item.good ? 0 : 14), (a[1] + b[1]) / 2 - 12], LTR[k], col, 18); lines[k] = g; }
+    for (const [k, seg, col] of [[item.good, F.cut, A2.side], [item.badK, F.bad, A2.mid]]) { const a = C.M(seg[0]), b = C.M(seg[1]), g = el('g', { 'pointer-events': 'none' }, svg); geoLine(g, a[0], a[1], b[0], b[1], { color: col, w: 3, dash: '7 5' }); const f = k === item.good ? .5 : .28; htLab(g, [a[0] + (b[0] - a[0]) * f + (k === item.good ? 0 : 12), a[1] + (b[1] - a[1]) * f - 12], LTR[k], col, 18);   /* حرف القطع الغريب قرب طرفه، لا فوق طول ضلع (المراجع A لبوابة S3-U4/U5، 22) */ lines[k] = g; }
     if (tries >= 3) { lines[item.badK].remove(); a2CompParts(svg, C, F.parts.length - 1); await S('gen.a2.together.cut'); }
     else { await S(item.q || 'gen.a2.q.cut'); const k = await choosePick(['a', 'b'].map(x => [x, LTR[x], '<i></i>', 'gen.ltr.' + x]), item.good); if (k !== item.good) return { ans: 'odd', ctx: { svg, C } };
       lines[item.badK].remove(); const m = helpG(svg); F.parts.forEach((p, i) => a2Poly(m, p.poly.map(C.M), [A2.p1, A2.p2][i % 2], { op: .7, w: 1.5 })); SFX.tick(); await S('gen.a2.q.cutTotal'); }
     const np = await this.askNum(item); return { ans: await np.p, ctx: { svg, C } }; },
   judge(item, k) { if (k === 'odd') return { ok: false, err: 'compCutOdd' }; return ITEM.comp2.judge(item, k); },
-  async hint2(item, r) { await S(r && r.ans === 'odd' ? 'gen.a2.hint.cut' : 'gen.a2.hint.comp'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.C && r.ans !== 'odd') a2CompParts(r.ctx.svg, r.ctx.C, 0);
+    else if (r && r.ctx && r.ctx.C) { const C = r.ctx.C, a = C.M(C.F.bad[0]), b = C.M(C.F.bad[1]), c = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], m = helpG(r.ctx.svg); for (const s2 of [1, -1]) geoLine(m, c[0] - 12, c[1] - 12 * s2, c[0] + 12, c[1] + 12 * s2, { color: A2.bad, w: 4 }); }   /* القطع الغريب مشطوب: يعطي أجزاءً غير مألوفة */   /* الأجزاء ملوّنة بلا مساحاتها؛ وبعد القطع الغريب جملته وحدها، فالبطاقة تُعاد بالقطعين */
+    await S(r && r.ans === 'odd' ? 'gen.a2.hint.cut' : 'gen.a2.hint.comp'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.C) a2CompParts(r.ctx.svg, r.ctx.C); await S('gen.ht.reveal.num', { noGap: true }); await S(bigw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -232,7 +244,7 @@ ITEM.a2Conv = { ...a2NumItem,
     else await S(item.q || (item.room ? 'gen.a2.q.room.' + to : 'gen.a2.q.to.' + to));
     const np = await this.askNum(item); return { ans: await np.p, ctx: { svg } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const v = item.v; return { ok: false, err: k === v * 100 || k === v / 100 ? 'a2Conv100' : item.room && k === v ? 'a2NoConv' : (item.from === 'm2' ? k < v : k > v) ? 'convDir' : 'a2Factor' }; },
-  async hint2(item) { await S(item.from === 'm2' ? 'gen.a2.hint.toCm2' : 'gen.a2.hint.toM2'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) a2Grid100(helpG(r.ctx.svg), item.room ? 296 : 180, item.room ? 74 : 186, item.room ? 56 : 60); await S(item.from === 'm2' ? 'gen.a2.hint.toCm2' : 'gen.a2.hint.toM2'); }, async together() {},
   async reveal(item) { await S('gen.ht.reveal.num', { noGap: true }); await S(bigw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -241,12 +253,13 @@ ITEM.a2Conv = { ...a2NumItem,
 ITEM.a2Cmp = {
   make(spec) { const cm = ([v, u]) => u === 'm2' ? v * 10000 : v, x = cm(spec.a), y = cm(spec.b); return { ...spec, want: x > y ? 'a' : y > x ? 'b' : 'eq', tag: 'a2cmp' }; },
   async ask(item, mode, tries) { const svg = m3Stage(250); a2Card(svg, 266, 100, item.a[0], item.a[1], { w: 140, fs: 20 }); a2Card(svg, 94, 100, item.b[0], item.b[1], { w: 140, fs: 20 }); const q = el('text', { x: 180, y: 110, 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 800, fill: A2.ink }, svg); q.textContent = '؟';
-    if (tries >= 3) { hintCard(svg, 180, 190, `1 ${labelText('arM2')} = 10000 ${labelText('arCm2')}`); await S('gen.a2.together.cmp'); } else await S(item.q || 'gen.a2.q.cmp');
+    if (tries >= 3) { hintCard(svg, 180, 220, `1 ${labelText('arM2')} = 10000 ${labelText('arCm2')}`); await S('gen.a2.together.cmp'); } else await S(item.q || 'gen.a2.q.cmp');
     const txt = ([v, u]) => `${v} ${labelText(u === 'm2' ? 'arM2' : 'arCm2')}`;
     const k = await choosePick([['a', txt(item.a), '<i></i>', a2Line(...item.a)], ['b', txt(item.b), '<i></i>', a2Line(...item.b)], ['eq', labelText('a2Eq'), '<i></i>', 'gen.a2.cmp.eq']], item.want); return { ans: k, ctx: { svg } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; if (k === 'eq') return { ok: false, err: 'a2CmpEq' }; const raw = k === 'a' ? item.a[0] > item.b[0] : item.b[0] > item.a[0]; return { ok: false, err: raw ? 'a2CmpDigits' : 'a2CmpOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.a2.hint.cmp'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg); [['a', 266], ['b', 94]].forEach(([k, x]) => { if (item[k][1] === 'm2') { geoArrow(m, x, 148, 90, THINK_INK, 8); a2Card(m, x, 178, null, 'cm2', { w: 136, fs: 17, stroke: THINK_INK, col: THINK_INK, dash: '6 4' }); } }); }   /* بطاقة «؟ سم²» تحت المتر المربع: إلى الوحدة الأصغر */
+    await S('gen.a2.hint.cmp'); }, async together() {},
   async reveal(item) { await S(item.want === 'eq' ? 'gen.a2.cmp.eq' : a2Line(...item[item.want])); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -263,13 +276,18 @@ ITEM.a2Tiles = { ...a2NumItem,
     if (tries >= 3) { hintCard(svg, 180, 210, `${item.A} × 4 = ؟`); await S('gen.a2.together.tiles'); } else await S(item.q || 'gen.a2.q.tiles');
     const np = await this.askNum(item); return { ans: await np.p, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.A * 2 ? 'tileTwo' : k === item.A ? 'tileOne' : 'tileOff' }; },
-  async hint2() { await S('gen.a2.hint.tiles'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg); [[253, 75], [303, 75], [253, 125], [303, 125]].forEach(([x, y], i) => badge(m, x, y, i + 1, THINK_INK)); }   /* البلاطات الأربع في المتر المربع مرقّمة */
+    await S('gen.a2.hint.tiles'); }, async together() {},
   async reveal(item) { await S('gen.ht.reveal.num', { noGap: true }); await S(bigw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 
 /* ================= ⑫ «محوّل فرجار للمساحات» (C308، اللعبة): v، from؛ يختار الطفل العملية ثم العدد (100، 1000، 10000) ================= */
 const A2_F = [100, 1000, 10000];
+/* المستوى الثاني في التحويل (المراجع A لبوابة S3-U4/U5، 9): متر مربع مقسوم عشرةً في عشرة، وضلعه «١٠٠ سم»، بلا العملية: يعدّ الطفل ولا يُعطاها */
+function a2Grid100(parent, cx, cy, s) { const g = el('g', { 'pointer-events': 'none' }, parent), x = cx - s / 2, y = cy - s / 2; el('rect', { x, y, width: s, height: s, fill: '#fff', stroke: THINK_INK, 'stroke-width': 2.4 }, g);
+  for (let i = 1; i < 10; i++) { geoLine(g, x + i * s / 10, y, x + i * s / 10, y + s, { color: '#d7c2a0', w: 1 }); geoLine(g, x, y + i * s / 10, x + s, y + i * s / 10, { color: '#d7c2a0', w: 1 }); }
+  htLab(g, [cx, y + s + 13], htCm(100), THINK_INK, 12); return g; }
 ITEM.a2Machine = {
   make(spec) { const op = spec.from === 'm2' ? 'mul' : 'div'; return { ...spec, op, want: op + 10000, tag: 'a2-machine' }; },
   async ask(item, mode, tries) { const svg = m3Stage(250), g = el('g', {}, svg), to = item.from === 'm2' ? 'cm2' : 'm2';
@@ -284,7 +302,7 @@ ITEM.a2Machine = {
     return { ans: op + f, ctx: { svg, out } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: !k.startsWith(item.op) ? 'convDir' : k.endsWith('00') && !k.endsWith('000') ? 'a2Conv100' : 'a2Factor' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.from === 'm2' ? 'gen.a2.hint.toCm2' : 'gen.a2.hint.toM2'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) a2Grid100(helpG(r.ctx.svg), 180, 198, 52); await S(item.from === 'm2' ? 'gen.a2.hint.toCm2' : 'gen.a2.hint.toM2'); }, async together() {},
   async reveal(item, r) { const res = item.op === 'mul' ? item.v * 10000 : item.v / 10000; if (r && r.ctx && r.ctx.out) r.ctx.out.t.textContent = res + ' ' + labelText(item.from === 'm2' ? 'arCm2' : 'arM2'); await S(item.op === 'mul' ? 'gen.a2.reveal.mul' : 'gen.a2.reveal.div'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -343,6 +361,10 @@ SCENES.m2Hook = async c => { const L = c.lines, svg = m3Stage(250), x0 = 120, y0
   htLab(g, [x0 + s / 2, y0 + s + 16], `1 ${U_('m')} = 100 ${U_('cm')}`, A2.ink, 14); const fz = chaosAt(svg, 50, 60, .4); chaosGiggle(fz); const t = a2Formula(svg, `1 ${labelText('arM2')} = 100 ${labelText('arCm2')} ؟`, A2.bad); await S(L[0]);
   el('rect', { x: x0 + s - s / 10, y: y0, width: s / 10, height: s / 10, fill: A2.bad, opacity: .85 }, g); htLab(g, [x0 + s - s / 10 - 44, y0 + 14], `100 ${labelText('arCm2')}`, A2.bad, 13); SFX.tick(); for (const l of L.slice(1)) await S(l); };
 /* الاكتشاف (د4): تغطية المتر المربع بمربعات ضلعها 10 سم: عشرة صفوف في كل منها عشرة، ثم 100 × 100 */
+/* مثال محلول (د4): مِتْران مربّعان أم ١٥٠٠٠ سم²؟ يُحوَّل الكبير إلى سم² تحت بطاقته ثم يُقارن */
+SCENES.a2CmpShow = async c => { const L = c.lines, svg = m3Stage(250); a2Card(svg, 266, 70, 2, 'm2', { w: 124, fs: 20 }); a2Card(svg, 94, 70, 15000, 'cm2', { w: 128, fs: 18 }); const q = el('text', { x: 180, y: 80, 'text-anchor': 'middle', 'font-size': 28, 'font-weight': 800, fill: A2.ink }, svg); q.textContent = '؟';
+  await S(L[0]); geoLine(svg, 266, 102, 266, 124, { color: THINK_INK, w: 3 }); geoArrow(svg, 266, 128, 90, THINK_INK, 9); a2Card(svg, 266, 166, 20000, 'cm2', { w: 128, fs: 18, stroke: THINK_INK, col: THINK_INK }); SFX.tick(); await sleep(FAST ? 5 : 600);
+  q.textContent = '<'; q.setAttribute('fill', A2.ok); q.setAttribute('direction', 'ltr'); el('rect', { x: 196, y: 32, width: 140, height: 174, rx: 16, fill: 'none', stroke: A2.ok, 'stroke-width': 4 }, svg); SFX.good(); for (const l of L.slice(1)) await S(l); };   /* الفتحة نحو الأكبر (البطاقة اليمنى)، مرسومةً كما تُرى */
 SCENES.m2Cover = async c => { const L = c.lines, svg = m3Stage(250), x0 = 85, y0 = 18, s = 190, k = s / 10, g = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: x0, y: y0, width: s, height: s, fill: '#fff', stroke: A2.ink, 'stroke-width': 3 }, g);
   const t = a2Formula(svg, '', A2.ok, 236); for (let j = 0; j < 10; j++) { for (let i = 0; i < 10; i++) el('rect', { x: x0 + i * k, y: y0 + s - (j + 1) * k, width: k, height: k, fill: (i + j) % 2 ? '#f2d38a' : '#f6e7c8', stroke: '#c9a54a', 'stroke-width': .8 }, g); t.textContent = `${(j + 1) * 10}`; if (!FAST) await sleep(160); }
   t.textContent = '10 × 10 = 100'; SFX.tick(); await S(L[0]); htLab(g, [x0 + s + 34, y0 + s - k / 2], `100 ${labelText('arCm2')}`, A2.h, 12); t.textContent = '100 × 100 = 10000'; await S(L[1]);
@@ -351,8 +373,9 @@ SCENES.m2Cover = async c => { const L = c.lines, svg = m3Stage(250), x0 = 85, y0
 SCENES.tileShow = async c => { const L = c.lines, svg = m3Stage(250); a2TileSq(svg, 110, 40, 150); const t = a2Formula(svg, `50 × 50 = 2500 ${labelText('arCm2')}`); await S(L[0]); t.textContent = `2 × 2 = 4`; SFX.tick(); for (const l of L.slice(1)) await S(l); };
 /* المشروع (د5): القاعة «بيتاً» على ورق المربعات (كل مربع متر)، ثم جدول الحساب مكتملاً */
 SCENES.hallProject = async c => { const L = c.lines, svg = m3Stage(250);
-  if (c.table) { const rows = [['a2T.area', `60 ${labelText('arM2')}`], ['a2T.fence', `30 ${U_('m')}`], ['a2T.tiles', '240'], ['a2T.cm2', `600000 ${labelText('arCm2')}`]], g = el('g', { 'pointer-events': 'none' }, svg);
-    rows.forEach(([k, v], i) => { const y = 34 + i * 50; el('rect', { x: 30, y, width: 300, height: 42, rx: 10, fill: i % 2 ? '#f6eccf' : '#fff', stroke: A2.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 316, y: y + 27, 'text-anchor': 'start', 'font-size': 16, 'font-weight': 800, fill: A2.ink, direction: 'rtl' }, g); a.textContent = labelText(k); const b = el('text', { x: 44, y: y + 27, 'text-anchor': 'end', 'font-size': 17, 'font-weight': 800, fill: A2.ok, direction: 'rtl' }, g); b.textContent = v; });
+  if (c.table) { const rows = [['a2T.area', '48 + 12', `60 ${labelText('arM2')}`], ['a2T.fence', '8 + 6 + 6 + 5 + 5', `30 ${U_('m')}`], ['a2T.tiles', '60 × 4', '240'], ['a2T.cm2', '60 × 10000', `600000 ${labelText('arCm2')}`]], g = el('g', { 'pointer-events': 'none' }, svg);   /* وعمود الحساب بين العنصر والناتج (المرجع، المشروع؛ المراجع A لبوابة S3-U4/U5، 20) */
+    rows.forEach(([k, f, v], i) => { const y = 34 + i * 50; el('rect', { x: 22, y, width: 316, height: 42, rx: 10, fill: i % 2 ? '#f6eccf' : '#fff', stroke: A2.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 328, y: y + 27, 'text-anchor': 'start', 'font-size': 14, 'font-weight': 800, fill: A2.ink, direction: 'rtl' }, g); a.textContent = labelText(k);
+      const m = el('text', { x: 172, y: y + 27, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: THINK_INK, direction: 'ltr' }, g); m.textContent = f; const b = el('text', { x: 32, y: y + 27, 'text-anchor': 'end', 'font-size': 15, 'font-weight': 800, fill: A2.ok, direction: 'rtl' }, g); b.textContent = v; });
     for (const l of L) await S(l); return; }
   const C = a2CompDraw(svg, { fig: 'house', w: 8, hw: 6, hr: 3, u: 'm' }); await S(L[0]); a2TileSq(svg, 292, 20, 48, { lab: false }); htLab(svg, [316, 84], htCm(50), A2.ink, 12); SFX.tick(); for (const l of L.slice(1)) await S(l); void C; };
 WRAP_ART.area2Art = svg => { const G = htGrid(svg, 12, 6, { H: 150, top: 30 }); a2Trap(svg, { a: 4, b: 8, h: 3 }, { G, bases: false }); };

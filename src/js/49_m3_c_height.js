@@ -141,7 +141,7 @@ ITEM.missingDim = { ...htNumItem,
 
 /* ================= ⑥ «مهندس المساحات» (C335، اللعبة): قاعدة ثابتة، ويُضبط الارتفاع بزرّين حتى تطابق المساحة المطلوبة ================= */
 /* المستوى الثاني: مساحة الشكل الآن مقروءةً فوقه، تتغيّر مع كل ضبط، فيقارنها الطفل بالمطلوبة (D240) */
-function htAreaNow(parent, item, h) { const m = helpG(parent), A = item.fig === 'tri' ? item.b * h / 2 : item.b * h, t = el('text', { x: 180, y: 26, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: THINK_INK, direction: 'rtl' }, m);
+function htAreaNow(parent, item, h) { const m = helpG(parent), A = item.fig === 'tri' ? item.b * h / 2 : item.b * h, t = el('text', { x: 180, y: 26, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: THINK_INK, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, m);
   t.textContent = `${labelText('htNow')} ${decFmt(A)} ${labelText((item.u || 'cm') === 'm' ? 'arM2' : 'arCm2')}`; return m; }
 ITEM.areaTune = {
   make(spec) { const want = (spec.fig === 'tri' ? 2 : 1) * spec.A / spec.b; /*T*/if (TESTHOOK && (!Number.isInteger(want) || want > 6)) testBug('areaTune: ارتفاع غير صالح');/*/T*/ return { ...spec, want, tag: 'area-tune' }; },
