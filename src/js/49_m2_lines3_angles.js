@@ -179,9 +179,10 @@ ITEM.reflexOf = { ...numItem,
     const PR = item.prot ? protAt(svg, V, 0, { R: 140 }) : null; const A = angleAt(svg, V, item.prot ? 0 : (item.rot || 0), item.deg, { arc: 'both', l1: 104, l2: 104 }); if (PR) PR.top();
     if (!item.prot) { const q = angP(V, A.a1 + item.deg / 2, 48); degText(svg, q[0], q[1] + 6, item.deg, { size: 15, color: ANG.arc }); }   /* الزاوية الداخلية مكتوبة، والمنعكسة بقوسها البنفسجي */
     let aid = null; if (tries >= 3) { await S('gen.ang.together.reflex'); aid = helpG(svg); const t = el('text', { x: 180, y: 34, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 700, fill: css('--think'), direction: 'ltr' }, aid); t.textContent = '360 − ' + item.deg; } else await S(item.q);
-    const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); return { ans: await np.p, ctx: { svg, np, aid } }; },
+    const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); return { ans: await np.p, ctx: { svg, np, aid, V } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === 180 - item.deg ? 'reflex180' : 'reflexCalc' }; },
-  async hint2() { await S('gen.ang.hint.reflex'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.V) { const m = helpG(r.ctx.svg), V = r.ctx.V; el('circle', { cx: V[0], cy: V[1], r: 34, fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '6 5' }, m); const q = [V[0], V[1] + (item.prot ? -60 : -46)], t = el('text', { x: q[0], y: q[1], 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, m); t.textContent = '360'; }   /* الدورة الكاملة حول الرأس: ٣٦٠ (المراجع B لبوابة S3-U0/U1، 8) */
+    await S('gen.ang.hint.reflex'); }, async together() {},
   async reveal(item) { await S('gen.ang.reveal.rfxCalc', { noGap: true }); await sayDeg(item.want); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };

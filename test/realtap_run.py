@@ -91,7 +91,7 @@ async def run(p, dev):
     if DRAG_PAUSE: await pg.wait_for_timeout(DRAG_PAUSE)
   LASTOK = "() => { const k = Object.keys(localStorage).find(k => k.startsWith('hp_log:')); const a = (JSON.parse(localStorage.getItem(k) || '{}').attempts || []); return a.length ? a[a.length - 1].ok : null; }"
   CENTER = "(e) => { const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
-  bad = []; tried = {}
+  bad = []; tried = {}; htmln = {}
   async def reveal(sel):
     for _ in range(14):
       xy = await pg.evaluate(REVEAL, sel)
@@ -444,7 +444,7 @@ async def run(p, dev):
             await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")   # يكمل بخطّاف البند ليتابع الدرس
           continue
         # م3 وم4: أزرار HTML (الخيارات والبطاقات والأعداد) تُلمس في مركز الصحيح منها، وأزرار الضبط تُلمس حتى القيمة المطلوبة ثم «تمّ» (المراجع B لبوابة S3-U2/U3، 11: كانت تُجاب كلها بالخطّاف)
-        if lid.startswith(('m3.', 'm4.')) and (k in HTMLK or k in STEPK):
+        if lid.startswith(('m3.', 'm4.')) and (k in HTMLK or k in STEPK) and htmln.setdefault((lid, k), [0])[0] < 4 and not htmln[(lid, k)].__setitem__(0, htmln[(lid, k)][0] + 1):   # أربعة انتظارات من كل نوع في كل درس: يكفي اللمس الحقيقي، ولا يطول التشغيل
           await pg.wait_for_timeout(120); tried[k] = tried.get(k, 0) + 1
           if k in HTMLK:
             xy = await pg.evaluate(PICK_OK)

@@ -15,8 +15,14 @@ function triCorner(parent, V, P, Q, deg, col, o = {}) { let d1 = dirOf(V, P), d2
   const r = o.r || (sw > 100 ? 20 : 26), g = el('g', { 'pointer-events': 'none' }, parent);
   if (o.wedge) el('path', { d: `M${V[0]} ${V[1]} L${angP(V, d1, r)} A${r} ${r} 0 0 0 ${angP(V, d1 + sw, r)} Z`, fill: col, opacity: .8 }, g);
   else el('path', { d: angArc(V, r, d1, d1 + sw), fill: 'none', stroke: col, 'stroke-width': 3 }, g);
-  if (o.label !== false) { const m = angP(V, d1 + sw / 2, r + 18); if (deg == null) { const t = el('text', { x: m[0], y: m[1] + 7, 'text-anchor': 'middle', 'font-size': (o.fs || 15) + 3, 'font-weight': 800, fill: col }, g); t.textContent = '؟'; } else degText(g, m[0], m[1] + 6, deg, { size: o.fs || 15, color: col }); }
+  if (o.label !== false) { const m = angP(V, d1 + sw / 2, r + 18), lg = alabG(g, V, d1 + sw / 2); if (deg == null) { const t = el('text', { x: m[0], y: m[1] + 7, 'text-anchor': 'middle', 'font-size': (o.fs || 19) + 3, 'font-weight': 800, fill: col }, lg); t.textContent = '؟'; } else degText(lg, m[0], m[1] + 6, deg, { size: o.fs || 19, color: col }); }
   return { g, d1, sw }; }
+/* تسمية الزاوية في مجموعتها برأسها ومنصّفها، فتُبعد على المنصّف إن تراكبت مع أخرى (المراجع B لبوابة S3-U0/U1، 3: «؟» فوق «١٢٠°») */
+const alabG = (parent, V, dir) => el('g', { 'pointer-events': 'none', 'data-alab': 1, 'data-ad': dir }, parent);
+function angDeclutter(svg) { const L = [...svg.querySelectorAll('[data-alab]')], off = L.map(() => 0), box = e => e.getBoundingClientRect();
+  const hit = (a, b) => { const A = box(a), B = box(b), w = Math.min(A.right, B.right) - Math.max(A.left, B.left), h = Math.min(A.bottom, B.bottom) - Math.max(A.top, B.top); return A.width && B.width && w > 1 && h > 1; };
+  for (let it = 0; it < 8; it++) { let moved = false; for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) if (hit(L[i], L[j])) { for (const k of [i, j]) { off[k] += 7; const d = +L[k].dataset.ad * Math.PI / 180; L[k].setAttribute('transform', `translate(${(Math.cos(d) * off[k]).toFixed(1)} ${(Math.sin(d) * off[k]).toFixed(1)})`); } moved = true; }
+    if (!moved) break; } }
 /* تدوير مثلث حول مركزه ثم تصغيره ليبقى في إطاره (الوضع غير النمطي، المراجع A لبوابة S3-U0/U1، 11) */
 function rotFit(P, rot, box) { const [x0, y0, w, h] = box, cx = x0 + w / 2, cy = y0 + h / 2, r = rot * Math.PI / 180, m = P.reduce((s, p) => [s[0] + p[0] / P.length, s[1] + p[1] / P.length], [0, 0]);
   let Q = P.map(p => [(p[0] - m[0]) * Math.cos(r) - (p[1] - m[1]) * Math.sin(r), (p[0] - m[0]) * Math.sin(r) + (p[1] - m[1]) * Math.cos(r)]);
@@ -66,20 +72,20 @@ SCENES.sizeSum = async c => { const L = c.lines, [a, b] = c.ang || [50, 70], svg
 /* ================= مثال محلول: الزاوية المجهولة بالطرح من 180 ================= */
 SCENES.missingShow = async c => { const L = c.lines, [a, b] = c.ang || [90, 35], w = 180 - a - b, svg = m3Stage(262), T = triDraw(svg, a, b, [80, 30, 200, 130], { show: [a, b, null] });
   await S(L[0]); const lines = [`180 − ${a} = ${180 - a}`, `${180 - a} − ${b} = ؟`];
-  for (const [i, s] of lines.entries()) { const t = el('text', { x: 180, y: 196 + i * 28, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, svg); t.textContent = s; SFX.tick(); await sleep(FAST ? 10 : 500); }
-  await axPredictDeg(w, 'gen.as.pr.missing', [180 - a, a + b, 360 - a - b]); T.cs[2].g.remove(); triCorner(T.g, T.P[2], T.P[0], T.P[1], w, ARC.ok);
+  let last = null; for (const [i, s] of lines.entries()) { const t = el('text', { x: 180, y: 196 + i * 28, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, svg); t.textContent = s; last = t; SFX.tick(); await sleep(FAST ? 10 : 500); }
+  await axPredictDeg(w, 'gen.as.pr.missing', [180 - a, a + b, 360 - a - b]); T.cs[2].g.remove(); triCorner(T.g, T.P[2], T.P[0], T.P[1], w, ARC.ok); if (last) { last.textContent = `${180 - a} − ${b} = ${w}`; last.setAttribute('fill', ARC.ok); }   /* الخطوة الأخيرة بجوابها بعد التوقّع (المراجع B لبوابة S3-U0/U1، 13) */
   for (const l of L.slice(1)) await S(l); };
 
 /* ================= ① الزاوية المجهولة في مثلث (C301): a وb زاويتان معلومتان، والثالثة «؟» ================= */
 ITEM.triMissing = { ...numItem,
   make(spec) { const want = 180 - spec.a - spec.b; /*T*/if (TESTHOOK && (want <= 0 || [spec.a, spec.b].some(v => v % 5))) testBug('triMissing: زوايا غير صالحة');/*/T*/
     return { ...spec, want, nums: rankMix(want, [180 - spec.a, 180 - spec.b, spec.a + spec.b, 360 - spec.a - spec.b].filter(v => v > 0 && v < 360 && v !== want), 0, 355), tag: 'tri-missing' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(250), T = triDraw(svg, item.a, item.b, [70, 30, 220, 160], { show: [item.a, item.b, null] });
-    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 222, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `180 − ${item.a} − ${item.b} = ؟`; await S('gen.as.together.missing'); }
+  async ask(item, mode, tries) { const svg = m3Stage(250), T = triDraw(svg, item.a, item.b, [50, 26, 260, 158], { show: [item.a, item.b, null] });
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 218, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, m); t.textContent = `180 − ${item.a} − ${item.b} = ؟`; await S('gen.as.together.missing'); }
     else await S(item.q || 'gen.as.q.missing');
     const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); return { ans: await np.p, ctx: { svg, np, T } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: k === 180 - item.a || k === 180 - item.b ? 'sumForgot' : k === item.a + item.b ? 'sumAdded' : k === 360 - item.a - item.b ? 'sum360' : 'sumOff' }; },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 222, `${item.a} + ${item.b} + ؟ = 180`); await S('gen.as.hint.missing'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 216, `${item.a} + ${item.b} + ؟ = 180`); await S('gen.as.hint.missing'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.T) { r.ctx.T.cs[2].g.remove(); triCorner(r.ctx.T.g, r.ctx.T.P[2], r.ctx.T.P[0], r.ctx.T.P[1], item.want, ARC.ok); } await S('gen.as.reveal.missing', { noGap: true }); await S(degw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -88,7 +94,7 @@ ITEM.triPossible = {
   make(spec) { const s = spec.degs.reduce((x, y) => x + y, 0), T = spec.tess || spec.degs.length === 4 ? 360 : 180, tol = spec.tol || 0; return { ...spec, sum: s, T, sfx: spec.tess ? 'T' : tol ? 'M' : T === 360 ? 'Q' : '', want: Math.abs(s - T) <= tol ? 'yes' : 'no', tag: spec.tess ? 'tess-fit' : tol ? 'tri-measure' : spec.degs.length === 4 ? 'quad-possible' : 'tri-possible' }; },   /* tol: قياسٌ بالمنقلة يُقبل إن قرب من 180 (المراجع A لبوابة S3-U0/U1، 10) */   /* tess: زوايا حول رأس واحد في البلاط (C339) */
   async ask(item, mode, tries) { const svg = m3Stage(240), n = item.degs.length, xs = n === 3 ? [290, 180, 70] : Array.from({ length: n }, (_, i) => 318 - i * (276 / Math.max(1, n - 1))), g = el('g', {}, svg);
     item.degs.forEach((d, i) => { const V = [xs[i] - (d > 90 ? 0 : 20), 140]; const w = wedgeAt(g, d, n >= 5 ? 22 : n === 4 ? 34 : 44, POLY_COL[i % POLY_COL.length]); w.setAttribute('transform', `translate(${V[0]} ${V[1]})`); degText(g, xs[i], 190, d, { size: n >= 5 ? 13 : 16, color: POLY_COL[i % POLY_COL.length] }); });
-    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${item.degs.join(' + ')} = ؟`; await S(item.sfx === 'T' ? 'gen.as.together.possT' : item.sfx === 'Q' ? 'gen.as.together.possQ' : item.sfx === 'M' ? 'gen.as.together.possM' : 'gen.as.together.possTri'); }
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 40, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, m); t.textContent = `${item.degs.join(' + ')} = ؟`; await S(item.sfx === 'T' ? 'gen.as.together.possT' : item.sfx === 'Q' ? 'gen.as.together.possQ' : item.sfx === 'M' ? 'gen.as.together.possM' : 'gen.as.together.possTri'); }
     else await S(item.q || (item.sfx === 'T' ? 'gen.as.q.possT' : item.sfx === 'Q' ? 'gen.as.q.possQ' : item.sfx === 'M' ? 'gen.as.q.possM' : 'gen.as.q.possTri'));
     const k = await choosePick([['yes', labelText('yes'), PICKICON.yes, 'gen.opt.yes'], ['no', labelText('no'), PICKICON.no, 'gen.opt.no']], item.want); return { ans: k, ctx: { svg } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.tess ? (item.want === 'no' ? 'tessAny' : 'tessMissed') : item.tol ? 'measTol' : item.T === 180 && item.want === 'no' && item.degs.filter(d => d >= 90).length >= 2 ? 'twoBig' : item.T === 360 ? 'sumNot360' : 'sumNot180' }; },
@@ -102,7 +108,7 @@ ITEM.triPossible = {
 SCENES.protCheck = async c => { const L = c.lines, [a, b] = c.ang || [62, 48], read = c.read || [62, 47, 69], svg = m3Stage(262), box = [120, 60, 200, 120];
   const T = triDraw(svg, a, b, box, { labels: false }), P = protAt(svg, T.P[0], 0, { R: 108, step: 20 }); P.mark(a); P.top(); await S(L[0]);
   P.g.remove(); P.lab.remove(); T.g.remove(); triDraw(svg, a, b, box, { show: read }); SFX.tick();
-  await axPredictYN('no', 'gen.as.pr.meas'); const t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, svg);
+  await axPredictYN('no', 'gen.as.pr.meas'); const t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, svg);
   t.textContent = `${read.join(' + ')} = ${read.reduce((x, y) => x + y, 0)}`; SFX.tick(); await S(L[1]);
   for (const l of L.slice(2)) await S(l); };
 SCENES.asRecap = async c => { const L = c.lines, svg = m3Stage(250); WRAP_ART.triSum(svg); await S(L[0]);
@@ -132,7 +138,7 @@ function polyDraw(parent, pts, box, o = {}) { const xs = pts.map(p => p[0]), ys 
   const g = el('g', {}, parent); el('polygon', { points: polyStr(S2), fill: o.fill || '#fdf7e8', stroke: GEO.ink, 'stroke-width': 3, 'stroke-linejoin': 'round' }, g); const ang = polyAng(pts), cs = [];
   if (o.arcs) S2.forEach((V, i) => { const N = S2[(i + 1) % S2.length], d1 = dirOf(V, N), sw = ang[i], r = sw > 180 ? 16 : 22, big = sw > 180 ? 1 : 0, col = o.arcCol ? o.arcCol(i, sw) : POLY_COL[i % POLY_COL.length], cg = el('g', { 'pointer-events': 'none' }, g);
     el('path', { d: `M${angP(V, d1, r)} A${r} ${r} 0 ${big} 0 ${angP(V, d1 + sw, r)}`, fill: 'none', stroke: col, 'stroke-width': sw > 180 ? 4 : 3 }, cg);
-    const show = o.show ? o.show[i] : Math.round(sw / 5) * 5; if (o.labels) { const m = angP(V, d1 + sw / 2, r + (sw > 180 ? 16 : 18)); if (show == null) { const t = el('text', { x: m[0], y: m[1] + 7, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: col }, cg); t.textContent = '؟'; } else if (show !== false) degText(cg, m[0], m[1] + 6, show, { size: 14, color: col }); }
+    const show = o.show ? o.show[i] : Math.round(sw / 5) * 5; if (o.labels) { const m = angP(V, d1 + sw / 2, r + (sw > 180 ? 16 : 18)), lg = alabG(cg, V, d1 + sw / 2); if (show == null) { const t = el('text', { x: m[0], y: m[1] + 7, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: col }, lg); t.textContent = '؟'; } else if (show !== false) degText(lg, m[0], m[1] + 6, show, { size: 19, color: col }); }
     cs.push({ g: cg, V, d1, sw }); });
   return { g, P: S2, ang, cs }; }
 const isConvex = pts => polyAng(pts).every(a => a < 180);
@@ -166,12 +172,12 @@ SCENES.concaveSum = async c => { const L = c.lines, degs = c.degs || [40, 50, 60
 /* ================= ③ محدّب أم مقعّر؟ (C161): k شكل من M3_SH ================= */
 ITEM.convexPick = {
   make(spec) { return { ...spec, want: isConvex(M3_SH[spec.k]) ? 'convex' : 'concave', tag: 'convex-pick' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(236), D = polyDraw(svg, M3_SH[item.k], [70, 34, 220, 160], { arcs: tries >= 3, arcCol: (q, sw) => css('--think') });
+  async ask(item, mode, tries) { const svg = m3Stage(236), D = polyDraw(svg, M3_SH[item.k], [50, 26, 260, 158], { arcs: tries >= 3, arcCol: (q, sw) => THINK_INK });
     await S(tries >= 3 ? 'gen.as.together.convex' : item.q || 'gen.as.q.convex');
     const k = await choosePick([['convex', labelText('asConvex'), '<i></i>', 'gen.as.convex'], ['concave', labelText('asConcave'), '<i></i>', 'gen.as.concave']], item.want); return { ans: k, ctx: { svg, D } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.want === 'concave' ? 'dentMissed' : 'dentFalse' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 216, labelText('asHintConvex')); await S('gen.as.hint.convex'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 202, labelText('asHintConvex')); await S('gen.as.hint.convex'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx) { r.ctx.D.g.remove(); polyDraw(r.ctx.svg, M3_SH[item.k], [70, 34, 220, 160], { arcs: true, arcCol: (q, sw) => sw > 180 ? '#c8392d' : '#4f9a6a' }); } await S(item.want === 'convex' ? 'gen.as.reveal.convex' : 'gen.as.reveal.concave'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -179,13 +185,15 @@ ITEM.convexPick = {
 ITEM.quadMissing = { ...numItem,
   make(spec) { const s = spec.degs.reduce((a, b) => a + b, 0), want = 360 - s; /*T*/if (TESTHOOK && (want <= 0 || want >= 360 || !quadFromAngles([...spec.degs, want]))) testBug('quadMissing: رباعي لا يُرسم');/*/T*/
     const [a, b, c] = spec.degs; return { ...spec, want, nums: rankMix(want, [360 - a - b, 360 - b - c, 360 - a - c, s, 180 - s].filter(v => v > 0 && v < 360 && v % 5 === 0 && v !== want), 0, 355), tag: 'quad-missing' + (want > 180 ? '-rfx' : '') }; },
-  async ask(item, mode, tries) { const degs = [...item.degs, item.want], svg = m3Stage(250), D = polyDraw(svg, quadFromAngles(degs), [70, 30, 220, 160], { arcs: true, labels: true, show: [...item.degs, null] });
-    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 222, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `360 − ${item.degs.join(' − ')} = ؟`; await S('gen.as.together.quad'); }
+  async ask(item, mode, tries) { const degs = [...item.degs, item.want], svg = m3Stage(250), D = polyDraw(svg, quadFromAngles(degs), [50, 26, 260, 158], { arcs: true, labels: true, show: [...item.degs, null] });
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 218, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, m); t.textContent = `360 − ${item.degs.join(' − ')} = ؟`; await S('gen.as.together.quad'); }
     else await S(item.q || 'gen.as.q.missing');
     const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); return { ans: await np.p, ctx: { svg, np, D } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const s = item.degs.reduce((a, b) => a + b, 0); return { ok: false, err: k === 180 - s ? 'quad180' : k === s ? 'sumAdded' : 'quadForgot' }; },   /* quad180: طرحٌ من 180 بدل 360 */
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 222, `${item.degs.join(' + ')} + ؟ = 360`); await S('gen.as.hint.quad'); }, async together() {},
-  async reveal(item, r) { if (r && r.ctx && r.ctx.D) { const c = r.ctx.D.cs[3]; c.g.remove(); } await S('gen.as.reveal.missing', { noGap: true }); await S(degw(item.want), { append: true }); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 216, `${item.degs.join(' + ')} + ؟ = 360`); await S('gen.as.hint.quad'); }, async together() {},
+  async reveal(item, r) { if (r && r.ctx && r.ctx.D) { const c = r.ctx.D.cs[3]; c.g.remove(); const cg = el('g', { 'pointer-events': 'none' }, r.ctx.D.g), r0 = c.sw > 180 ? 16 : 22;   /* الجواب مرسوماً مكان «؟» (المراجع B لبوابة S3-U0/U1، 12) */
+      el('path', { d: `M${angP(c.V, c.d1, r0)} A${r0} ${r0} 0 ${c.sw > 180 ? 1 : 0} 0 ${angP(c.V, c.d1 + c.sw, r0)}`, fill: 'none', stroke: ARC.ok, 'stroke-width': 3.4 }, cg); const m = angP(c.V, c.d1 + c.sw / 2, r0 + 18); degText(alabG(cg, c.V, c.d1 + c.sw / 2), m[0], m[1] + 6, item.want, { size: 17, color: ARC.ok }); angDeclutter(r.ctx.svg); }
+    await S('gen.as.reveal.missing', { noGap: true }); await S(degw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 WRAP_ART.quadSum = svg => { const D = polyDraw(svg, quadFromAngles([85, 95, 110, 70]), [100, 40, 160, 150], { arcs: true }); geoLine(svg, D.P[0][0], D.P[0][1], D.P[2][0], D.P[2][1], { color: '#8e6bbf', w: 3, dash: '7 5' }); };
@@ -197,16 +205,16 @@ WRAP_ART.quadSum = svg => { const D = polyDraw(svg, quadFromAngles([85, 95, 110,
 const CLAIMS = { tri2obt: ['tri', 0], tri2right: ['tri', 0], triConcave: ['tri', 0], quad2rfx: ['quad', 0], quad4obt: ['quad', 0], tri1obt: ['tri', 1], triRight: ['tri', 1], quad1rfx: ['quad', 1], quad3obt: ['quad', 1], quad4right: ['quad', 1] };
 ITEM.claimJudge = {
   make(spec) { const [pic, ok] = CLAIMS[spec.cl]; return { ...spec, pic, want: ok ? 'yes' : 'no', tag: 'claim-' + (ok ? 'yes' : 'no') }; },
-  async ask(item, mode, tries) { const svg = m3Stage(230), g = el('g', {}, svg);
+  async ask(item, mode, tries) { const svg = m3Stage(250), g = el('g', {}, svg);   /* أطول: التلميح والحلّ المشترك تحت البطاقة داخل الإطار (المراجع B لبوابة S3-U0/U1، 11) */
     el('rect', { x: 40, y: 40, width: 280, height: 150, rx: 14, fill: '#fffdf6', stroke: css('--line'), 'stroke-width': 2 }, g);
     el('path', { d: item.pic === 'tri' ? 'M150 112 L210 112 L186 64 Z' : 'M146 112 L214 112 L204 70 L156 78 Z', fill: '#fdf7e8', stroke: GEO.ink, 'stroke-width': 2.4, 'stroke-linejoin': 'round' }, g);
     const t = el('text', { x: 180, y: 158, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: GEO.ink, direction: 'rtl' }, g); t.textContent = labelText('asC.' + item.cl);
-    if (tries >= 3) { const m = helpG(svg), h = el('text', { x: 180, y: 216, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, m); h.textContent = labelText('asM.' + item.cl); await S('gen.as.together.claim'); }   /* الحلّ المشترك: أصغر ما تكون عليه زوايا العبارة، خطوةٌ بعد المستوى الثاني (المراجع A لبوابة S3-U0/U1، 23) */
+    if (tries >= 3) { const m = helpG(svg), h = el('text', { x: 180, y: 214, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: THINK_INK, direction: 'rtl' }, m); h.textContent = labelText('asM.' + item.cl); await S('gen.as.together.claim'); }   /* الحلّ المشترك: أصغر ما تكون عليه زوايا العبارة، خطوةٌ بعد المستوى الثاني (المراجع A لبوابة S3-U0/U1، 23) */
     else { await S(item.q || 'gen.as.q.claim', { noGap: true }); await S('gen.as.c.' + item.cl, { append: true }); }
     const k = await choosePick([['yes', labelText('asPossible'), PICKICON.yes, 'gen.as.possible'], ['no', labelText('asImpossible'), PICKICON.no, 'gen.as.impossible']], item.want); return { ans: k, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.want === 'no' ? 'claimYes' : 'claimNo' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 216, labelText(item.pic === 'tri' ? 'asSum180' : 'asSum360')); await S('gen.as.hint.claim'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 212, labelText(item.pic === 'tri' ? 'asSum180' : 'asSum360')); await S('gen.as.hint.claim'); }, async together() {},
   async reveal(item) { await S('gen.as.why.' + item.cl); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -214,7 +222,7 @@ ITEM.claimJudge = {
 SCENES.concaveTriHook = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', {}, svg);
   el('path', { d: 'M90 200 L270 200 L180 150 L200 70 Z', fill: '#fdf7e8', stroke: GEO.ink, 'stroke-width': 3, 'stroke-linejoin': 'round' }, g);   /* شكلٌ منبعج تسمّيه فوضى «مثلثاً» */
   await S(L[0]); await axPredictNum(4, 'gen.as.pr.sides');
-  [[90, 200], [270, 200], [180, 150], [200, 70]].forEach(([x, y], i) => { badge(g, x, y - (i === 2 ? -16 : 16), i + 1, css('--think')); }); SFX.tick();
+  [[90, 200], [270, 200], [180, 150], [200, 70]].forEach(([x, y], i) => { badge(g, x, y - (i === 2 ? -16 : 16), i + 1, THINK_INK); }); SFX.tick();
   for (const l of L.slice(1)) await S(l); };
 /* ================= التبليط: نسخ مضلّع منتظم حول رأس واحد — تكمل الدورة أم يبقى فراغ؟ ================= */
 const regPoly = (V, n, s, rot) => { const P = [V], ext = 360 / n; let p = V, h = rot; for (let i = 0; i < n - 1; i++) { p = angP(p, h, s); P.push(p); h += ext; } return P; };
@@ -246,13 +254,15 @@ ITEM.isoAngle = { ...numItem,
   make(spec) { const apex = spec.ask === 'base' ? spec.apex : 180 - 2 * spec.base, base = (180 - apex) / 2; /*T*/if (TESTHOOK && (base % 5 || apex <= 0)) testBug('isoAngle: زوايا غير صالحة');/*/T*/
     const want = spec.ask === 'base' ? base : apex, ok = v => v > 0 && v < 360 && v % 5 === 0 && v !== want, real = [...new Set((spec.ask === 'base' ? [180 - apex, 90, apex] : [180 - base, base]).filter(ok))], errs = real.length >= 2 ? real : [...real, want - 10, want + 10, want + 20];   /* الأخطاء الحقيقية أولاً، و±10 احتياطاً (المراجع A لبوابة S3-U0/U1، 12) */   /* أخطاء المرجع: بلا قسمة، و180 ÷ 2، والمتساويتان عند الرأس، وقاعدة واحدة */
     return { ...spec, apex, base, want, nums: rankMix(want, errs.filter(v => v > 0 && v < 360 && v % 5 === 0 && v !== want), 5, 355), tag: 'iso-' + spec.ask }; },
-  async ask(item, mode, tries) { const svg = m3Stage(250), T = isoDraw(svg, item.apex, [80, 30, 200, 160], item.ask === 'base' ? [null, null, item.apex] : [item.base, 'arc', null], item.rot || 0);
-    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 222, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = item.ask === 'base' ? `(180 − ${item.apex}) ÷ 2 = ؟` : `180 − ${item.base} − ${item.base} = ؟`; await S('gen.as.together.iso'); }
+  async ask(item, mode, tries) { const svg = m3Stage(250), T = isoDraw(svg, item.apex, [60, 26, 240, 158], item.ask === 'base' ? [null, null, item.apex] : [item.base, 'arc', null], item.rot || 0);
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 218, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, m); t.textContent = item.ask === 'base' ? `(180 − ${item.apex}) ÷ 2 = ؟` : `180 − ${item.base} − ${item.base} = ؟`; await S('gen.as.together.iso'); }
     else await S(item.q || (item.ask === 'base' ? 'gen.as.q.isoBase' : 'gen.as.q.isoApex'));
     const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); return { ans: await np.p, ctx: { svg, np, T } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.ask === 'base' ? (k === 180 - item.apex ? 'isoNoHalf' : k === 90 ? 'isoHalfAll' : k === item.apex ? 'isoAtApex' : 'isoOff') : (k === 180 - item.base ? 'isoOneBase' : 'isoOff') }; },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 222, labelText('asIsoHint')); await S('gen.as.hint.iso'); }, async together() {},
-  async reveal(item) { await S('gen.as.reveal.missing', { noGap: true }); await S(degw(item.want), { append: true }); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 216, labelText('asIsoHint')); await S('gen.as.hint.iso'); }, async together() {},
+  async reveal(item, r) { if (r && r.ctx && r.ctx.T) { const T = r.ctx.T, [A, B, C] = T.P, at = item.ask === 'base' ? [[0, A, B, C], [1, B, C, A]] : [[2, C, A, B]];   /* الجواب مكان «؟» */
+      for (const [i, V, P, Q] of at) { T.cs[i].g.remove(); T.cs[i] = triCorner(T.g, V, P, Q, item.want, ARC.ok); } angDeclutter(r.ctx.svg); }
+    await S('gen.as.reveal.missing', { noGap: true }); await S(degw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 /* ================= ⑦ «أقنعني بسببين» (D244): ثلاث بطاقات، اثنتان صحيحتان؛ يلمس الطفل اثنتين ثم «تمّ» ================= */
@@ -261,13 +271,15 @@ ITEM.twoReasons = {
   async ask(item, mode, tries) { newStage(24, null); const ids = item.opts.map(o => o.id);   /* بلا رسم: ثلاث بطاقات وزرّ «تمّ» تحتاج المسرح كلّه */ await S(tries >= 3 ? 'gen.as.together.two' : item.q);   /* opts: [صحيح، صحيح، مشتّت] */
     const box = document.createElement('div'); box.className = 'choices cards'; $('#stage').appendChild(box); const on = new Set(), order = shuffle([0, 1, 2]);
     const btns = order.map(i => { const b = document.createElement('button'); b.className = 'pick card'; b.innerHTML = `<span>${esc(T(ids[i]))}</span>`; b.setAttribute('aria-pressed', 'false'); b.dataset.k = 'abc'[i]; /*T*/if (TESTHOOK) b.dataset.ok = i < 2;/*/T*/
-      b.onclick = () => { if (on.has(i)) on.delete(i); else on.add(i); b.classList.toggle('sel', on.has(i)); b.setAttribute('aria-pressed', on.has(i)); SFX.tick(); }; box.appendChild(b); return b; });
+      b.onclick = () => { if (on.has(i)) on.delete(i); else on.add(i); b.classList.toggle('sel', on.has(i)); b.setAttribute('aria-pressed', on.has(i)); SFX.tick(); upd(); }; box.appendChild(b); return b; });
+    let db = null; const upd = () => { if (db) { db.disabled = on.size !== 2; db.setAttribute('aria-disabled', String(on.size !== 2)); } };   /* «تمّ» حين تُختار بطاقتان بالضبط، فلا تُستهلك محاولة بلمسة عارضة (المراجع B لبوابة S3-U0/U1، 7) */
     fitDense();   /* سؤالٌ وثلاث بطاقات طويلة (م4): الدرس الكثيف */
     if (tries >= 2 && item._last && item._last.includes('c')) btns[order.indexOf(2)].classList.add('no', 'tried');   /* المستوى الثاني: البطاقة غير الصحيحة التي اختارها معلَّمة، وتبقى حتى يجيب (D240) */
     if (tries >= 3) { const b0 = btns[order.indexOf(0)]; b0.click(); }   /* الحلّ المشترك: البطاقة الأولى الصحيحة مختارة، والثانية للطفل */
-    if (!tries || tries >= 3) for (const i of order) await S(ids[i], { keep: true, free: true });   /* تُقرأ البطاقات أول مرة وفي الحلّ المشترك */
+    /* البطاقات تُقرأ أول مرة وفي الحلّ المشترك، وتضيء المقروءة، ويعيدها «أعد الجملة» بعد السؤال؛ والقراءة بـ readChoices تقف عند الخروج (المراجع B لبوابة S3-U0/U1، 1 و6) */
+    readChoices(order.map((i, j) => ({ line: lineOf(ids[i]), el: btns[j] })), { intro: [lineOf(tries >= 3 ? 'gen.as.together.two' : item.q)], host: box, quiet: !!tries && tries < 3 });
     AUTO({ kind: 'two', ok: () => { [0, 1].forEach(i => { if (!on.has(i)) btns[order.indexOf(i)].click(); }); if (on.has(2)) btns[order.indexOf(2)].click(); rulDoneBtn().click(); }, wrong: () => { [0, 2].forEach(i => { if (!on.has(i)) btns[order.indexOf(i)].click(); }); if (on.has(1)) btns[order.indexOf(1)].click(); rulDoneBtn().click(); } });
-    const dn = rulDone(() => { btns.forEach(b => b.onclick = null); }); fitDense(); await dn;   /* وبعد زرّ «تمّ» أيضاً: هو ما يضغط المسرح */
+    const dn = rulDone(() => { btns.forEach(b => b.onclick = null); box.dataset.done = 1; }); db = rulDoneBtn(); upd(); fitDense(); await dn;   /* وبعد زرّ «تمّ» أيضاً: هو ما يضغط المسرح */
     const ans = [...on].sort().map(i => 'abc'[i]).join(''); box.remove(); return { ans, ctx: {} }; },
   judge(item, k) { item._last = k; return k === 'ab' ? { ok: true } : { ok: false, err: k.includes('c') ? (item.errFalse || 'reasonFalse') : 'reasonOne' }; },   /* errFalse: وسمٌ لبطاقات غير المثلثات (U0: «reasonWrong») */
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },

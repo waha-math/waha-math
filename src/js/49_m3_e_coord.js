@@ -42,7 +42,7 @@ function coDot(parent, Pl, x, y, o = {}) { const [px, py] = Pl.P(x, y), g = el('
 async function coWalk(svg, Pl, x, y, o = {}) { const m = helpG(svg); let last = Pl.P(0, 0);
   for (let i = 1; i <= Math.ceil(x); i++) { const nx = Math.min(i, x), q = Pl.P(nx, 0); el('path', { d: `M${last[0]} ${last[1]} Q${(last[0] + q[0]) / 2} ${last[1] - 14} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--compass'), 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
   if (o.upTo === 'x') return m;
-  for (let j = 1; j <= Math.ceil(y); j++) { const ny = Math.min(j, y), q = Pl.P(x, ny); el('path', { d: `M${last[0]} ${last[1]} Q${last[0] + 14} ${(last[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
+  for (let j = 1; j <= Math.ceil(y); j++) { const ny = Math.min(j, y), q = Pl.P(x, ny); el('path', { d: `M${last[0]} ${last[1]} Q${last[0] + 14} ${(last[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
   return m; }
 /* بطاقة الهدف فوق المستوى: الحرف والزوج */
 function coCard(svg, x, y, name, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || (name ? 126 : 106), col = o.col || CO.pt; el('rect', { x: 352 - w, y: 4, width: w, height: 30, rx: 10, fill: '#fff', stroke: col, 'stroke-width': 2 }, g);
@@ -111,7 +111,7 @@ ITEM.coordDist = { ...numItem,
     if (st) { const A = Pl.P(...item.a), B = Pl.P(...item.b); geoLine(svg, A[0], A[1], B[0], B[1], { color: CO.path, w: 4 }); }
     const at = item.hz ? 'up' : 'side'; coDot(svg, Pl, ...item.a, { name: 'a', pair: true, at, fs: 13, col: st ? CO.pt2 : CO.pt }); coDot(svg, Pl, ...item.b, { name: 'b', pair: true, at, fs: 13, col: st ? CO.pt2 : CO.pt });
     if (tries >= 3) { const m = helpG(svg), [lo, hi] = item.hz ? [Math.min(item.a[0], item.b[0]), Math.max(item.a[0], item.b[0])] : [Math.min(item.a[1], item.b[1]), Math.max(item.a[1], item.b[1])];
-      for (let v = lo; v < Math.min(hi, lo + 2); v++) { const p = item.hz ? Pl.P(v, item.a[1]) : Pl.P(item.a[0], v), q = item.hz ? Pl.P(v + 1, item.a[1]) : Pl.P(item.a[0], v + 1); el('path', { d: item.hz ? `M${p[0]} ${p[1]} Q${(p[0] + q[0]) / 2} ${p[1] - 14} ${q[0]} ${q[1]}` : `M${p[0]} ${p[1]} Q${p[0] + 14} ${(p[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, m); }
+      for (let v = lo; v < Math.min(hi, lo + 2); v++) { const p = item.hz ? Pl.P(v, item.a[1]) : Pl.P(item.a[0], v), q = item.hz ? Pl.P(v + 1, item.a[1]) : Pl.P(item.a[0], v + 1); el('path', { d: item.hz ? `M${p[0]} ${p[1]} Q${(p[0] + q[0]) / 2} ${p[1] - 14} ${q[0]} ${q[1]}` : `M${p[0]} ${p[1]} Q${p[0] + 14} ${(p[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, m); }
       await S('gen.co.together.dist'); }
     else await S(item.q || (st ? 'gen.co.q.travel' : 'gen.co.q.dist'));
     const np = numberPick(shuffle(item.nums), item.want, { west: true }); return { ans: await np.p, ctx: { svg, Pl } }; },
@@ -125,7 +125,7 @@ ITEM.coordDist = { ...numItem,
 ITEM.coordAlign = {
   make(spec) { const w = spec.a[1] === spec.b[1] ? 'h' : spec.a[0] === spec.b[0] ? 'v' : 'none'; return { ...spec, want: w, tag: 'coord-align' }; },
   async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, {}); coDot(svg, Pl, ...item.a, { name: 'a', pair: true }); coDot(svg, Pl, ...item.b, { name: 'b', pair: true });
-    if (tries >= 3) { const m = helpG(svg), A = Pl.P(...item.a); geoLine(m, Pl.x0, A[1], Pl.x0 + Pl.N * Pl.c, A[1], { color: css('--think'), w: 1.6, dash: '5 4' }); geoLine(m, A[0], Pl.y0, A[0], Pl.y0 - Pl.M * Pl.c, { color: css('--think'), w: 1.6, dash: '5 4' }); await S('gen.co.together.align'); } else await S(item.q || 'gen.co.q.align');
+    if (tries >= 3) { const m = helpG(svg), A = Pl.P(...item.a); geoLine(m, Pl.x0, A[1], Pl.x0 + Pl.N * Pl.c, A[1], { color: THINK_INK, w: 1.6, dash: '5 4' }); geoLine(m, A[0], Pl.y0, A[0], Pl.y0 - Pl.M * Pl.c, { color: THINK_INK, w: 1.6, dash: '5 4' }); await S('gen.co.together.align'); } else await S(item.q || 'gen.co.q.align');
     const k = await choosePick(['h', 'v', 'none'].map(w => [w, labelText('coA.' + w), '<i></i>', 'gen.co.a.' + w]), item.want); return { ans: k, ctx: { svg, Pl } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.want === 'none' ? 'coordDiag' : k === 'none' ? 'coordAlignMiss' : 'coordAxisSwap' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
@@ -194,12 +194,12 @@ SCENES.orderHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPl
   await S(L[0]); const m = await coWalk(svg, Pl, 1, 4, { ms: 230 }); coDot(svg, Pl, 1, 4, { pair: true }); coDot(svg, Pl, 4, 1, { pair: true, col: CO.pt2 }); void m; for (const l of L.slice(1)) await S(l); };
 /* الاكتشاف (د2): قراءة نقطة بالنزول إلى المحورين، والترتيب، والنقاط على المحورين، ونصف الوحدة */
 SCENES.readShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, {}); let g = el('g', { 'pointer-events': 'none' }, svg);
-  const P = Pl.P(6, 3); coDot(g, Pl, 6, 3, { name: 'h' }); geoLine(g, P[0], P[1], P[0], Pl.y0, { color: css('--compass'), w: 2.4, dash: '5 4' }); geoLine(g, P[0], P[1], Pl.x0, P[1], { color: css('--think'), w: 2.4, dash: '5 4' }); await S(L[0]); coDot(g, Pl, 6, 3, { pair: true }); SFX.tick(); await S(L[1]);
+  const P = Pl.P(6, 3); coDot(g, Pl, 6, 3, { name: 'h' }); geoLine(g, P[0], P[1], P[0], Pl.y0, { color: css('--compass'), w: 2.4, dash: '5 4' }); geoLine(g, P[0], P[1], Pl.x0, P[1], { color: THINK_INK, w: 2.4, dash: '5 4' }); await S(L[0]); coDot(g, Pl, 6, 3, { pair: true }); SFX.tick(); await S(L[1]);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); for (const [x, y, col] of [[0, 0, CO.bad], [6, 0, CO.pt], [0, 5, CO.pt2]]) { coDot(g, Pl, x, y, { pair: true, col }); SFX.tick(); await sleep(FAST ? 2 : 350); } await S(L[2]);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const H = Pl.P(2.5, 3); geoLine(g, H[0], H[1], H[0], Pl.y0, { color: css('--compass'), w: 2.4, dash: '5 4' }); coDot(g, Pl, 2.5, 3, { pair: true }); SFX.tick(); for (const l of L.slice(3)) await S(l); };
 /* الإشعال (د3): فوضى تجمع 2 + 7 = 9، والقفزات على الشبكة 5 */
 SCENES.distHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, {}), fz = chaosAt(svg, 318, 40, .4); chaosGiggle(fz); coDot(svg, Pl, 2, 3, { name: 'a', pair: true }); coDot(svg, Pl, 7, 3, { name: 'b', pair: true });
-  const t = a2Formula(svg, '2 + 7 = 9', CO.bad, 252); await S(L[0]); const m = helpG(svg); for (let v = 2; v < 7; v++) { const p = Pl.P(v, 3), q = Pl.P(v + 1, 3); el('path', { d: `M${p[0]} ${p[1]} Q${(p[0] + q[0]) / 2} ${p[1] - 16} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--think'), 'stroke-width': 2.8 }, m); badge(m, (p[0] + q[0]) / 2, p[1] - 22, v - 1, css('--think')); SFX.tick(); await sleep(FAST ? 2 : 300); }
+  const t = a2Formula(svg, '2 + 7 = 9', CO.bad, 252); await S(L[0]); const m = helpG(svg); for (let v = 2; v < 7; v++) { const p = Pl.P(v, 3), q = Pl.P(v + 1, 3); el('path', { d: `M${p[0]} ${p[1]} Q${(p[0] + q[0]) / 2} ${p[1] - 16} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.8 }, m); badge(m, (p[0] + q[0]) / 2, p[1] - 22, v - 1, THINK_INK); SFX.tick(); await sleep(FAST ? 2 : 300); }
   t.textContent = '7 − 2 = 5'; t.setAttribute('fill', CO.ok); for (const l of L.slice(1)) await S(l); };
 /* الاكتشاف (د3): الأفقي بالفرق، والرأسي بالفرق، والنقطة على المحور، والمائلتان بالمسطرة */
 SCENES.coDistShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, {}); let g = el('g', { 'pointer-events': 'none' }, svg); const t = a2Formula(svg, '', CO.ok, 252);

@@ -72,7 +72,7 @@ ITEM.prChain = {
   async ask(item, mode, tries) { const svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFig(g, item.pf, { y0: 2, s: PF_PROOFS[item.pf].rs.includes('sas') || PF_PROOFS[item.pf].rs.includes('asa') || PF_PROOFS[item.pf].rs.includes('sss') ? .64 : .7, v });
     const cards = item.order.map((n, i) => { const c = el('g', { role: 'button', tabindex: 0, style: 'cursor:pointer' }, svg), y = PF_CY(i);
       el('rect', { x: 20, y, width: 320, height: 40, rx: 9, fill: PF.card, stroke: PF.edge, 'stroke-width': 2 }, c); pfStep(c, y + 17, item.pf, n, { x: 330, fs: 13, two: true, v }); c.setAttribute('aria-label', plain(labelText(pfKey(item.pf, v, n)) + ' ' + labelText('pfBecause') + ' ' + labelText('pf.rs.' + PF_PROOFS[item.pf].rs[n]))); return c; });
-    if (tries >= 3) { const m = helpG(svg); badge(m, 32, PF_CY(item.order.indexOf(0)) + 20, 1, css('--think')); await S('gen.pf.together.chain'); }
+    if (tries >= 3) { const m = helpG(svg); badge(m, 32, PF_CY(item.order.indexOf(0)) + 20, 1, THINK_INK); await S('gen.pf.together.chain'); }
     else await S(item.q || 'gen.pf.q.chain');
     const picked = await orderTap(svg, cards, item.want, i => [32, PF_CY(i) + 20]); return { ans: picked.join(','), ctx: { svg, cards } }; },
   judge(item, k) { if (item.okSet.includes(k)) return { ok: true }; const first = +k.split(',')[0]; return { ok: false, err: item.order[first] === 2 ? 'pfJump' : 'pfOrder' }; },

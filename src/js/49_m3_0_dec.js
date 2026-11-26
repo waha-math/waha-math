@@ -25,9 +25,9 @@ ITEM.decRuler = {
   make(spec) { const b = spec.b, c = Math.floor(b / 10), r = b % 10; /*T*/if (TESTHOOK && (!r || b > 79)) testBug('decRuler: طول بلا ملّيمترات أو أطول من المسطرة: ' + b);/*/T*/
     const want = [b / 10, 'dcm'], near = [(b + (r === 9 ? -1 : 1)) / 10, 'dcm'], zero = [c + r / 100, 'dcm'];   /* المشتّتان: «5.08» (الملّيمترات أجزاء من مئة)، وتدريجة مجاورة */
     return { ...spec, c, r, want: lenKey(want), ch: [want, zero, near], errs: { [lenKey(zero)]: 'decZero', [lenKey(near)]: 'decTick' }, tag: 'dec-ruler' }; },
-  async ask(item, mode, tries) { const svg = decStage(250), to = item.c + 2, R = rulerAt(svg, { x: 30, y: 176, pxcm: 300 / to, from: 0, to, mm: true }); rulThingAt(svg, item.thing || 'pencil', R.X(0), R.X(item.b / 10), 174, item.color);
+  async ask(item, mode, tries) { const svg = decStage(250), to = item.c + 2, R = rulerAt(svg, { x: 36, y: 176, pxcm: 288 / to, from: 0, to, mm: true });   /* آخر عددٍ داخل الإطار */ rulThingAt(svg, item.thing || 'pencil', R.X(0), R.X(item.b / 10), 174, item.color);
     const Ln = rulerLens(svg, R, item.b / 10, { y: 34, thing: item.thing || 'pencil', color: item.color }); let aid = null;
-    if (tries >= 3) { aid = helpG(svg); const t = el('text', { x: 180, y: 160, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, aid); t.textContent = cmmTxt(item.b); await S('gen.dec.together.ruler'); }
+    if (tries >= 3) { aid = helpG(svg); const t = el('text', { x: 180, y: 160, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: THINK_INK, direction: 'rtl' }, aid); t.textContent = cmmTxt(item.b); await S('gen.dec.together.ruler'); }
     else await S(item.q || 'gen.dec.q.ruler');
     const k = await choosePick(shuffle(lenOpts(item.ch)), item.want); return { ans: k, ctx: { svg, R, Ln, aid } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.errs[k] || 'decRead' }; },
@@ -41,7 +41,7 @@ ITEM.decRuler = {
 ITEM.decConv = {
   make(spec) { const [ok, ...bad] = spec.ch, want = lenKey(ok), errs = {}; bad.forEach(([v, e]) => { errs[lenKey(v)] = e; }); return { ...spec, want, vals: [ok, ...bad.map(b => b[0])], errs, tag: 'dec-conv-' + spec.v[1] }; },
   async ask(item, mode, tries) { const svg = decStage(200); lenCard(svg, 180, 66, item.v, { w: 190, h: 64, fs: 26 }); const eq = el('text', { x: 180, y: 136, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: LENC.ink }, svg); eq.textContent = '= ؟';
-    let aid = null; if (tries >= 3) { aid = helpG(svg); const t = el('text', { x: 180, y: 172, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, aid); const [su, sn] = decSmall(item.v), ans = item.vals[0], bare = item.v[1] === su || (ans[1] === su && ans[0] === sn);   /* الصغرى هي المعطى أو الجواب: الخطوة قبلها لا الجواب */
+    let aid = null; if (tries >= 3) { aid = helpG(svg); const t = el('text', { x: 180, y: 172, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: THINK_INK, direction: 'rtl' }, aid); const [su, sn] = decSmall(item.v), ans = item.vals[0], bare = item.v[1] === su || (ans[1] === su && ans[0] === sn);   /* الصغرى هي المعطى أو الجواب: الخطوة قبلها لا الجواب */
       t.textContent = bare ? (su === 'mm' ? `1 ${U_('cm')} = 10 ${U_('mm')}` : `1 ${U_('m')} = 100 ${U_('cm')}`) : '= ' + decSmallTxt(item.v); await S('gen.dec.together.conv'); }
     else if (item.say === false) await S(item.q); else { await S(item.q || 'gen.dec.q.conv', { noGap: true }); await S(lenLn(item.v), { append: true }); }   /* say: false: السؤال يقول الطول بنفسه (فوضى) */
     const k = await choosePick(shuffle(lenOpts(item.vals)), item.want); return { ans: k, ctx: { svg, aid } }; },
@@ -57,7 +57,9 @@ ITEM.decPointer = {
   make(spec) { /*T*/if (TESTHOOK && (spec.want <= spec.lo * 10 || spec.want >= spec.hi * 10)) testBug('decPointer: الهدف خارج الخط');/*/T*/ return { ...spec, tag: 'dec-pointer' }; },
   async ask(item, mode, tries) { const svg = decStage(214), L = decLineAt(svg, item.lo, item.hi, { y: 120 }); let pos = item.lo * 10;
     const tgt = lenCard(svg, 180, 40, [item.want / 10, 'dcm'], { w: 150, h: 50, fs: 24 }), P = decPtrAt(svg, L, pos / 10);
-    if (tries >= 3) { pos = Math.floor(item.want / 10) * 10; P.put(pos / 10); await S('gen.dec.together.ptr'); } else { await S(item.q || 'gen.dec.q.ptr', { noGap: true }); await S(lenLn([item.want / 10, 'dcm']), { append: true }); }
+    if (tries >= 3) { pos = Math.floor(item.want / 10) * 10; P.put(pos / 10); const m = helpG(svg), c0 = pos / 10;   /* الحلّ المشترك: المؤشّر عند السنتيمتر الكامل، وأعشار ذلك السنتيمتر مرقّمة فوق الخطّ، فيُعدّ إليها الطفل (المراجع B لبوابة S3-U0/U1، 9) */
+      el('rect', { x: L.X(c0), y: L.y - 18, width: L.k, height: 36, rx: 4, fill: THINK_INK, opacity: .12 }, m);   /* السنتيمتر المطلوب مُبرز */
+      for (let t = 1; t <= 9; t++) if (L.k >= 110 || t === 5) { const tx = el('text', { x: L.X(c0 + t / 10), y: L.y - 22, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, m); tx.textContent = String(t); } await S('gen.dec.together.ptr'); } else { await S(item.q || 'gen.dec.q.ptr', { noGap: true }); await S(lenLn([item.want / 10, 'dcm']), { append: true }); }
     const box = document.createElement('div'); box.className = 'choices icons four'; $('#stage').appendChild(box);
     const steps = (item.hi - item.lo > 1 ? [[-10, 'decStepCmL'], [-1, 'decStepMmL'], [1, 'decStepMmR'], [10, 'decStepCmR']] : [[-1, 'decStepMmL'], [1, 'decStepMmR']]);
     if (steps.length === 2) box.className = 'choices icons';
@@ -74,7 +76,7 @@ ITEM.decPointer = {
     return { ans: pos, ctx: { svg, L, P, tgt } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const d = Math.abs(k - item.want); return { ok: false, err: d % 10 === 0 ? 'decLineCm' : Math.floor(k / 10) !== Math.floor(item.want / 10) ? 'decLineInt' : 'decLineTenth' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.L) { const L = r.ctx.L, a = Math.floor(item.want / 10), m = helpG(r.ctx.svg); el('rect', { x: L.X(a), y: L.y - 4, width: L.k, height: 8, rx: 3, fill: css('--think'), opacity: .55 }, m); } await S('gen.dec.hint.ptr'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.L) { const L = r.ctx.L, a = Math.floor(item.want / 10), m = helpG(r.ctx.svg); el('rect', { x: L.X(a), y: L.y - 4, width: L.k, height: 8, rx: 3, fill: THINK_INK, opacity: .55 }, m); } await S('gen.dec.hint.ptr'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.P) r.ctx.P.put(item.want / 10); await S('gen.dec.reveal.ptr'); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -83,7 +85,7 @@ ITEM.decPointer = {
 ITEM.decCmp = {
   make(spec) { const a = lenMM(spec.a), b = lenMM(spec.b); return { ...spec, want: a === b ? 'eq' : a > b ? 'a' : 'b', tag: 'dec-cmp' }; },
   async ask(item, mode, tries) { const svg = decStage(220); lenCard(svg, 262, 84, item.a, { w: 150 }); lenCard(svg, 98, 84, item.b, { w: 150, stroke: LENC.bar2 }); let aid = null;
-    if (tries >= 3) { aid = helpG(svg); [item.a, item.b].forEach((v, i) => { const t = el('text', { x: i ? 98 : 262, y: 140, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, aid); t.textContent = '= ' + decSmallTxt(v); }); await S('gen.dec.together.cmp'); }
+    if (tries >= 3) { aid = helpG(svg); [item.a, item.b].forEach((v, i) => { const t = el('text', { x: i ? 98 : 262, y: 140, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: THINK_INK, direction: 'rtl' }, aid); t.textContent = '= ' + decSmallTxt(v); }); await S('gen.dec.together.cmp'); }
     else await S(item.q || 'gen.dec.q.cmp');
     const k = await choosePick([['a', lenTxt(item.a), '<i></i>', lenLn(item.a)], ['b', lenTxt(item.b), '<i></i>', lenLn(item.b)], ['eq', labelText('lenEq'), '<i></i>', 'gen.len.eq']], item.want); return { ans: k, ctx: { svg, aid } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const fr = v => +String(v[0]).split('.')[1] || 0, dig = fr(item.a) > fr(item.b) ? 'a' : fr(item.b) > fr(item.a) ? 'b' : null; return { ok: false, err: k === dig ? 'decCmpDigits' : 'decCmpOff' }; },
@@ -96,13 +98,13 @@ ITEM.decCmp = {
 /* ================= ⑤ رتّب من الأقصر إلى الأطول (C329): vals أربعة ================= */
 ITEM.decOrder = {
   make(spec) { const order = spec.vals.map((v, i) => i).sort((i, j) => lenMM(spec.vals[i]) - lenMM(spec.vals[j])); return { ...spec, want: order.join(','), tag: 'dec-order' }; },
-  async ask(item, mode, tries) { const svg = decStage(222), cards = item.vals.map((v, i) => { const g = lenCard(svg, ORD_XY[i][0], ORD_XY[i][1], v, { w: 146, h: 70 }); g.setAttribute('role', 'button'); g.setAttribute('tabindex', 0); g.setAttribute('aria-label', plain(lenTxt(v))); g.style.cursor = 'pointer'; return g; });
-    if (tries >= 3) { const m = helpG(svg); item.vals.forEach((v, i) => { const t = el('text', { x: ORD_XY[i][0], y: ORD_XY[i][1] + 44, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: css('--think'), direction: 'rtl' }, m); t.textContent = '= ' + decSmallTxt(v); }); await S('gen.dec.together.order'); }
+  async ask(item, mode, tries) { const svg = decStage(250), cards = item.vals.map((v, i) => { const g = lenCard(svg, ORD_XY[i][0], ORD_XY[i][1], v, { w: 146, h: 70 });   /* أطول: بطاقة التلميح تحت البطاقات لا بينها (المراجع B لبوابة S3-U0/U1، 14) */ g.setAttribute('role', 'button'); g.setAttribute('tabindex', 0); g.setAttribute('aria-label', plain(lenTxt(v))); g.style.cursor = 'pointer'; return g; });
+    if (tries >= 3) { const m = helpG(svg); item.vals.forEach((v, i) => { const t = el('text', { x: ORD_XY[i][0], y: ORD_XY[i][1] + 44, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: THINK_INK, direction: 'rtl' }, m); t.textContent = '= ' + decSmallTxt(v); }); await S('gen.dec.together.order'); }
     else await S(item.q || 'gen.dec.q.order');
     const picked = await orderTap(svg, cards, item.want, i => [ORD_XY[i][0] + 66, ORD_XY[i][1] - 26]); return { ans: picked.join(','), ctx: { svg, cards } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const fr = v => +String(v[0]).split('.')[1] || 0, byFrac = item.vals.map((v, i) => i).sort((i, j) => fr(item.vals[i]) - fr(item.vals[j])).join(','); return { ok: false, err: k === byFrac ? 'decOrderFrac' : 'orderOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 108, labelText('decIntFirst')); await S('gen.dec.hint.order'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 214, labelText('decIntFirst')); await S('gen.dec.hint.order'); }, async together() {},
   async reveal(item, r) { const m = helpG(r.ctx.svg); item.want.split(',').forEach((i, n) => badge(m, ORD_XY[+i][0] + 66, ORD_XY[+i][1] - 26, n + 1, LENC.ok)); await S('gen.len.reveal.order'); },
   praise: () => 'praiseOrder', twin(item) { return item.twin || null; },
 };
@@ -114,9 +116,9 @@ ITEM.decCalc = {
     return { ...spec, want: lenKey(ok), vals: [ok, ...bad.map(b => b[0])], errs, tag: 'dec-calc' + (spec.op === '-' ? '-sub' : '-add') }; },
   async ask(item, mode, tries) { const svg = decStage(214), sg = item.op === '-' ? '−' : '+', t = el('text', { x: 180, y: 70, 'text-anchor': 'middle', 'font-size': 28, 'font-weight': 800, fill: LENC.ink, direction: 'ltr' }, svg);
     const u = item.a[1] === 'dm' ? U_('m') : U_('cm'); t.textContent = `${decFmt(item.a[0], item.a[1] === 'dcm' ? 1 : 0)} ${sg} ${decFmt(item.b[0], item.b[1] === 'dcm' ? 1 : 0)} = ؟`;
-    const ut = el('text', { x: 180, y: 104, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 700, fill: LENC.soft, direction: 'rtl' }, svg); ut.textContent = labelText(item.a[1] === 'dm' ? 'decInM' : 'decInCm'); let aid = null;
-    if (tries >= 3) { aid = helpG(svg); const [su, a] = decSmall(item.a), b = decSmall(item.b)[1], w = el('text', { x: 180, y: 146, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, aid); w.textContent = `${a} ${sg} ${b} (${U_(su)})`;
-      const ra = Math.round(item.a[0]), rb = Math.round(item.b[0]), e = el('text', { x: 180, y: 180, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, aid); e.textContent = `≈ ${ra} ${sg} ${rb} = ${item.op === '-' ? ra - rb : ra + rb}`; await S('gen.dec.together.calc'); }
+    const ut = el('text', { x: 180, y: 112, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 700, fill: LENC.soft, direction: 'rtl' }, svg); ut.textContent = labelText(item.a[1] === 'dm' ? 'decInM' : 'decInCm'); let aid = null;
+    if (tries >= 3) { aid = helpG(svg); const [su, a] = decSmall(item.a), b = decSmall(item.b)[1], w = el('text', { x: 180, y: 146, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, aid); w.textContent = `${a} ${sg} ${b} (${U_(su)})`;
+      const ra = Math.round(item.a[0]), rb = Math.round(item.b[0]), e = el('text', { x: 180, y: 180, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, aid); e.textContent = `≈ ${ra} ${sg} ${rb} = ${item.op === '-' ? ra - rb : ra + rb}`; await S('gen.dec.together.calc'); }
     else await S(item.q || (item.op === '-' ? 'gen.dec.q.sub' : 'gen.dec.q.add'));
     const k = await choosePick(shuffle(lenOpts(item.vals)), item.want); return { ans: k, ctx: { svg, aid } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.errs[k] || 'decCalc' }; },
@@ -167,7 +169,7 @@ SCENES.decCalcShow = async c => { const L = c.lines, svg = decStage(250), rows =
     T(54, `${f(a)} ${sg} ${f(b)} = ؟ ${uu}`); await S(L[3 * i]);
     if (!i) await lenPredict([re, re + 1, sw].map(n => [String(n), DG(n), '']), String(re), 'gen.dec.pr.est');   /* تقديرٌ قبل الحساب: بالأعداد الكاملة */
     T(112, `${sa} ${sg} ${sb} = ${sw} ${U_(su)}`, DEC.frac, 22); SFX.tick(); await S(L[3 * i + 1]);
-    T(160, `= ${f(w)} ${uu}`, DEC.ok); T(204, `≈ ${ra} ${sg} ${rb} = ${re}`, css('--think'), 19); SFX.good(); await S(L[3 * i + 2]); }
+    T(160, `= ${f(w)} ${uu}`, DEC.ok); T(204, `≈ ${ra} ${sg} ${rb} = ${re}`, THINK_INK, 19); SFX.good(); await S(L[3 * i + 2]); }
   for (const l of L.slice(3 * rows.length)) await S(l); };
 /* تذكير بوابة الوحدة (د3): الوحدتان بالرسم، ثم الحساب بالوحدة الصغرى والتحقّق بالتقريب (المراجع A لبوابة S3-U0/U1، 21) */
 SCENES.decRecap = async c => { const L = c.lines, svg = decStage(236), R = rulerAt(svg, { x: 60, y: 30, pxcm: 240, from: 3, to: 4, mm: true, broken: true });

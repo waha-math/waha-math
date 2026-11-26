@@ -52,7 +52,7 @@ ITEM.c9Draw = {
       /*T*/window.__axPlaced = placed.length;/*/T*/ };
     const preview = q => { if (prev) prev.remove(); prev = null; if (!q || placed.length >= item.pts.length) return; const P = Pl.P(...Pl.snap(q)); prev = el('circle', { cx: P[0], cy: P[1], r: 7, fill: 'none', stroke: C9.img, 'stroke-width': 2.5, 'stroke-dasharray': '3 3', 'pointer-events': 'none' }, svg); };
     const tapAt = p => { const L = placed[placed.length - 1]; if (L && L[0] === p[0] && L[1] === p[1]) placed.pop(); else if (placed.length < item.pts.length) placed.push(p); SFX.tick(); redraw(); };
-    if (tries >= 3) { const h = helpG(svg); item.pts.forEach((p, i) => { const q = item.img[i]; if (/^rot/.test(item.xf)) c9TurnArc(h, Pl, p, q, { col: css('--think') }); else { const A = Pl.P(...p), B = Pl.P(...q); geoLine(h, A[0], A[1], B[0], B[1], { color: css('--think'), w: 2, dash: '5 4' }); } });
+    if (tries >= 3) { const h = helpG(svg); item.pts.forEach((p, i) => { const q = item.img[i]; if (/^rot/.test(item.xf)) c9TurnArc(h, Pl, p, q, { col: THINK_INK }); else { const A = Pl.P(...p), B = Pl.P(...q); geoLine(h, A[0], A[1], B[0], B[1], { color: THINK_INK, w: 2, dash: '5 4' }); } });
       placed.push(...item.img.slice(0, item.img.length - 1).map(p => [...p])); redraw(); }
     const askQ = async () => { if (tries >= 3) await S('gen.c9.together.draw'); else await S(item.q || 'gen.c9.q.draw.' + item.xf); };
     askQ(); REPLAY_HOOK = () => askQ(); REPLAY_HOOK.live = () => !done && svg.isConnected;
@@ -83,7 +83,7 @@ function c9PickCands(p, xf) { const [x, y] = p, img = C9_XF[xf](p), alt = { refV
 ITEM.c9Pick = cpItem({ H: 262, tLine: 'gen.c9.together.pick', hint: 'gen.c9.hint.pick', rLine: 'gen.c9.reveal.pick', praise: 'praiseThink',
   make: s => { const img = C9_XF[s.xf](s.p); return { want: preKey(img), img, cands: c9PickCands(s.p, s.xf), ext: c4Ext([s.p, img], 5), tag: 'c9-pick-' + s.xf }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, { ...item.ext, top: 38 }); c9Mark(svg, Pl, item.xf); c4Dot(svg, Pl, ...item.p, { pair: true, col: C9.org }); c9Card(svg, c9Name(item.xf));
-    if (tries >= 3) { const h = helpG(svg), q = Pl.P(...item.img); if (/^rot/.test(item.xf)) c9TurnArc(h, Pl, item.p, item.img, { col: css('--think') }); el('circle', { cx: q[0], cy: q[1], r: 9, fill: 'none', stroke: C9.hl, 'stroke-width': 3, 'stroke-dasharray': '4 3' }, h); }
+    if (tries >= 3) { const h = helpG(svg), q = Pl.P(...item.img); if (/^rot/.test(item.xf)) c9TurnArc(h, Pl, item.p, item.img, { col: THINK_INK }); el('circle', { cx: q[0], cy: q[1], r: 9, fill: 'none', stroke: C9.hl, 'stroke-width': 3, 'stroke-dasharray': '4 3' }, h); }
     return { Pl }; },
   h2: async (item, ctx) => { c9RuleCard(helpG(ctx.svg), 180, 58, item.xf); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.Pl) c4Dot(helpG(ctx.svg), ctx.Pl, ...item.img, { col: C9.ok, pair: true }); },
@@ -102,7 +102,7 @@ ITEM.c9Which = cpItem({ H: 250, tLine: 'gen.c9.together.which', hint: 'gen.c9.hi
 ITEM.c9NameIt = cpItem({ H: 262, tLine: 'gen.c9.together.name', hint: 'gen.c9.hint.name', rLine: it => 'gen.c9.n.' + it.xf, praise: 'praiseLook',
   make: s => { const img = s.pts.map(p => C9_XF[s.xf](p)); return { img, want: s.xf, ext: c4Ext(s.pts.concat(img), 5), tag: 'c9-name' }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, { ...item.ext, top: 12 }); xfPoly(svg, Pl, item.pts, { col: C9.org, fill: 'rgba(47,127,193,.12)' }); xfPoly(svg, Pl, item.img, { col: C9.img, fill: 'rgba(217,130,43,.14)', img: true });
-    if (tries >= 3) { const h = helpG(svg), A = Pl.P(...item.pts[0]), B = Pl.P(...item.img[0]); geoLine(h, A[0], A[1], B[0], B[1], { color: css('--think'), w: 2.4, dash: '5 4' }); el('circle', { cx: A[0], cy: A[1], r: 9, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, h); el('circle', { cx: B[0], cy: B[1], r: 9, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, h); }
+    if (tries >= 3) { const h = helpG(svg), A = Pl.P(...item.pts[0]), B = Pl.P(...item.img[0]); geoLine(h, A[0], A[1], B[0], B[1], { color: THINK_INK, w: 2.4, dash: '5 4' }); el('circle', { cx: A[0], cy: A[1], r: 9, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, h); el('circle', { cx: B[0], cy: B[1], r: 9, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, h); }
     return { Pl }; },
   show: async (item, ctx) => { if (ctx && ctx.Pl) c9Mark(helpG(ctx.svg), ctx.Pl, item.xf); },
   pick: item => choosePick(['refV', 'refH', 'rot90', 'rot180'].map(k => [k, labelText('c9S.' + k), '<i></i>', 'gen.c9.n.' + k]), item.want, { cls: 'four' }),
@@ -130,8 +130,8 @@ ITEM.c9Rot = cpItem({ H: 250, tLine: 'gen.c9.together.rot', hint: 'gen.c9.hint.r
     if (item.ask === 'ang') { if (tries >= 3) c9Prot(helpG(svg), F.M, F.a0, item.cw); else arArc(g, F.M, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1), { r: 34, col: C9.arc, lab: '؟', dl: 18, fs: 15, fill: true }); }
     else { arArc(g, F.M, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1), { r: 34, col: C9.arc, deg: item.th, dl: 18, fs: 14, fill: true }); }
     if (item.ask === 'len') { const m = [(F.M[0] + F.A[0]) / 2, (F.M[1] + F.A[1]) / 2]; preLab(g, m[0], m[1] + 20, MS(String(item.r)), { fs: 16, col: C9.org }); const n = [(F.M[0] + F.B[0]) / 2, (F.M[1] + F.B[1]) / 2]; preLab(g, n[0] - 14, n[1], '؟', { fs: 18, col: C9.q });
-      if (tries >= 3) { const h = helpG(svg); el('path', { d: angArc(F.M, item.r * F.u, Math.min(F.a0, F.a1) - 6, Math.max(F.a0, F.a1) + 6), fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, h); } }
-    if (item.ask === 'dir' && tries >= 3) { const h = helpG(svg); el('path', { d: angArc(F.M, item.r * F.u + 10, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1)), fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, h); const E = angP(F.M, F.a1, item.r * F.u + 10); geoArrow(h, E[0], E[1], -(F.a1 + (item.cw ? -90 : 90)), css('--think'), 7); }
+      if (tries >= 3) { const h = helpG(svg); el('path', { d: angArc(F.M, item.r * F.u, Math.min(F.a0, F.a1) - 6, Math.max(F.a0, F.a1) + 6), fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, h); } }
+    if (item.ask === 'dir' && tries >= 3) { const h = helpG(svg); el('path', { d: angArc(F.M, item.r * F.u + 10, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1)), fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, h); const E = angP(F.M, F.a1, item.r * F.u + 10); geoArrow(h, E[0], E[1], -(F.a1 + (item.cw ? -90 : 90)), THINK_INK, 7); }
     return { F }; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 250, 36, labelText('c9Rule.rot'), C9.hl, 12); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { if (item.ask === 'dir') return choosePick([['ccw', labelText('c9D.ccw'), '<i></i>', 'gen.c9.d.ccw'], ['cw', labelText('c9D.cw'), '<i></i>', 'gen.c9.d.cw']], item.want);
@@ -149,7 +149,7 @@ ITEM.c9Comp = cpItem({ H: 262, tLine: 'gen.c9.together.comp', hint: 'gen.c9.hint
   draw(svg, item, tries) { const pts = [item.p, item.mid, item.img].concat(item.back ? [item.back] : []), Pl = c4Plane(svg, { ...c4Ext(pts, 5), top: 40 });
     c9Card(svg, labelText('c9Seq').replace('A', c9StepTxt(item.seq[0])).replace('B', c9StepTxt(item.seq[1])), { w: 330 });
     c4Dot(svg, Pl, ...item.p, { pair: true, col: C9.org });
-    if (tries >= 3) { const h = helpG(svg); c4Dot(h, Pl, ...item.mid, { pair: true, col: css('--think') }); const A = Pl.P(...item.p), B = Pl.P(...item.mid); geoLine(h, A[0], A[1], B[0], B[1], { color: css('--think'), w: 2, dash: '5 4' }); }
+    if (tries >= 3) { const h = helpG(svg); c4Dot(h, Pl, ...item.mid, { pair: true, col: THINK_INK }); const A = Pl.P(...item.p), B = Pl.P(...item.mid); geoLine(h, A[0], A[1], B[0], B[1], { color: THINK_INK, w: 2, dash: '5 4' }); }
     return { Pl }; },
   sayQ: async it => { for (const [i, s] of it.seq.entries()) { await S(i ? 'gen.c9.then' : 'gen.c9.first', { append: true, noGap: true }); await S(Array.isArray(s) ? 'gen.c9.tr.' + s[1] : 'gen.c9.n.' + s, { append: true, noGap: true }); } await S('gen.c9.q.compEnd.' + it.ask, { append: true }); },
   show: async (item, ctx) => { if (ctx && ctx.Pl) { const h = helpG(ctx.svg); c4Dot(h, ctx.Pl, ...item.mid, { col: '#8a9aa8' }); c4Dot(h, ctx.Pl, ...item.img, { col: C9.ok, pair: item.ask === 'img' }); if (item.back) c4Dot(h, ctx.Pl, ...item.back, { col: C9.img, pair: true }); } },

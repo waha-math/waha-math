@@ -23,7 +23,7 @@ const GAP = () => FAST ? 0 : ({ slow: 750, normal: 350, fast: 180 })[SPD()];    
 /* طابور الكلام: جملة واحدة في كل لحظة، ولا تبدأ جملة قبل أن تنتهي سابقتها فعلاً.
    ينتهي الكلام بحدث النهاية الحقيقي، ومعه مراقبة لحالة القارئ ومهلة أمان طويلة لا تُستعمل إلا إذا تعطّل الجهاز.
    لا يقطع جملةً إلا: الخروج، أو الكتم، أو «hush» عند الإجابة، أو زرّ «أعد الجملة» (يبدؤها من أولها). */
-let speechChain = Promise.resolve(), speechGen = 0, speaking = false, queued = 0, currentFinish = null, pendingNum = null, NOW_ITEM = null, LASTQ = null;
+let speechChain = Promise.resolve(), speechGen = 0, speaking = false, queued = 0, currentFinish = null, pendingNum = null, NOW_ITEM = null, LASTQ = null, LASTQS = null;   /* LASTQS: السؤال بتتمّته (append) كلّه، يعيده «أعد الجملة» و«نبقى» (المراجع B لبوابة S3-U0/U1، 2) */
 const inLine = new Map();                                 // جمل تُقال الآن أو تنتظر: لا تتكرر الجملة نفسها إن كرّر الطفل اللمس (المفتاح ← صاحبه)
 function speechBusy() { return speaking || queued > 0; }
 function cutNow() { try { speechSynthesis.cancel(); } catch (e) {} if (currentAudio) { currentAudio.pause(); currentAudio = null; } if (currentFinish) currentFinish(); }   /* يقطع الجملة الجارية وحدها */
@@ -85,7 +85,7 @@ function say(who, id, text, opt = {}) {
   if (opt.ifIdle && speechBusy()) return Promise.resolve();
   if (opt.cover && PAUSED) { if (document.hidden) { VIS_COVER = opt.cover; return Promise.resolve(); } return speakNow(who, id, text, opt); }   /* سؤال غطاء الخروج والدرس موقوف: لا ينتظر الطابور ولا البوابة؛ والصفحة مخفية: يُسأل عند ظهورها */
   if (inLine.has(key)) return opt.free ? Promise.resolve() : gate(Promise.resolve());
-  const gen = speechGen, item = { skip: false }; inLine.set(key, item); if (!opt.keep && !opt.num && !opt.aside) LASTQ = [who, id, text];   /* آخر جملة دخلت الطابور (سؤال الخيارات المقروءة) */
+  const gen = speechGen, item = { skip: false }; inLine.set(key, item); if (!opt.keep && !opt.num && !opt.aside) { LASTQ = [who, id, text]; LASTQS = opt.append && LASTQS ? [...LASTQS, [who, id, text, { append: true }]] : [[who, id, text, { noGap: !!opt.noGap }]]; }   /* آخر جملة دخلت الطابور (سؤال الخيارات المقروءة)، والسؤال بتتمّته */
   if (opt.num) { if (pendingNum) pendingNum.skip = true; pendingNum = item; }     // العدّ: يكفي آخر رقم ينتظر
   queued++; if (typeof updateSkip === 'function') updateSkip();
   const p = speechChain.then(async () => {
@@ -190,7 +190,9 @@ function replayLine(cover) {
   if (!lastLine) return; const L = lastLine; hush();
   const b = cover ? cover.querySelector('.coversay') : $('#bubble'); if (b) anim(b, [{ opacity: .4 }, { opacity: 1 }], 300);
   const keep = CUR; if (L.lesson && (!CUR || CUR.id !== L.lesson)) CUR = { id: L.lesson };
-  say(L.who, L.id, L.text, { free: true, cover, hideText: L.hideText }); CUR = keep;   /* المخفي يبقى مخفياً */
+  const Q = LASTQS && LASTQS.length > 1 && LASTQS[LASTQS.length - 1][1] === L.id ? LASTQS : null;   /* سؤالٌ بتتمّته: يُعاد كلّه، فلا تبقى التتمّة وحدها في الفقاعة */
+  if (Q) Q.forEach(([w, i, t, o], j) => say(w, i, t, { free: true, cover, ...(j ? { append: true } : { noGap: true }) }));
+  else say(L.who, L.id, L.text, { free: true, cover, hideText: L.hideText }); CUR = keep;   /* المخفي يبقى مخفياً */
 }
 
 /* ---------- أصوات قصيرة واحتفال ---------- */

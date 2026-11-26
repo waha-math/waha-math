@@ -44,7 +44,7 @@ function c4Dot(parent, Pl, x, y, o = {}) { const [px, py] = Pl.P(x, y), g = el('
 async function c4Walk(svg, Pl, x, y, o = {}) { const m = helpG(svg); let last = Pl.P(0, 0); const sx = Math.sign(x), sy = Math.sign(y);
   for (let i = 1; i <= Math.abs(x); i++) { const q = Pl.P(sx * i, 0); el('path', { d: `M${last[0]} ${last[1]} Q${(last[0] + q[0]) / 2} ${last[1] - 12} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--compass'), 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
   if (o.upTo === 'x') return m;
-  for (let j = 1; j <= Math.abs(y); j++) { const q = Pl.P(x, sy * j); el('path', { d: `M${last[0]} ${last[1]} Q${last[0] + 12} ${(last[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--think'), 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
+  for (let j = 1; j <= Math.abs(y); j++) { const q = Pl.P(x, sy * j); el('path', { d: `M${last[0]} ${last[1]} Q${last[0] + 12} ${(last[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
   return m; }
 function c4Card(svg, x, y, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 116, col = o.col || C4.pt, cx = o.cx || 180;
   el('rect', { x: cx - w / 2, y: 4, width: w, height: 30, rx: 10, fill: '#fff', stroke: col, 'stroke-width': 2 }, g); coPairText(g, cx, 25, preNum(x), preNum(y), 'middle', 17, col); return g; }

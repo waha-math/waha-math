@@ -6,7 +6,12 @@
 /* عدّاد بزرّين (− و+) تحت المسرح: spec = [{ key، min، max، val، unit: تسمية الوحدة }]. يعيد القيم عند «تمّ» */
 function stepperAsk(spec, o = {}) { const box = document.createElement('div'); box.className = 'choices steppers' + (spec.length > 2 ? ' many' : '') + (o.bare ? ' bare' : '');   /* o.bare: الزرّان وحدهما ووحدتهما فيهما، والقيمة مكتوبة على المسرح */ $('#stage').appendChild(box); const V = {}, shows = []; let touched = false;   /* o.auto: { ok، wrong } قيمٌ يضعها سائق الفحص قبل «تمّ»؛ وstep: مقدار الزيادة (1) */   /* الأعداد بأرقام المسطرة؛ وtouched: هل غيّر الطفل شيئاً قبل «تمّ» */
   for (const s of spec) { V[s.key] = s.val; const w = document.createElement('div'); w.className = 'stp'; const mk = (d, lab) => { const b = document.createElement('button'); b.className = 'pick stpb'; b.textContent = d < 0 ? '−' : '+'; if (o.bare) { const sm = document.createElement('small'); sm.textContent = G(labelText(s.unit)); b.appendChild(sm); } b.setAttribute('aria-label', plain(labelText(lab)) + ' ' + plain(labelText(s.unit)));
-      b.onclick = () => { touched = true; V[s.key] = Math.max(s.min, Math.min(s.max, V[s.key] + d * (s.step || 1))); show(); SFX.tick(); }; return b; };
+      const bump = k => { touched = true; const n = Math.max(s.min, Math.min(s.max, V[s.key] + d * k * (s.step || 1))); if (n === V[s.key]) return false; V[s.key] = n; show(); SFX.tick(); return true; };
+      /* الضغط المطوّل يكرّر، ثم يسرع خمساً خمساً بعد ثماني لمسات: 165 سم من 140 لا تحتاج 25 لمسة (المراجع B لبوابة S3-U0/U1، 15) */
+      let rep = null, held = false, n = 0; const stop = () => { clearTimeout(rep); rep = null; };
+      b.addEventListener('pointerdown', () => { held = false; n = 0; stop(); rep = setTimeout(function tick() { held = true; n++; if (!bump(n > 8 ? 5 : 1)) return stop(); rep = setTimeout(tick, 110); }, 450); });
+      b.addEventListener('pointerup', stop); b.addEventListener('pointerleave', stop); b.addEventListener('pointercancel', stop);
+      b.onclick = () => { if (held) { held = false; return; } bump(1); }; return b; };
     const out = document.createElement('span'); out.className = 'stpv'; out.setAttribute('aria-live', 'polite'); const show = () => { out.innerHTML = `<b dir="ltr">${V[s.key]}</b><small>${esc(G(labelText(s.unit)))}</small>`; out.dataset.v = V[s.key]; if (o.onChange) o.onChange(V); };
     w.appendChild(mk(-1, 'stepLess')); w.appendChild(out); w.appendChild(mk(1, 'stepMore')); shows.push([s.key, show]);   /* الأقلّ يساراً والأكثر يميناً، كاتجاه طريق الأعداد والمسطرة */ box.appendChild(w); show(); }
   const d = doneBtn(); let fin = false; const put = vals => { if (vals) { Object.assign(V, vals); touched = true; shows.forEach(([, f]) => f()); } }; AUTO({ kind: o.kind || 'homeNum', ok: () => { put(o.auto && o.auto.ok); d.b.click(); }, wrong: () => { put(o.auto && o.auto.wrong); d.b.click(); } });
@@ -73,10 +78,12 @@ function homeArt(svg, art) { const g = el('g', { 'pointer-events': 'none' }, svg
 /* ساعة بعقربين: الصغير عند h والكبير عند الثانية عشرة، وقوس الزاوية الصغرى بينهما */
 function homeClock(svg, h) { const g = el('g', { 'pointer-events': 'none' }, svg), C = [180, 112], a = 90 - h * 30, P = angP(C, a, 46), Q = angP(C, 90, 66); geoLine(g, C[0], C[1], Q[0], Q[1], { color: GEO.ink, w: 4 }); geoLine(g, C[0], C[1], P[0], P[1], { color: '#b0552f', w: 6 });
   const d = ((h % 12) * 30), sm = d > 180 ? 360 - d : d; if (sm) el('path', { d: d > 180 ? angArc(C, 24, 90, 90 + sm) : angArc(C, 24, 90 - sm, 90), fill: 'none', stroke: ANG.arc, 'stroke-width': 3.2 }, g); return sm; }
+/* شاشات ما بعد مهمة البيت على ورقة الإطار: ما يُكتب بالحبر يُقرأ بالفاتح والداكن (المراجع B لبوابة S3-U0/U1، 5) */
+const homeStage = () => { const svg = newStage(230, { oasis: false, ground: 0 }); plyFrame(svg, 202); return svg; };
 const HOME_SAY = {
   par: async (r, v) => S(Math.abs(v.d1 - v.d2) <= 1 ? 'gen.home.parEq' : 'gen.home.parNe'),
   parAgain: async (r, v) => S(r.n && Math.abs(v.d3 - r.n.d1) <= 1 ? 'gen.home.par3Eq' : 'gen.home.par3Ne'),
-  clock: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }); homeArt(svg, 'clock'); const sm = homeClock(svg, v.hour); await S(sm === 90 ? 'gen.home.clockRight' : 'gen.home.clockNot'); if (sm !== 90) { const s2 = newStage(230, { oasis: false, ground: 0 }); homeArt(s2, 'clock'); homeClock(s2, 3); await S('gen.home.clockThree'); } },
+  clock: async (r, v) => { const svg = homeStage(); homeArt(svg, 'clock'); const sm = homeClock(svg, v.hour); await S(sm === 90 ? 'gen.home.clockRight' : 'gen.home.clockNot'); if (sm !== 90) { const s2 = homeStage(); homeArt(s2, 'clock'); homeClock(s2, 3); await S('gen.home.clockThree'); } },
   cut: async (r, v) => S(v.shapes >= 3 ? 'gen.home.cutMany' : 'gen.home.cutFew'),   /* S2-U4: أشكال من مثلثين */
   axes: async () => S('gen.home.axesSay'),   /* S2-U5 */
   tape: async (r, v) => S([1, 2, 3].every(i => Math.abs(v['e' + i] - v['m' + i]) <= 20) ? 'gen.home.tapeClose' : 'gen.home.tapeFar'),   /* S2-U6: التقدير قريب حتى عشرين سنتيمتراً */
@@ -88,18 +95,18 @@ const HOME_SAY = {
   tileAgain: async (r, v) => S(v.tile === 4 ? 'gen.home.tileOk' : 'gen.home.tileNo'),
   winAgain: async (r, v) => S(v.sides === v.verts ? 'gen.home.winEq' : 'gen.home.winNe'),
   /* S3-U0 (المراجع A لبوابة S3-U0/U1، 8): أطوال ثلاثة بالسنتيمتر تُكتب بالمتر بخانتين، مرتّبةً، والفرق بين الأطول والأقصر */
-  decHome: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }), hs = ['h1', 'h2', 'h3'].map(k => v[k]).sort((a, b) => a - b), m = c => `${(c / 100).toFixed(2)} ${labelText('lenM')}`, k = 190 / Math.max(...hs);
+  decHome: async (r, v) => { const svg = homeStage(), hs =   /* على الورقة: الأطوال بحبرها تُقرأ بالداكن أيضاً (المراجع B لبوابة S3-U0/U1، 5) */ ['h1', 'h2', 'h3'].map(k => v[k]).sort((a, b) => a - b), m = c => `${(c / 100).toFixed(2)} ${labelText('lenM')}`, k = 190 / Math.max(...hs);
     hs.forEach((c, i) => { const y = 40 + i * 48; el('rect', { x: 330 - c * k, y, width: c * k, height: 18, rx: 5, fill: i === 2 ? DEC.ok : i ? LENC.soft : DEC.frac, opacity: .85 }, svg);
       const t = el('text', { x: 322 - c * k, y: y + 15, 'text-anchor': 'start', 'font-size': 17, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, svg); t.textContent = m(c); });   /* العدد يسار شريطه */
     const d = el('text', { x: 180, y: 204, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg); d.textContent = `${m(hs[2])} − ${m(hs[0])} = ${m(hs[2] - hs[0])}`;
     await S('gen.home.decDiff'); },
-  ropeAgain: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }); homeArt(svg, 'tape'); const t = el('text', { x: 180, y: 190, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg);
+  ropeAgain: async (r, v) => { const svg = homeStage(); homeArt(svg, 'tape'); const t = el('text', { x: 180, y: 190, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg);
     t.textContent = `${mcTxt(v.rm, v.rc)} = ${((v.rm * 100 + v.rc) / 100).toFixed(2)} ${labelText('lenM')}`; await S('gen.home.ropeSay'); },
   /* S3-U4 إلى S3-U9 (tools/homemap.py، D284 (6)) */
-  tileRoom: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }), a1 = Math.round(v.r * v.c * v.s * v.s / 1000) / 10, T = (y, t, col) => { const e = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); e.textContent = t; };
+  tileRoom: async (r, v) => { const svg = homeStage(), a1 = Math.round(v.r * v.c * v.s * v.s / 1000) / 10, T = (y, t, col) => { const e = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); e.textContent = t; };
     T(70, `${v.r} × ${v.c} × ${v.s} × ${v.s} = ${v.r * v.c * v.s * v.s} ${labelText('arCm2')}`, LENC.ink); T(118, `≈ ${decFmt(a1)} ${labelText('arM2')}`, DEC.ok); T(170, `${v.am} ${labelText('arM2')}`, DEC.frac);
     await S(Math.abs(a1 - v.am) <= Math.max(1, v.am * .1) ? 'gen.home.roomClose' : 'gen.home.roomFar'); },
-  rugArea: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }), A = v.l * v.w, T = (y, t, col) => { const e = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); e.textContent = t; };
+  rugArea: async (r, v) => { const svg = homeStage(), A = v.l * v.w, T = (y, t, col) => { const e = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); e.textContent = t; };
     T(90, `${v.l} × ${v.w} = ${A} ${labelText('arCm2')}`, LENC.ink); T(150, `= ${decFmt(Math.round(A / 100) / 100)} ${labelText('arM2')}`, DEC.ok); await S('gen.home.rugSay'); },
   treasureAgain: async (r, v) => S(v.found === 0 ? 'gen.home.trFound' : 'gen.home.trNot'),
   fanSay: async (r, v) => S(Math.abs(360 / v.n - v.ang) <= 5 ? 'gen.home.fanOk' : 'gen.home.fanNo'),
@@ -118,7 +125,7 @@ const HOME_SAY = {
   /* S3-U1: عدد البلاطات حول الرأس × زاوية الركن، وزوايا الشطيرة بعد أسبوع */
   tileSum: async (r, v) => S(v.n * v.ang === 360 ? 'gen.home.tile360' : 'gen.home.tileNot360'),
   sandAgain: async (r, v) => S(v.a + v.b + v.c === 180 ? 'gen.home.sandOk' : 'gen.home.sandNo'),   /* الثالثة محسوبةٌ قبل قياسها: المجموع 180 تماماً */
-  clockAgain: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }); homeArt(svg, 'clock'); homeClock(svg, 6); await S(v.kind === 2 ? 'gen.home.sixOk' : 'gen.home.sixNo'); await S(v.q === 1 ? 'gen.home.quarterOk' : 'gen.home.quarterNo'); },
+  clockAgain: async (r, v) => { const svg = homeStage(); homeArt(svg, 'clock'); homeClock(svg, 6); await S(v.kind === 2 ? 'gen.home.sixOk' : 'gen.home.sixNo'); await S(v.q === 1 ? 'gen.home.quarterOk' : 'gen.home.quarterNo'); },
 };
 /* صورة ناتج مهمة البيت عبر «صيد الكاميرا» (المرجع: U7 السجادة والخيط، U8 الشريحتان؛ المراجع A لبوابتي U6/U7 (30) وU8/U9 (21)):
    بطاقتان «أُصوّر الآن» و«بلا صورة»، والصورة تُحفظ في معرض الطفل باسمها. اختيارية: الطفل بلا كاميرا يكمل. يعيد 1 إن حُفظت */

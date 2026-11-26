@@ -109,7 +109,7 @@ function dqSteps(labels, onStep, o = {}) { const box = document.createElement('d
 /* ================= ④ «ميزان الأقطار» (C331، اللعبة): يُنقل التقاطع على القطر الأزرق حتى منتصفه (والبرتقالي منصَّف)، فيصير متوازي أضلاع ================= */
 /* المستوى الثاني: منتصف القطر الأزرق معلَّماً (حلقة وعلامة)، يُرسم مع الرباعي في كل ضبط ويبقى حتى يجيب (D240؛ المراجع B لبوابة S3-U2/U3، 3) */
 function dqMidMark(R) { const m = helpG(R.g), a = R.Q[0], c = R.Q[2], x = (a[0] + c[0]) / 2, y = (a[1] + c[1]) / 2, d = dirOf(a, c) + 90;
-  el('circle', { cx: x, cy: y, r: 9, fill: 'none', stroke: css('--think'), 'stroke-width': 3, 'stroke-dasharray': '4 3' }, m); geoLine(m, ...angP([x, y], d, 13), ...angP([x, y], d, -13), { color: css('--think'), w: 3 }); return m; }
+  el('circle', { cx: x, cy: y, r: 9, fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '4 3' }, m); geoLine(m, ...angP([x, y], d, 13), ...angP([x, y], d, -13), { color: THINK_INK, w: 3 }); return m; }
 ITEM.diagBalance = {
   make(spec) { return { ...spec, want: 5, tag: 'dq-balance' }; },
   async ask(item, mode, tries) { const svg = m3Stage(236); let s = item.s0 ?? 2, R = null; const draw = () => { if (R) R.g.remove(); R = dqDraw(svg, { p: item.p, r: item.r, s: s / 10, u: .5, th: item.th || 64, rot: item.rot || 0 }, [180, 108, 250, 170], { parts: 'p', ticks: true, maxK: 24 }); if (tries >= 2) dqMidMark(R); };
@@ -127,8 +127,8 @@ ITEM.diagBalance = {
 
 /* ================= ⑤ «حارس التقاطع» (C332، اللعبة): تُدار الزاوية بين القطرين بعشر درجات حتى تنطبق ورقة الزاوية القائمة؛ s 0.5 (معيّن) أو 0.4 (طائرة) ================= */
 /* المستوى الثاني: قراءة الزاوية بين القطرين عند التقاطع (منقلة)، تتغيّر مع كل دورة (D240) */
-function dqAngRead(R, th) { const m = helpG(R.g), M = R.M, t = el('text', { x: M[0] + 34, y: M[1] - 26, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: css('--think'), stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'ltr' }, m); t.textContent = String(th); let w = 18; try { w = t.getComputedTextLength() || w; } catch (e) {}
-  el('circle', { cx: M[0] + 34 + w / 2 + 5, cy: M[1] - 37, r: 3, fill: 'none', stroke: css('--think'), 'stroke-width': 2 }, m); return m; }   /* علامة الدرجة دائرةً صغيرة: «°» ليس في خطّ القراءة (D256) */
+function dqAngRead(R, th) { const m = helpG(R.g), M = R.M, t = el('text', { x: M[0] + 34, y: M[1] - 26, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: THINK_INK, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'ltr' }, m); t.textContent = String(th); let w = 18; try { w = t.getComputedTextLength() || w; } catch (e) {}
+  el('circle', { cx: M[0] + 34 + w / 2 + 5, cy: M[1] - 37, r: 3, fill: 'none', stroke: THINK_INK, 'stroke-width': 2 }, m); return m; }   /* علامة الدرجة دائرةً صغيرة: «°» ليس في خطّ القراءة (D256) */
 ITEM.diagPerp = {
   make(spec) { return { ...spec, want: 90, tag: 'dq-perp' }; },
   async ask(item, mode, tries) { const svg = m3Stage(236); let th = item.th0 ?? 50, R = null, paper = null;
@@ -153,7 +153,7 @@ ITEM.rhombAngle = { ...numItem,
   async ask(item, mode, tries) { const svg = m3Stage(236), h = Math.tan(item.ang / 2 * Math.PI / 180), p = 10, r = 2 * (p / 2) * h, R = dqDraw(svg, { p, r, s: .5, u: .5, th: 90 }, [180, 108, 230, 150], { right: true }), [A, B, C, D] = R.Q;
     triCorner(R.g, A, B, D, item.ang, TRI_COL[0], { label: false }); { const o = angP(A, dirOf(A, C) + 180, 26); degText(R.g, o[0], o[1] + 6, item.ang, { size: 16, color: TRI_COL[0] }); }   /* الزاوية المعلومة خارج رأسها، فلا تزاحم السؤال */
     if (item.ask === 'half') triCorner(R.g, A, B, C, null, TRI_COL[2], { r: 44 }); else triCorner(R.g, B, C, A, null, TRI_COL[2]);
-    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 216, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = item.ask === 'half' ? `${item.ang} ÷ 2 = ؟` : `180 − ${item.ang} = ؟`; await S('gen.dq.together.rhomb'); }
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 216, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: THINK_INK, direction: 'ltr' }, m); t.textContent = item.ask === 'half' ? `${item.ang} ÷ 2 = ؟` : `180 − ${item.ang} = ؟`; await S('gen.dq.together.rhomb'); }
     else await S(item.q || (item.ask === 'half' ? 'gen.dq.q.rhombHalf' : 'gen.dq.q.rhombOther'));
     const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); return { ans: await np.p, ctx: { svg, R } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.ang ? 'rhombSame' : 'rhombOff' }; },

@@ -63,7 +63,7 @@ ITEM.trapParts = {
   async ask(item, mode, tries) { const svg = m3Stage(250), D = a2Trap(svg, item, { bases: false, height: false, legs: false }), it = item, off = D.off;
     const mids = [[[it.b / 2, 0], [0, -.75]], [[(it.b + off + it.a) / 2, it.h / 2], [.9, 0]], [[off + it.a / 2, it.h], [0, .75]], [[off / 2, it.h / 2], [-.9, 0]]];
     mids.forEach(([p, d], i) => htLab(svg, D.M([p[0] + d[0], p[1] + d[1]]), LTR[item.keys[i]], A2.ink, 19));
-    if (tries >= 3) { const m = helpG(svg); a2Chev(m, D.Q[0], D.Q[1], css('--think')); a2Chev(m, D.Q[3], D.Q[2], css('--think')); await S('gen.a2.together.parts'); } else await S(item.q || 'gen.a2.q.parts');
+    if (tries >= 3) { const m = helpG(svg); a2Chev(m, D.Q[0], D.Q[1], THINK_INK); a2Chev(m, D.Q[3], D.Q[2], THINK_INK); await S('gen.a2.together.parts'); } else await S(item.q || 'gen.a2.q.parts');
     const pair = (i, j) => { const ks = [item.keys[i], item.keys[j]].sort((x, y) => 'abjd'.indexOf(x) - 'abjd'.indexOf(y)); return [`${LTR[ks[0]]} ${labelText('a2And')} ${LTR[ks[1]]}`, 'gen.a2.pair.' + ks.join('')]; };
     const opts = [['bases', ...pair(0, 2)], ['legs', ...pair(1, 3)], ['adj', ...pair(0, 1)]].map(([k, t, l]) => [k, t, '<i></i>', l]);
     const k = await choosePick(shuffle(opts), 'bases'); return { ans: k, ctx: { svg, D } }; },
@@ -165,7 +165,7 @@ function a2CompDraw(svg, spec, o = {}) { const { F } = a2CompData(spec), u = spe
   if (F.cut && o.cut !== false) { const a = M(F.cut[0]), b = M(F.cut[1]); geoLine(g, a[0], a[1], b[0], b[1], { color: A2.ink, w: 2, dash: '5 5' }); }
   return { D, M, F, g }; }
 /* الأجزاء ملوّنة ومساحاتها (الحلّ المشترك والكشف): upTo عدد الأجزاء التي تُكتب مساحتها */
-function a2CompParts(svg, C, upTo = 9) { const m = helpG(svg), cols = [A2.p1, A2.p2, A2.p3]; C.F.parts.forEach((p, i) => { const Q = p.poly.map(C.M); a2Poly(m, Q, p.A < 0 ? '#fff' : cols[i % 3], { op: .75, w: 1.5 }); if (i < upTo) { const cx = Q.reduce((a, q) => a + q[0], 0) / Q.length, cy = Q.reduce((a, q) => a + q[1], 0) / Q.length; htLab(m, [cx, cy], (p.A < 0 ? '− ' : '') + Math.abs(p.A), css('--think'), 16); } }); return m; }
+function a2CompParts(svg, C, upTo = 9) { const m = helpG(svg), cols = [A2.p1, A2.p2, A2.p3]; C.F.parts.forEach((p, i) => { const Q = p.poly.map(C.M); a2Poly(m, Q, p.A < 0 ? '#fff' : cols[i % 3], { op: .75, w: 1.5 }); if (i < upTo) { const cx = Q.reduce((a, q) => a + q[0], 0) / Q.length, cy = Q.reduce((a, q) => a + q[1], 0) / Q.length; htLab(m, [cx, cy], (p.A < 0 ? '− ' : '') + Math.abs(p.A), THINK_INK, 16); } }); return m; }
 
 /* ================= ⑥ مساحة الشكل المركّب (C323): fig وأبعاده؛ بالتقسيم (cut) أو بالإتمام (notch) ================= */
 ITEM.comp2 = { ...a2NumItem,
@@ -189,7 +189,7 @@ ITEM.comp2Perim = { ...a2NumItem,
     const L = (p, d, v, col) => htLab(g, M([p[0] + d[0], p[1] + d[1]]), htCm(v, u), col || A2.ink);
     L([item.w / 2, 0], [0, -.75], item.w); L([0, item.hw / 2], [-.9, 0], item.hw); L([item.w, item.hw / 2], [.9, 0], item.hw); L([item.w / 2, item.hw], [0, .6], item.w, A2.ghost);
     L([item.w / 4, item.hw + item.hr / 2], [-.8, .5], item.s, A2.side); L([item.w * .75, item.hw + item.hr / 2], [.8, .5], item.s, A2.side);
-    if (tries >= 3) { const m = helpG(svg); el('polygon', { points: polyStr(Q), fill: 'none', stroke: css('--think'), 'stroke-width': 6, opacity: .7 }, m); await S('gen.a2.together.perimH'); } else await S(item.q || 'gen.a2.q.perimH');
+    if (tries >= 3) { const m = helpG(svg); el('polygon', { points: polyStr(Q), fill: 'none', stroke: THINK_INK, 'stroke-width': 6, opacity: .7 }, m); await S('gen.a2.together.perimH'); } else await S(item.q || 'gen.a2.q.perimH');
     const np = await this.askNum(item); return { ans: await np.p, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.want + item.w ? 'perimInner' : k < item.want ? 'perimMiss' : 'perimOff' }; },
   async hint2() { await S('gen.a2.hint.perimH'); }, async together() {},
@@ -226,8 +226,8 @@ ITEM.a2Conv = { ...a2NumItem,
     return { ...spec, from, v, want, nums: shuffle([want, ...[...new Set(errs)].slice(0, 2)]), tag: 'a2conv-' + from + (room ? '-room' : '') }; },
   async ask(item, mode, tries) { const svg = m3Stage(250), to = item.from === 'm2' ? 'cm2' : 'm2';
     if (item.room) { const [l, w] = item.room, k = Math.min(200 / l, 120 / w, 40), u = item.u === 'm' ? 'm' : 'cm', W = item.u === 'm' ? l * k : 210, H = item.u === 'm' ? w * k : 105, x0 = 180 - W / 2, y0 = 30;
-      el('rect', { x: x0, y: y0, width: W, height: H, fill: '#f2e6cf', stroke: '#b9794e', 'stroke-width': 3, 'pointer-events': 'none' }, svg); htLab(svg, [180, y0 + H + 18], htCm(l, u)); htLab(svg, [x0 + W + 30, y0 + H / 2], htCm(w, u)); a2Card(svg, 180, 210, null, to, { stroke: css('--think'), col: css('--think'), dash: '6 4', w: 150 }); }
-    else { a2Card(svg, 262, 110, item.v, item.from, { w: 150 }); const eq = el('text', { x: 180, y: 120, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: A2.ink }, svg); eq.textContent = '='; a2Card(svg, 92, 110, null, to, { stroke: css('--think'), col: css('--think'), dash: '6 4', w: 140 }); }
+      el('rect', { x: x0, y: y0, width: W, height: H, fill: '#f2e6cf', stroke: '#b9794e', 'stroke-width': 3, 'pointer-events': 'none' }, svg); htLab(svg, [180, y0 + H + 18], htCm(l, u)); htLab(svg, [x0 + W + 30, y0 + H / 2], htCm(w, u)); a2Card(svg, 180, 210, null, to, { stroke: THINK_INK, col: THINK_INK, dash: '6 4', w: 150 }); }
+    else { a2Card(svg, 262, 110, item.v, item.from, { w: 150 }); const eq = el('text', { x: 180, y: 120, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: A2.ink }, svg); eq.textContent = '='; a2Card(svg, 92, 110, null, to, { stroke: THINK_INK, col: THINK_INK, dash: '6 4', w: 140 }); }
     if (tries >= 3) { hintCard(svg, 180, item.room ? 150 : 190, `1 ${labelText('arM2')} = 10000 ${labelText('arCm2')}`); await S('gen.a2.together.conv'); }
     else await S(item.q || (item.room ? 'gen.a2.q.room.' + to : 'gen.a2.q.to.' + to));
     const np = await this.askNum(item); return { ans: await np.p, ctx: { svg } }; },
@@ -274,7 +274,7 @@ ITEM.a2Machine = {
   make(spec) { const op = spec.from === 'm2' ? 'mul' : 'div'; return { ...spec, op, want: op + 10000, tag: 'a2-machine' }; },
   async ask(item, mode, tries) { const svg = m3Stage(250), g = el('g', {}, svg), to = item.from === 'm2' ? 'cm2' : 'm2';
     el('rect', { x: 128, y: 62, width: 104, height: 92, rx: 16, fill: '#6c7fa8', stroke: '#4a5a80', 'stroke-width': 3 }, g); el('circle', { cx: 180, cy: 82, r: 9, fill: '#f2b33d' }, g); const disp = el('text', { x: 180, y: 130, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: '#fff', direction: 'ltr' }, g); disp.textContent = '؟';
-    a2Card(g, 300, 108, item.v, item.from, { w: 112, fs: 17 }); const out = a2Card(g, 60, 108, null, to, { w: 112, fs: 17, stroke: css('--think'), col: css('--think'), dash: '6 4' });
+    a2Card(g, 300, 108, item.v, item.from, { w: 112, fs: 17 }); const out = a2Card(g, 60, 108, null, to, { w: 112, fs: 17, stroke: THINK_INK, col: THINK_INK, dash: '6 4' });
     for (const x2 of [236, 118]) geoArrow(g, x2, 108, 180, A2.ink, 9);
     if (tries >= 3) hintCard(svg, 180, 200, `1 ${labelText('arM2')} = 10000 ${labelText('arCm2')}`);
     await S(tries >= 3 ? 'gen.a2.together.machine' : item.q || 'gen.a2.q.machine');
@@ -337,7 +337,7 @@ SCENES.compShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el
   g.remove(); g = el('g', {}, svg); C = a2CompDraw(g, { fig: 'notch', W: 10, H: 8, a: 4, b: 4 }); a2CompParts(g, C); t.textContent = '80 − 8 = 72'; SFX.tick(); await S(L[1]);
   g.remove(); g = el('g', {}, svg); const pts = [[0, 0], [8, 0], [8, 6], [4, 9], [0, 6]], D = a2Fig(g, pts, {}), Q = pts.map(D.M); a2Poly(g, Q, A2.fill); const a = D.M([0, 6]), b = D.M([8, 6]); geoLine(g, a[0], a[1], b[0], b[1], { color: A2.ghost, w: 2, dash: '5 5' });
   for (const [p, d, v] of [[[4, 0], [0, -.75], 8], [[8, 3], [.9, 0], 6], [[6, 7.5], [.8, .5], 5], [[2, 7.5], [-.8, .5], 5], [[0, 3], [-.9, 0], 6]]) htLab(g, D.M([p[0] + d[0], p[1] + d[1]]), htCm(v, 'm'), A2.ink, 14);
-  const walk = el('polygon', { points: polyStr(Q), fill: 'none', stroke: css('--think'), 'stroke-width': 6, opacity: .7, 'pointer-events': 'none' }, g); void walk; t.textContent = '8 + 6 + 5 + 5 + 6 = 30'; SFX.tick(); for (const l of L.slice(2)) await S(l); };
+  const walk = el('polygon', { points: polyStr(Q), fill: 'none', stroke: THINK_INK, 'stroke-width': 6, opacity: .7, 'pointer-events': 'none' }, g); void walk; t.textContent = '8 + 6 + 5 + 5 + 6 = 30'; SFX.tick(); for (const l of L.slice(2)) await S(l); };
 /* الإشعال (د4): المتر المربع، ومربع 100 سم² (ضلعه 10 سم) صغير في ركنه */
 SCENES.m2Hook = async c => { const L = c.lines, svg = m3Stage(250), x0 = 120, y0 = 20, s = 172, g = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: x0, y: y0, width: s, height: s, fill: '#f6eccf', stroke: A2.ink, 'stroke-width': 3 }, g);
   htLab(g, [x0 + s / 2, y0 + s + 16], `1 ${U_('m')} = 100 ${U_('cm')}`, A2.ink, 14); const fz = chaosAt(svg, 50, 60, .4); chaosGiggle(fz); const t = a2Formula(svg, `1 ${labelText('arM2')} = 100 ${labelText('arCm2')} ؟`, A2.bad); await S(L[0]);
