@@ -416,7 +416,8 @@
      "phi": 35,
      "given": 4,
      "ask": 6,
-     "q": "gen.ar.q.ang"
+     "q": "gen.ar.q.ang",
+     "rot": 20
     }
    },
    {

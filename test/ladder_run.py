@@ -76,6 +76,9 @@ HELP2 = {'decPointer', 'decConv', 'decOrder', 'decCalc', 'decCmp', 'decRuler', '
          'soCount', 'soEdgeHunt', 'soArea', 'voCount', 'voFill', 'voCalc',
          'raTable', 'raEq', 'enDims', 'enArea', 'enDraw', 'enYN', 'scConv', 'scBig', 'scDraw', 'scRoom', 'arComp', 'arPair', 'arVert', 'arWhich', 'arTrCalc', 'arPar', 'arTurn', 'prChain', 'prReason', 'ineqYN', 'ineqRange', 'ineqPick', 'polyTri', 'polySum', 'polyReg', 'isoTrap', 'polyBuild'}   # M4-U1/U2 (المراجع A لبوابة M4-U1/U2، 22)   # S3-U10: المستوى الثاني رسمٌ يبقى (المراجع A لبوابة S3-U10، 10)   # المراجع B لبوابة S3-U8/U9، 11   # المراجع B لبوابة S3-U6/U7، 6
 H2 = "() => !!document.querySelector('#stage [data-help], #stage .pick.tried, #stage .pick.mine')"
+# وفي M4-U1/U2 المستوى الثاني رسمٌ لا بطاقةٌ مكتوبة وحدها (D286 (3)؛ المراجع B لبوابة M4-U1/U2، 8): شكلٌ (قوس، خط، مضلّع…) داخل data-help
+HELP2_DRAW = {'arComp', 'arPair', 'arVert', 'arWhich', 'arTrCalc', 'arPar', 'arTurn', 'prChain', 'prReason', 'ineqYN', 'ineqRange', 'ineqPick', 'polyTri', 'polySum', 'polyReg', 'isoTrap', 'polyBuild'}
+H2D = "() => !!document.querySelector(['path', 'line', 'circle', 'polygon', 'polyline'].map(t => '#stage [data-help] ' + t).join(', '))"
 # ولا يرسم المستوى الثاني الجوابَ في بنود النقطة الواحدة: لا حلقة مساعدة على موضع الجواب (المراجع B لبوابة S3-U6/U7، 2 و18)؛ والحلّ المشترك فيها مرسوم (3)
 ONANS = """() => { const W = window.__axWant || (window.__gridPtWant ? [window.__gridPtWant] : null), at = window.__axWant ? window.__axAt : window.__gridPtAt; if (!W || W.length !== 1 || !at) return null;
   const p = at(W[0][0], W[0][1]); return [...document.querySelectorAll('#stage [data-help] circle')].some(c => { const r = c.getBoundingClientRect(); return Math.hypot((r.left + r.right) / 2 - p.x, (r.top + r.bottom) / 2 - p.y) < 4; }); }"""
@@ -88,10 +91,10 @@ async def main():
     await pg.evaluate("""() => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([{ id: 'k1', name: 'سلمى', gender: 'f' }])); localStorage.setItem('hp_kid', JSON.stringify('k1'));
       localStorage.setItem('hp_settings:k1', JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:k1', JSON.stringify({ schema: 3, unlockAll: true })); }""")
     await pg.reload(); await pg.wait_for_timeout(500)
-    items = await pg.evaluate(LIST, ONLY); per = {}; n_run = 0; drawn = {}; onright = {}; lvl2 = {}
+    items = await pg.evaluate(LIST, ONLY); per = {}; n_run = 0; drawn = {}; onright = {}; lvl2 = {}; lvl2d = {}
     lrsaid = []; unders = []; laps = []; orders = []; counted = []; covers = []; onans = []; onetog = []
     for lid, key, typ, n, rowhelp, side, ans, ask in items:
-      e0 = len(errs); await pg.evaluate(START, n); last = -1; fourth = None; third = None; res = None; tag0 = '%s %s (%s)' % (lid, key, typ)
+      e0 = len(errs); await pg.evaluate(START, n); last = -1; fourth = None; third = None; third_d = None; res = None; tag0 = '%s %s (%s)' % (lid, key, typ)
       for _ in range(1500):
         st = await pg.evaluate(STATE)
         if len(errs) > e0: break
@@ -99,7 +102,7 @@ async def main():
         a = st['auto']
         if a and a['n'] != last:
           last = a['n']
-          if not st['twin'] and st['fails'] == 2 and third is None: await pg.wait_for_timeout(40); third = await pg.evaluate(H2); oa = typ in ('xfDraw', 'coordPlace', 'enDraw') and await pg.evaluate(ONANS); (onans.append(tag0) if oa else None)
+          if not st['twin'] and st['fails'] == 2 and third is None: await pg.wait_for_timeout(40); third = await pg.evaluate(H2); third_d = (await pg.evaluate(H2D)) if typ in HELP2_DRAW else None; oa = typ in ('xfDraw', 'coordPlace', 'enDraw') and await pg.evaluate(ONANS); (onans.append(tag0) if oa else None)
           if not st['twin'] and st['fails'] == 3 and fourth is None: ot = (await pg.evaluate(ONE_TOG)) if typ == 'xfDraw' else None; (onetog.append(tag0) if ot is False else None)
           if not st['twin'] and st['fails'] == 3 and fourth is None: fourth = await pg.evaluate(GONE)   # انتظار المحاولة الرابعة: ما رُسم منذ الحكم الثالث
           h = 'wrong' if not st['twin'] and a['wrong'] and st['fails'] < 3 else 'ok'
@@ -112,6 +115,7 @@ async def main():
       if fourth is None: continue   # بند بلا خطأ مقصود (لا يبلغ المحاولة الرابعة)
       per.setdefault(typ, []).append((fourth, tag))
       if typ in HELP2: lvl2.setdefault(typ, []).append((third, tag))
+      if typ in HELP2_DRAW: lvl2d.setdefault(typ, []).append((third_d, tag))
       if typ in HELP_DRAWN and (typ != 'lineTap' or rowhelp): drawn.setdefault(typ, []).append((fourth[3], tag))
       if typ in ('lrTap', 'lrPick'):
         onright.setdefault(typ, []).append((fourth[4], tag)); want = 'gen.lr.togetherL' if side == 'L' else 'gen.lr.together'
@@ -134,6 +138,9 @@ async def main():
     for typ, L in sorted(lvl2.items()):
       miss = [t for h, t in L if not h]
       check(not miss, '%s: المستوى الثاني باقٍ على مسرح المحاولة الثالثة (%d%s)' % (typ, len(L), '' if not miss else '؛ بلا شيء: ' + ', '.join(miss[:3])))
+    for typ, L in sorted(lvl2d.items()):
+      miss = [t for h, t in L if not h]
+      check(not miss, '%s: المستوى الثاني رسمٌ (شكلٌ في المساعدة، لا بطاقة وحدها) (%d%s)' % (typ, len(L), '' if not miss else '؛ بطاقةٌ وحدها: ' + ', '.join(miss[:3])))
     for typ, L in sorted(onright.items()):
       off = [t for h, t in L if h is not True]
       check(not off, '%s: هالة الحلّ المشترك على اليد اليمنى للطفل المرسوم (%d%s)' % (typ, len(L), '' if not off else '؛ في غيرها: ' + ', '.join(off[:3])))

@@ -28,7 +28,7 @@ ITEM.c8Half = cpItem({ H: 236, tLine: 'gen.c8.together.half', hint: 'gen.c8.hint
     const w = arArc(g, V, 0, item.deg, { r: 42, col: C8.ray, ...(item.ask === 'whole' ? { lab: '؟' } : { deg: item.deg }), dl: 20, fs: 15 });
     const h = arArc(g, V, 0, item.deg / 2, { r: 74, col: C8.bis, ...(item.ask === 'whole' ? { deg: item.deg / 2 } : { lab: '؟' }), dl: 18, fs: 15, fill: true });
     if (tries >= 3) ciEq(helpG(svg), 220, 40, item.ask === 'whole' ? `${item.deg / 2} × 2 = ؟` : `${item.deg} ÷ 2 = ؟`, C8.hl, 17); return { q: item.ask === 'whole' ? w : h }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 220, 40, labelText('c8RuleBis'), C8.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 220, 40, labelText('c8RuleBis'), C8.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) arSetDeg(ctx.q, item.want, C8.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
   errOf: (it, k) => it.ask === 'whole' ? (k === it.deg / 2 ? 'bisNoDouble' : 'bisOff') : k === it.deg ? 'bisNoHalf' : 'bisOff' });
@@ -40,7 +40,7 @@ ITEM.c8EqDist = cpItem({ H: 236, tLine: 'gen.c8.together.eqd', hint: 'gen.c8.hin
     const F1 = [N[0], V[1]], u = [Math.cos(d * Math.PI / 180), -Math.sin(d * Math.PI / 180)], t = (N[0] - V[0]) * u[0] + (N[1] - V[1]) * u[1], F2 = [V[0] + u[0] * t, V[1] + u[1] * t];
     for (const F of [F1, F2]) { geoLine(g, N[0], N[1], F[0], F[1], { color: C8.opp, w: 2.6, dash: '5 4' }); preRight(g, F, N, F === F1 ? V : V, 9); } pfDot(g, N); pfLab(g, N[0] + 12, N[1] - 6, 'ن', { fs: 15 });
     if (tries >= 3) { const h = helpG(svg), Q = c8Ray(V, d / 2, 200); geoLine(h, V[0], V[1], Q[0], Q[1], { color: C8.bis, w: 3, dash: '8 5' }); } return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 190, 30, labelText('c8RuleEqd'), C8.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 190, 30, labelText('c8RuleEqd'), C8.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => k === 'yes' ? 'eqdOffYes' : 'eqdOnNo' });
 
@@ -56,7 +56,7 @@ ITEM.c8Pb = cpItem({ H: 236, tLine: 'gen.c8.together.pb', hint: 'gen.c8.hint.pb'
     else { geoLine(g, F.N[0], F.N[1], F.A[0], F.A[1], { color: C8.opp, w: 3 }); geoLine(g, F.N[0], F.N[1], F.B[0], F.B[1], { color: C8.opp, w: 3 }); pfDot(g, F.N); pfLab(g, F.N[0] + 12, F.N[1] - 4, 'ن', { fs: 15 });
       preLab(g, (F.A[0] + F.M[0]) / 2, F.M[1] + 22, MS(String(item.half)), { fs: 16 }); preLab(g, F.M[0] + 10, (F.M[1] + F.N[1]) / 2 + 6, MS(String(item.h)), { fs: 16, anchor: 'start', col: C8.bis }); preLab(g, (F.N[0] + F.B[0]) / 2 + 12, (F.N[1] + F.B[1]) / 2, '؟', { fs: 18, col: C8.q, anchor: 'start' }); }
     if (tries >= 3) ciEq(helpG(svg), 180, 24, item.ask === 'mid' ? `${2 * item.half} ÷ 2 = ؟` : `${item.half} × ${item.half} + ${item.h} × ${item.h} = ${item.na * item.na}`, C8.hl, 16); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 24, labelText(item.ask === 'mid' ? 'c8RuleMid' : 'c8RulePb'), C8.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 24, labelText(item.ask === 'mid' ? 'c8RuleMid' : 'c8RulePb'), C8.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => it.ask === 'mid' ? (k === 2 * it.half ? 'midNoHalf' : 'midOff') : k === it.half + it.h ? 'pyAdd' : 'pbOff' });
 
@@ -68,7 +68,7 @@ ITEM.c8Which = cpItem({ H: 236, tLine: 'gen.c8.together.which', hint: 'gen.c8.hi
     const real = item.flip ? { opp: 'adj', adj: 'opp', hyp: 'hyp' }[item.side] : item.side, P = { opp: [T.C, T.B], adj: [T.A, T.C], hyp: [T.A, T.B] }[real];
     geoLine(g, P[0][0], P[0][1], P[1][0], P[1][1], { color: C8.q, w: 7 }); pfDot(g, V);
     if (tries >= 3) c8Sides(helpG(svg), T, item.flip ? { adj: labelText('c8S.opp'), opp: labelText('c8S.adj'), hyp: labelText('c8S.hyp') } : { adj: labelText('c8S.adj'), opp: labelText('c8S.opp'), hyp: labelText('c8S.hyp') }, { flip: item.flip }); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 24, labelText('c8RuleSides'), C8.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 24, labelText('c8RuleSides'), C8.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(['opp', 'adj', 'hyp'].map(k => [k, labelText('c8S.' + k), '<i></i>', 'gen.c8.side.' + k]), item.want),
   errOf: (it, k) => k === 'hyp' || it.want === 'hyp' ? 'trigHyp' : 'trigSwap' });
 
@@ -82,7 +82,7 @@ ITEM.c8Ratio = cpItem({ H: 250, tLine: 'gen.c8.together.ratio', hint: 'gen.c8.hi
   draw(svg, item, tries) { const g = el('g', {}, svg), T = c8Tri(g, item.a, item.b, { y0: 214, x0: 70, u: Math.min(210 / item.a, 140 / item.b) }); arArc(g, T.A, 0, T.ang, { r: 34, col: C8.bis, fill: true });
     c8Sides(g, T, { adj: MS(String(item.a)), opp: MS(String(item.b)), hyp: MS(String(item.hy)) }); c8FnLabel(g, 270, 40, item.fn, null, { tail: '؟ =' });
     if (tries >= 3) { const r = { sin: [item.b, item.hy], cos: [item.a, item.hy], tan: [item.b, item.a] }[item.fn]; ciEq(helpG(svg), 110, 40, `${r[0]} ÷ ${r[1]} = ؟`, C8.hl, 17); } return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 70, labelText('c8Rule.' + item.fn), C8.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 70, labelText('c8Rule.' + item.fn), C8.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), MS(String(v)), '<i></i>', 'gen.c8.v.' + c8Key(v)])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'trigOff' });
 ITEM.c8Ratio.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(v) === k) || [])[1] || 'trigOff' };
@@ -94,8 +94,8 @@ ITEM.c8Table = cpItem({ H: 236, tLine: 'gen.c8.together.table', hint: 'gen.c8.hi
   draw(svg, item, tries) { const g = el('g', {}, svg), T = c8Tri(g, item.deg === 45 ? 1 : item.deg === 30 ? 1.73 : 1, item.deg === 60 ? 1.73 : 1, { y0: 214, x0: 80, u: item.deg === 30 ? 130 : item.deg === 45 ? 140 : 100 });
     arArc(g, T.A, 0, T.ang, { r: 34, col: C8.bis, deg: item.deg, dl: 22, fs: 14, fill: true }); c8FnLabel(g, 250, 40, item.fn, item.deg);
     if (tries >= 3) { const h = helpG(svg); c8Sides(h, T, { adj: labelText('c8S.adj'), opp: labelText('c8S.opp'), hyp: labelText('c8S.hyp') }); } return {}; },
-  sayQ: async it => { await sayDeg(it.deg); await S('gen.c8.q.tableEnd', { append: true }); },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 150, 80, labelText('c8Rule.' + item.fn), C8.hl, 13); await sleep(FAST ? 10 : 250); },
+  sayQ: async it => { await sayDeg(it.deg); await S('gen.c8.q.tableEnd', { append: true, sep: '، ' }); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 150, 80, labelText('c8Rule.' + item.fn), C8.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.ch.map(v => [String(v), MS(String(v)), '<i></i>', 'gen.c8.v.' + c8Key(v)])), String(item.want)),
   errOf: (it, k) => +k === .3 ? 'trig03' : +k === it.deg ? 'trigDeg' : it.fn !== 'tan' && +k === C8_T[it.fn === 'sin' ? 'cos' : 'sin'][it.deg] ? 'trigSinCos' : 'trigOff' });
 
@@ -112,7 +112,7 @@ ITEM.c8Height = cpItem({ H: 250, tLine: 'gen.c8.together.height', hint: 'gen.c8.
     preLab(g, (F.G0[0] + F.X[0]) / 2, F.G0[1] + 22, ciTxt(item.dist, 'm'), { fs: 15, dir: 'rtl' }); preLab(g, F.X[0] + 26, (F.X[1] + F.Top[1]) / 2, '؟', { fs: 20, col: C8.q });
     const tl = el('g', { 'pointer-events': 'none' }, svg); c8FnLabel(tl, 110, 32, 'tan', item.deg, { fs: 16, tail: MS(String(C8_T.tan[item.deg])) + ' =' });
     if (tries >= 3) ciEq(helpG(svg), 270, 32, `${item.dist} × ${C8_T.tan[item.deg]} = ؟`, C8.hl, 16); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 250, 62, labelText('c8RuleHeight'), C8.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 250, 62, labelText('c8RuleHeight'), C8.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), ciTxt(v, 'm'), '<i></i>', ciLine(v, 'm')])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'hOff' });
 ITEM.c8Height.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(v) === k) || [])[1] || 'hOff' };

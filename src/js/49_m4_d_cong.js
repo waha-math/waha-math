@@ -24,7 +24,7 @@ ITEM.cgSides = cpItem({ H: 236, tLine: 'gen.cg.together.sides', hint: 'gen.cg.hi
   draw(svg, item, tries) { const g = el('g', {}, svg), mx = Math.max(...item.a, ...item.b), u = Math.min(14, 140 / mx);
     cgTri(g, item.a, { cx: 268, y: 172, u }); cgTri(g, item.b, { cx: 92, y: 172, u, rot: item.rot || 0, flip: !!item.flip, col: CG.b, fill: CG.fb });
     if (tries >= 3) { const A = cgSorted(item.a), B = cgSorted(item.b), m = helpG(svg); A.forEach((v, i) => ciEq(m, 180, 40 + i * 22, `${B[i]} ÷ ${v} = ${+(B[i] / v).toFixed(2)}`, CG.hl, 15)); } return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('cgRuleSides'), CG.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('cgRuleSides'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(['cong', 'sim', 'none'].map(k => [k, labelText('cgK.' + k), '<i></i>', 'gen.cg.k.' + k]), item.want),
   errOf: (it, k) => it.want === 'sim' && k === 'cong' ? 'cgSimAsCong' : it.want === 'cong' && k === 'sim' ? 'cgCongAsSim' : k === 'none' ? 'cgMissed' : 'cgFalse' });
 
@@ -35,8 +35,8 @@ ITEM.cgPick = cpItem({ H: 262, tLine: 'gen.cg.together.pick', hint: 'gen.cg.hint
     cgTri(g, item.orig, { cx: 196, y: 88, u: uo, col: CG.c, fill: CG.fc }); preLab(g, 318, 40, labelText('cgOrig'), { dir: 'rtl', fs: 15, anchor: 'start' });
     item.order.forEach((ci, pos) => { el('rect', { x: X[pos] - 54, y: 104, width: 108, height: 126, rx: 12, fill: CG.card, stroke: CG.edge, 'stroke-width': 2, 'pointer-events': 'none' }, g);
       preLab(g, X[pos], 124, labelText('pfSet.' + pos), { dir: 'rtl', fs: 13 }); cgTri(g, item.cands[ci], { cx: X[pos], y: 206, u, rot: (item.rots || [30, -20, 15])[pos], col: CG.a, fill: CG.fa, fs: 13 }); });
-    if (tries >= 3) ciRule(helpG(svg), 180, 244, labelText('cgRuleSss'), CG.hl, 13); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 244, labelText('cgRuleSss'), CG.hl, 13); await sleep(FAST ? 10 : 250); },
+    if (tries >= 3) ciRule(helpG(svg), 180, 244, labelText('cgRuleSss'), CG.hl, 15); return {}; },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 244, labelText('cgRuleSss'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick([0, 1, 2].map(p => [String(p), labelText('pfSet.' + p), '<i></i>', 'gen.pf.set.' + p]), item.want),
   errOf: (it, k) => cgRel(it.orig, it.cands[it.order[+k]]) === 'sim' ? 'cgSimAsCong' : 'cgSideOff' });
 
@@ -52,7 +52,7 @@ ITEM.simYN = cpItem({ H: 236, tLine: 'gen.cg.together.simYN', hint: 'gen.cg.hint
   draw(svg, item, tries) { const g = el('g', {}, svg), mx = Math.max(...item.a, ...item.b), u = Math.min(22, 130 / mx);
     simShape(g, item.fig, item.a, { cx: 262, y: 186, u, col: CG.a, fill: CG.fa }); simShape(g, item.fig, item.b, { cx: 96, y: 186, u, col: CG.b, fill: CG.fb });
     if (tries >= 3) { const A = item.fig === 'tri' ? cgSorted(item.a) : item.a, B = item.fig === 'tri' ? cgSorted(item.b) : item.b, m = helpG(svg); A.forEach((v, i) => ciEq(m, 180, 36 + i * 22, `${B[i]} ÷ ${v} = ${+(B[i] / v).toFixed(2)}`, CG.hl, 15)); } return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('cgRuleSim'), CG.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('cgRuleSim'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => k === 'yes' ? 'simAnglesOnly' : 'simNo' });
 
@@ -63,8 +63,8 @@ ITEM.quadDiag = cpItem({ H: 220, tLine: 'gen.cg.together.qd', hint: 'gen.cg.hint
   draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg); ['mid', 'eq', 'perp'].forEach((k, i) => { const y = 34 + i * 52, on = !!item.info[k];
       el('rect', { x: 34, y, width: 292, height: 42, rx: 10, fill: on ? 'rgba(47,157,107,.10)' : '#f6f2ea', stroke: on ? CG.ok : CG.edge, 'stroke-width': 2 }, g);
       preLab(g, 312, y + 27, labelText('qdInfo.' + k), { dir: 'rtl', fs: 15, anchor: 'start' }); preLab(g, 62, y + 28, on ? labelText('qdYes') : labelText('qdNo'), { dir: 'rtl', fs: 15, col: on ? CG.ok : '#8a7f6e' }); });
-    if (tries >= 3) ciRule(helpG(svg), 180, 204, labelText('cgRuleQd'), CG.hl, 13); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 204, labelText('cgRuleQd'), CG.hl, 13); await sleep(FAST ? 10 : 250); },
+    if (tries >= 3) ciRule(helpG(svg), 180, 204, labelText('cgRuleQd'), CG.hl, 15); return {}; },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 204, labelText('cgRuleQd'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(item.cands.map(k => [k, labelText('qdName.' + k), '<i></i>', 'gen.cg.qd.' + k]), item.want),
   errOf: (it, k) => it.want === 'unk' ? 'qdEqOnly' : k === 'para' ? 'qdMissProp' : k === 'unk' ? 'qdNoConv' : 'qdWrongName' });
 
@@ -77,7 +77,7 @@ ITEM.perpArea = cpItem({ H: 250, tLine: 'gen.cg.together.perp', hint: 'gen.cg.hi
     el('path', { d: `M${M[0] + 10} ${M[1]} L${M[0] + 10} ${M[1] - 10} L${M[0]} ${M[1] - 10}`, fill: 'none', stroke: CG.ink, 'stroke-width': 1.6 }, g);
     preLab(g, (L[0] + R[0]) / 2 + 30, M[1] + 22, MS(String(item.p)), { col: CG.a, fs: 15 }); preLab(g, M[0] + 14, (T[1] + M[1]) / 2, MS(String(item.r)), { col: CG.b, fs: 15, anchor: 'start' });
     if (tries >= 3) ciEq(helpG(svg), 180, 238, `${item.p} × ${item.r} ÷ 2 = ؟`, CG.hl, 17); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 236, labelText('cgRulePerp'), CG.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 236, labelText('cgRulePerp'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.p * it.r ? 'dgNoHalf' : k === it.p + it.r ? 'dgSum' : 'a2AreaOff' });
 
@@ -108,11 +108,11 @@ SCENES.sssBuild = async c => { const L = c.lines, svg = m3Stage(262), g = el('g'
   geoLine(g, A[0], A[1], B[0], B[1], { color: CG.a, w: 4 }); preLab(g, 180, 184, MS(String(s[0])), { fs: 15 }); await cgSay(L, 0);
   el('path', { d: angArc(B, s[1] * u, 60, 180), fill: 'none', stroke: CG.b, 'stroke-width': 2.2, 'stroke-dasharray': '5 4' }, g); el('path', { d: angArc(A, s[2] * u, 0, 120), fill: 'none', stroke: CG.b, 'stroke-width': 2.2, 'stroke-dasharray': '5 4' }, g); SFX.tick(); await cgSay(L, 1);
   geoLine(g, B[0], B[1], C[0], C[1], { color: CG.a, w: 4 }); geoLine(g, A[0], A[1], C[0], C[1], { color: CG.a, w: 4 }); pfDot(g, C); for (const P2 of [A, B]) pfDot(g, P2);
-  ciRule(g, 180, 30, labelText('cgRuleSss'), CG.ok, 13); for (const l of L.slice(2)) await S(l); };
+  ciRule(g, 180, 30, labelText('cgRuleSss'), CG.ok, 15); for (const l of L.slice(2)) await S(l); };
 /* د2: الزاوية المحصورة وغير المحصورة، ثم ASA */
 SCENES.cgSasShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg);
   const one = cs => { g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); preCaseTris(g, cs); };
-  one('sas'); await cgSay(L, 0); one('ssa'); SFX.tick(); await cgSay(L, 1); one('asa'); SFX.tick(); await cgSay(L, 2); one('sas'); ciRule(g, 180, 30, labelText('cgRulePost'), CG.ok, 13); for (const l of L.slice(3)) await S(l); };
+  one('sas'); await cgSay(L, 0); one('ssa'); SFX.tick(); await cgSay(L, 1); one('asa'); SFX.tick(); await cgSay(L, 2); one('sas'); ciRule(g, 180, 30, labelText('cgRulePost'), CG.ok, 15); for (const l of L.slice(3)) await S(l); };
 /* د3: التكبير بمعامل والتطابق بمعامل 1، والضلع المجهول */
 SCENES.simShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), a = c.a || [4, 6, 8], k = c.k || 1.5;
   cgTri(g, a, { cx: 266, y: 190, u: 12 }); await cgSay(L, 0); cgTri(g, a.map(v => v * k), { cx: 100, y: 190, u: 12, col: CG.b, fill: CG.fb }); SFX.tick();

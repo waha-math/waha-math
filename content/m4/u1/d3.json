@@ -213,6 +213,7 @@
     "given": 4,
     "ask": 8,
     "q": "gen.ar.q.ang",
+    "rot": -20,
     "twin": {
      "t": "arTrCalc",
      "phi": 55,
@@ -377,7 +378,8 @@
      "phi": 75,
      "given": 8,
      "ask": 4,
-     "q": "gen.ar.q.ang"
+     "q": "gen.ar.q.ang",
+     "rot": 25
     },
     {
      "t": "reason",

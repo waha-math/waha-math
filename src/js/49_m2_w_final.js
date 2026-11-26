@@ -37,7 +37,7 @@ function certAt(svg, x, y, st = 'm2') { const CL = FINALS[st].cert; const g = el
   el('rect', { x: -150, y: -96, width: 300, height: 192, rx: 18, fill: '#fffdf6', stroke: '#c9a54a', 'stroke-width': 6 }, g);
   el('rect', { x: -138, y: -84, width: 276, height: 168, rx: 12, fill: 'none', stroke: '#e8d5a8', 'stroke-width': 2 }, g);
   const t = el('text', { x: 0, y: -26, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: '#7a5b1e' }, g); t.textContent = G(labelText(CL[0]));
-  const s2 = el('text', { x: 0, y: 12, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 700, fill: css('--ink') }, g); s2.textContent = labelText(CL[1]);
+  const s2 = el('text', { x: 0, y: 12, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 700, fill: '#5b4a2a' }, g); s2.textContent = labelText(CL[1]);   /* على ورق الشهادة الفاتح في الوضعين (كان --ink فيفتح ليلاً: فحص التباين) */
   for (const dx of [-60, 0, 60]) el('path', { d: `M${dx} 34 l7 15 16 2 -12 11 3 16 -14 -8 -14 8 3 -16 -12 -11 16 -2 Z`, fill: '#f2b33d', stroke: '#b9862a', 'stroke-width': 1.5 }, g);
   return g; }
 

@@ -19,7 +19,7 @@ ITEM.ci4Chord = cpItem({ H: 236, tLine: 'gen.ci4.together.chord', hint: 'gen.ci4
   make: s => ({ want: ['chord', 'diam'].includes(s.seg) ? 'yes' : 'no', tag: 'ci4-chord-' + s.seg }),
   draw(svg, item, tries) { const g = el('g', {}, svg), O = [180, 118], R = 88, [P, Q] = C6_SEG(O, R, item.seg, item.rot ?? 200); c6Circle(g, O, R); c6Seg(g, P, Q, C6.ch, 4.4); [P, Q].forEach(X => pfDot(g, X));
     if (tries >= 3) { const h = helpG(svg); [P, Q].forEach(X => el('circle', { cx: X[0], cy: X[1], r: 11, fill: 'none', stroke: C6.hl, 'stroke-width': 3, 'stroke-dasharray': '4 3' }, h)); } return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 18, labelText('ci4RuleChord'), C6.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 18, labelText('ci4RuleChord'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.seg === 'diam' ? 'ciDiamNotChord' : it.seg === 'chord' ? 'ciChordNo' : it.seg === 'rad' ? 'ciRadChord' : 'ciInsideChord' });
 
@@ -39,7 +39,7 @@ ITEM.ci4Half = cpItem({ H: 262, tLine: 'gen.ci4.together.half', hint: 'gen.ci4.h
     if (tries >= 3) { const h = helpG(svg);
       const s = { half: `${2 * item.h} ÷ 2 = ؟`, chord: `${item.r} × ${item.r} − ${item.d} × ${item.d} = ${item.h * item.h}`, r: `${item.h} × ${item.h} + ${item.d} × ${item.d} = ${item.r * item.r}`, d: `${item.r} × ${item.r} − ${item.h} × ${item.h} = ${item.d * item.d}` }[ask];
       ciEq(h, 180, 248, s, C6.hl, 16); } return { L }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 18, labelText(item.ask === 'half' ? 'ci4RuleHalf' : 'ci4RulePy'), C6.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 18, labelText(item.ask === 'half' ? 'ci4RuleHalf' : 'ci4RulePy'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => ({ half: { [2 * it.h]: 'ciNoHalf' }, chord: { [it.h]: 'ciChordHalfOnly', [it.r + it.d]: 'pyAdd' }, r: { [it.h + it.d]: 'pyAdd', [2 * it.h]: 'ciFullChord' }, d: { [it.r - it.h]: 'pySub', [it.h]: 'ciDOff' } }[it.ask][k] || 'ciHalfOff') });
 
@@ -52,7 +52,7 @@ ITEM.ci4Tan = cpItem({ H: 236, tLine: 'gen.ci4.together.tan', hint: 'gen.ci4.hin
   make: s => ({ want: s.kind === 'tan' ? 'yes' : 'no', tag: 'ci4-tan-' + s.kind }),
   draw(svg, item, tries) { const g = el('g', {}, svg), O = [180, 120], R = 74; c6Circle(g, O, R); const X = c6LineAt(g, O, R, item.dir ?? 60, { tan: R, sec: R * .62, out: R * 1.22 }[item.kind]);
     if (tries >= 3) { const h = helpG(svg); X.pts.forEach(P => el('circle', { cx: P[0], cy: P[1], r: 9, fill: 'none', stroke: C6.hl, 'stroke-width': 3 }, h)); } return { X }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 18, labelText('ci4RuleTan'), C6.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 18, labelText('ci4RuleTan'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.kind === 'tan' ? 'ciTanNo' : it.kind === 'sec' ? 'ciSecTan' : 'ciOutTan' });
 
@@ -70,7 +70,7 @@ ITEM.ci4TanLen = cpItem({ H: 250, tLine: 'gen.ci4.together.tanLen', hint: 'gen.c
     const lo = c6Num(g, (F.O[0] + F.P[0]) / 2 + 20, F.O[1] + 22, a === 'op' ? q : item.op, { col: a === 'op' ? C6.q : C6.ink });
     if (tries >= 3) { const s = { len: `${item.op} × ${item.op} − ${item.r} × ${item.r} = ${item.len * item.len}`, op: `${item.len} × ${item.len} + ${item.r} × ${item.r} = ${item.op * item.op}`, r: `${item.op} × ${item.op} − ${item.len} × ${item.len} = ${item.r * item.r}` }[a]; ciEq(helpG(svg), 180, 238, s, C6.hl, 16); }
     return { L: { r: lr, len: ll, op: lo } }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 22, labelText('ci4RuleTanR'), C6.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 22, labelText('ci4RuleTanR'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => ({ len: { [it.op - it.r]: 'pySub', [it.op + it.r]: 'pyAdd' }, op: { [it.len + it.r]: 'pyAdd', [it.len]: 'ciTanOff' }, r: { [it.op - it.len]: 'pySub', [it.len]: 'ciTanOff' } }[it.ask][k] || 'ciTanOff') });
 
@@ -80,8 +80,8 @@ ITEM.ci4TanAng = cpItem({ H: 250, tLine: 'gen.ci4.together.tanAng', hint: 'gen.c
   draw(svg, item, tries) { const g = el('g', {}, svg), op = 1 / Math.cos(item.th * Math.PI / 180), F = c6TanFig(g, 1, op);
     arArc(g, F.O, 0, item.th, { r: 26, col: C6.r, deg: item.th, dl: 18, fs: 14, fill: true }); const q = arArc(g, F.P, 180 - (90 - item.th), 180, { r: 34, col: C6.q, lab: '؟', dl: 16, fs: 15, fill: true });
     if (tries >= 3) ciEq(helpG(svg), 180, 238, `180 − 90 − ${item.th} = ؟`, C6.hl, 16); return { q }; },
-  sayQ: async it => { await sayDeg(it.th); await S('gen.ci4.q.tanAngEnd', { append: true }); },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 22, labelText('ci4RuleTanR'), C6.hl, 13); await sleep(FAST ? 10 : 250); },
+  sayQ: async it => { await sayDeg(it.th); await S('gen.ci4.q.tanAngEnd', { append: true, sep: '، ' }); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 22, labelText('ci4RuleTanR'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) arSetDeg(ctx.q, item.want, C6.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.th ? 'ciTanAngSame' : k === 180 - it.th ? 'ciTanAng180' : 'ciTanAngOff' });
@@ -98,8 +98,8 @@ ITEM.ci4Ang = cpItem({ H: 250, tLine: 'gen.ci4.together.ang', hint: 'gen.ci4.hin
     const pd = (a => (a + 360) % 360)(Math.atan2(F.P[1] - F.A[1], F.A[0] - F.P[0]) * 180 / Math.PI), pe = (a => (a + 360) % 360)(Math.atan2(F.P[1] - F.B[1], F.B[0] - F.P[0]) * 180 / Math.PI);
     const i = arArc(g, F.P, Math.min(pd, pe), Math.max(pd, pe), { r: 30, col: C6.ch, ...(cq ? { deg: item.ins } : { lab: '؟' }), dl: 16, fs: 15, fill: true });
     if (tries >= 3) ciEq(helpG(svg), 180, 238, cq ? `${item.ins} × 2 = ؟` : item.cen === 180 ? `180 ÷ 2 = ؟` : `${item.cen} ÷ 2 = ؟`, C6.hl, 16); return { q: cq ? c : i }; },
-  sayQ: async it => { await sayDeg(it.ask === 'cen' ? it.ins : it.cen); await S('gen.ci4.q.ang.' + it.ask + 'End', { append: true }); },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 238, labelText('ci4RuleInsc'), C6.hl, 13); await sleep(FAST ? 10 : 250); },
+  sayQ: async it => { await sayDeg(it.ask === 'cen' ? it.ins : it.cen); await S('gen.ci4.q.ang.' + it.ask + 'End', { append: true, sep: '، ' }); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 238, labelText('ci4RuleInsc'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) arSetDeg(ctx.q, item.want, C6.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
   errOf: (it, k) => it.ask === 'cen' ? (k === it.ins ? 'ciInsEqCen' : 'ciCenOff') : k === it.cen ? 'ciInsEqCen' : k === 2 * it.cen ? 'ciInsDouble' : 'ciInsOff' });
@@ -118,7 +118,7 @@ ITEM.ci4Sector = cpItem({ H: 262, tLine: 'gen.ci4.together.sector', hint: 'gen.c
     arArc(g, O, a1, a2, { r: 22, col: C6.r, deg: item.ang, dl: 20, fs: 14, fill: true });
     if (item.r != null) ciTop(svg, 'r', item.r, item.u, 24); else ciTop(svg, item.C != null ? 'C' : 'A', item.C ?? item.A, item.u, 24);
     if (tries >= 3) ciEq(helpG(svg), 180, 252, `${item.ang} ÷ 360 × ${item.W} = ؟`, C6.hl, 15); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 252, labelText(item.kind === 'arc' ? 'ci4RuleArc' : 'ci4RuleArea').replace('N', MS('360')), C6.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 252, labelText(item.kind === 'arc' ? 'ci4RuleArc' : 'ci4RuleArea').replace('N', MS('360')), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.cands.map(v => [String(v), ciTxt(v, item.uk), '<i></i>', ciLine(v, item.uk)])), String(item.want)),
   errOf: (it, k) => +k === c6R(it.W / 2) ? 'ciArcHalf' : +k === c6R(it.W - it.want) ? 'ciArcOther' : +k === c6R(it.W * it.ang / 180) ? 'ciArcDouble' : 'ciArcOff' });
 { const j0 = ITEM.ci4Sector.judge; ITEM.ci4Sector.judge = (item, k) => k === String(item.want) ? { ok: true } : j0(item, k); }   /* مفاتيح الاختيار نصوص والجواب عدد */

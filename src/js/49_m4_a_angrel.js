@@ -27,19 +27,23 @@ function frameReach(g, V, d, L) { const s = g.ownerSVGElement || g, fr = s && s.
   return Math.max(0, t); }
 function arCross(g, V, th, o = {}) { const L = o.L || 120; for (const d of [0, th]) { const P = angP(V, d, frameReach(g, V, d, L)), Q = angP(V, d + 180, frameReach(g, V, d + 180, L)); geoLine(g, P[0], P[1], Q[0], Q[1], { color: o.col || AR.line, w: 4 }); }
   el('circle', { cx: V[0], cy: V[1], r: 5, fill: ANG.v, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, g); return AR_X(th); }
+/* الوضع غير النمطي (المراجع A لبوابة M4-U1/U2، 9؛ D284 (7)): شكل القاطع كله يدور rot درجة عكس عقارب الساعة حول مركزه AR_TC، والنصوص قائمة */
+const AR_TC = [180, 118], arRotPt = (P, r, C = AR_TC) => { if (!r) return P; const a = r * Math.PI / 180, dx = P[0] - C[0], dy = P[1] - C[1]; return [C[0] + dx * Math.cos(a) + dy * Math.sin(a), C[1] - dx * Math.sin(a) + dy * Math.cos(a)]; };
 /* القاطع: مستقيمان أفقيان (y1 فوق y2) وقاطع يمرّ بـ (cx، المنتصف) باتجاه phi؛ و tilt يميل المستقيم الأسفل (غير متوازيين) */
 function arTrans(g, phi, o = {}) { const y1 = o.y1 ?? 76, y2 = o.y2 ?? 160, cx = o.cx ?? 180, tilt = o.tilt || 0, ym = (y1 + y2) / 2, k = 1 / Math.tan(phi * Math.PI / 180);
+  const rr = o.rot || 0, R = P => arRotPt(P, rr, [cx, ym]), ln = (A, B, op) => { const [a, b] = [R(A), R(B)]; geoLine(g, a[0], a[1], b[0], b[1], op); };   /* rot: الشكل مدارٌ بالحساب لا بالتحويل، فالنصوص قائمة والقياس على الشاشة صادق */
   const xAt = y => cx + (ym - y) * k, T = [xAt(y1), y1];
   const lineY = (x, y0, tl) => y0 - (x - cx) * Math.tan(tl * Math.PI / 180);
-  geoLine(g, 28, y1, 332, y1, { color: o.parCol || AR.par, w: 4 });
-  let B; if (!tilt) { B = [xAt(y2), y2]; geoLine(g, 28, y2, 332, y2, { color: o.parCol || AR.par, w: 4 }); }
-  else { const t = Math.tan(tilt * Math.PI / 180); let x = cx; for (let i = 0; i < 30; i++) { const y = y2 - (x - cx) * t; x = xAt(y); } B = [x, y2 - (x - cx) * t]; geoLine(g, 28, lineY(28, y2, tilt), 332, lineY(332, y2, tilt), { color: o.parCol || AR.par, w: 4 }); }
-  const P = angP(T, phi, frameReach(g, T, phi, o.ext || 52)), Q = angP(B, phi + 180, frameReach(g, B, phi + 180, o.ext || 52)); geoLine(g, P[0], P[1], Q[0], Q[1], { color: AR.tr, w: 4 });
-  if (!tilt && o.marks !== false) for (const y of [y1, y2]) { el('path', { d: `M${300} ${y - 7} l9 7 l-9 7`, fill: 'none', stroke: o.parCol || AR.par, 'stroke-width': 3, 'pointer-events': 'none' }, g); }
-  for (const V of [T, B]) el('circle', { cx: V[0], cy: V[1], r: 4.5, fill: ANG.v, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, g);
+  ln([28, y1], [332, y1], { color: o.parCol || AR.par, w: 4 });
+  let B; if (!tilt) { B = [xAt(y2), y2]; ln([28, y2], [332, y2], { color: o.parCol || AR.par, w: 4 }); }
+  else { const t = Math.tan(tilt * Math.PI / 180); let x = cx; for (let i = 0; i < 30; i++) { const y = y2 - (x - cx) * t; x = xAt(y); } B = [x, y2 - (x - cx) * t]; ln([28, lineY(28, y2, tilt)], [332, lineY(332, y2, tilt)], { color: o.parCol || AR.par, w: 4 }); }
+  const Tr = R(T), Br = R(B), reach = (V, d) => frameReach(g, V, d + rr, o.ext || 52);   /* والقاطع المدار يُقصّ بالورقة بعد دورانه */
+  const P = angP(Tr, phi + rr, reach(Tr, phi)), Q = angP(Br, phi + rr + 180, reach(Br, phi + 180)); geoLine(g, P[0], P[1], Q[0], Q[1], { color: AR.tr, w: 4 });
+  if (!tilt && o.marks !== false) for (const y of [y1, y2]) { const [a, b, c] = [[300, y - 7], [309, y], [300, y + 7]].map(R); el('path', { d: `M${a[0]} ${a[1]} L${b[0]} ${b[1]} L${c[0]} ${c[1]}`, fill: 'none', stroke: o.parCol || AR.par, 'stroke-width': 3, 'pointer-events': 'none' }, g); }
+  for (const V of [Tr, Br]) el('circle', { cx: V[0], cy: V[1], r: 4.5, fill: ANG.v, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, g);
   const t2 = tilt || 0, sec = (V, base) => [[base, phi], [phi, 180 + base], [180 + base, 180 + phi], [180 + phi, 360 + base]];   /* A فوق يمين، B فوق يسار، C تحت يسار، D تحت يمين */
-  const ST = sec(T, 0), SB = sec(B, t2), at = n => { const [V, S] = n <= 4 ? [T, ST] : [B, SB], i = [1, 0, 2, 3][(n - 1) % 4]; return { V, a1: S[i][0], a2: S[i][1] }; };
-  return { T, B, at }; }
+  const ST = sec(T, 0), SB = sec(B, t2), at = n => { const [V, S] = n <= 4 ? [Tr, ST] : [Br, SB], i = [1, 0, 2, 3][(n - 1) % 4]; return { V, a1: S[i][0] + rr, a2: S[i][1] + rr }; };
+  return { T: Tr, B: Br, at }; }
 /* قياس الزاوية n على القاطع phi (مستقيمان متوازيان): 2 و3 و6 و7 = phi، والباقية 180 − phi */
 const arTrVal = (phi, n) => [2, 3, 6, 7].includes(n) ? phi : 180 - phi;
 /* العلاقة بين موضعين على القاطع (للحلّ المشترك بالاسم): كما في build/d240.mjs (arRel) */
@@ -54,7 +58,7 @@ function arAdj(g, a, kind, o = {}) { const V = o.V || [180, 168], L = o.L || 120
   arArc(g, V, 0, a, { r: 40, col: AR.a, deg: a, dl: 18 }); const q = arArc(g, V, a, tot, o.showDeg != null ? { r: 30, col: AR.q, deg: o.showDeg, dl: 22 } : { r: 30, col: AR.q, lab: '؟', dl: 22 });
   el('circle', { cx: V[0], cy: V[1], r: 5, fill: ANG.v, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, g); return { V, q }; }
 ITEM.arComp = cpItem({ H: 236, tLine: 'gen.ar.together.comp', hint: 'gen.ar.hint.comp', rLine: 'gen.ar.reveal.comp', rSay: it => sayDeg(it.want), num: true, praise: 'praiseThink',
-  sayQ: async it => { await sayDeg(it.a); await S(it.kind === 'comp' ? 'gen.ar.q.compEnd' : 'gen.ar.q.suppEnd', { append: true }); },
+  sayQ: async it => { await sayDeg(it.a); await S(it.kind === 'comp' ? 'gen.ar.q.compEnd' : 'gen.ar.q.suppEnd', { append: true, sep: '، ' }); },
   make: s => { const tot = s.kind === 'comp' ? 90 : 180, want = tot - s.a, alt = s.kind === 'comp' ? 180 - s.a : Math.abs(90 - s.a);   /* المكمّلة من التسعين خطأً: الفرق بين الزاوية والقائمة (المراجع A لبوابة M4-U1/U2، 15) */ return { want, nums: [want, alt > 0 ? alt : s.a + 10, s.kind === 'comp' ? s.a : 360 - s.a].filter((v, i, A) => A.indexOf(v) === i), tag: 'ar-' + s.kind }; },
   draw(svg, item, tries) { const D = arAdj(svg, item.a, item.kind); if (tries >= 3) ciEq(helpG(svg), 180, 208, `${item.kind === 'comp' ? 90 : 180} − ${item.a} = ؟`, AR.hl, 18); return D; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.V) el('path', { d: angArc(ctx.V, 60, 0, item.kind === 'comp' ? 90 : 180), fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m);   /* المستوى الثاني رسمٌ: القائمة أو المستقيمة كلها (D286 (3)، المراجع B لبوابة M4-U1/U2، 8) */
@@ -71,21 +75,21 @@ ITEM.arPair = cpItem({ H: 220, tLine: 'gen.ar.together.pair', hint: 'gen.ar.hint
     const Vs = []; [[item.a, left + w(item.b) * s + 24 + (w(item.a) - 100) * s], [item.b, left + (w(item.b) - 100) * s]].forEach(([d, x]) => { const V = [x, 150]; Vs.push([V, d]); angleAt(svg, V, 0, d, { l1: 100 * s, l2: 90 * s, arc: 'in', r: 28 }); const m = angP(V, d / 2, 50); degText(svg, m[0], m[1] + 6, d, { size: 17, color: AR.a }); });
     if (tries >= 3) ciEq(helpG(svg), 180, 30, `${item.a} + ${item.b} = ؟`, AR.hl, 18); return { Vs }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); for (const [V, d] of ctx.Vs || []) el('path', { d: angArc(V, 40, 0, d), fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m);   /* الزاويتان معاً: كم تملآن؟ */
-    ciRule(m, 180, 206, labelText('arRulePair'), AR.hl, 13); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, 206, labelText('arRulePair'), AR.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (!ctx || !ctx.svg) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); ciEq(helpG(ctx.svg), 180, 30, `${item.a} + ${item.b} = ${item.a + item.b}`, AR.ok, 18); },
   pick: item => choosePick([['comp', labelText('arComp2'), '<i></i>', 'gen.ar.comp2'], ['supp', labelText('arSupp2'), '<i></i>', 'gen.ar.supp2'], ['none', labelText('arNone'), '<i></i>', 'gen.ar.none']], item.want),
   errOf: (it, k) => it.want === 'none' ? 'arSumOff' : k === 'none' ? 'arNone' : 'arMix' });
 
 /* ③ المتقابلتان بالرأس (C413): th، given (1..4) معطاة، ask (1..4) مطلوبة */
 ITEM.arVert = cpItem({ H: 270, tLine: 'gen.ar.together.vert', hint: 'gen.ar.hint.vert', rLine: 'gen.ar.reveal.vert', rSay: it => sayDeg(it.want), num: true, praise: 'praiseThink',
-  sayQ: async it => { await sayDeg(it.gv); await S(it.opp ? 'gen.ar.q.vertOpp' : 'gen.ar.q.vertAdj', { append: true }); },
+  sayQ: async it => { await sayDeg(it.gv); await S(it.opp ? 'gen.ar.q.vertOpp' : 'gen.ar.q.vertAdj', { append: true, sep: '، ' }); },
   make: s => { const X = AR_X(s.th), val = n => (n % 2 ? s.th : 180 - s.th), gv = val(s.given), want = val(s.ask), opp = (s.given + 2 - 1) % 4 + 1 === s.ask;
     return { gv, want, opp, nums: [want, 180 - want === want ? want + 10 : 180 - want, opp ? 360 - want : (want < 90 ? 90 - want : want - 90) || want + 20], tag: 'ar-vert-' + (opp ? 'opp' : 'adj') }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), V = [180, 128], X = arCross(g, V, item.th), [a1, a2] = X[item.given - 1], [b1, b2] = X[item.ask - 1];
     arArc(g, V, a1, a2, { r: 30, col: AR.a, deg: item.gv, dl: 20, fill: true }); const q = arArc(g, V, b1, b2, { r: 30, col: AR.q, lab: '؟', dl: 20, fill: true });
     if (tries >= 3) ciRule(helpG(svg), 180, 32, labelText('arRelN.' + (item.opp ? 'vert' : 'adj')) + ': ؟', AR.hl, 14); return { q, V }; },   /* فوق، وبطاقة المستوى الثاني تحت */   /* الحلّ المشترك بالعلاقة لا بالقيمة (D240، المراجع A لبوابة M4-U1/U2، 6) */
   h2: async (item, ctx) => { const m = helpG(ctx.svg), X = AR_X(item.th); for (const n of [item.given, item.ask]) el('path', { d: angArc(ctx.V, 40, X[n - 1][0], X[n - 1][1]), fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m);   /* الزاويتان: أتشتركان في ضلع؟ */
-    ciRule(m, 180, 244, labelText('arRule.vert'), AR.hl, 13); await sleep(FAST ? 10 : 250); },   /* كيف نعرف المتقابلتين، لا أيّ القاعدتين هنا */
+    ciRule(m, 180, 244, labelText('arRule.vert'), AR.hl, 15); await sleep(FAST ? 10 : 250); },   /* كيف نعرف المتقابلتين، لا أيّ القاعدتين هنا */
   show: async (item, ctx) => { if (!ctx || !ctx.q) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); arSetDeg(ctx.q, item.want, AR.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === 180 - it.want ? (it.opp ? 'arVertSupp' : 'arVertAdj') : k === 360 - it.want ? 'arFull' : 'arOff' });
@@ -95,28 +99,28 @@ ITEM.arVert = cpItem({ H: 270, tLine: 'gen.ar.together.vert', hint: 'gen.ar.hint
 const arLabN = (item, n) => item.lab ? item.lab[n - 1] : n;
 /* دليل «أيّ زاوية؟»: امتداد ضلعي الملوّنة عبر الرأس (المتقابلة)، أو دائرة حول التقاطع الذي فيه المطلوبة */
 function arWhichGuide(m, item) { if (item.kind === 'cross') { const V = [180, 128], [a1, a2] = AR_X(item.th)[item.mark - 1]; for (const d of [a1, a2]) { const P = angP(V, d + 180, 70); geoLine(m, V[0], V[1], P[0], P[1], { color: AR.hl, w: 3, dash: '6 5' }); } return; }
-  const R = arTrans(el('g', { opacity: 0 }, m), item.phi), W = R.at(item.opts[0]).V; el('circle', { cx: W[0], cy: W[1], r: 34, fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m); }
+  const R = arTrans(el('g', { opacity: 0 }, m), item.phi, { rot: item.rot }), W = R.at(item.opts[0]).V; el('circle', { cx: W[0], cy: W[1], r: 34, fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m); }
 ITEM.arWhich = cpItem({ H: 270, tLine: 'gen.ar.together.which', hint: 'gen.ar.hint.corr', rLine: it => 'gen.ar.reveal.' + it.rel, praise: 'praiseThink',
   make: s => ({ want: 'n' + s.opts[0], tag: 'ar-which-' + s.rel }),
   draw(svg, item, tries) { const g = el('g', {}, svg), arcs = {};
     if (item.kind === 'cross') { const V = [180, 128], X = arCross(g, V, item.th); X.forEach(([a1, a2], i) => { const n = i + 1; arcs[n] = arArc(g, V, a1, a2, { r: n === item.mark ? 30 : 22, col: n === item.mark ? AR.a : '#8a96a0', lab: arNum(arLabN(item, n)), dl: 18, fill: n === item.mark, w: n === item.mark ? 3.6 : 2 }); }); }
-    else { const R = arTrans(g, item.phi); for (let n = 1; n <= 8; n++) { const { V, a1, a2 } = R.at(n); arcs[n] = arArc(g, V, a1, a2, { r: n === item.mark ? 22 : 16, col: n === item.mark ? AR.a : '#8a96a0', lab: arNum(arLabN(item, n)), dl: 12, fs: 15, fill: n === item.mark, w: n === item.mark ? 3.4 : 2 }); } }
+    else { const R = arTrans(g, item.phi, { rot: item.rot }); for (let n = 1; n <= 8; n++) { const { V, a1, a2 } = R.at(n); arcs[n] = arArc(g, V, a1, a2, { r: n === item.mark ? 22 : 16, col: n === item.mark ? AR.a : '#8a96a0', lab: arNum(arLabN(item, n)), dl: 12, fs: 15, fill: n === item.mark, w: n === item.mark ? 3.4 : 2 }); } }
     if (tries >= 3) arWhichGuide(helpG(svg), item); return { arcs }; },   /* لا يُعلَّم قوس الجواب (المراجع A لبوابة M4-U1/U2، 6) */
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 236, labelText('arRule.' + item.rel), AR.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 236, labelText('arRule.' + item.rel), AR.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (!ctx || !ctx.arcs) return; const w = ctx.arcs[item.opts[0]]; if (w) { w.p.setAttribute('stroke', AR.ok); w.p.removeAttribute('stroke-dasharray'); w.p.setAttribute('stroke-width', 4); } },
   pick: item => choosePick(shuffle(item.opts.map(n => ['n' + n, labelText('arAng') + ' ' + arNum(arLabN(item, n)), '<i></i>', 'gen.ar.ang.' + arLabN(item, n)])), item.want),
   errOf: (it, k) => { const n = +k.slice(1); if (it.kind === 'cross') return 'arVertAdj'; return n === AR_REL.vert(it.mark) ? 'arTrVert' : n === AR_REL.corr(it.mark) ? 'arTrCorr' : (n - 1) % 4 === (it.mark - 1) % 4 ? 'arTrCorr' : 'arTrSide'; } });
 
-ITEM.arWhich.hint2 = async (item, r) => { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg); arWhichGuide(m, item); ciRule(m, 180, 246, labelText('arRule.' + item.rel), AR.hl, 13); } await S('gen.ar.hint.' + item.rel); };   /* المستوى الثاني رسمٌ (D286 (3)): امتداد ضلعي الملوّنة، أو التقاطع الذي فيه المطلوبة */   /* التلميح بنوع العلاقة */
+ITEM.arWhich.hint2 = async (item, r) => { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg); arWhichGuide(m, item); ciRule(m, 180, 246, labelText('arRule.' + item.rel), AR.hl, 15); } await S('gen.ar.hint.' + item.rel); };   /* المستوى الثاني رسمٌ (D286 (3)): امتداد ضلعي الملوّنة، أو التقاطع الذي فيه المطلوبة */   /* التلميح بنوع العلاقة */
 
 /* ⑤ زاوية على القاطع (C404): phi، given (1..8) معطاة، ask (1..8) مطلوبة؛ والمستقيمان متوازيان */
 ITEM.arTrCalc = cpItem({ H: 270, tLine: 'gen.ar.together.trCalc', hint: 'gen.ar.hint.trCalc', rLine: 'gen.ar.reveal.trCalc', rSay: it => sayDeg(it.want), num: true, praise: 'praiseThink',
-  sayQ: async it => { await sayDeg(it.gv); await S('gen.ar.q.trCalcEnd', { append: true }); },
+  sayQ: async it => { await sayDeg(it.gv); await S('gen.ar.q.trCalcEnd', { append: true, sep: '، ' }); },
   make: s => { const gv = arTrVal(s.phi, s.given), want = arTrVal(s.phi, s.ask); return { gv, want, nums: [want, want === 90 ? 100 : 180 - want, 360 - want], tag: 'ar-tr-calc' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), R = arTrans(g, item.phi), G = R.at(item.given), Q = R.at(item.ask);
+  draw(svg, item, tries) { const g = el('g', {}, svg), R = arTrans(g, item.phi, { rot: item.rot }), G = R.at(item.given), Q = R.at(item.ask);
     arArc(g, G.V, G.a1, G.a2, { r: 22, col: AR.a, deg: item.gv, dl: 17, fs: 16, fill: true }); const q = arArc(g, Q.V, Q.a1, Q.a2, { r: 22, col: AR.q, lab: '؟', dl: 17, fs: 17, fill: true });
     if (tries >= 3) ciRule(helpG(svg), 180, 246, labelText('arRelN.' + arRelOf(item.given, item.ask)) + ': ؟', AR.hl, 14); return { q, G, Q }; },   /* بالعلاقة لا بالقيمة (D240) */
-  h2: async (item, ctx) => { const m = helpG(ctx.svg); for (const P of [ctx.G, ctx.Q]) if (P) el('circle', { cx: P.V[0], cy: P.V[1], r: 32, fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m); await sleep(FAST ? 10 : 250); },   /* المستوى الثاني رسمٌ: موضعا الزاويتين (D285 (4)) */
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); for (const P of [ctx.G, ctx.Q]) if (P) { const W = P.V; el('circle', { cx: W[0], cy: W[1], r: 32, fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m); } await sleep(FAST ? 10 : 250); },   /* المستوى الثاني رسمٌ: موضعا الزاويتين (D285 (4)) */
   show: async (item, ctx) => { if (!ctx || !ctx.q) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); arSetDeg(ctx.q, item.want, AR.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === 180 - it.want ? 'arTrMix' : k === 360 - it.want ? 'arFull' : 'arOff' });
@@ -124,16 +128,27 @@ ITEM.arTrCalc = cpItem({ H: 270, tLine: 'gen.ar.together.trCalc', hint: 'gen.ar.
 /* ⑥ هل المستقيمان متوازيان؟ (C404، شرط التوازي): phi، tilt (0 متوازيان)؛ والمتناظرتان 2 و6 مكتوبتان */
 ITEM.arPar = cpItem({ H: 270, tLine: 'gen.ar.together.par', hint: 'gen.ar.hint.par', rLine: it => it.tilt ? 'gen.ar.reveal.parNo' : 'gen.ar.reveal.parYes', praise: 'praiseThink',
   make: s => ({ want: s.tilt ? 'no' : 'yes', tag: 'ar-par' }),
-  draw(svg, item, tries) { const g = el('g', {}, svg), R = arTrans(g, item.phi, { tilt: Math.min(item.tilt, 3), marks: false }), A = R.at(2), B = R.at(6);   /* الميل في الرسم ثلاث درجات على الأكثر: يُحكم بالعددين لا بالعين، والرسم ليس بالقياس (D254، المراجع A لبوابة M4-U1/U2، 10) */
+  draw(svg, item, tries) { const g = el('g', {}, svg), R = arTrans(g, item.phi, { tilt: Math.min(item.tilt, 3), marks: false, rot: item.rot }), A = R.at(2), B = R.at(6);   /* الميل في الرسم ثلاث درجات على الأكثر: يُحكم بالعددين لا بالعين، والرسم ليس بالقياس (D254، المراجع A لبوابة M4-U1/U2، 10) */
     arArc(g, A.V, A.a1, A.a2, { r: 22, col: AR.a, deg: item.phi, dl: 17, fs: 16, fill: true }); arArc(g, B.V, B.a1, B.a2, { r: 22, col: AR.b, deg: item.phi - item.tilt, dl: 17, fs: 16, fill: true });
-    const ns = el('text', { x: 330, y: 34, 'text-anchor': 'start', 'font-size': 12, 'font-weight': 700, fill: '#6b7a84', direction: 'rtl', 'pointer-events': 'none' }, g); ns.textContent = labelText('arNotScale');
-    if (tries >= 3) ciRule(helpG(svg), 180, 246, labelText('arRulePar'), AR.hl, 13); return { A, B }; },
+    const ns = el('text', { x: 330, y: 34, 'text-anchor': 'start', 'font-size': 14, 'font-weight': 700, fill: '#6b7a84', direction: 'rtl', 'pointer-events': 'none' }, svg); ns.textContent = labelText('arNotScale');
+    if (tries >= 3) ciRule(helpG(svg), 180, 246, labelText('arRulePar'), AR.hl, 15); return { A, B }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); for (const P of [ctx.A, ctx.B]) if (P) el('circle', { cx: P.V[0], cy: P.V[1], r: 32, fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m); await sleep(FAST ? 10 : 250); },   /* المستوى الثاني رسمٌ: المتناظرتان (D286 (3)، المراجع A لبوابة M4-U1/U2، 22) */
   pick: item => yesNo(item.want),
   errOf: it => it.tilt ? 'arParAlways' : 'arParNo' });
 
 /* ⑦ «أكمل الزاوية» و«مرآة الرأس» و«سكّة القطار» (إنتاج بزرّين، 5 درجات): mode comp | supp (a معطاة، والطفل يدوّر الضلع حتى تكمّلها)،
    vert (المستقيم الثاني يدور، والمطلوب أن تصير الزاوية 3 want)، tr (القاطع يدور، والمطلوب أن تصير الزاوية 6 want) */
+/* المدى الذي تُكمَّل إليه الزاويتان: قوسٌ متقطّع من 0 إلى span (90 بمربّع القائمة، أو 180 نصف دائرة) */
+function arTurnSpan(m, V, span, r) { el('path', { d: angArc(V, r, 0, span), fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m);
+  if (span === 90) el('path', { d: `M${V[0] + 16} ${V[1]} L${V[0] + 16} ${V[1] - 16} L${V[0]} ${V[1] - 16}`, fill: 'none', stroke: AR.hl, 'stroke-width': 2.6, 'pointer-events': 'none' }, m); }
+/* المستوى الثاني في «أكمل الزاوية»: رسمٌ ثابت للقائمة أو المستقيمة التي تُكمَّل إليها (وفي «سكّة القطار» الزاوية المنقولة تتبع القاطع في draw)، والقاعدة */
+function arTurnH2(svg, md) { const m = helpG(svg); if (md === 'comp' || md === 'supp') arTurnSpan(m, [180, 196], md === 'comp' ? 90 : 180, 76); else if (md === 'vert') arTurnSpan(m, [180, 128], 180, 66);
+  ciRule(m, 180, 32, labelText(md === 'comp' ? 'arRuleComp' : md === 'supp' ? 'arRuleSupp' : md === 'vert' ? 'arRuleAdj' : 'arRule.corr'), AR.hl, 15); }
+/* زاويةٌ منقولة شفافةً إلى رأسٍ آخر بقياسها (المستوى الثاني في القاطع) */
+function arGhost(g0, V, a1, a2, deg) { const m = el('g', { 'data-help': 1, 'pointer-events': 'none' }, g0);
+  el('path', { d: `M${V[0]} ${V[1]} L${angP(V, a1, 30)[0]} ${angP(V, a1, 30)[1]} ${angArc(V, 30, a1, a2).replace(/^M[^A]*/, '')} Z`, fill: AR.hl, opacity: .16 }, m);
+  el('path', { d: angArc(V, 30, a1, a2), fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5' }, m);
+  const t = angP(V, (a1 + a2) / 2, 48); degText(m, t[0], t[1] + 6, deg, { size: 15, color: AR.hl }); return m; }
 ITEM.arTurn = {
   make(spec) { const want = spec.mode === 'comp' ? 90 : spec.mode === 'supp' ? 180 : spec.want; return { ...spec, want, tag: 'ar-turn-' + spec.mode }; },
   async ask(item, mode, tries) { const svg = m3Stage(278), host = el('g', {}, svg), m = item.mode;   /* 278: زرّا الدوران داخل الإطار */ let v = m === 'comp' || m === 'supp' ? item.a + 20 : item.start || 60, reg = null;
@@ -143,9 +158,10 @@ ITEM.arTurn = {
         arArc(host, V, 0, item.a, { r: 44, col: AR.a, deg: item.a, dl: 18 }); arArc(host, V, item.a, v, { r: 32, col: AR.tr, deg: v - item.a, dl: 20 }); el('circle', { cx: V[0], cy: V[1], r: 5, fill: ANG.v, 'pointer-events': 'none' }, host); }
       /* المطلوبة تكمّل الخضراء (المجاورة، أو مناظرةُ مجاورتها): يحسب الطفل قبل أن يدوّر، لا يقرأ العدد المطلوب على الخضراء (المراجع A لبوابة M4-U1/U2، 33) */
       else if (m === 'vert') { const V = [180, 128], X = arCross(host, V, v); arArc(host, V, X[0][0], X[0][1], { r: 30, col: AR.a, deg: v, dl: 18, fill: true }); arArc(host, V, X[1][0], X[1][1], { r: 30, col: AR.q, lab: '؟', dl: 18, fill: true }); }
-      else { const R = arTrans(host, v, { y1: 100, y2: 184 }), A = R.at(2), B = R.at(8); arArc(host, A.V, A.a1, A.a2, { r: 22, col: AR.a, deg: v, dl: 16, fs: 14, fill: true }); arArc(host, B.V, B.a1, B.a2, { r: 22, col: AR.q, lab: '؟', dl: 16, fs: 15, fill: true }); }
+      else { const R = arTrans(host, v, { y1: 100, y2: 184 }), A = R.at(2), B = R.at(8); arArc(host, A.V, A.a1, A.a2, { r: 22, col: AR.a, deg: v, dl: 16, fs: 14, fill: true }); arArc(host, B.V, B.a1, B.a2, { r: 22, col: AR.q, lab: '؟', dl: 16, fs: 15, fill: true });
+        if (tries >= 2) arGhost(host, B.V, A.a1, A.a2, v); }   /* المستوى الثاني رسمٌ: الخضراء منقولةً شفافةً إلى موضعها المناظر، تتبع القاطع (المراجع B لبوابة M4-U1/U2، 8) */
       /*T*/window.__cdV = v / 5; window.__cdWant = tv / 5;/*/T*/ if (reg) reg(); };
-    draw(); if (tries >= 3) ciRule(helpG(svg), 180, 32, labelText(m === 'comp' ? 'arRuleComp' : m === 'supp' ? 'arRuleSupp' : m === 'vert' ? 'arRuleAdj' : 'arRule.corr'), AR.hl, 13);
+    draw(); if (tries >= 2) arTurnH2(svg, m);   /* المستوى الثاني كاملاً على المسرح (لا يُنسخ ما يرسمه البند نفسه) */
     const btns = svgSteppers(svg, [[44, 238], [316, 238]], d => { v = Math.max(lo, Math.min(hi, v + 5 * d)); SFX.tick(); draw(); }, { key: 'cd', labels: ['arLess', 'arMore'] });
     if (tries >= 3) await S('gen.ar.together.turn'); else { await S(item.q, { noGap: m === 'vert' || m === 'tr' }); if (m === 'vert' || m === 'tr') await sayDeg(item.want); }
     const t = tv / 5, tap = b => b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -154,7 +170,7 @@ ITEM.arTurn = {
     return { ans: v, ctx: { svg } }; },
   judge(item, v) { const m = item.mode, tv = m === 'vert' || m === 'tr' ? 180 - item.want : item.want; if (v === tv) return { ok: true }; return { ok: false, err: m === 'comp' && v === 180 ? 'arMix' : m === 'supp' && v === 90 ? 'arMix' : m === 'vert' && v === item.want ? 'arVertAdj' : m === 'tr' && v === item.want ? 'arTrMix' : 'arTurnOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx) ciRule(helpG(r.ctx.svg), 180, 32, labelText(item.mode === 'comp' ? 'arRuleComp' : item.mode === 'supp' ? 'arRuleSupp' : item.mode === 'vert' ? 'arRuleAdj' : 'arRule.corr'), AR.hl, 13); await S('gen.ar.hint.turn.' + item.mode); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx) arTurnH2(r.ctx.svg, item.mode); await S('gen.ar.hint.turn.' + item.mode); }, async together() {},
   async reveal(item, r) { await S('gen.ar.reveal.turn.' + item.mode); },
   praise: () => 'praisePlace', twin(item) { return item.twin || null; },
 };
@@ -195,7 +211,7 @@ SCENES.arTransShow = async c => { const L = c.lines, svg = m3Stage(250), g = el(
 /* د3 الاكتشاف (ج): المتناظرتان 2 و6 متساويتان ما توازى المستقيمان، ثم يميل الأسفل فتختلفان: مسلّمة التناظر */
 SCENES.arCorrShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg);
   const one = tilt => { g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const R = arTrans(g, 60, { tilt, marks: !tilt }), A = R.at(2), B = R.at(6); arArc(g, A.V, A.a1, A.a2, { r: 22, col: AR.a, deg: 60, dl: 16, fill: true }); arArc(g, B.V, B.a1, B.a2, { r: 22, col: tilt ? AR.b : AR.a, deg: 60 - tilt, dl: 16, fill: true }); };
-  one(0); await arSay(L, 0); one(15); SFX.tick(); await arSay(L, 1); one(0); ciRule(g, 180, 222, labelText('arRule.post'), AR.ok, 13); await arSay(L, 2); for (const l of L.slice(3)) await S(l); };
+  one(0); await arSay(L, 0); one(15); SFX.tick(); await arSay(L, 1); one(0); ciRule(g, 180, 222, labelText('arRule.post'), AR.ok, 15); await arSay(L, 2); for (const l of L.slice(3)) await S(l); };
 /* د4: زاوية التبادل 3 تساوي المتناظرة 7… (التبادل من التناظر والمتقابلة بالرأس)، والمتحالفتان مجموعهما 180 */
 SCENES.arAltShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg), R = arTrans(g, 60);
   const mk = (n, col, v) => { const { V, a1, a2 } = R.at(n); return arArc(g, V, a1, a2, { r: 22, col, ...(v != null ? { deg: v } : { lab: arNum(n) }), dl: 16, fill: true }); };

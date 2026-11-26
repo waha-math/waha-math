@@ -130,6 +130,21 @@ def fail_test_wrong(ft, les, tn):
     if k is not None and k in s: return True          # خطوةٌ أخرى من البند الخاطئ نفسه
     if len(s) < 3: s.add(k if k is not None else len(s)); return True
     return False
+# التباين في الوضع الداكن (DARK=1؛ المراجع B لبوابة M4-U1/U2، 3 و15 (د)): كل نصٍّ مرسوم يُقاس لونه بما تحته: آخر شكلٍ معتم قبله في الرسم يحوي مركزه،
+# أو خلفية ما حول الرسم؛ والنصّ بهالةٍ (paint-order stroke) خلفيته هالته. يُعدّ تباينٌ دون 3 على خلفيةٍ داكنة (ما يصنعه الوضع الداكن)، أو دون 2 على أيّ خلفية
+CONTRAST = """() => { const s = document.querySelector('#stage svg'); if (!s) return [];
+  const rgb = c => { const m = String(c).match(/[\\d.]+/g); return m && m.length >= 3 ? m.map(Number) : null; };
+  const lum = c => { const m = rgb(c); if (!m) return null; const [r, g, b] = m.slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * r + .7152 * g + .0722 * b; };
+  const op = (e, c) => { const m = rgb(c); return (m && m.length > 3 ? m[3] : 1) >= .5 && +getComputedStyle(e).fillOpacity >= .5 && +getComputedStyle(e).opacity >= .5; };
+  const shapes = [...s.querySelectorAll('rect, path, polygon, circle, ellipse, image')].filter(e => { const c = getComputedStyle(e); return e.tagName === 'image' || (c.fill && c.fill !== 'none' && c.visibility !== 'hidden' && !e.closest('[hidden]') && (c.fill.startsWith('url') || op(e, c.fill))); });   /* ما تحته تدرّج أو صورة لا يُقاس (يُترك) */
+  let back = null; for (let e = s.parentElement; e; e = e.parentElement) { const c = getComputedStyle(e).backgroundColor, m = rgb(c); if (m && (m.length < 4 || m[3] > .5)) { back = lum(c); break; } }
+  const out = [];
+  for (const t of s.querySelectorAll('text')) { const txt = t.textContent.trim(); if (!txt || t.closest('[hidden]')) continue; const cs = getComputedStyle(t); if (cs.visibility === 'hidden' || +cs.opacity < .3) continue;
+    if (/stroke/.test(cs.paintOrder) && cs.stroke !== 'none' && parseFloat(cs.strokeWidth) >= 3) continue;
+    const r = t.getBoundingClientRect(); if (!r.width) continue; const x = r.left + r.width / 2, y = r.top + r.height / 2, fg = lum(cs.fill); if (fg == null) continue;
+    let bg = back; for (const e of shapes) { if (!(t.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_PRECEDING)) continue; const b = e.getBoundingClientRect(); if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom) { const f = getComputedStyle(e).fill; bg = e.tagName === 'image' || f.startsWith('url') ? null : lum(f); } }
+    if (bg == null) continue; const cr = (Math.max(fg, bg) + .05) / (Math.min(fg, bg) + .05); if ((cr < 3 && bg < .25) || cr < 2) out.push(txt.slice(0, 18) + ' ' + cr.toFixed(1)); }
+  return out; }"""
 TEXTOV = """() => { const s = document.querySelector('#stage svg'); if (!s) return []; const vis = e => !e.closest('[hidden]') && !e.closest('[clip-path]') && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > .05 && !e.closest('[opacity="0"]');
   const T = [...s.querySelectorAll('text')].filter(t => t.textContent.trim() && vis(t)).map(t => { const r = t.getBoundingClientRect(), cy = (r.top + r.bottom) / 2, hh = r.height * .3; return { t: t.textContent.trim().slice(0, 24), b: { left: r.left, right: r.right, width: r.width, top: cy - hh, bottom: cy + hh, height: 2 * hh } }; }).filter(x => x.b.width); const out = [];
   for (let i = 0; i < T.length; i++) for (let j = i + 1; j < T.length; j++) { const a = T[i].b, b = T[j].b; if (T[i].t === T[j].t && Math.abs(a.left - b.left) < 3 && Math.abs(a.top - b.top) < 3) continue; const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
@@ -201,7 +216,7 @@ async def main():
     ONLY_SET = {x for x in ONLY if not x.startswith('ws:')}
     tw_seen = {}; prev_twin = False
     if ONLY: await pg.evaluate("() => { PROG.unlockAll = true; saveProg(); showHome(); }"); await pg.wait_for_timeout(300)
-    matd = {}; matq = [0]; small = {}; nearT = {}; noname = {}; empty = {}; squeeze = {}; clipt = {}; textov = {}; coverb = {}; keyless = {}; knon = [0]; kasync = [0]; krace = [0]; kdrv = [0]; kpress = [0]; kspace = [0]; kpan = [0]; taps = {}; leaks = []; failed_rev = {}; redo_seen = set(); replay_q = None; crashes = 0; seen_types = set(); deep = {}; failed_test = {}; shots = set(); report = []; lessons = 0
+    matd = {}; matq = [0]; small = {}; nearT = {}; noname = {}; empty = {}; squeeze = {}; clipt = {}; textov = {}; contr = {}; coverb = {}; keyless = {}; knon = [0]; kasync = [0]; krace = [0]; kdrv = [0]; kpress = [0]; kspace = [0]; kpan = [0]; taps = {}; leaks = []; failed_rev = {}; redo_seen = set(); replay_q = None; crashes = 0; seen_types = set(); deep = {}; failed_test = {}; shots = set(); report = []; lessons = 0
     opt_seen = set(); visits = 0   # MAXL يعدّ الدروس وحدها (لا المراجعة ولا الورشة)، وسقف الزيارات كلها 200 حارس من حلقة
     VCAP = int(os.environ.get('VCAP', '400'))   # سقف الزيارات: failreview يعيد كل درس ويمرّ بالمراجعات، و38 درساً تتجاوز 200 (Gate، 19 نوفمبر)
     while lessons < MAXL and visits < VCAP:
@@ -248,6 +263,8 @@ async def main():
           for x in await pg.evaluate(CLIPT): clipt.setdefault((sc, a['kind'], x), 0)
           if sc.startswith(('m3.', 'm4.')):
             for x in await pg.evaluate(TEXTOV): textov.setdefault((sc, a['kind'], x), 0)
+            if os.environ.get('DARK') == '1':
+              for x in await pg.evaluate(CONTRAST): contr.setdefault((sc, a['kind'], x), 0)
           for x in await pg.evaluate(COVERB): coverb.setdefault((sc, a['kind'], x), 0)
           for x in await pg.evaluate(KEYLESS): keyless.setdefault((sc, a['kind'], x), 0)   # لوحة المفاتيح لكل هدف في الوحدات كلها (مواصفة المحرّك 8؛ كان للوحدة الرابعة ثم صار عامّاً بـ kbdStage)
           if a['kind'] == 'num':
@@ -376,7 +393,8 @@ async def main():
     print('squeezed stages:', len(squeeze)); [print(' ', *k, v) for k, v in list(squeeze.items())[:30]]
     print('clipped texts:', len(clipt)); [print(' ', *k) for k in list(clipt)[:20]]
     TXSTRICT = ('m3.', 'm4.u1.', 'm4.u2.')   # م3 وما أُغلقت بوابته من م4 تُفحص (M4-U1/U2)، والباقي من م4 يُطبع للعلم حتى تُراجَع بوابته
-    textov3 = {k: v for k, v in textov.items() if k[0].startswith(TXSTRICT)}
+    textov3 = {k: v for k, v in textov.items() if k[0].startswith(TXSTRICT)}; contr3 = {k: v for k, v in contr.items() if k[0].startswith(TXSTRICT)}
+    if os.environ.get('DARK') == '1': print('low contrast (dark):', len(contr3), '(m4: %d)' % (len(contr) - len(contr3))); [print(' ', *k) for k in list(contr)[:20]]
     print('text overlaps/out of frame:', len(textov3), '(m4: %d)' % (len(textov) - len(textov3))); [print(' ', *k) for k in list(textov)[:20]]
     json.dump({'textov': [list(k) for k in textov], 'clipt': [list(k) for k in clipt], 'small': [list(map(str, v)) for v in small.values()]}, open(os.path.join(OUT, 'findings.json'), 'w'), ensure_ascii=False, indent=0)   # القائمة كاملة للتحليل
     print('covered badges:', len(coverb)); [print(' ', *k) for k in list(coverb)[:20]]
@@ -393,6 +411,6 @@ async def main():
     # STRICT=1 (لفحص الفحوص، الدرس 98): يخرج بـ 1 إن كان في العدّادات شيء، كما تحكم خلاصة المجموعة
     # والعدّادان الجديدان والتوائم المفقودة كما في الخلاصة (طفرة «تسمية الشيء تحت المسرح» نجت لأن STRICT لم يعدّ النصوص المقصوصة)
     # وأخطاء التقييم في نمط «ok» (كل جواب صحيح فيه): خطأٌ هنا لمسةٌ ذهبت إلى غير هدفها (الفحص المستقل D2 لبوابة S1-U4 (4))
-    return int(bool(errs or errlog or small or empty or squeeze or blocked or taps or noname or leaks or fontfb or miss or clipt or coverb or keyless or missing or matd or textov3 or (bad and MODE == 'ok')))
+    return int(bool(errs or errlog or small or empty or squeeze or blocked or taps or noname or leaks or fontfb or miss or clipt or coverb or keyless or missing or matd or textov3 or contr3 or (bad and MODE == 'ok')))
 rc = asyncio.run(main())
 if os.environ.get('STRICT') == '1': sys.exit(rc or 0)

@@ -28,7 +28,7 @@ ITEM.pySq = cpItem({ H: 262, tLine: 'gen.py.together.sq', hint: 'gen.py.hint.sq'
     const Q = pySquares(g, C, a, b, u); preLab(g, Q.mC[0], Q.mC[1] + 6, '؟', { col: PY.q, fs: 20 });
     if (tries >= 2) { preLab(helpG(svg), Q.mA[0], Q.mA[1] + 6, MS(String(item.a * item.a)), { col: PY.a, fs: 16 }); preLab(helpG(svg), Q.mB[0], Q.mB[1] + 6, MS(String(item.b * item.b)), { col: PY.b, fs: 16 }); }
     if (tries >= 3) ciEq(helpG(svg), 180, 246, `${item.a * item.a} + ${item.b * item.b} = ؟`, PY.hl, 17); return { Q }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 246, labelText('pyRuleSq'), PY.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 246, labelText('pyRuleSq'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.a + it.b ? 'pyAdd' : k === (it.a + it.b) ** 2 ? 'pySqSum' : 'pyOff' });
 
@@ -48,7 +48,7 @@ ITEM.pyLeg = cpItem({ H: 250, tLine: 'gen.py.together.leg', hint: 'gen.py.hint.l
     return { want, w2, nums: [want, s.hyp - s.a, w2 <= 100 ? w2 : s.hyp + s.a].filter((v, i, X) => X.indexOf(v) === i).concat([want + 1]).slice(0, 3), tag: 'py-leg-' + (s.ctx || 'tri') }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), L = pyScene(g, item.ctx || 'tri', item.hyp, item.a, item.want);
     if (tries >= 3) ciEq(helpG(svg), pyHx(item), 34, `${item.hyp} × ${item.hyp} − ${item.a} × ${item.a} = ${item.w2}`, PY.hl, 16); return { L }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), pyHx(item), 34, labelText('pyRuleLeg'), PY.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), pyHx(item), 34, labelText('pyRuleLeg'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.L && ctx.L.q) { ctx.L.q.textContent = MS(String(item.want)); ctx.L.q.setAttribute('fill', PY.ok); } },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.hyp - it.a ? 'pySub' : k === it.w2 ? 'pyNoRoot' : 'pyOff' });
@@ -59,7 +59,7 @@ ITEM.pyApprox = cpItem({ H: 236, tLine: 'gen.py.together.approx', hint: 'gen.py.
   draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(60, 150 / item.b, 200 / item.a), C = [250, 196], T = pyTri(g, C, item.a, item.b, u);
     preLab(g, (T.A[0] + C[0]) / 2, C[1] + 22, MS(String(item.a)), { fs: 16 }); preLab(g, C[0] + 14, (T.B[1] + C[1]) / 2 + 6, MS(String(item.b)), { fs: 16, anchor: 'start' }); preLab(g, (T.A[0] + T.B[0]) / 2 - 12, (T.A[1] + T.B[1]) / 2 - 8, '؟', { col: PY.q, fs: 18, anchor: 'end' });
     if (tries >= 3) ciEq(helpG(svg), 130, 40, `${item.a * item.a} + ${item.b * item.b} = ${item.a * item.a + item.b * item.b}`, PY.hl, 16); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 130, 40, labelText('pyRuleApprox'), PY.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 130, 40, labelText('pyRuleApprox'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.cands.map(v => [pyKey(v), pyTxt(v), '<i></i>', 'gen.py.v.' + pyKey(v)])), item.want),
   errOf: (it, k) => k === pyKey(it.a + it.b) ? 'pyAdd' : k === pyKey(it.a * it.a + it.b * it.b) ? 'pyNoRoot' : 'pyOff' });
 
@@ -68,7 +68,7 @@ ITEM.pyIsRight = cpItem({ H: 236, tLine: 'gen.py.together.isRight', hint: 'gen.p
   make: s => { const [a, b, c] = [...s.s].sort((x, y) => x - y); return { want: a * a + b * b === c * c ? 'yes' : 'no', sq: [a * a, b * b, c * c], tag: 'py-isright' }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = [...item.s].sort((x, y) => x - y), u = Math.min(22, 230 / c); cgTri(g, [c, a, b], { cx: 180, y: 190, u, rot: item.rot || 0 });
     if (tries >= 3) ciEq(helpG(svg), 180, 36, `${item.sq[0]} + ${item.sq[1]} ؟ ${item.sq[2]}`, PY.hl, 18); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 36, labelText('pyRuleConv'), PY.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 36, labelText('pyRuleConv'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => k === 'no' ? 'pyConvNo' : Math.abs(it.sq[0] + it.sq[1] - it.sq[2]) <= 6 ? 'pyNear' : 'pyConvYes' });
 

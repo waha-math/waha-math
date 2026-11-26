@@ -85,7 +85,7 @@ function say(who, id, text, opt = {}) {
   if (opt.ifIdle && speechBusy()) return Promise.resolve();
   if (opt.cover && PAUSED) { if (document.hidden) { VIS_COVER = opt.cover; return Promise.resolve(); } return speakNow(who, id, text, opt); }   /* سؤال غطاء الخروج والدرس موقوف: لا ينتظر الطابور ولا البوابة؛ والصفحة مخفية: يُسأل عند ظهورها */
   if (inLine.has(key)) return opt.free ? Promise.resolve() : gate(Promise.resolve());
-  const gen = speechGen, item = { skip: false }; inLine.set(key, item); if (!opt.keep && !opt.num && !opt.aside) { LASTQ = [who, id, text]; LASTQS = opt.append && LASTQS ? [...LASTQS, [who, id, text, { append: true }]] : [[who, id, text, { noGap: !!opt.noGap }]]; }   /* آخر جملة دخلت الطابور (سؤال الخيارات المقروءة)، والسؤال بتتمّته */
+  const gen = speechGen, item = { skip: false }; inLine.set(key, item); if (!opt.keep && !opt.num && !opt.aside) { LASTQ = [who, id, text]; LASTQS = opt.append && LASTQS ? [...LASTQS, [who, id, text, { append: true, sep: opt.sep }]] : [[who, id, text, { noGap: !!opt.noGap }]]; }   /* آخر جملة دخلت الطابور (سؤال الخيارات المقروءة)، والسؤال بتتمّته */
   if (opt.num) { if (pendingNum) pendingNum.skip = true; pendingNum = item; }     // العدّ: يكفي آخر رقم ينتظر
   queued++; if (typeof updateSkip === 'function') updateSkip();
   const p = speechChain.then(async () => {
@@ -191,7 +191,7 @@ function replayLine(cover) {
   const b = cover ? cover.querySelector('.coversay') : $('#bubble'); if (b) anim(b, [{ opacity: .4 }, { opacity: 1 }], 300);
   const keep = CUR; if (L.lesson && (!CUR || CUR.id !== L.lesson)) CUR = { id: L.lesson };
   const Q = LASTQS && LASTQS.length > 1 && LASTQS[LASTQS.length - 1][1] === L.id ? LASTQS : null;   /* سؤالٌ بتتمّته: يُعاد كلّه، فلا تبقى التتمّة وحدها في الفقاعة */
-  if (Q) Q.forEach(([w, i, t, o], j) => say(w, i, t, { free: true, cover, ...(j ? { append: true } : { noGap: true }) }));
+  if (Q) Q.forEach(([w, i, t, o], j) => say(w, i, t, { free: true, cover, ...(j ? { append: true, sep: o && o.sep } : { noGap: true }) }));
   else say(L.who, L.id, L.text, { free: true, cover, hideText: L.hideText }); CUR = keep;   /* المخفي يبقى مخفياً */
 }
 

@@ -39,8 +39,8 @@ function preCaseTris(svg, cs, v = 0) { const g = el('g', { 'pointer-events': 'no
   return { g, A, B: B2 }; }
 ITEM.cgCase = cpItem({ H: 236, tLine: 'gen.pre.together.case', hint: 'gen.pre.hint.case', rLine: it => 'gen.pre.reveal.case.' + it.want, praise: 'praiseThink',
   make: s => ({ want: PRE_CASE_OK[s.cs], tag: 'pre-case-' + s.cs }),
-  draw(svg, item, tries) { const D = preCaseTris(svg, item.cs, item.v || 0); if (tries >= 3) ciRule(helpG(svg), 180, 30, labelText('preRuleCase'), PRE.hl, 13); return D; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleCase'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
+  draw(svg, item, tries) { const D = preCaseTris(svg, item.cs, item.v || 0); if (tries >= 3) ciRule(helpG(svg), 180, 30, labelText('preRuleCase'), PRE.hl, 15); return D; },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleCase'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.want === 'yes' ? 'preCaseNo' : it.cs === 'aaa' ? 'preCaseAaa' : 'preCaseSsa' });
 
@@ -58,7 +58,7 @@ ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hi
     else { const mx = Math.max(...item.s) * Math.max(1, item.k), u = Math.min(13, 150 / mx), big = item.k >= 1;   /* مثلث عامّ بأطوال أضلاعه (M4-U3)؛ الأصل يمين والمكبَّر أو المصغَّر يسار */
       cgTri(g, item.s, { cx: 266, y: 196, u }); labs = cgTri(g, item.s.map(v => v * item.k), { cx: 96, y: 196, u, col: PRE.b, fill: PRE.fillB, ask: item.ask }).labs; }
     if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.s[0] * item.k} ÷ ${item.s[0]} = ${item.k}`, PRE.hl, 17); return { q: labs[item.ask] }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 120, 34, labelText('preRuleSim'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 120, 34, labelText('preRuleSim'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) { ctx.q.textContent = MS(String(item.want)); ctx.q.setAttribute('fill', PRE.ok); } },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => it.add.includes(k) ? 'preSimAdd' : 'preSimOff' });
@@ -70,7 +70,7 @@ ITEM.pyHyp = cpItem({ H: 250, tLine: 'gen.pre.together.py', hint: 'gen.pre.hint.
   draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(36, 150 / Math.max(item.a, item.b * 1.1)), T = preRightTri(g, [262, 206], item.a, item.b, u);
     const labs = preSideLabs(g, T, [MS(String(item.a)), MS(String(item.b)), '؟'], [PRE.ink, PRE.ink, PRE.q]);
     if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: labs[2] }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 120, 34, labelText('preRulePy'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 120, 34, labelText('preRulePy'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) { ctx.q.textContent = MS(String(item.want)); ctx.q.setAttribute('fill', PRE.ok); } },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.a + it.b ? 'pyAdd' : k === it.a * it.a + it.b * it.b ? 'pyNoRoot' : 'pyOff' });
@@ -86,13 +86,13 @@ ITEM.coDist2 = cpItem({ H: 262, tLine: 'gen.pre.together.dist', hint: 'gen.pre.h
     if (tries >= 3) { const m2 = helpG(svg), K = Pl.P(item.b[0], item.a[1]); geoLine(m2, A[0], A[1], K[0], K[1], { color: PRE.hl, w: 3, dash: '5 4' }); geoLine(m2, K[0], K[1], B[0], B[1], { color: PRE.hl, w: 3, dash: '5 4' });
       preLab(m2, (A[0] + K[0]) / 2, A[1] + 22, MS(String(item.dx)), { col: PRE.hl }); preLab(m2, K[0] + 14, (K[1] + B[1]) / 2 + 6, MS(String(item.dy)), { col: PRE.hl, anchor: 'start' }); }
     return { Pl }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleDist'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleDist'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.dx + it.dy ? 'coDistAdd' : k === it.dx * it.dx + it.dy * it.dy ? 'pyNoRoot' : 'coDistOff2' });
 
 /* ================= ⑤ الزاوية المحيطية نصف المركزية (C412): cen المركزية (زوجية، مضاعف 10)؛ المحيطية على القوس الأكبر ================= */
 ITEM.ciInsc = cpItem({ H: 250, tLine: 'gen.pre.together.insc', hint: 'gen.pre.hint.insc', rLine: 'gen.pre.reveal.insc', rSay: it => sayDeg(it.want), num: true, praise: 'praiseThink',
-  sayQ: async it => { await sayDeg(it.cen); await S('gen.pre.q.inscEnd', { append: true }); },
+  sayQ: async it => { await sayDeg(it.cen); await S('gen.pre.q.inscEnd', { append: true, sep: '، ' }); },
   make: s => ({ want: s.cen / 2, nums: [s.cen / 2, s.cen, 2 * s.cen], tag: 'pre-insc' }),
   draw(svg, item, tries) { const g = el('g', {}, svg), O = [180, 126], R = 80, A = angP(O, 270 - item.cen / 2, R), B = angP(O, 270 + item.cen / 2, R), P = angP(O, 90, R);
     el('circle', { cx: O[0], cy: O[1], r: R, fill: '#f6fbf4', stroke: PRE.ink, 'stroke-width': 3, 'pointer-events': 'none' }, g);
@@ -102,7 +102,7 @@ ITEM.ciInsc = cpItem({ H: 250, tLine: 'gen.pre.together.insc', hint: 'gen.pre.hi
     const q = arArc(g, P, 270 - item.cen / 4, 270 + item.cen / 4, { r: 28, col: AR.q, lab: '؟', dl: 16, fs: 16, fill: true });
     for (const X of [O, A, B, P]) el('circle', { cx: X[0], cy: X[1], r: 4.5, fill: ANG.v, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, g);
     if (tries >= 3) ciEq(helpG(svg), 180, 236, `${item.cen} ÷ 2 = ؟`, PRE.hl, 16); return { q }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 236, labelText('preRuleInsc'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 236, labelText('preRuleInsc'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) arSetDeg(ctx.q, item.want, PRE.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.cen ? 'inscSame' : k === 2 * it.cen ? 'inscDouble' : 'inscOff' });
@@ -120,7 +120,7 @@ function preCyl(svg, item) { const g = el('g', { 'pointer-events': 'none' }, svg
 ITEM.cylVol = cpItem({ H: 250, tLine: 'gen.pre.together.cyl', hint: 'gen.pre.hint.cyl', rLine: 'gen.ci.reveal.calc', rSay: it => S(voLine(it.want, it.u + '3'), { append: true }), praise: 'praiseThink',
   make: s => ({ want: s.ch[0][0], tag: 'pre-cyl' }),
   draw(svg, item, tries) { preCyl(svg, item); if (tries >= 3) ciEq(helpG(svg), 270, 222, `3.14 × ${item.r} × ${item.r} × ${item.h}`, PRE.hl, 15); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleCyl'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleCyl'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), voTxt(v, item.u + '3'), '<i></i>', voLine(v, item.u + '3')])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'cylOff' });
 ITEM.cylVol.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(v) === k) || [])[1] || 'cylOff' };
@@ -134,7 +134,7 @@ ITEM.trigVal = cpItem({ H: 250, tLine: 'gen.pre.together.tg', hint: 'gen.pre.hin
     preLab(g, C[0] + 14, (B[1] + C[1]) / 2 + 6, MS('1'), { anchor: 'start' }); const h = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2]; preLab(g, h[0] - 8, h[1] - 12, MS('2'));
     const t = el('g', { 'pointer-events': 'none' }, svg); preLab(t, 210, 44, labelText('preSin'), { dir: 'rtl', fs: 19 }); degText(t, 176, 44, item.deg, { size: 19, color: PRE.ink }); preLab(t, 138, 44, '؟ =', { fs: 19 });   /* يُقرأ من اليمين: جا ٣٠ = ؟ */
     if (tries >= 3) ciEq(helpG(svg), 180, 236, '1 ÷ 2', PRE.hl, 17); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 236, labelText('preRuleTg'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 236, labelText('preRuleTg'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(Object.entries(PRE_TG).map(([v, w]) => [v, MS(v), '<i></i>', 'gen.pre.tg.' + w])), item.want),
   errOf: (it, k) => k === '2' ? 'tgInv' : 'tgOff' });
 
@@ -145,7 +145,7 @@ function prePlane4(svg, o = {}) { const n = o.n || 5, c = o.c || 19, C = o.C || 
   el('rect', { x: C[0] - n * c - 14, y: C[1] - n * c - 14, width: 2 * n * c + 28, height: 2 * n * c + 28, rx: 10, fill: '#fffdf6', stroke: PRE.grid, 'stroke-width': 2 }, g);
   for (let i = -n; i <= n; i++) { geoLine(g, C[0] + i * c, C[1] - n * c, C[0] + i * c, C[1] + n * c, { color: PRE.grid, w: 1.2 }); geoLine(g, C[0] - n * c, C[1] + i * c, C[0] + n * c, C[1] + i * c, { color: PRE.grid, w: 1.2 }); }
   geoLine(g, C[0] - n * c - 8, C[1], C[0] + n * c + 8, C[1], { color: o.hl === 'h' ? PRE.b : PRE.ink, w: o.hl === 'h' ? 4 : 2.6 }); geoLine(g, C[0], C[1] + n * c + 8, C[0], C[1] - n * c - 8, { color: o.hl === 'v' ? PRE.b : PRE.ink, w: o.hl === 'v' ? 4 : 2.6 });
-  for (const k of [-4, -2, 2, 4]) { preLab(g, C[0] + k * c, C[1] + 15, preNumV(k), { fs: 10 }); preLab(g, C[0] - 9, C[1] - k * c + 4, preNumV(k), { fs: 10, anchor: 'end' }); }
+  for (const k of [-4, -2, 2, 4]) { preLab(g, C[0] + k * c, C[1] + 16, preNumV(k), { fs: 12 }); preLab(g, C[0] - 9, C[1] - k * c + 4, preNumV(k), { fs: 12, anchor: 'end' }); }
   el('circle', { cx: C[0], cy: C[1], r: 3.5, fill: PRE.ink }, g); return { g, P, C, c, n }; }
 ITEM.xf4Pick = cpItem({ H: 262, tLine: 'gen.pre.together.xf4', hint: 'gen.pre.hint.xf4', rLine: 'gen.pre.reveal.xf4', praise: 'praiseThink',
   make: s => { const [x, y] = s.p, img = PRE_XF[s.xf](s.p), alt = { refV: [[x, -y], [-x, -y]], refH: [[-x, y], [-x, -y]], rot90: [[y, -x], [-x, -y], [-x, y]] }[s.xf];   /* المحور الآخر، وعكس الإشارتين، والدوران بالاتجاه الآخر */
@@ -155,7 +155,7 @@ ITEM.xf4Pick = cpItem({ H: 262, tLine: 'gen.pre.together.xf4', hint: 'gen.pre.hi
     el('circle', { cx: p[0], cy: p[1], r: 6.5, fill: CO.pt, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, svg); coPairText(svg, p[0], p[1] + (item.p[1] < 0 ? 22 : -12), preNum(item.p[0]), preNum(item.p[1]), 'middle', 13);
     if (tries >= 3) { const q = Pl.P(...item.img); el('circle', { cx: q[0], cy: q[1], r: 9, fill: 'none', stroke: PRE.hl, 'stroke-width': 3, 'stroke-dasharray': '4 3', 'pointer-events': 'none' }, helpG(svg)); }
     return { Pl }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleXf4.' + item.xf), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleXf4.' + item.xf), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.Pl) { const q = ctx.Pl.P(...item.img); el('circle', { cx: q[0], cy: q[1], r: 6.5, fill: PRE.ok, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, helpG(ctx.svg)); } },
   pick: item => choosePick(shuffle(item.cands.map(p => [preKey(p), coPair(preNum(p[0]), preNum(p[1])), '<i></i>', 'gen.pre.pt.' + preKey(p)])), item.want),
   errOf: (it, k) => { const [x, y] = it.p; return k === preKey([x, -y]) || k === preKey([-x, y]) ? 'xf4Axis' : k === preKey([-x, -y]) ? 'xf4Both' : it.xf === 'rot90' && k === preKey([y, -x]) ? 'xf4Dir' : 'xf4Off'; } });

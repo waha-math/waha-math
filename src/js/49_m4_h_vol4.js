@@ -49,7 +49,7 @@ ITEM.c7Vol = cpItem({ H: 262, tLine: 'gen.c7.together.vol', hint: 'gen.c7.hint.v
     if (item.ask === 'h') preLab(g, 180, 24, labelText('c7Vol') + ': ' + c7Txt(item.V, u + '3'), { fs: 15, dir: 'rtl' });
     if (item.fig !== 'pyr' && item.B == null) c7PiNote(g, 300, 252);
     if (tries >= 3) ciEq(helpG(svg), 180, item.ask === 'h' || item.B != null ? 50 : 30, c7Calc(item), C7.hl, 15); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, item.ask === 'h' || item.B != null ? 54 : 30, labelText('c7Rule.' + (item.fig === 'pyr' ? 'cone' : item.fig)), C7.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, item.ask === 'h' || item.B != null ? 54 : 30, labelText('c7Rule.' + (item.fig === 'pyr' ? 'cone' : item.fig)), C7.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), c7Txt(v, item.uk), '<i></i>', c7Line(v, item.uk)])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'c7VolOff' });
 ITEM.c7Vol.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(v) === k) || [])[1] || 'c7VolOff' };
@@ -75,7 +75,7 @@ ITEM.c7SA = cpItem({ H: 262, tLine: 'gen.c7.together.sa', hint: 'gen.c7.hint.sa'
     if (item.ask === 'sa') for (const cy of [N.y0 - N.R, N.y0 + N.Hh + N.R]) el('circle', { cx: 180, cy, r: N.R, fill: 'rgba(217,130,43,.25)', stroke: 'none' }, g);
     c7PiNote(g, 300, 252);
     if (tries >= 3) ciEq(helpG(svg), 150, 252, { sa: `2 × 3.14 × ${item.r} × ${item.r} + 2 × 3.14 × ${item.r} × ${item.h}`, lat: `2 × 3.14 × ${item.r} × ${item.h} = ؟`, len: `2 × 3.14 × ${item.r} = ؟` }[item.ask], C7.hl, 13); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 20, labelText('c7RuleSA.' + item.ask), C7.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 20, labelText('c7RuleSA.' + item.ask), C7.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), c7Txt(v, item.uk), '<i></i>', c7Line(v, item.uk)])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'c7SAOff' });
 ITEM.c7SA.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(v) === k) || [])[1] || 'c7SAOff' };
@@ -89,8 +89,8 @@ ITEM.c7Conv = cpItem({ H: 236, tLine: 'gen.c7.together.conv', hint: 'gen.c7.hint
   make: s => { const ch = c7ConvCh(s); return { want: ch[0][0], ch, tag: 'c7-conv-' + s.from + '-' + s.to }; },
   draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 3, 3, 3, { s: 30, cx: 180, cy: 132 });
     el('rect', { x: 70, y: 14, width: 220, height: 40, rx: 12, fill: '#fff', stroke: C7.edge, 'stroke-width': 2 }, g); preLab(g, 180, 41, c7Txt(item.v, item.from) + ' = ؟ ' + c7U(item.to), { fs: 19, dir: 'rtl', col: C7.edge });
-    if (tries >= 3) ciRule(helpG(svg), 180, 216, labelText(item.from === 'm3' || item.to === 'm3' ? 'c7RuleM3' : 'c7RuleL'), C7.hl, 13); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 216, labelText(item.from === 'm3' ? 'c7RuleM3' : 'c7RuleL'), C7.hl, 13); await sleep(FAST ? 10 : 250); },
+    if (tries >= 3) ciRule(helpG(svg), 180, 216, labelText(item.from === 'm3' || item.to === 'm3' ? 'c7RuleM3' : 'c7RuleL'), C7.hl, 15); return {}; },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 216, labelText(item.from === 'm3' ? 'c7RuleM3' : 'c7RuleL'), C7.hl, 15); await sleep(FAST ? 10 : 250); },
   sayQ: async it => { await S(c7Line(it.v, it.from), { append: true }); await S('gen.c7.q.convTo.' + it.to, { append: true }); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), c7Txt(v, item.to), '<i></i>', c7Line(v, item.to)])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'c7ConvOff' });

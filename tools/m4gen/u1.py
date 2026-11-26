@@ -19,13 +19,14 @@ def vert(th,g,a): assert th%5==0 and 0<th<180 and g!=a; return {"t":"arVert","th
 REL={'corr':lambda n: n+4 if n<=4 else n-4,'altIn':lambda n:{3:6,4:5,5:4,6:3}[n],'altOut':lambda n:{1:8,2:7,7:2,8:1}[n],'coint':lambda n:{3:5,4:6,5:3,6:4}[n],'vert':lambda n:{1:4,4:1,2:3,3:2}[(n-1)%4+1]+(4 if n>4 else 0)}
 # lab: ترقيمٌ آخر للمواضع في بنود التقييم (المراجع A لبوابة M4-U1/U2، 9): XL للمستقيمين (المتقابلتان 1 و4، و2 و3)، وTL للقاطع (دائريّ عند كل تقاطع، أو التقاطع الأسفل أولاً)
 XL=[1,2,4,3]; TL1=[1,2,4,3,5,6,8,7]; TL2=[5,6,7,8,1,2,3,4]; TL3=[6,5,7,8,2,1,3,4]
-def which(rel,mark,opts,phi=None,th=None,lab=None):
-    d={"t":"arWhich","mark":mark,"rel":rel,"opts":opts,"q":"gen.ar.q.which."+rel}
+def which(rel,mark,opts,phi=None,th=None,lab=None,rot=0):
+    d={"t":"arWhich","mark":mark,"rel":rel,"opts":opts,"q":"gen.ar.q.which."+rel,**({"rot":rot} if rot else {})}
     if lab: assert sorted(lab)==list(range(1,len(lab)+1)); d['lab']=lab
     if th is not None: assert rel=='vert' and opts[0]==(mark+1)%4+1, (mark,opts); return {"kind":"cross","th":th,**d}
     assert REL[rel](mark)==opts[0] and len(set(opts))==3 and mark not in opts, (rel,mark,opts); return {"kind":"tr","phi":phi,**d}
-def trc(phi,g,a): assert phi%5==0 and g!=a; return {"t":"arTrCalc","phi":phi,"given":g,"ask":a,"q":"gen.ar.q.ang"}
-def par(phi,tilt): assert (phi-tilt)%5==0 and phi-tilt>10; return {"t":"arPar","phi":phi,"tilt":tilt,"q":"gen.ar.q.par"}
+# rot: الشكل كله مدارٌ (وضعٌ غير نمطي: المتوازيان مائلان؛ المراجع A لبوابة M4-U1/U2، 9، وD284 (7): يُتمرَّن عليه ثم يُقاس)
+def trc(phi,g,a,rot=0): assert phi%5==0 and g!=a and abs(rot)<=30; return {"t":"arTrCalc","phi":phi,"given":g,"ask":a,"q":"gen.ar.q.ang",**({"rot":rot} if rot else {})}
+def par(phi,tilt,rot=0): assert (phi-tilt)%5==0 and phi-tilt>10; return {"t":"arPar","phi":phi,"tilt":tilt,"q":"gen.ar.q.par",**({"rot":rot} if rot else {})}
 def turn(mode,**o):
     d={"t":"arTurn","mode":mode,**o}; d['q']='gen.ar.q.turn.'+mode; return d
 dump(U+'/unit.json', {"id":"m4.u1","title":"عَلَاقَاتُ الزَّوَايَا وَالقَاطِعُ","sub":"المَرْحَلَةُ الرَّابِعَةُ: المُخْتَرِعُونَ","district":"حَيُّ الزَّوَايَا المُتَقَاطِعَةِ","hosts":["triangle","square","rect"],"hunt":[]})
@@ -193,10 +194,10 @@ d3={"id":"m4.u1.d3","title":"القَاطِعُ وَالمُتَنَاظِرَت
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(which('corr',2,[6,3,5],phi=60),which('corr',3,[7,2,6],phi=50)), tw(trc(60,2,6),trc(65,1,5)), tw(par(70,0),par(70,10))],
-  "challenge":[tw(trc(70,4,8),trc(55,4,8)), tw(reason("pr.r1",arp(tr=60,tilt=15,mark=[2,6],vals=1),["pr.r1a","pr.r1b","pr.r1c"]),par(65,15)), tw(par(80,0),which('corr',8,[4,5,7],phi=75))]},
+  "challenge":[tw(trc(70,4,8,rot=-20),trc(55,4,8)), tw(reason("pr.r1",arp(tr=60,tilt=15,mark=[2,6],vals=1),["pr.r1a","pr.r1b","pr.r1c"]),par(65,15)), tw(par(80,0),which('corr',8,[4,5,7],phi=75))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":par(60,10),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{"C404":[which('corr',1,[5,4,2],phi=115,lab=TL2), trc(50,7,3), reason("ms.1",arp(tr=75,mark=[4,8]),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C404":[which('corr',6,[2,5,7],phi=70,lab=TL3), trc(75,8,4), reason("ms.x1",arp(tr=55,mark=[3,7]),["ms.x1a","ms.x1b","ms.x1c"])]},
+  "alt":{"C404":[which('corr',6,[2,5,7],phi=70,lab=TL3), trc(75,8,4,rot=25), reason("ms.x1",arp(tr=55,mark=[3,7]),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C404":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C404":[tw(trc(45,2,6),trc(45,1,5))]},
   "mixed":{"lesson":"m4.u1.d2","concept":"C413","item":vert(85,1,2)},
@@ -254,11 +255,11 @@ d4={"id":"m4.u1.d4","title":"زَوَايَا التَّبَادُلِ وَال�
   {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(which('altIn',3,[6,7,5],phi=60),which('altIn',4,[5,8,6],phi=60)), tw(which('altOut',1,[8,5,4],phi=70),which('coint',3,[5,6,7],phi=70))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(trc(60,3,6),trc(60,4,5)), tw(trc(70,4,6),trc(70,3,5)), tw(which('altOut',2,[7,6,8],phi=55),which('coint',5,[3,4,1],phi=55))],
+  "normal":[tw(trc(60,3,6),trc(60,4,5)), tw(trc(70,4,6,rot=25),trc(70,3,5)), tw(which('altOut',2,[7,6,8],phi=55),which('coint',5,[3,4,1],phi=55))],
   "challenge":[tw(reason("pr.r1",arp(tr=60,tilt=20,mark=[3,6],vals=1),["pr.r1a","pr.r1b","pr.r1c"]),trc(65,1,8)), tw(two("pr.two",["pr.twoa","pr.twob","pr.twoc"],hint="pr.twoHint"),trc(50,2,7)), tw(which('coint',4,[6,5,8],phi=50),trc(85,7,2))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":trc(65,3,6),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{"C404":[which('altIn',6,[3,4,2],phi=105,lab=TL1), trc(80,5,3), reason("ms.1",arp(tr=65,mark=[1,8]),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C404":[which('coint',4,[6,5,2],phi=65,lab=TL2), trc(75,6,4), reason("ms.x1",arp(tr=65,mark=[4,6]),["ms.x1a","ms.x1b","ms.x1c"])]},
+  "alt":{"C404":[which('coint',4,[6,5,2],phi=65,lab=TL2), trc(75,6,4,rot=-20), reason("ms.x1",arp(tr=65,mark=[4,6]),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C404":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C404":[tw(trc(55,3,6),trc(55,4,5))]},
   "mixed":{"lesson":"m4.u1.d3","concept":"C404","item":which('corr',5,[1,8,4],phi=55,lab=TL3)},
@@ -311,10 +312,10 @@ d5={"id":"m4.u1.d5","title":"مَشْرُوعُ: جِسْرُ الزَّوَاي
   {"s":"explore","scene":"arBridgeShow","table":True,"lines":["tb.01","tb.02"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(trc(65,1,4),trc(65,2,1)), tw(vert(110,1,3),comp(70,'supp')), tw(turn('tr',want=75,start=55),turn('tr',want=50,start=70))],
+  "normal":[tw(trc(65,1,4,rot=20),trc(65,2,1)), tw(vert(110,1,3),comp(70,'supp')), tw(turn('tr',want=75,start=55),turn('tr',want=50,start=70))],
   "challenge":[tw(trc(40,1,6),trc(40,5,3)), tw(reason("pr.r1",arp(tr=70,mark=[2,7],vals=1),["pr.r1a","pr.r1b","pr.r1c"]),par(85,10))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":trc(75,4,6),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C404":[trc(35,2,8), trc(35,7,1), reason("ms.1",arp(tr=65,mark=[6],vals=1),["ms.1a","ms.1b","ms.1c"])]},
+ "mastery":{"concepts":{"C404":[trc(35,2,8), trc(35,7,1,rot=-25), reason("ms.1",arp(tr=65,mark=[6],vals=1),["ms.1a","ms.1b","ms.1c"])]},
   "alt":{"C404":[trc(55,1,8), trc(55,6,3), reason("ms.x1",arp(tr=55,mark=[1],vals=1),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C404":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C404":[tw(trc(60,1,5),trc(60,1,8))]},
@@ -388,7 +389,7 @@ d6={"id":"m4.u1.d6","title":"بَوَّابَةُ حَيِّ الزَّوَاي�
    T6(3,2,vert(95,2,4)), T6(4,2,vert(95,1,4)),
    T6(5,4,which('altIn',5,[4,3,1],phi=115,lab=TL3)), T6(6,4,trc(115,6,3)),
    T6(7,3,par(70,15)),
-   T6(8,5,trc(35,1,7)), T6(9,5,trc(35,4,6)),
+   T6(8,5,trc(35,1,7)), T6(9,5,trc(35,4,6,rot=20)),
    T6(10,1,reason("ts.10",arp(adj=[35,'comp']),["ts.10a","ts.10b","ts.10c"])),
    T6(11,4,reason("ts.11",arp(tr=55,mark=[3,6]),["ts.11a","ts.11b","ts.11c"])),
    T6(12,3,reason("ts.12",arp(tr=55,tilt=15,mark=[3,6],vals=1),["ts.12a","ts.12b","ts.12c"]))]},
