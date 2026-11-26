@@ -65,7 +65,11 @@ HELP_DRAWN = {'lrTap', 'lrPick', 'linePick', 'lineTap', 'mapFind', 'mapPut', 'ro
               # S3-U2/U3: بطاقة القاعدة أو الصيغة أو ركن الورقة في الحلّ المشترك (المراجع B لبوابة S3-U2/U3، 11)
               'diagJudge', 'diagHalf', 'rhombAngle', 'quadIs', 'perpPick', 'paraArea', 'triArea', 'missingDim'}
 # والمستوى الثاني فعلٌ على المسرح يبقى حتى يجيب (D240): على مسرح المحاولة الثالثة رسمٌ data-help أو بطاقةٌ جُرِّبت معلَّمة (المراجع B لبوابة S3-U2/U3، 3)
-HELP2 = {'decPointer', 'decConv', 'decOrder', 'decCalc', 'decCmp', 'decRuler', 'triMissing', 'quadMissing', 'isoAngle', 'claimJudge', 'convexPick', 'triPossible', 'reflexOf', 'diagProp', 'diagJudge', 'diagHalf', 'diagBalance', 'diagPerp', 'rhombAngle', 'diagMake', 'quadNames', 'quadIs', 'perpPick', 'footSlide', 'paraArea', 'triArea', 'missingDim', 'areaTune', 'reason', 'twoReasons'}
+HELP2 = {'decPointer', 'decConv', 'decOrder', 'decCalc', 'decCmp', 'decRuler', 'triMissing', 'quadMissing', 'isoAngle', 'claimJudge', 'convexPick', 'triPossible', 'reflexOf', 'diagProp', 'diagJudge', 'diagHalf', 'diagBalance', 'diagPerp', 'rhombAngle', 'diagMake', 'quadNames', 'quadIs', 'perpPick', 'footSlide', 'paraArea', 'triArea', 'missingDim', 'areaTune', 'reason', 'twoReasons',
+         # S3-U4..U9: المستوى الثاني مرسوم (مراجعات البوابات؛ D240)
+         'trapArea', 'trapParts', 'diagArea', 'diagFit', 'kiteTune', 'comp2', 'compCut', 'comp2Perim', 'a2Conv', 'a2Machine', 'a2Cmp', 'a2Tiles',
+         'coordPlace', 'coordRead', 'coordWhere', 'coordDist', 'coordAlign', 'coordDraw', 'coordShape',
+         'xfDraw', 'xfWhich', 'refLine', 'trVector', 'rotSym', 'congJudge', 'congPart', 'circPart', 'soKind', 'soOpp', 'soNetYN', 'soNetPick', 'soNetMatch', 'soView', 'voUnit', 'voDims', 'voSmart'}
 H2 = "() => !!document.querySelector('#stage [data-help], #stage .pick.tried')"
 async def main():
   async with async_playwright() as p:

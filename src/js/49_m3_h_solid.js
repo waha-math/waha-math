@@ -85,8 +85,12 @@ function soFaces(parent, w, h, d, o = {}) { const g = el('g', { 'pointer-events'
   fr.forEach(([a, b, k], i) => { const cx = [290, 180, 70][i], W = a * s, H = b * s; htLab(g, [cx, 128 + H / 2 + 16], ciTxt(a, o.u || 'cm'), SO.ink, 13); htLab(g, [cx + W / 2 + 12, 128], MS(String(b)), SO.ink, 13); htLab(g, [cx, 128 - H / 2 - 14], labelText(k), SO.edge, 13); }); return g; }
 ITEM.soKind = cpItem({ H: 250, tLine: 'gen.so.together.kind', hint: 'gen.so.hint.kind', rLine: it => 'gen.so.reveal.' + (it.want === 'yes' ? 'cube' : 'box'), praise: 'praiseThink',
   make: s => ({ want: s.w === s.h && s.h === s.d ? 'yes' : 'no', tag: 'so-kind' + (s.faces ? '-faces' : '') }),
-  draw(svg, item, tries) { if (item.faces) soFaces(svg, item.w, item.h, item.d); else soBox(svg, item.w, item.h, item.d, { dims: true, s: soFit(item.w, item.h, item.d), cy: 116 });
-    if (tries >= 3) ciEq(helpG(svg), 180, 232, `${item.w} ، ${item.h} ، ${item.d}`, SO.hl, 18); return {}; },
+  draw(svg, item, tries) { const B = item.faces ? soFaces(svg, item.w, item.h, item.d) && null : soBox(svg, item.w, item.h, item.d, { dims: true, s: soFit(item.w, item.h, item.d), cy: 116 });
+    if (tries >= 3) ciEq(helpG(svg), 180, 232, `${item.w} ، ${item.h} ، ${item.d}`, SO.hl, 18); return B ? { G: B.G } : {}; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg);   /* الأطوال الثلاثة مرسومة: هل تتساوى؟ */
+    if (ctx.G) { const P = ctx.G.P; for (const [a, b] of [['flb', 'frb'], ['flb', 'flt'], ['frb', 'brb']]) geoLine(m, P[a][0], P[a][1], P[b][0], P[b][1], { color: THINK_INK, w: 5 }); }
+    else { const s = Math.min(14, 76 / Math.max(item.w, item.h, item.d)); [[item.w, item.h], [item.d, item.h], [item.w, item.d]].forEach(([a, b], i) => { const cx = [290, 180, 70][i], W = a * s, H = b * s, q = Math.min(W, H); el('rect', { x: cx - W / 2, y: 128 + H / 2 - q, width: q, height: q, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6, 'stroke-dasharray': '5 4' }, m); }); }
+    await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: it => it.want === 'no' ? 'soAllCube' : 'soCubeNo' });
 
@@ -96,6 +100,8 @@ ITEM.soOpp = cpItem({ H: 250, tLine: 'gen.so.together.opp', hint: 'gen.so.hint.o
   make: s => ({ want: SO_OPP[s.face], tag: 'so-opp-' + (s.ask || 'opp') }),
   draw(svg, item, tries) { const B = soBox(svg, item.w, item.h, item.d, { hl: item.face, dims: !!item.dimsOn, s: soFit(item.w, item.h, item.d), cy: 116 });
     if (tries >= 3) { const m = helpG(svg), G = B.G; el('polygon', { points: polyStr(G.F[item.want].map(v => G.P[v])), fill: SO.hl, 'fill-opacity': .2, stroke: SO.hl, 'stroke-width': 3, 'stroke-dasharray': '7 4' }, m); } return { G: B.G }; },
+  h2: async (item, ctx) => { if (ctx.G) { const m = helpG(ctx.svg), cenOf = ks => [ks.reduce((a, k) => a + ctx.G.P[k][0], 0) / ks.length, ks.reduce((a, k) => a + ctx.G.P[k][1], 0) / ks.length], A = cenOf(ctx.G.F[item.face]), O = cenOf(Object.keys(ctx.G.P)), ang = Math.atan2(O[1] - A[1], O[0] - A[0]) * 180 / Math.PI;   /* من الوجه الملوّن إلى داخل العلبة: المقابل في الجهة الأخرى */
+    geoLine(m, A[0], A[1], O[0], O[1], { color: THINK_INK, w: 3, dash: '6 4' }); geoArrow(m, O[0], O[1], ang, THINK_INK, 11); el('circle', { cx: A[0], cy: A[1], r: 4.5, fill: THINK_INK }, m); } await sleep(FAST ? 10 : 250); },
   pick: item => { const adj = ['back', 'bottom', 'left'].filter(k => k !== item.want), opts = shuffle([item.want, ...adj]); return choosePick(opts.map(k => [k, labelText('soF.' + k), '<i></i>', 'gen.so.f.' + k]), item.want); },
   errOf: () => 'soAdjacent' });
 
@@ -115,15 +121,18 @@ function soNetDraw(parent, net, o = {}) { const g = el('g', { 'pointer-events': 
 const soNetSvg = net => { const d = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); d.setAttribute('viewBox', '0 0 120 90'); d.setAttribute('width', '84'); d.setAttribute('height', '63'); d.setAttribute('aria-hidden', 'true'); soNetDraw(d, net, { cx: 60, cy: 45, W: 112, H: 84 }); return d.outerHTML; };
 ITEM.soNetYN = cpItem({ H: 250, tLine: 'gen.so.together.net', hint: 'gen.so.hint.net', rLine: it => 'gen.so.reveal.net.' + it.want, praise: 'praiseThink',
   make: s => ({ want: soFold(s.net).ok ? 'yes' : 'no', tag: 'so-net-yn' }),
-  draw(svg, item, tries) { soNetDraw(svg, item.net, { fold: tries >= 3 && soFold(item.net).ok }); return {}; },
+  draw(svg, item, tries) { return { N: soNetDraw(svg, item.net, { fold: tries >= 3 && soFold(item.net).ok }) }; },
+  h2: async (item, ctx) => { if (ctx.N) { const m = helpG(ctx.svg), F = soFold(item.net), { s, x0, y0 } = ctx.N, c0 = Math.min(...item.net.map(p => p[0])), r0 = Math.min(...item.net.map(p => p[1]));   /* القاعدة وما يقابلها بعد الطيّ */
+    item.net.forEach(([c, r], i) => { if (i && F.face[i] !== '0,0,1') return; el('rect', { x: x0 + (c - c0) * s + 4, y: y0 + (r - r0) * s + 4, width: s - 8, height: s - 8, fill: SO.pair[2], 'fill-opacity': .55, stroke: THINK_INK, 'stroke-width': 2.6, 'stroke-dasharray': i ? '5 4' : null }, m); }); } await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.svg) { ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); soNetDraw(helpG(ctx.svg), item.net, { fold: true }); } },
   pick: item => yesNo(item.want),
   errOf: it => it.want === 'no' ? 'netAnySix' : 'netNo' });
 /* أيّ الشبكات الثلاث تُطوى مكعباً؟ */
 ITEM.soNetPick = cpItem({ H: 200, tLine: 'gen.so.together.netPick', hint: 'gen.so.hint.net', rLine: 'gen.so.reveal.netPick', praise: 'praiseThink',
   make: s => { const i = s.nets.findIndex(n => soFold(n).ok); return { want: 'n' + i, tag: 'so-net-pick' }; },
-  draw(svg, item, tries) { item.nets.forEach((n, i) => { const cx = [296, 180, 64][i]; soNetDraw(svg, n, { cx, cy: 104, W: 96, H: 140 }); badge(svg, cx, 186, i + 1); });
+  draw(svg, item, tries) { item.nets.forEach((n, i) => { const cx = [296, 180, 64][i]; soNetDraw(svg, n, { cx, cy: 104, W: 96, H: 140, fold: tries >= 3 }); badge(svg, cx, 186, i + 1); });
     if (tries >= 3) { const m = helpG(svg); ciRule(m, 180, 22, labelText('soRule.net'), SO.hl, 14); } return {}; },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 22, labelText('soRule.net'), SO.hl, 14); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(item.nets.map((n, i) => ['n' + i, labelText('soNet.' + (i + 1)), '<i></i>', 'gen.so.net.' + (i + 1)]), item.want),
   errOf: () => 'netAnySix' });
 /* «المفتاح المطوي»: أيّ شبكةٍ تُطوى هذا المجسّم؟ solid cube | box | sqPyr */
@@ -136,11 +145,13 @@ function soNetIcon(k, d) { if (!d) { d = document.createElementNS('http://www.w3
   else { const g = el('g', {}, d), c = [60, 45], s = 22; el('rect', { x: c[0] - s, y: c[1] - s, width: 2 * s, height: 2 * s, fill: SO.face, stroke: SO.edge, 'stroke-width': 2 }, g);
     for (const [a, b, t] of [[[c[0] - s, c[1] - s], [c[0] + s, c[1] - s], [c[0], c[1] - s - 20]], [[c[0] - s, c[1] + s], [c[0] + s, c[1] + s], [c[0], c[1] + s + 20]], [[c[0] - s, c[1] - s], [c[0] - s, c[1] + s], [c[0] - s - 20, c[1]]], [[c[0] + s, c[1] - s], [c[0] + s, c[1] + s], [c[0] + s + 20, c[1]]]]) el('polygon', { points: polyStr([a, b, t]), fill: SO.side, stroke: SO.edge, 'stroke-width': 2 }, g); }
   return d; }
+const SO_NF = { cube: 6, box: 6, sqPyr: 5, triPyr: 4 };   /* عدد الأوجه: ما خالفه يبهت في الحلّ المشترك */
 ITEM.soNetMatch = cpItem({ H: 262, tLine: 'gen.so.together.match', hint: 'gen.so.hint.match', rLine: 'gen.so.reveal.match', praise: 'praiseThink',
   make: s => { const order = s.order || shuffle(['cube', 'box', 'sqPyr', 'triPyr']); return { order, want: 'p' + order.indexOf(s.solid), tag: 'so-net-match' }; },
   draw(svg, item, tries) { const top = el('g', { transform: 'translate(90 0) scale(.5)', 'pointer-events': 'none' }, svg); soSolid(top, item.solid, { cy: item.solid.endsWith('Pyr') ? 196 : 112, sc: .9, s: 26 });
-    item.order.forEach((k, i) => { const cx = [315, 225, 135, 45][i], g = el('g', { transform: `translate(${cx - 42} 132) scale(.7)`, 'pointer-events': 'none' }, svg); soNetIcon(k, g); badge(svg, cx, 212, i + 1); });
+    item.order.forEach((k, i) => { const cx = [315, 225, 135, 45][i], g = el('g', { transform: `translate(${cx - 42} 132) scale(.7)`, 'pointer-events': 'none', opacity: tries >= 3 && SO_NF[k] !== SO_NF[item.solid] ? .3 : null }, svg); soNetIcon(k, g); badge(svg, cx, 212, i + 1); });
     if (tries >= 3) ciRule(helpG(svg), 180, 240, labelText('soMatch.' + item.solid), SO.hl, 14); return {}; },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 240, labelText('soMatch.' + item.solid), SO.hl, 14); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(item.order.map((k, i) => ['p' + i, labelText('soNet.' + (i + 1)), '<i></i>', 'gen.so.net.' + (i + 1)]), item.want, { cls: 'four' }),
   errOf: () => 'netMatchOff' });
 
@@ -166,7 +177,9 @@ ITEM.soView = cpItem({ H: 240, tLine: 'gen.so.together.view', hint: 'gen.so.hint
   draw(svg, item, tries) { const B = soBox(svg, item.w, item.h, item.d, { dims: true, s: soFit(item.w, item.h, item.d, 200, 120), cy: 108 });
     const G = B.G, eye = { front: [G.P.flb[0] + G.W / 2, G.P.flb[1] + 34, -90], side: [G.P.frb[0] + G.dx + 40, G.P.frb[1] - G.H / 2, 180], top: [G.P.flt[0] + G.W / 2 + G.dx / 2, G.P.flt[1] + G.dy - 30, 90] }[item.view];
     const m = el('g', { 'pointer-events': 'none' }, svg), a = eye[2] * Math.PI / 180, tail = [eye[0] - 30 * Math.cos(a), eye[1] - 30 * Math.sin(a)]; geoLine(m, tail[0], tail[1], eye[0], eye[1], { color: SO.hl, w: 3.4 }); geoArrow(m, eye[0], eye[1], eye[2], SO.hl, 12); el('circle', { cx: tail[0], cy: tail[1], r: 8, fill: '#fff', stroke: SO.hl, 'stroke-width': 2.6 }, m); el('circle', { cx: tail[0], cy: tail[1], r: 3, fill: SO.hl }, m);   /* عينٌ وسهمٌ إلى الوجه المنظور */
-    if (tries >= 3) { const h = helpG(svg); el('polygon', { points: polyStr(G.F[item.view === 'side' ? 'right' : item.view].map(v => G.P[v])), fill: SO.hl, 'fill-opacity': .3, stroke: SO.hl, 'stroke-width': 3 }, h); } return { G }; },
+    if (tries >= 3) { const h = helpG(svg); el('polygon', { points: polyStr(G.F[item.view === 'side' ? 'right' : item.view].map(v => G.P[v])), fill: SO.hl, 'fill-opacity': .3, stroke: SO.hl, 'stroke-width': 3 }, h); } return { G, eye }; },
+  h2: async (item, ctx) => { if (ctx.G) { const m = helpG(ctx.svg), G = ctx.G, ks = G.F[item.view === 'side' ? 'right' : item.view], A = [ks.reduce((a, k) => a + G.P[k][0], 0) / 4, ks.reduce((a, k) => a + G.P[k][1], 0) / 4], E = ctx.eye;   /* خطّ النظر حتى الوجه الذي تلقاه العين */
+    geoLine(m, E[0], E[1], A[0], A[1], { color: SO.hl, w: 3, dash: '6 4' }); el('circle', { cx: A[0], cy: A[1], r: 5.5, fill: SO.hl, stroke: '#fff', 'stroke-width': 2 }, m); } await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(['front', 'side', 'top'].map(v => { const [a, b] = SO_VIEW(item, v); return [v, `${MS(String(a))} × ${MS(String(b))}`, soRectIcon(a, b), 'gen.so.view.' + v]; })), item.want),
   errOf: () => 'viewSwap' });
 

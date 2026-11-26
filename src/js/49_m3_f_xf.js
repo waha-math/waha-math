@@ -23,6 +23,13 @@ function xfPoly(parent, Pl, pts, o = {}) { const Q = pts.map(p => Pl.P(...p)), g
   if (o.names !== false) pts.forEach((p, i) => { const q = Q[i], d = [q[0] - cen[0], q[1] - cen[1]], L = Math.hypot(...d) || 1, t = el('text', { x: q[0] + d[0] / L * 13, y: q[1] + d[1] / L * 13 + 5, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: o.col || XF.org, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, g); t.textContent = o.label ? o.label(i) : xfName(i, o.img); });
   pts.forEach(p => { const q = Pl.P(...p); el('circle', { cx: q[0], cy: q[1], r: 4.2, fill: o.col || XF.org }, g); });
   return { g, Q }; }
+/* المستوى الثاني (المراجع B: فعلٌ على المسرح): رأسٌ واحد يُنقل مرسوماً، والباقي للطفل؛ وحلقة على رأسٍ ونظيره */
+function xfGuide(svg, Pl, xf, p) { const m = helpG(svg), q = xfApply(xf, p), A = Pl.P(...p), B = Pl.P(...q);
+  if (xf.k === 'tr') { const C = Pl.P(q[0], p[1]); geoLine(m, A[0], A[1], C[0], C[1], { color: css('--compass'), w: 3 }); geoLine(m, C[0], C[1], B[0], B[1], { color: THINK_INK, w: 3 }); }
+  else if (xf.k === 'ref') { geoLine(m, A[0], A[1], B[0], B[1], { color: THINK_INK, w: 2.4, dash: '5 4' }); el('circle', { cx: (A[0] + B[0]) / 2, cy: (A[1] + B[1]) / 2, r: 4.5, fill: THINK_INK }, m); }
+  else { const C = Pl.P(...xf.c); for (const P of [A, B]) geoLine(m, C[0], C[1], P[0], P[1], { color: THINK_INK, w: 2.4, dash: '5 4' }); }
+  el('circle', { cx: B[0], cy: B[1], r: 9, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6, 'stroke-dasharray': '4 3' }, m); return m; }
+function xfRing(m, Pl, pts, dash) { for (const p of pts) { const P = Pl.P(...p); el('circle', { cx: P[0], cy: P[1], r: 10, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.8, 'stroke-dasharray': dash || null }, m); } }
 /* مؤشّر التحويل على المستوى: خط الانعكاس، أو بطاقة الانسحاب، أو المركز بقوس الدوران */
 function xfMark(svg, Pl, xf) { const g = el('g', { 'pointer-events': 'none' }, svg);
   if (xf.k === 'ref') { const [a, b] = xf.axis === 'v' ? [Pl.P(xf.at, 0), Pl.P(xf.at, Pl.M)] : [Pl.P(0, xf.at), Pl.P(Pl.N, xf.at)]; geoLine(g, a[0], a[1] + (xf.axis === 'v' ? 6 : 0), b[0], b[1] - (xf.axis === 'v' ? 6 : 0), { color: XF.line, w: 3.4, dash: '9 5' }); }
@@ -67,7 +74,7 @@ ITEM.xfDraw = {
   judge(item, k) { if (k === item.want) return { ok: true }; const a = k ? k.split(' ').map(s => s.split(',').map(Number)) : [];
     if (a.length < item.pts.length) return { ok: false, err: 'xfShort' }; return { ok: false, err: xfErr(item, a) }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S('gen.xf.hint.' + item.xf.k); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { xfGuide(r.ctx.svg, r.ctx.Pl, item.xf, item.pts[0]); await sleep(FAST ? 10 : 250); } await S('gen.xf.hint.' + item.xf.k); }, async together() {},
   async reveal(item, r) { if (r && r.ctx) xfPoly(r.ctx.svg, r.ctx.Pl, item.img, { col: XF.ok, fill: 'none', dash: '7 5', img: true }); await S('gen.xf.reveal.' + item.xf.k); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -95,7 +102,7 @@ ITEM.xfWhich = {
     const k = await choosePick(['ref', 'tr', 'rot'].map(t => [t, labelText('xf.n.' + t), '<i></i>', 'gen.xf.n.' + t]), item.want); return { ans: k, ctx: { svg, Pl } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: (k === 'ref' && item.want === 'rot') || (k === 'rot' && item.want === 'ref') ? 'xfRefRot' : 'xfWhich' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.xf.hint.which'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { const m = helpG(r.ctx.svg); xfRing(m, r.ctx.Pl, [item.pts[0], item.img[0]]); xfRing(m, r.ctx.Pl, [item.pts[1], item.img[1]], '4 3'); } await S('gen.xf.hint.which'); }, async together() {},
   async reveal(item, r) { xfMark(r.ctx.svg, r.ctx.Pl, item.xf); await S('gen.xf.n.' + item.want); },
   praise: () => 'praiseLook', twin(item) { return item.twin || null; },
 };
@@ -108,7 +115,7 @@ ITEM.refLine = {
     const k = await choosePick(shuffle(item.ks.map(v => [String(v), `${labelText(item.axis === 'v' ? 'xfVline' : 'xfHline')} ${v}`, '<i></i>', `gen.xf.${item.axis}line.${v}`])), item.want, { cls: 'cards' }); return { ans: k, ctx: { svg, Pl } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'refLineMid' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.xf.hint.line'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) xfRing(helpG(r.ctx.svg), r.ctx.Pl, [item.pts[0], xfApply(item.xf, item.pts[0])]); await S('gen.xf.hint.line'); }, async together() {},
   async reveal(item, r) { xfMark(r.ctx.svg, r.ctx.Pl, item.xf); await S(`gen.xf.${item.axis}line.${item.k}`); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -126,7 +133,7 @@ ITEM.trVector = {
     const k = await choosePick(shuffle(item.ch.map(([u, v]) => [u + ',' + v, xfTrText(u, v), '<i></i>', xfTrLine(u, v)])), item.want, { cls: 'cards' }); return { ans: k, ctx: { svg, Pl } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const [u, v] = k.split(',').map(Number); return { ok: false, err: u === item.dy && v === item.dx ? 'trSwap' : u === -item.dx && v === -item.dy ? 'trBack' : 'trOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.xf.hint.vec'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { const m = helpG(r.ctx.svg), A = r.ctx.Pl.P(...item.a), C = r.ctx.Pl.P(item.a[0] + item.dx, item.a[1]); geoLine(m, A[0], A[1], C[0], C[1], { color: css('--compass'), w: 3 }); geoArrow(m, C[0], C[1], item.dx >= 0 ? 0 : 180, css('--compass'), 9); } await S('gen.xf.hint.vec'); }, async together() {},   /* الأفقيّ وحده مرسوماً، والرأسيّ للطفل */
   async reveal(item) { await S(xfTrLine(item.dx, item.dy)); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -169,7 +176,9 @@ ITEM.rotSym = { ...numItem,
     if (item.ask === 'angle') return { ok: false, err: 'rsAngle' };
     return { ok: false, err: k === D.axes ? 'rsAxes' : k === D.order + 1 ? 'rsFull' : 'rsCount' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.ask === 'angle' ? 'gen.xf.hint.angle' : 'gen.xf.hint.sym'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg), C = [180, 112], R = 22, P = a => [C[0] + R * Math.cos(a * Math.PI / 180), C[1] + R * Math.sin(a * Math.PI / 180)], a0 = P(40), a1 = P(-220);   /* قوسٌ يدور حول المركز: نُدير ولا نطوي */
+      el('path', { d: `M${a0[0]} ${a0[1]} A${R} ${R} 0 1 0 ${a1[0]} ${a1[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 3.4, 'stroke-linecap': 'round' }, m); const t = -220 * Math.PI / 180; geoArrow(m, a1[0], a1[1], Math.atan2(-Math.cos(t), Math.sin(t)) * 180 / Math.PI, THINK_INK, 10); el('circle', { cx: C[0], cy: C[1], r: 6.5, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.4 }, m); }
+    await S(item.ask === 'angle' ? 'gen.xf.hint.angle' : 'gen.xf.hint.sym'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && item.ask !== 'kinds') await rsSpin(r.ctx.svg, item.k, 180, 112, 78, { ms: 1600 }); if (item.ask === 'kinds') await S('gen.xf.k.' + item.want); else { await S('gen.ht.reveal.num', { noGap: true }); await S(item.ask === 'angle' ? 'gen.deg.' + item.want : numw(item.want), { append: true }); } },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -200,7 +209,7 @@ ITEM.congJudge = {
     const k = await choosePick(opts, item.want); return { ans: k, ctx: { svg, Pl } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.mv === 'scale' ? 'congSize' : k === 'no' ? (item.mv === 'ref' ? 'congFlip' : 'congMoved') : 'congMove' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.xf.hint.cong'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { const m = helpG(r.ctx.svg), [a, b] = cgTris(item); for (const T of [a, b]) { const P = r.ctx.Pl.P(...T[0]), Q = r.ctx.Pl.P(...T[1]); geoLine(m, P[0], P[1], Q[0], Q[1], { color: THINK_INK, w: 5 }); } } await S('gen.xf.hint.cong'); }, async together() {},   /* ضلعٌ ونظيره: هل الطول نفسه؟ */
   async reveal(item, r) { await S(item.mv === 'scale' ? 'gen.xf.reveal.scale' : 'gen.xf.n.' + item.mv); },
   praise: () => 'praiseLook', twin(item) { return item.twin || null; },
 };
@@ -213,10 +222,10 @@ ITEM.congPart = {
     const st = el('text', { x: 180, y: 22, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: CO.ink, direction: 'rtl' }, svg); st.textContent = labelText('xfCongStmt');
     const sideTxt = (k, two) => { const [i, j] = CG_SIDES[k], n = two ? N2 : XF_NM; return LTR[n[i]] + ' ' + LTR[n[j]]; };
     if (tries >= 3) { const m = helpG(svg); a.forEach((p, i) => { const P = Pl.P(...p), Q = Pl.P(...b[i]); geoLine(m, P[0], P[1], Q[0], Q[1], { color: THINK_INK, w: 1.6, dash: '4 4' }); }); await S('gen.xf.together.part'); } else { await S('gen.xf.q.part.' + item.side); }
-    const k = await choosePick(shuffle(Object.keys(CG_SIDES).map(s => [s, sideTxt(s, true), '<i></i>', 'gen.xf.side2.' + s])), item.want); void sideTxt; return { ans: k, ctx: { svg } }; },
+    const k = await choosePick(shuffle(Object.keys(CG_SIDES).map(s => [s, sideTxt(s, true), '<i></i>', 'gen.xf.side2.' + s])), item.want); void sideTxt; return { ans: k, ctx: { svg, Pl } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'congOrder' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.xf.hint.part'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { const m = helpG(r.ctx.svg), P = r.ctx.Pl.P(...item.pts[0]), Q = r.ctx.Pl.P(...xfApply(item.xf, item.pts[0])); geoLine(m, P[0], P[1], Q[0], Q[1], { color: THINK_INK, w: 2.2, dash: '4 4' }); xfRing(m, r.ctx.Pl, [item.pts[0], xfApply(item.xf, item.pts[0])]); } await S('gen.xf.hint.part'); }, async together() {},   /* الأوّل مع الأوّل مرسوماً، والباقي للطفل */
   async reveal(item) { await S('gen.xf.side2.' + item.side); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };

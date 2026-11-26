@@ -66,8 +66,9 @@ ITEM.voCalc.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: 
 /* ================= ④ وحدة الحجم (C325): u cm | m؛ المكعب الوحدة حرفه 1 سم أو 1 م (بالصورة) ================= */
 ITEM.voUnit = cpItem({ H: 230, tLine: 'gen.vo.together.unit', hint: 'gen.vo.hint.unit', rLine: it => 'gen.vo.unit.' + it.want, praise: 'praiseThink',
   make: s => ({ want: s.u + '3', tag: 'vo-unit' }),
-  draw(svg, item, tries) { soBox(svg, 1, 1, 1, { s: 96, cy: 116, dims: false }); htLab(svg, [130, 196], `1 ${item.u === 'm' ? labelText('lenM') : labelText('rulCm')}`.replace('1', MS('1')), SO.ink, 16);
-    if (tries >= 3) ciRule(helpG(svg), 180, 26, labelText('voUnitHint'), VO.hl, 14); return {}; },
+  draw(svg, item, tries) { const B = soBox(svg, 1, 1, 1, { s: 96, cy: 116, dims: false }); htLab(svg, [130, 196], `1 ${item.u === 'm' ? labelText('lenM') : labelText('rulCm')}`.replace('1', MS('1')), SO.ink, 16);
+    if (tries >= 3) ciRule(helpG(svg), 180, 26, labelText('voUnitHint'), VO.hl, 14); return { G: B.G }; },
+  h2: async (item, ctx) => { if (ctx.G) { const m = helpG(ctx.svg), P = ctx.G.P; for (const [a, b] of [['flb', 'frb'], ['flb', 'flt'], ['frb', 'brb']]) geoLine(m, P[a][0], P[a][1], P[b][0], P[b][1], { color: VO.hl, w: 5 }); } await sleep(FAST ? 10 : 250); },   /* طولٌ وعرضٌ وارتفاع: مكعّب */
   pick: item => { const u = item.u; return choosePick(shuffle([u + '3', u + '2', u]).map(k => [k, voU(k), '<i></i>', 'gen.vo.unit.' + k]), item.want); },
   errOf: (it, k) => k.endsWith('2') ? 'voUnitSq' : 'voUnitLen' });
 
@@ -75,6 +76,7 @@ ITEM.voUnit = cpItem({ H: 230, tLine: 'gen.vo.together.unit', hint: 'gen.vo.hint
 ITEM.voDims = cpItem({ H: 200, tLine: 'gen.vo.together.dims', hint: 'gen.vo.hint.dims', rLine: 'gen.vo.reveal.dims', praise: 'praiseThink',
   make: s => ({ want: s.opts[0].join('x'), tag: 'vo-dims' }),
   draw(svg, item, tries) { soBox(svg, 3, 2, 2, { s: 30, cy: 96 }); htLab(svg, [180, 178], voTxt(item.v, item.u + '3'), VO.ok, 20); if (tries >= 3) ciRule(helpG(svg), 180, 26, labelText('voRule'), VO.hl, 14); return {}; },
+  h2: async (item, ctx) => { ciEq(helpG(ctx.svg), 180, 30, `؟ × ؟ × ؟ = ${item.v}`, VO.hl, 17); await sleep(FAST ? 10 : 250); },   /* ضربٌ لا جمع */
   pick: item => choosePick(shuffle(item.opts.map(o => [o.join('x'), o.map(x => MS(String(x))).join(' × '), '<i></i>', 'gen.vo.dims.' + o.join('x')])), item.want),
   errOf: (it, k) => { const o = k.split('x').map(Number); return o[0] + o[1] + o[2] === it.v ? 'voSum' : 'voDimsOff'; } });
 
@@ -83,6 +85,7 @@ ITEM.voSmart = cpItem({ H: 250, tLine: 'gen.vo.together.smart', hint: 'gen.vo.hi
   make: s => { const sa = s.boxes.map(([w, h, d]) => 2 * (w * h + w * d + h * d)), i = sa.indexOf(s.ask === 'most' ? Math.max(...sa) : Math.min(...sa)); return { want: 'b' + i, sa, tag: 'vo-smart-' + (s.ask || 'least') }; },
   draw(svg, item, tries) { item.boxes.forEach(([w, h, d], i) => { const cx = [288, 180, 72][i]; soBox(svg, w, h, d, { s: soFit(w, h, d, 84, 100), cx, cy: 112 }); htLab(svg, [cx, 196], [w, h, d].map(x => MS(String(x))).join(' × '), SO.ink, 14); badge(svg, cx, 222, i + 1);
       if (tries >= 3) htLab(helpG(svg), [cx, 30], voTxt(item.sa[i], 'cm2'), VO.hl, 14); }); return {}; },
+  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 28, labelText('soRule.sa'), SO.hl, 14); await sleep(FAST ? 10 : 250); },   /* الورق مساحة السطح */
   pick: item => choosePick(item.boxes.map((b, i) => ['b' + i, labelText('voBox.' + (i + 1)), '<i></i>', 'gen.vo.box.' + (i + 1)]), item.want),
   errOf: () => 'voMostPaper' });
 
