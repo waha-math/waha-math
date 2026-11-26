@@ -392,7 +392,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'reason' && it.pic && it.pic.kind === 'rapic') return `rapic|${JSON.stringify(it.pic)}`;
   if (t === 'voCount') return `voc|${it.w}|${it.d}|${it.h}`;
   if (t === 'voFill') return `vof|${it.w}|${it.d}|${it.h}`;
-  if (t === 'voCalc') return `voa|${it.w}|${it.d}|${it.h}|${it.u}`;
+  if (t === 'voCalc') return `voa|${it.w}|${it.d}|${it.h}`;   /* بلا الوحدة: الحساب نفسه (كالدائرة، D286 (4)) */
   if (t === 'voUnit') return `vou|${it.u}|${it.ctx}`;
   if (t === 'voDims') return `vod|${it.v}|${JSON.stringify(it.opts)}`;
   if (t === 'voSmart') return `vos|${JSON.stringify(it.boxes)}|${it.ask || 'least'}`;
@@ -404,7 +404,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'soNetYN') return `sny|${JSON.stringify(it.net)}`;
   if (t === 'soNetPick') return `snp|${JSON.stringify(it.nets)}`;
   if (t === 'soNetMatch') return `snm|${it.solid}`;
-  if (t === 'soArea') return `soa|${it.w}|${it.h}|${it.d}|${it.u}|${it.wrap ? 'w' : ''}`;
+  if (t === 'soArea') return `soa|${it.w}|${it.h}|${it.d}|${it.wrap ? 'w' : ''}`;
   if (t === 'soView') return `sov|${it.w}|${it.h}|${it.d}|${it.view}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'sopic') return `sopic|${JSON.stringify(it.pic)}`;
   if (t === 'circCalc') return `cc|${it.ask}|${it.fig}|${it.v}`;   /* بلا الوحدة ولا الحديقة: الحساب نفسه بالسنتيمتر أو بالمتر مسألةٌ واحدة (المراجع A لبوابة S3-U6/U7، 3) */
@@ -623,6 +623,17 @@ export function d240(lessons, code, MAKERS) {
     boundShow: () => ['dg|3', 'cc|area|r|3', 'cc|area|d|6'],
     ciDoubleShow: () => ['csc|2|2', 'cc|area|r|2', 'cc|area|r|4'],
     gardenShow: () => ['cc|perim|r|5', 'cc|area|r|5', 'cc|half|r|5', 'cc|perim|d|10', 'cc|area|d|10'],
+    /* S3-U8..U10 (قبل مراجعة بوابتيها، D286 (4)) */
+    soHook: () => ['soc|cube|faces|'], soEdgesShow: () => ['soc|cube|edges|', 'soc|cube|verts|'],
+    boxHook: () => ['sok|8|3|6|'], boxShow: () => ['sok|8|3|6|', ...['front', 'top', 'right'].flatMap(f => [`sop|8|3|6|${f}|opp`, `sop|8|3|6|${f}|equal`])],
+    netShow: () => ['sny|[[1,0],[0,1],[1,1],[2,1],[3,1],[1,2]]'],
+    wrapHook: () => ['soa|4|2|3|', 'soa|4|2|3|w'], saShow: () => ['soa|4|2|3|', 'soa|4|2|3|w'],
+    viewsShow: () => ['front', 'side', 'top'].map(v => `sov|4|2|3|${v}`), giftShow: () => ['soa|6|3|4|', 'soa|6|3|4|w', ...['front', 'side', 'top'].map(v => `sov|6|3|4|${v}`)],
+    voHook: () => ['voc|3|2|4', 'vof|3|2|4'], voFillShow: () => ['voc|3|2|4', 'vof|3|2|4'], voToMul: () => ['voc|3|2|4', 'voa|3|2|4'], voVsArea: () => ['voc|3|2|2', 'voa|3|2|2'],
+    voSumHook: () => ['voa|5|4|3'], voMulShow: () => ['voc|5|4|3', 'voa|5|4|3'], voSameShow: () => ['voc|4|3|2', 'voc|6|4|1', 'voa|4|3|2', 'voa|6|4|1'], treasureShow: () => ['voa|5|4|6', 'voa|10|3|4'],
+    raHook: () => ['raq|2,6|1,3', 'raq|1,3|2,6'], raShow: () => ['raq|2,6|1,3', 'raq|1,3|2,6'],
+    enHook: () => ['end|tri|2|2|2', 'ena|tri|2|2|2'], enSqShow: () => ['end|sq|2|2|2', 'ena|sq|2|2|2'], enTriShow: () => ['end|tri|1|2|3', 'ena|tri|1|2|3'],
+    roomShow: () => ['scr|9|6|3'],
     /* S3-U1: أشكال «محدّب أم مقعّر» المعروضة، وجولات البلاط (المراجع A لبوابة S3-U0/U1، 2 و3) */
     convexShow: s => (s.polys || ['tri', 'hex', 'arrow', 'ell']).map(k => `cvx|${k}`),
     tessShow: s => (s.rounds || [[3, 6], [4, 4], [6, 3], [5, 3]]).filter(([n]) => n !== 5).map(([n, c]) => `tposs|T|${Array(c).fill(180 - 360 / n).join(',')}`),
@@ -848,6 +859,7 @@ export function d240(lessons, code, MAKERS) {
   for (const L of Object.values(lessons)) {
     const M = L.mastery;
     if (M) { for (const [C, items] of Object.entries(M.concepts)) items.forEach((it, i) => check(L, it, `إتقان ${C}[${i}]`, [L], 'mastery'));
+      for (const [C, items] of Object.entries(M.alt || {})) items.forEach((it, i) => check(L, it, `إتقان بديل ${C}[${i}]`, [L], 'mastery'));   /* بنود الدورة الثانية (D284 (1)) كالأولى: جديدة على ما عُرض */
       if (M.mixed && lessons[M.mixed.lesson]) check(L, M.mixed.item, 'البند المشتبك', [lessons[M.mixed.lesson]], 'after'); }
     (L.review || []).forEach((it, i) => check(L, it, `المراجعة[${i}]`, [L], 'review'));
     if (L.test) { /* وبنود الوحدة المشتبكة حُلّت قبل الاختبار أيضاً، وإن كانت من درس آخر */
@@ -936,7 +948,7 @@ export function d240(lessons, code, MAKERS) {
     const all = [], walkP = (v, L, role) => { if (Array.isArray(v)) return v.forEach(x => walkP(x, L, role)); if (!v || typeof v !== 'object') return; if (v.t === 'mapPut') all.push({ L, role, v });
       for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkP(x, L, k === 'twin' ? 'توأم' : role); };
     for (const L of Object.values(lessons)) { const M = L.mastery || {};
-      walkP(L.flow, L, 'معروض'); walkP(L.practice || {}, L, 'معروض'); walkP(M.remedial || {}, L, 'معروض'); walkP(M.concepts || {}, L, 'إتقان'); walkP(M.mixed ? M.mixed.item : null, L, 'مشتبك'); walkP(L.review || [], L, 'مراجعة'); walkP(((L.test || {}).items || []).map(q => q.item), L, 'اختبار'); }
+      walkP(L.flow, L, 'معروض'); walkP(L.practice || {}, L, 'معروض'); walkP(M.remedial || {}, L, 'معروض'); walkP(M.concepts || {}, L, 'إتقان'); walkP(M.alt || {}, L, 'إتقان'); walkP(M.mixed ? M.mixed.item : null, L, 'مشتبك'); walkP(L.review || [], L, 'مراجعة'); walkP(((L.test || {}).items || []).map(q => q.item), L, 'اختبار'); }
     for (const a of all) if (a.role !== 'معروض' && a.role !== 'توأم') for (const b of all) if (b !== a && b.L.unit === a.L.unit && ring(b.v) === ring(a.v))
       errors.push(`${a.L.id}: «ضع» في ${a.role} «${a.v.q}»: حلقة جوابه (${ring(a.v)}) كما في ${b.role} «${b.v.q}» (${b.L.id})، فيُحفظ الجواب مكاناً على الشاشة (الفحصان المستقلان D وE)`); }
   /* D253 (3) بالألوان الحرفية: كل مولّد له شيء ولون ثابت (لا من الألوان المحايدة) يبتعد عن لون هوية نوعه ΔE2000 ≥ 12؛ ألوان الهوية من الكود نفسه */

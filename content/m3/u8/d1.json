@@ -396,16 +396,26 @@
   "alt": {
    "C318": [
     {
+     "dims": [
+      6,
+      3,
+      4
+     ],
      "t": "soCount",
      "solid": "box",
      "ask": "verts",
      "q": "gen.so.q.verts"
     },
     {
+     "dims": [
+      2,
+      6,
+      4
+     ],
      "t": "soCount",
-     "solid": "sqPyr",
-     "ask": "faces",
-     "q": "gen.so.q.faces"
+     "solid": "box",
+     "ask": "edges",
+     "q": "gen.so.q.edges"
     },
     {
      "t": "reason",
@@ -494,8 +504,13 @@
    "c": "C318"
   },
   {
+   "dims": [
+    4,
+    2,
+    6
+   ],
    "t": "soCount",
-   "solid": "cube",
+   "solid": "box",
    "ask": "verts",
    "q": "gen.so.q.verts",
    "c": "C318"

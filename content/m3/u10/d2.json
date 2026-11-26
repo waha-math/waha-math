@@ -254,25 +254,25 @@
     "q": "gen.en.q.area.sq",
     "twin": {
      "t": "enArea",
-     "fig": "sq",
-     "a": 2,
-     "b": 2,
+     "fig": "rect",
+     "a": 1,
+     "b": 3,
      "k": 2,
      "ch": [
       [
-       16,
+       12,
        null
       ],
       [
-       8,
+       6,
        "enAreaK"
       ],
       [
-       32,
+       24,
        "enAreaCube"
       ]
      ],
-     "q": "gen.en.q.area.sq"
+     "q": "gen.en.q.area.rect"
     }
    },
    {
@@ -503,23 +503,23 @@
     {
      "t": "enDims",
      "fig": "rect",
-     "a": 3,
-     "b": 2,
+     "a": 2,
+     "b": 3,
      "k": 2,
      "cands": [
       [
-       6,
        4,
+       6,
        null
       ],
       [
-       5,
        4,
+       5,
        "enAdd"
       ],
       [
-       6,
-       2,
+       4,
+       3,
        "enOneSide"
       ]
      ],

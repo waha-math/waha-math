@@ -126,10 +126,9 @@
   {
    "s": "explore",
    "scene": "giftShow",
+   "setup": true,
    "lines": [
-    "gf.01",
-    "gf.02",
-    "gf.03"
+    "gf.01"
    ],
    "predBefore": [
     "yes",
@@ -151,8 +150,8 @@
      "q": "gen.so.q.view.front",
      "twin": {
       "t": "soView",
-      "w": 6,
-      "h": 3,
+      "w": 5,
+      "h": 2,
       "d": 4,
       "view": "top",
       "q": "gen.so.q.view.top"
@@ -167,21 +166,81 @@
      "q": "gen.so.q.view.side",
      "twin": {
       "t": "soArea",
-      "w": 6,
-      "h": 3,
+      "w": 5,
+      "h": 2,
       "d": 4,
       "u": "cm",
       "ch": [
        [
-        108,
+        76,
         null
        ],
        [
-        54,
+        38,
         "saHalf"
        ],
        [
-        72,
+        40,
+        "saVolume"
+       ]
+      ],
+      "q": "gen.so.q.gift"
+     }
+    },
+    {
+     "t": "soView",
+     "w": 6,
+     "h": 3,
+     "d": 4,
+     "view": "top",
+     "q": "gen.so.q.view.top",
+     "twin": {
+      "t": "soView",
+      "w": 7,
+      "h": 2,
+      "d": 5,
+      "view": "side",
+      "q": "gen.so.q.view.side"
+     }
+    },
+    {
+     "t": "soArea",
+     "w": 6,
+     "h": 3,
+     "d": 4,
+     "u": "cm",
+     "ch": [
+      [
+       108,
+       null
+      ],
+      [
+       54,
+       "saHalf"
+      ],
+      [
+       72,
+       "saVolume"
+      ]
+     ],
+     "q": "gen.so.q.gift",
+     "twin": {
+      "t": "soArea",
+      "w": 7,
+      "h": 2,
+      "d": 5,
+      "u": "cm",
+      "ch": [
+       [
+        118,
+        null
+       ],
+       [
+        59,
+        "saHalf"
+       ],
+       [
+        70,
         "saVolume"
        ]
       ],
@@ -195,6 +254,8 @@
    "scene": "giftShow",
    "table": true,
    "lines": [
+    "gf.02",
+    "gf.03",
     "tb.01",
     "tb.02"
    ]
