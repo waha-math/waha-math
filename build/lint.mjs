@@ -1125,7 +1125,10 @@ export function lint(content, js) {
   const bare = t => String(t || '').replace(/\{([^|{}]*)\|[^{}]*\}/g, '$1').replace(/[\u064B-\u0652\u0670]/g, '').replace(/\s+/g, ' ').trim().length;
   const walkWhy = (v, where, L) => { if (Array.isArray(v)) return v.forEach(x => walkWhy(x, where, L)); if (!v || typeof v !== 'object') return;
     if (['reason', 'robotWatch', 'routePick'].includes(v.t) && Array.isArray(v.opts)) { const txt = id => (L.lines && L.lines[id]) || (content.gen.lines || {})[id] || ''; const ok = v.opts.filter(o => o.ok).map(o => bare(txt(o.id))), bad = v.opts.filter(o => !o.ok).map(o => bare(txt(o.id)));
-      if (ok.length && bad.length && Math.max(...ok) > 1.2 * Math.max(...bad)) errors.push(`${where}: في بند ${v.t === 'reason' ? 'التعليل' : 'البطاقتين'} «${v.q}» الصحيح ${Math.max(...ok)} حرفاً وأطول المشتّتين ${Math.max(...bad)}: الطول قرينة`); }
+      if (ok.length && bad.length && Math.max(...ok) > 1.2 * Math.max(...bad)) errors.push(`${where}: في بند ${v.t === 'reason' ? 'التعليل' : 'البطاقتين'} «${v.q}» الصحيح ${Math.max(...ok)} حرفاً وأطول المشتّتين ${Math.max(...bad)}: الطول قرينة`);
+      /* والكلمة المطلقة («دائماً»، «أبداً»، «في كل مرة») في مشتّتٍ وحده قرينةٌ يُستبعد بها (المراجع A لبوابة S3-U6/U7، 16): خطأٌ في م1–م3، وتنبيهٌ في م4 حتى تُراجَع */
+      { const ABS = /دائما|أبدا|في كل مرة|كل مرة/, raw = id => String(txt(id)).replace(/[\u064B-\u0652\u0670]/g, ''), okA = v.opts.filter(o => o.ok).some(o => ABS.test(raw(o.id))), badA = v.opts.filter(o => !o.ok && ABS.test(raw(o.id))).map(o => o.id);
+        if (badA.length && !okA) (/^m4\./.test(where) ? warn : errors).push(`${where}: في بند ${v.t === 'reason' ? 'التعليل' : 'البطاقتين'} «${v.q}» كلمةٌ مطلقة في المشتّت وحده (${badA.join('، ')}): قرينة استبعاد (D240)`); } }
     for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkWhy(x, where, L); };
   for (const L of Object.values(lessons)) walkWhy(L, L.id, L);
   // 4ج5) أنماط تكشف الصحيح في بطاقات التعليل (مراجعة بوابة S2-U4/U5، 3)، في م2: (أ) في بنود «نعم/لا» لا يكون الصحيح القطبَ الوحيد (مشتّتٌ بقطبه بسبب خاطئ)؛

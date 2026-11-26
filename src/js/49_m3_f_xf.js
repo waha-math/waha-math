@@ -6,7 +6,7 @@
    ===================================================================== */
 const XF = { org: '#3d7cc0', orgF: '#d8e8f6', img: '#e07b39', imgF: '#fbe3d1', line: '#8e6bbf', ctr: '#c8392d', ok: '#2f9d6b', ghost: '#9fb4c0' };
 const XF_NM = ['a', 'b', 'j', 'd'];
-const xfName = (i, img) => LTR[XF_NM[i]] + (img ? "'" : '');
+const xfName = (i, img) => LTR[XF_NM[i]] + (img ? '′' : '');   /* الشرطة «′» كما في دليل الرموز (المراجع A لبوابة S3-U6/U7، 23) */
 /* صورة نقطة بالتحويل: ref {axis v|h، at}، tr {dx، dy}، rot {c، q أرباع الدورة، cw مع عقارب الساعة} */
 function xfApply(xf, [x, y]) {
   if (xf.k === 'ref') return xf.axis === 'v' ? [2 * xf.at - x, y] : [x, 2 * xf.at - y];
@@ -96,14 +96,16 @@ function xfWrongImg(item) { const xf = item.xf, P = item.pts;
 
 /* ================= ② أيّ تحويل؟ (C312، C313، C338): pts الأصل، xf التحويل؛ يختار الطفل الاسم ================= */
 ITEM.xfWhich = {
-  make(spec) { return { ...spec, img: spec.pts.map(p => xfApply(spec.xf, p)), want: spec.xf.k, tag: 'xf-which' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m, nums: false }); xfPoly(svg, Pl, item.pts); xfPoly(svg, Pl, item.img, { col: XF.img, fill: XF.imgF, img: true });
+  make(spec) { return { ...spec, img: spec.pts.map(p => xfApply(spec.xf, p)), want: spec.is ? (spec.xf.k === spec.is ? 'yes' : 'no') : spec.xf.k, tag: 'xf-which' + (spec.is ? '-is-' + spec.is : '') }; },
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m, nums: false }); if (item.line) xfMark(svg, Pl, item.line); xfPoly(svg, Pl, item.pts); xfPoly(svg, Pl, item.img, { col: XF.img, fill: XF.imgF, img: true });
+    if (item.is) { if (tries >= 3) { const m = helpG(svg); item.pts.forEach((p, i) => { const a = Pl.P(...p), b = Pl.P(...item.img[i]); geoLine(m, a[0], a[1], b[0], b[1], { color: THINK_INK, w: 2, dash: '5 4' }); }); await S('gen.xf.together.is.' + item.is); } else await S(item.q || 'gen.xf.q.is.' + item.is);
+      return { ans: await yesNo(item.want), ctx: { svg, Pl } }; }
     if (tries >= 3) { const m = helpG(svg); item.pts.forEach((p, i) => { const a = Pl.P(...p), b = Pl.P(...item.img[i]); geoLine(m, a[0], a[1], b[0], b[1], { color: THINK_INK, w: 2, dash: '5 4' }); }); await S('gen.xf.together.which'); } else await S(item.q || 'gen.xf.q.which');
     const k = await choosePick(['ref', 'tr', 'rot'].map(t => [t, labelText('xf.n.' + t), '<i></i>', 'gen.xf.n.' + t]), item.want); return { ans: k, ctx: { svg, Pl } }; },
-  judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: (k === 'ref' && item.want === 'rot') || (k === 'rot' && item.want === 'ref') ? 'xfRefRot' : 'xfWhich' }; },
+  judge(item, k) { if (k === item.want) return { ok: true }; if (item.is) return { ok: false, err: item.want === 'no' ? 'xfIsNot' : 'xfIsYes' }; return { ok: false, err: (k === 'ref' && item.want === 'rot') || (k === 'rot' && item.want === 'ref') ? 'xfRefRot' : 'xfWhich' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { const m = helpG(r.ctx.svg); xfRing(m, r.ctx.Pl, [item.pts[0], item.img[0]]); xfRing(m, r.ctx.Pl, [item.pts[1], item.img[1]], '4 3'); } await S('gen.xf.hint.which'); }, async together() {},
-  async reveal(item, r) { xfMark(r.ctx.svg, r.ctx.Pl, item.xf); await S('gen.xf.n.' + item.want); },
+  async reveal(item, r) { xfMark(r.ctx.svg, r.ctx.Pl, item.xf); await S(item.is ? 'gen.xf.is.' + item.is + '.' + item.want : 'gen.xf.n.' + item.want); },
   praise: () => 'praiseLook', twin(item) { return item.twin || null; },
 };
 
@@ -140,12 +142,20 @@ ITEM.trVector = {
 
 /* ================= أشكال التماثل الدوراني (C317): نقاط حول المركز، وعدد الانطباقات (order) والمحاور (axes) ================= */
 const RS_REG = n => Array.from({ length: n }, (_, i) => [Math.cos(Math.PI / 2 + 2 * Math.PI * i / n), Math.sin(Math.PI / 2 + 2 * Math.PI * i / n)]);
+const RS_STAR = n => Array.from({ length: 2 * n }, (_, i) => { const a = Math.PI / 2 + Math.PI * i / n, r = i % 2 ? .46 : 1.15; return [r * Math.cos(a), r * Math.sin(a)]; });
 const RS = {
   eqTri: { pts: RS_REG(3), order: 3, axes: 3 }, sq: { pts: RS_REG(4), order: 4, axes: 4, rot: 45 }, pent: { pts: RS_REG(5), order: 5, axes: 5 }, hex: { pts: RS_REG(6), order: 6, axes: 6 }, oct: { pts: RS_REG(8), order: 8, axes: 8 },
   rect: { pts: [[-1.35, -.8], [1.35, -.8], [1.35, .8], [-1.35, .8]], order: 2, axes: 2 }, rhom: { pts: [[0, -1.2], [.75, 0], [0, 1.2], [-.75, 0]], order: 2, axes: 2 },
   para: { pts: [[-1.5, -.75], [.7, -.75], [1.5, .75], [-.7, .75]], order: 2, axes: 0 }, kite: { pts: [[0, 1.25], [.8, .35], [0, -1.1], [-.8, .35]], order: 1, axes: 1 },
   isoTrap: { pts: [[-1.4, -.75], [1.4, -.75], [.7, .75], [-.7, .75]], order: 1, axes: 1 }, scal: { pts: [[-1.2, -.7], [1.3, -.7], [-.3, .9]], order: 1, axes: 0 },
   fan3: { fan: 3, order: 3, axes: 0 }, fan4: { fan: 4, order: 4, axes: 0 }, fan8: { fan: 8, order: 8, axes: 0 }, flower6: { petal: 6, order: 6, axes: 6 },
+  fan5: { fan: 5, order: 5, axes: 0 }, fan6: { fan: 6, order: 6, axes: 0 },
+  star4: { pts: RS_STAR(4), order: 4, axes: 4 }, star5: { pts: RS_STAR(5), order: 5, axes: 5 }, star6: { pts: RS_STAR(6), order: 6, axes: 6 },
+  cross: { pts: [[.35, 1.1], [.35, .35], [1.1, .35], [1.1, -.35], [.35, -.35], [.35, -1.1], [-.35, -1.1], [-.35, -.35], [-1.1, -.35], [-1.1, .35], [-.35, .35], [-.35, 1.1]], order: 4, axes: 4 },
+  zig: { pts: [[-1.2, .8], [.4, .8], [.4, 0], [1.2, 0], [1.2, -.8], [-.4, -.8], [-.4, 0], [-1.2, 0]], order: 2, axes: 0 },
+  arrow: { pts: [[0, 1.2], [.95, .15], [.38, .15], [.38, -1.1], [-.38, -1.1], [-.38, .15], [-.95, .15]], order: 1, axes: 1 },
+  house: { pts: [[-.95, -.95], [.95, -.95], [.95, .3], [0, 1.15], [-.95, .3]], order: 1, axes: 1 },
+  paraT: { pts: [[-1.5, -.75], [.7, -.75], [1.5, .75], [-.7, .75]], order: 2, axes: 0, rot: -28 },   /* متوازي أضلاع مائل غير رسم الإشعال */
 };
 function rsDraw(parent, k, cx, cy, s, o = {}) { const D = RS[k], g = el('g', { transform: `translate(${cx} ${cy})`, 'pointer-events': 'none' }, parent), inner = el('g', {}, g);
   if (D.fan) { el('circle', { cx: 0, cy: 0, r: s * .16, fill: o.col || XF.org }, inner); for (let i = 0; i < D.fan; i++) el('path', { d: `M0 0 C${s * .15} ${-s * .35} ${s * .55} ${-s * .55} ${s * .3} ${-s} C${s * .05} ${-s * .7} ${-s * .2} ${-s * .4} 0 0Z`, fill: o.fill || XF.orgF, stroke: o.col || XF.org, 'stroke-width': 2.4, transform: `rotate(${360 * i / D.fan})` }, inner); }
@@ -190,7 +200,7 @@ function cgTris(spec) { const a = spec.pts, mv = spec.mv; let b;
   return [a, b]; }
 /* صورة بطاقة التعليل (S3-U6): rs شكلٌ من RS وحده؛ أو pts وxf (أو mv: 'scale' وs وat) على شبكة بلا أعداد */
 function xfReasonPic(g, P) { if (P.rs) { rsDraw(g, P.rs, 180, 104, 74); return; }
-  const [a, b] = P.mv === 'scale' ? cgTris(P) : [P.pts, P.pts.map(p => xfApply(P.xf, p))], all = a.concat(b, P.xf && P.xf.c ? [P.xf.c] : [], P.xf && P.xf.k === 'ref' ? [P.xf.axis === 'v' ? [P.xf.at, 0] : [0, P.xf.at]] : []),
+  const [a, b] = P.mv === 'scale' ? cgTris(P) : [P.pts, P.img || P.pts.map(p => xfApply(P.xf, p))], all = a.concat(b, P.xf && P.xf.c ? [P.xf.c] : [], P.xf && P.xf.k === 'ref' ? [P.xf.axis === 'v' ? [P.xf.at, 0] : [0, P.xf.at]] : []),
     Pl = coPlane(g, { n: P.n || Math.max(5, ...all.map(p => p[0] + 1)), m: P.m || Math.max(4, ...all.map(p => p[1] + 1)), H: 214, top: 8, nums: false, axes: false });
   if (P.xf && P.mv !== 'scale') xfMark(g, Pl, P.xf); xfPoly(g, Pl, a, { names: false }); xfPoly(g, Pl, b, { col: XF.img, fill: XF.imgF, names: false, img: true }); }
 /* نسخةٌ تتحرّك بالحركة نفسها (الحلّ المشترك): انسحابٌ خطّي، ودورانٌ حول المركز، وقلبٌ يمرّ بالخطّ، وفي «scale» تُنقل بحجمها إلى موضع الكبير فلا تنطبق */
@@ -215,11 +225,20 @@ ITEM.congJudge = {
 };
 /* ================= ⑦ الأجزاء المتناظرة (C314): المثلث أ ب ج يطابق د هـ و؛ side «أب» | «بج» | «أج»، والثاني بحركة xf تُخفي الترتيب ================= */
 const CG_SIDES = { ab: [0, 1], bj: [1, 2], aj: [0, 2] };
+function xfCongSym(g, x, y, s = 1, col = CO.ink) { el('path', { d: `M${x - 7 * s} ${y - 7 * s} q${3.5 * s} ${-4 * s} ${7 * s} 0 t${7 * s} 0`, fill: 'none', stroke: col, 'stroke-width': 2.2 * s, 'stroke-linecap': 'round' }, g);
+  for (const dy of [-1.5, 3.5]) geoLine(g, x - 7 * s, y + dy * s, x + 7 * s, y + dy * s, { color: col, w: 2.2 * s }); }
+function xfTriSym(g, x, y, s = 1, col = CO.ink) { el('polygon', { points: polyStr([[x, y - 8 * s], [x + 7 * s, y + 4 * s], [x - 7 * s, y + 4 * s]]), fill: 'none', stroke: col, 'stroke-width': 2 * s, 'stroke-linejoin': 'round' }, g); }
+/* «∆ أ ب ج ≅ ∆ د هـ و» من اليمين: المثلّث ورؤوسه، ثم الرمز، ثم صورته */
+function xfCongStmt(parent, cx, y, o = {}) { const g = el('g', { 'pointer-events': 'none' }, parent), fs = o.fs || 16, col = o.col || CO.ink, t1 = ['a', 'b', 'j'].map(k => LTR[k]).join(' '), t2 = ['d', 'h', 'w'].map(k => LTR[k]).join(' ');
+  const T = s => { const t = el('text', { x: 0, y: y + fs * .35, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, direction: 'rtl' }, g); t.textContent = s; let w = 0; try { w = t.getComputedTextLength(); } catch (e) {} return [t, w || s.length * fs * .45]; };
+  const [a, wa] = T(t1), [b, wb] = T(t2), W = 14 + 6 + wa + 12 + 16 + 12 + 14 + 6 + wb; let x = cx + W / 2;
+  xfTriSym(g, x - 7, y, 1, col); x -= 20; a.setAttribute('x', x - wa / 2); x -= wa + 12; xfCongSym(g, x - 8, y + 1, 1, col); x -= 28; xfTriSym(g, x - 7, y, 1, col); x -= 20; b.setAttribute('x', x - wb / 2);
+  return g; }
 ITEM.congPart = {
   make(spec) { return { ...spec, want: spec.side, tag: 'cong-part' }; },
   async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: 12, m: 8, axes: false }), a = item.pts, b = a.map(p => xfApply(item.xf, p)), N2 = ['d', 'h', 'w'];
     xfPoly(svg, Pl, a); xfPoly(svg, Pl, b, { col: XF.img, fill: XF.imgF, label: i => LTR[N2[i]] });
-    const st = el('text', { x: 180, y: 22, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: CO.ink, direction: 'rtl' }, svg); st.textContent = labelText('xfCongStmt');
+    xfCongStmt(svg, 180, 20);
     const sideTxt = (k, two) => { const [i, j] = CG_SIDES[k], n = two ? N2 : XF_NM; return LTR[n[i]] + ' ' + LTR[n[j]]; };
     if (tries >= 3) { const m = helpG(svg); a.forEach((p, i) => { const P = Pl.P(...p), Q = Pl.P(...b[i]); geoLine(m, P[0], P[1], Q[0], Q[1], { color: THINK_INK, w: 1.6, dash: '4 4' }); }); await S('gen.xf.together.part'); } else { await S('gen.xf.q.part.' + item.side); }
     const k = await choosePick(shuffle(Object.keys(CG_SIDES).map(s => [s, sideTxt(s, true), '<i></i>', 'gen.xf.side2.' + s])), item.want); void sideTxt; return { ans: k, ctx: { svg, Pl } }; },
@@ -245,6 +264,13 @@ ITEM.triDet = {
 };
 
 /* ================= المشاهد ================= */
+SCENES.triDetShow = async c => { const L = c.lines, svg = m3Stage(250), A = [104, 204], u = 34, AB = 5 * u, AC = 4 * u, Bp = [A[0] + AB, A[1]], g = el('g', { 'pointer-events': 'none' }, svg);
+  const tri = (ang, o = {}) => { const C = [A[0] + AC * Math.cos(-ang * Math.PI / 180), A[1] + AC * Math.sin(-ang * Math.PI / 180)]; return el('polygon', { points: polyStr([A, Bp, C]), fill: o.fill || 'none', stroke: o.col || XF.org, 'stroke-width': o.w || 3, 'stroke-dasharray': o.dash || null, 'stroke-linejoin': 'round' }, g); };
+  const lab = (p, s, col) => { const t = el('text', { x: p[0], y: p[1], 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: col || CO.ink, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }, g); t.textContent = s; return t; };
+  lab([A[0] + AB / 2, A[1] + 22], ciTxt(5, 'cm')); tri(60, { fill: XF.orgF }); lab([A[0] + 30, A[1] - 52], ciTxt(4, 'cm')); el('path', { d: `M${A[0] + 26} ${A[1]} A26 26 0 0 0 ${A[0] + 26 * Math.cos(Math.PI / 3)} ${A[1] - 26 * Math.sin(Math.PI / 3)}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 3 }, g); lab([A[0] + 46, A[1] - 12], MS('60'), THINK_INK); el('circle', { cx: A[0] + 58, cy: A[1] - 24, r: 2.6, fill: 'none', stroke: THINK_INK, 'stroke-width': 1.6 }, g);
+  await S(L[0]); const t2 = tri(60, { col: XF.img, dash: '7 5', w: 3.4 }); SFX.tick(); await sleep(FAST ? 2 : 500); await S(L[1]); t2.remove();
+  g.innerHTML = ''; lab([A[0] + AB / 2, A[1] + 22], ciTxt(5, 'cm')); for (const [i, ang] of [38, 62, 92, 122].entries()) { tri(ang, { col: [XF.org, XF.img, XF.ok, XF.line][i], w: 2.6 }); SFX.tick(); await sleep(FAST ? 2 : 350); } const arc = (a, b) => `M${A[0] + AC * Math.cos(-a * Math.PI / 180)} ${A[1] + AC * Math.sin(-a * Math.PI / 180)} A${AC} ${AC} 0 0 0 ${A[0] + AC * Math.cos(-b * Math.PI / 180)} ${A[1] + AC * Math.sin(-b * Math.PI / 180)}`; el('path', { d: arc(30, 132), fill: 'none', stroke: THINK_INK, 'stroke-width': 2, 'stroke-dasharray': '5 5' }, g); lab([A[0] + (AC + 18) * Math.cos(-107 * Math.PI / 180), A[1] + (AC + 18) * Math.sin(-107 * Math.PI / 180)], ciTxt(4, 'cm'), THINK_INK);   /* طرف الضلع الثاني يدور على قوسٍ كالمفصل */
+  for (const l of L.slice(2)) await S(l); };
 /* الإشعال (د1): فوضى تنسخ المثلث بالاتجاه نفسه «هذه صورته في المرآة!»، والورقة المقلوبة تُظهر الصورة الصحيحة */
 SCENES.mirrorHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { nums: false }), P = [[1, 1], [4, 1], [2, 4]], xf = { k: 'ref', axis: 'v', at: 5 }; xfMark(svg, Pl, xf); xfPoly(svg, Pl, P); const fz = chaosAt(svg, 318, 40, .4); chaosGiggle(fz);
   const bad = xfPoly(svg, Pl, P.map(([x, y]) => [x + 5, y]), { col: XF.ctr, fill: '#f6d5d2', img: true }); await S(L[0]); bad.g.remove(); xfPoly(svg, Pl, P.map(p => xfApply(xf, p)), { col: XF.img, fill: XF.imgF, img: true }); SFX.good(); for (const l of L.slice(1)) await S(l); };
@@ -283,7 +309,7 @@ SCENES.congHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPla
   await S(L[0]); const m = helpG(svg), Q = P.map(p => Pl.P(p[0] + 4, p[1])); el('polygon', { points: polyStr(Q), fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '6 4' }, m); SFX.soft(); for (const l of L.slice(1)) await S(l); };
 /* الاكتشاف (د5): الانطباق بحركة، والأجزاء المتناظرة بالترتيب */
 SCENES.congShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { n: 12, m: 8, axes: false }), P = [[1, 1], [5, 1], [2, 4]], X = { k: 'ref', axis: 'v', at: 6 }, B = P.map(p => xfApply(X, p)), N2 = ['d', 'h', 'w'];
-  xfPoly(svg, Pl, P); xfPoly(svg, Pl, B, { col: XF.img, fill: XF.imgF, label: i => LTR[N2[i]] }); xfMark(svg, Pl, X); await S(L[0]);
+  xfPoly(svg, Pl, P); xfPoly(svg, Pl, B, { col: XF.img, fill: XF.imgF, label: i => LTR[N2[i]] }); xfMark(svg, Pl, X); await S(L[0]); const st = xfCongStmt(svg, 180, 20); anim(st, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
   const m = helpG(svg); P.forEach((p, i) => { const a = Pl.P(...p), b = Pl.P(...B[i]); geoLine(m, a[0], a[1], b[0], b[1], { color: THINK_INK, w: 1.6, dash: '4 4' }); }); SFX.tick(); for (const l of L.slice(1)) await S(l); };
 /* المشروع (د5): بلاطة القصر — المثلث م (4 ، 4) أ (8 ، 4) ب (8 ، 6) يدور ثلاث مرات ربع دورة حول م */
 SCENES.tileShow2 = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { n: 8, m: 8 }), P = [[4, 4], [8, 4], [8, 6]], cols = ['#d8e8f6', '#fbe3d1', '#d8f0e0', '#efe0f5'];

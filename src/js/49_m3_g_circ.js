@@ -121,7 +121,7 @@ ITEM.circScale = cpItem({ H: 250, tLine: 'gen.ci.together.scale', hint: 'gen.ci.
     ciCircle(svg, A, item.r * s, { disc: true, seg: 'r', lab: ciTxt(item.r, 'cm') }); ciCircle(svg, B, item.r * k * s, { disc: true, seg: 'r', lab: ciTxt(item.r * k, 'cm') });
     if (tries >= 3) { const m = helpG(svg); el('rect', { x: B[0] - item.r * k * s, y: B[1] - item.r * k * s, width: 2 * item.r * k * s, height: 2 * item.r * k * s, fill: 'none', stroke: CI.think, 'stroke-width': 2.4, 'stroke-dasharray': '6 4' }, m); for (let i = 1; i < k; i++) { const x = B[0] - item.r * k * s + i * 2 * item.r * s, y = B[1] - item.r * k * s + i * 2 * item.r * s; geoLine(m, x, B[1] - item.r * k * s, x, B[1] + item.r * k * s, { color: CI.think, w: 1.6, dash: '4 3' }); geoLine(m, B[0] - item.r * k * s, y, B[0] + item.r * k * s, y, { color: CI.think, w: 1.6, dash: '4 3' }); } }
     return {}; },
-  h2: async (item, ctx) => { ciEq(helpG(ctx.svg), 180, 226, `${item.k || 2} × ${item.k || 2} = ؟`, CI.think, 17); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const k = item.k || 2, s = Math.min(18, 96 / (item.r * k)), B = [244, 132], R = item.r * k * s, m = helpG(ctx.svg); el('rect', { x: B[0] - R, y: B[1] - R, width: 2 * R, height: 2 * R, fill: 'none', stroke: CI.think, 'stroke-width': 2.4, 'stroke-dasharray': '6 4' }, m); geoLine(m, B[0] - R + 2 * item.r * s, B[1] - R, B[0] - R + 2 * item.r * s, B[1] + R, { color: CI.think, w: 1.6, dash: '4 3' }); await sleep(FAST ? 10 : 250); },   /* المربع حول الكبير وخطٌّ واحد بلا عدد: كم مربعاً كمربع الصغير؟ */
   pick: item => { const k = item.k || 2, opts = [k * k, k, k === 2 ? 8 : 2 * k]; return choosePick(shuffle(opts.map(n => [String(n), labelText('ciTimes.' + n), '<i></i>', 'gen.ci.times.' + n])), String(k * k)); },   /* كنصف القطر (k)، وضعفه أو مكعّبه */
   errOf: (it, k) => +k === (it.k || 2) ? 'scaleTwo' : 'scaleOff' });
 ITEM.circScale.judge = (item, k) => +k === item.want ? { ok: true } : { ok: false, err: +k === (item.k || 2) ? 'scaleTwo' : 'scaleOff' };
@@ -130,6 +130,9 @@ ITEM.circScale.judge = (item, k) => +k === item.want ? { ok: true } : { ok: fals
 function ciReasonPic(g, P) { const C = [180, 92], R = 62; if (P.can) { el('circle', { cx: C[0], cy: C[1], r: R, fill: CI.can, stroke: CI.canEdge, 'stroke-width': 3 }, g); el('circle', { cx: C[0], cy: C[1], r: R + 4, fill: 'none', stroke: CI.str, 'stroke-width': 4 }, g); }
   else if (P.pi) ciPi(g, 180, 92, 1.6); else ciCircle(g, C, R, { disc: !!P.disc, seg: P.r ? 'r' : P.d ? 'd' : null, lab: P.r ? ciTxt(P.r, P.u || 'cm') : P.d ? ciTxt(P.d, P.u || 'cm') : null });
   if (P.compass) cpCompassAt(g, C, angP(C, 20, R));
+  if (P.spokes) { for (let i = 0; i < P.spokes; i++) { const q = angP(C, 360 * i / P.spokes + 15, R); geoLine(g, C[0], C[1], q[0], q[1], { color: CI.r, w: 2.4 }); } el('circle', { cx: C[0], cy: C[1], r: 6, fill: CI.ink }, g); }
+  if (P.quad) { const s = 26, A = [86, 120], B = [232, 92]; g.querySelectorAll('circle').forEach(n => n.remove()); for (const [Q, r] of [[A, s], [B, 2 * s]]) { el('circle', { cx: Q[0], cy: Q[1], r, fill: CI.disc, stroke: CI.edge, 'stroke-width': 2.6 }, g); el('rect', { x: Q[0] - r, y: Q[1] - r, width: 2 * r, height: 2 * r, fill: 'none', stroke: CI.think, 'stroke-width': 2.2, 'stroke-dasharray': '6 4' }, g); }
+    geoLine(g, B[0], B[1] - 2 * s, B[0], B[1] + 2 * s, { color: CI.think, w: 1.6, dash: '4 3' }); geoLine(g, B[0] - 2 * s, B[1], B[0] + 2 * s, B[1], { color: CI.think, w: 1.6, dash: '4 3' }); }
   if (P.f) ciEq(g, 180, 186, P.f, P.bad ? CI.bad : CI.ink, 19); }
 
 /* ================= المشاهد ================= */
@@ -170,16 +173,17 @@ SCENES.piShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('
   ciEq(g, 180, 224, '2 × 3.14 × 5 = 31.4', CI.ok, 18); SFX.tick(); await ciSay(L, 2); for (const l of L.slice(3)) await S(l); };
 /* حكاية أرخميدس: مضلعات داخل الدائرة يزيد عدد أضلاعها فيقترب محيطها من محيط الدائرة */
 SCENES.archShow = async c => { const L = c.lines, svg = m3Stage(250), C = [180, 122], R = 92; el('circle', { cx: C[0], cy: C[1], r: R, fill: '#fffdf6', stroke: CI.edge, 'stroke-width': 3, 'pointer-events': 'none' }, svg);
-  let g = null; for (const [i, n] of [6, 12, 24].entries()) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const P = []; for (let k = 0; k < n; k++) P.push(angP(C, 90 + 360 * k / n, R)); el('polygon', { points: polyStr(P), fill: 'rgba(142,107,191,.12)', stroke: CI.think, 'stroke-width': 2.4 }, g); SFX.tick(); await ciSay(L, i); }
+  let g = null; for (const [i, n] of [6, 12, 24].entries()) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const P = []; for (let k = 0; k < n; k++) P.push(angP(C, 90 + 360 * k / n, R)); el('polygon', { points: polyStr(P), fill: 'rgba(142,107,191,.12)', stroke: CI.think, 'stroke-width': 2.4 }, g); const Ro = R / Math.cos(Math.PI / n), O = []; for (let k = 0; k < n; k++) O.push(angP(C, 90 + 360 * k / n, Ro)); el('polygon', { points: polyStr(O), fill: 'none', stroke: CI.d, 'stroke-width': 2.4 }, g); SFX.tick(); await ciSay(L, i); }
   for (const l of L.slice(3)) await S(l); };
 /* د3 الإشعال: «المساحة = المحيط × نصف القطر!»: 31.4 × 5 = 157، والقرص على الشبكة أصغر من المربع حوله (100) */
 SCENES.areaHook = async c => { const L = c.lines, svg = m3Stage(262), D = ciGridDisc(svg, 5, { H: 186, top: 34 }); const t = ciEq(svg, 180, 24, '31.4 × 5 = 157', CI.bad, 18); await ciSay(L, 0); t.remove();
   const b = ciBounds(svg, D); b.querySelector('polygon').remove(); htLab(svg, [D.C[0] + D.R + 2, D.C[1] - D.R - 14], MS('100'), CI.d, 15); SFX.tick(); await ciSay(L, 1); };
 /* د3 الاكتشاف (أ): القرص ونصف قطره 2 على الشبكة: 4 مربعات كاملة و8 شبه كاملة وأربع قطع صغيرة تكمل نحو نصف مربع، فنحو 12.5 */
-SCENES.discShow = async c => { const L = c.lines, svg = m3Stage(262), r = 2, D = ciGridDisc(svg, r, { H: 190, top: 18 }), G = D.G, cnt = el('g', { 'pointer-events': 'none' }, svg); await ciSay(L, 0);
+let DSC_N = 0;
+SCENES.discShow = async c => { const L = c.lines, svg = m3Stage(262), r = 2, D = ciGridDisc(svg, r, { H: 190, top: 18 }), G = D.G, cid = 'dsc' + (++DSC_N), cp = el('clipPath', { id: cid }, el('defs', {}, svg)), cnt = el('g', { 'pointer-events': 'none', 'clip-path': `url(#${cid})` }, svg); el('circle', { cx: D.C[0], cy: D.C[1], r: D.R }, cp); await ciSay(L, 0);
   const sq = (i, j, col) => { const [x, y] = G.P([i, j + 1]); el('rect', { x: x + 1, y: y + 1, width: G.c - 2, height: G.c - 2, fill: col, opacity: .75 }, cnt); };
   const kind = (i, j) => { const cx = i + .5 - (r + 1), cy = j + .5 - (r + 1), far = Math.hypot(Math.abs(cx) + .5, Math.abs(cy) + .5), near = Math.hypot(Math.max(0, Math.abs(cx) - .5), Math.max(0, Math.abs(cy) - .5)); return far <= r ? 'full' : near >= r ? null : Math.abs(cx) > 1 && Math.abs(cy) > 1 ? 'bit' : 'most'; };
-  for (const [k, col] of [['full', '#3f8f5a'], ['most', '#8fcf7a'], ['bit', '#f2c14e']]) { for (let i = 0; i < 2 * r + 2; i++) for (let j = 0; j < 2 * r + 2; j++) if (kind(i, j) === k) sq(i, j, col); SFX.tick(); await ciSay(L, k === 'full' ? 1 : k === 'most' ? 2 : 3); }
+  for (const [k, col] of [['full', '#3f8f5a'], ['most', '#8fcf7a'], ['bit', '#e9dcb8']]) { for (let i = 0; i < 2 * r + 2; i++) for (let j = 0; j < 2 * r + 2; j++) if (kind(i, j) === k) sq(i, j, col); SFX.tick(); await ciSay(L, k === 'full' ? 1 : k === 'most' ? 2 : 3); }
   ciEq(svg, 180, 238, '3.14 × 2 × 2 = 12.56', CI.ok, 18); await ciSay(L, 4); };
 /* د3 الاكتشاف (ب): نصف القطر 3: المربع حوله 36، والمعيّن داخله 18، والقانون 28.26 بينهما */
 SCENES.boundShow = async c => { const L = c.lines, svg = m3Stage(262), D = ciGridDisc(svg, 3, { H: 190, top: 18 }); await ciSay(L, 0); ciBounds(svg, D, { labs: true, r: 3 }); SFX.tick(); await ciSay(L, 1);
@@ -190,7 +194,7 @@ SCENES.ciDoubleShow = async c => { const L = c.lines, svg = m3Stage(250), A = [9
   ciCircle(svg, B, 4 * s, { disc: true, seg: 'r', lab: ciTxt(4, 'cm') }); ciEq(svg, B[0], 226, '50.24', CI.ok, 17); await ciSay(L, 1);
   const m = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: B[0] - 4 * s, y: B[1] - 4 * s, width: 8 * s, height: 8 * s, fill: 'none', stroke: CI.think, 'stroke-width': 2.4, 'stroke-dasharray': '6 4' }, m); geoLine(m, B[0], B[1] - 4 * s, B[0], B[1] + 4 * s, { color: CI.think, w: 1.6, dash: '4 3' }); geoLine(m, B[0] - 4 * s, B[1], B[0] + 4 * s, B[1], { color: CI.think, w: 1.6, dash: '4 3' });
   el('rect', { x: A[0] - 2 * s, y: A[1] - 2 * s, width: 4 * s, height: 4 * s, fill: 'none', stroke: CI.think, 'stroke-width': 2.4, 'stroke-dasharray': '6 4' }, m); SFX.tick(); await ciSay(L, 2);
-  ciEq(svg, 180, 30, '12.56 × 4 = 50.24', CI.ok, 18); await ciSay(L, 3); };
+  ciEq(svg, 180, 30, '12.56 × 4 = 50.24', CI.ok, 18); await ciSay(L, 3); for (const l of L.slice(4)) await S(l); };
 /* د4 المشروع: حديقة نصف قطرها 5 م على الشبكة (كل مربع متر): السياج 31.4 م، والعشب 78.5 م²، ونصفاه 39.25 م²، ثم الجدول */
 SCENES.gardenShow = async c => { const L = c.lines, svg = m3Stage(262);
   if (c.table) { const rows = [['ciT.fence', '2 × 3.14 × 5', `31.4 ${labelText('lenM')}`], ['ciT.grass', '3.14 × 5 × 5', `78.5 ${labelText('arM2')}`], ['ciT.half', '78.5 ÷ 2', `39.25 ${labelText('arM2')}`]], g = el('g', { 'pointer-events': 'none' }, svg);
@@ -200,6 +204,7 @@ SCENES.gardenShow = async c => { const L = c.lines, svg = m3Stage(262);
   const G = htGrid(svg, 12, 12, { H: 220, top: 14 }), C = G.P([6, 6]), R = 5 * G.c, g = el('g', { 'pointer-events': 'none' }, svg); cpCompassAt(g, C, angP(C, 0, R)); await drawCircleAnim(g, C, R, CI.edge); g.remove();
   el('circle', { cx: C[0], cy: C[1], r: R, fill: '#bfe3a8', 'fill-opacity': .7, stroke: CI.edge, 'stroke-width': 3, 'pointer-events': 'none' }, svg); el('circle', { cx: C[0], cy: C[1], r: 3.5, fill: CI.ink }, svg);
   const Q = angP(C, 0, R); geoLine(svg, C[0], C[1], Q[0], Q[1], { color: CI.r, w: 4 }); htLab(svg, [(C[0] + Q[0]) / 2, C[1] - 12], ciTxt(5, 'm'), CI.r, 14); await ciSay(L, 0);
+  if (c.setup) return;   /* المشروع: الحديقة وحدها قبل بنود الطفل، والحساب في الجدول بعدها (المراجع A لبوابة S3-U6/U7، 9) */
   el('circle', { cx: C[0], cy: C[1], r: R + 4, fill: 'none', stroke: CI.fence, 'stroke-width': 5, 'stroke-dasharray': '3 4', 'pointer-events': 'none' }, svg); ciEq(svg, 180, 252, '2 × 3.14 × 5 = 31.4', CI.fence, 16); SFX.tick(); await ciSay(L, 1);
   svg.lastChild.remove(); ciEq(svg, 180, 252, '3.14 × 5 × 5 = 78.5', CI.ok, 16); SFX.tick(); await ciSay(L, 2);
   svg.lastChild.remove(); geoLine(svg, C[0] - R, C[1], C[0] + R, C[1], { color: CI.d, w: 3.4, dash: '8 5' }); ciEq(svg, 180, 252, '78.5 ÷ 2 = 39.25', CI.ok, 16); SFX.tick(); await ciSay(L, 3); };

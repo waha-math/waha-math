@@ -23,6 +23,7 @@ LIST = """(only) => { const out = []; for (const id of UNITS.flatMap(u => u.less
   (L.review || []).forEach((it, i) => out.push([id, id, 'review', 'rv' + i, it]));
   ((L.test && L.test.items) || []).forEach(q => out.push([id, id, 'test', q.id, q.item]));
   for (const [c, a] of Object.entries(M.concepts || {})) a.forEach((it, i) => out.push([id, id, 'mastery', c + '.' + i, it]));
+  for (const [c, a] of Object.entries(M.alt || {})) a.forEach((it, i) => out.push([id, id, 'mastery', c + '.alt' + i, it]));   /* بنود الدورة الثانية (D284 (1)) */
   if (M.mixed) out.push([id, M.mixed.lesson, 'mastery', 'mixed', M.mixed.item]);   /* البند المشتبك بإعدادات درسه وجمله (50_flow) */
   for (const [c, a] of Object.entries(M.remedial || {})) a.forEach((it, i) => out.push([id, id, 'remedial', 'rm.' + c + '.' + i, it])); }
   window.__ITEMS = out; return out.map(([id, cur, mode, k], n) => [id, mode, k, n]); }"""

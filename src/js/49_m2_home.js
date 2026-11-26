@@ -109,7 +109,7 @@ const HOME_SAY = {
   rugArea: async (r, v) => { const svg = homeStage(), A = v.l * v.w, T = (y, t, col) => { const e = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); e.textContent = t; };
     T(90, `${v.l} × ${v.w} = ${A} ${labelText('arCm2')}`, LENC.ink); T(150, `= ${decFmt(Math.round(A / 100) / 100)} ${labelText('arM2')}`, DEC.ok); await S('gen.home.rugSay'); },
   treasureAgain: async (r, v) => S(v.found === 0 ? 'gen.home.trFound' : 'gen.home.trNot'),
-  fanSay: async (r, v) => S(Math.abs(360 / v.n - v.ang) <= 5 ? 'gen.home.fanOk' : 'gen.home.fanNo'),
+  fanSay: async (r, v) => { await S(Math.abs(360 / v.n - v.ang) <= 5 ? 'gen.home.fanOk' : 'gen.home.fanNo'); if (v.ax != null) await S(v.ax === 1 ? 'gen.home.fanAxSay' : 'gen.home.fanAxOk'); },
   mirrorAgain: async (r, v) => S(v.hand === 1 ? 'gen.home.mirOk' : 'gen.home.mirNo'),
   wheelSay: async (r, v) => S(Math.abs(v.c - 3.14 * v.d) > 3 ? 'gen.home.wheelCalc' : Math.abs(v.m - v.c) <= 10 ? 'gen.home.wheelOk' : 'gen.home.wheelFar'),
   plateAgain: async (r, v) => S(Math.abs(v.c - 3.14 * v.d) <= 2 ? 'gen.home.plateOk' : 'gen.home.plateNo'),

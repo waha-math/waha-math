@@ -153,7 +153,8 @@ function circleFig(parent, C, r, part, col = CPC.bad, rot = null) { const g = el
   else if (part === 'radius') { const Q = angP(C, rot ?? 35, r); geoLine(g, C[0], C[1], Q[0], Q[1], { color: col, w: 4.4 }); }
   else if (part === 'diameter') { const P1 = angP(C, rot ?? 160, r), P2 = angP(C, (rot ?? 160) + 180, r); geoLine(g, P1[0], P1[1], P2[0], P2[1], { color: col, w: 4.4 }); }
   return g; }
-ITEM.circPart = cpItem({ h2: async (item, ctx) => { el('circle', { cx: 180, cy: 118, r: 12, fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '4 3' }, helpG(ctx.svg)); await sleep(FAST ? 10 : 250); },   /* ابدأ من المركز */
+ITEM.circPart = cpItem({ h2: async (item, ctx) => { const m = helpG(ctx.svg);   /* ابدأ من المركز: حلقةٌ عليه، وفي «المركز» نفسه سهمٌ إلى الجزء الملوّن: نقطة أم خطّ؟ */
+    if (item.part === 'center') { geoLine(m, 236, 62, 192, 106, { color: THINK_INK, w: 3 }); geoArrow(m, 192, 106, 135, THINK_INK, 10); } else el('circle', { cx: 180, cy: 118, r: 12, fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '4 3' }, m); await sleep(FAST ? 10 : 250); },
   tLine: 'gen.cp.together.part', hint: 'gen.cp.hint.part', rLine: it => 'gen.cp.reveal.part.' + it.want,
   make: s => ({ want: s.part, tag: 'circ-part' }),
   draw(svg, item, tries) { circleFig(svg, [180, 118], item.r || 82, item.part, CPC.bad, item.rot ?? null); if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 222, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: css('--think') }, m); t.textContent = labelText('cpPartHint.' + item.part); } return {}; },

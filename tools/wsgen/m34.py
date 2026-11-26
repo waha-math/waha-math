@@ -187,7 +187,11 @@ def build():
     rng = random.Random(1197); W = {}; used = set()
     # م3 قبل S3-U8: صورة باتجاهها، وعدّ، وصورة أصعب
     for i, u in enumerate(M3[:8]):
-        lv = min(4, i // 2); W[u] = [pic(rng, min(4, lv), 0, 'p1'), count(rng, min(4, lv), 'c1', 0 if i == 0 else 1), pic(rng, min(4, lv + 1), 0, 'p2')]
+        lv = min(4, i // 2); p1 = pic(rng, min(4, lv), 0, 'p1'); c1 = count(rng, min(4, lv), 'c1', 0 if i == 0 else 1)
+        for _ in range(200):   # اللغز الثاني غير الأول: أربع خاناتٍ تختلف على الأقل (المراجع A لبوابة S3-U6/U7، 22)
+            p2 = pic(rng, min(4, lv + 1), 0, 'p2')
+            if sum(1 for r in range(3) for c in range(3) if p1['t'][r][c] != p2['t'][r][c]) >= 4: break
+        W[u] = [p1, c1, p2]
     W['m3.u8'] = [{'id': 'n1', 'kind': 'nets', 'name': 'gen.ws.p.cu.nets', 'need': 2}, views_p(rng, 0, 'v1'), count(rng, 3, 'c1', 2)]
     W['m3.u9'] = [count(rng, 4, 'c1', 2), views_p(rng, 1, 'v1'), {'id': 'n1', 'kind': 'nets', 'name': 'gen.ws.p.cu.nets', 'need': 2, 'no4': True}]
     W['m3.u10'] = [views_p(rng, 2, 'v1'), {'id': 'n1', 'kind': 'nets', 'name': 'gen.ws.p.cu.nets', 'need': 3}, pic(rng, 4, 0, 'p1')]
