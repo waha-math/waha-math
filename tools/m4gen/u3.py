@@ -25,7 +25,7 @@ def cpick(orig,cands,rots=None):
     d={"t":"cgPick","orig":orig,"cands":cands,"q":"gen.cg.q.pick"}
     if rots: d['rots']=rots
     return d
-def case(cs,v=0): d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
+def case(cs,v=0): assert 0<=v<5, v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
 def part(pts,xf,side): return {"t":"congPart","pts":pts,"xf":xf,"side":side,"q":"gen.xf.q.part."+side}
 def smiss(s,k,ask): assert all(float(v*k).is_integer() for v in s) and tri_ok(s); return {"t":"simMiss","s":s,"k":k,"ask":ask,"q":"gen.pre.q.sim"}
 def syn(fig,a,b): return {"t":"simYN","fig":fig,"a":a,"b":b,"q":"gen.cg.q.simYN."+fig}

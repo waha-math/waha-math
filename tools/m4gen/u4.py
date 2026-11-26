@@ -24,7 +24,7 @@ def chain(pf,q=None): return {"t":"prChain","pf":pf,"q":q or "gen.pf.q.chain"}
 def why(pf,step,opts,q=None):
     assert opts[0]==RS[pf][step] and len(set(opts))==3, (pf,step,opts)
     return {"t":"prReason","pf":pf,"step":step,"cands":opts,"q":q or "gen.pf.q.reason"}
-def case(cs,v=0): d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
+def case(cs,v=0): assert 0<=v<5, v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
 def smiss(s,k,ask): return {"t":"simMiss","s":s,"k":k,"ask":ask,"q":"gen.pre.q.sim"}
 dump(U+'/unit.json', {"id":"m4.u4","title":"نَظَرِيَّةُ فِيثَاغُورْسَ","sub":"المَرْحَلَةُ الرَّابِعَةُ: المُخْتَرِعُونَ","district":"حَيُّ فِيثَاغُورْسَ","hosts":["triangle","square","rect"],"hunt":[]})
 ADULT={"title":"نظرية فيثاغورس: سلّم الأداء (المرجع M4-U4، مشروع «السلّم والجدار»)","how":"اسألوه بالسلّم والجدار والشريط، ثم اختاروا لكل معيار:","levels":True,
