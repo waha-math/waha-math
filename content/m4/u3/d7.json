@@ -233,6 +233,7 @@
     "y1": 4,
     "y2": 2,
     "q": "gen.cg.q.perp",
+    "rot": 60,
     "twin": {
      "t": "cgCase",
      "cs": "ssa",

@@ -12,12 +12,16 @@ MAT=lambda: {"prompt":"mat.01","show":[],"icon":True,"after":"mat.02","facts":[]
 BAG=lambda a,b,la,lb: {"items":[{"icon":a,"label":la},{"icon":b,"label":lb}],"ask":"bag.ask"}
 def pfp(**o): return {"kind":"pfpic",**o}
 def sq(a,b): assert a*a+b*b<=100; return {"t":"pySq","a":a,"b":b,"q":"gen.py.q.sq"}
-def hyp(a,b): h=(a*a+b*b)**.5; assert h==int(h); return {"t":"pyHyp","a":a,"b":b,"q":"gen.pre.q.py"}
-def leg(h,a,ctx=None):
+def hyp(a,b,rot=0):
+    h=(a*a+b*b)**.5; assert h==int(h); d={"t":"pyHyp","a":a,"b":b,"q":"gen.pre.q.py"}
+    if rot: d["rot"]=rot   # مداراً، و'h' الوتر قاعدةً (المراجع A لبوابة M4-U3/U4، 15)
+    return d
+def leg(h,a,ctx=None,rot=0):
     w=(h*h-a*a)**.5; assert w==int(w), (h,a); d={"t":"pyLeg","hyp":h,"a":a,"q":"gen.py.q.leg."+(ctx or 'tri')}
     if ctx: d['ctx']=ctx
+    if rot: assert not ctx; d['rot']=rot
     return d
-def approx(a,b): return {"t":"pyApprox","a":a,"b":b,"q":"gen.py.q.approx"}
+def approx(a,b,rot=0): d={"t":"pyApprox","a":a,"b":b,"q":"gen.py.q.approx"}; d.update({"rot":rot} if rot else {}); return d
 def isr(*s,rot=0): d={"t":"pyIsRight","s":list(s),"q":"gen.py.q.isRight"}; d.update({"rot":rot} if rot else {}); return d
 RS={'pyth':['sas','areaSum','algebra'],'pyConv':['draw2','pyth','sss'],'perpPf':['pyth','pos','so2']}
 def chain(pf,q=None): return {"t":"prChain","pf":pf,"q":q or "gen.pf.q.chain"}
@@ -85,16 +89,16 @@ d1={"id":"m4.u4.d1","title":"نَظَرِيَّةُ فِيثَاغُورْسَ",
   {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(sq(2,3),sq(1,4)), tw(sq(3,3),sq(2,5))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(hyp(3,4),hyp(8,6)), tw(leg(13,5),leg(10,6)), tw(approx(2,2),approx(1,3))],
-  "challenge":[tw(reason("pr.r1",pfp(py='pyth'),["pr.r1a","pr.r1b","pr.r1c"]),chain('pyth')), tw(approx(3,5),leg(17,8))]},
+  "normal":[tw(hyp(3,4),hyp(8,6,rot='h')), tw(leg(13,5),leg(10,6,rot=150)), tw(approx(2,2),approx(1,3))],
+  "challenge":[tw(reason("pr.r1",pfp(py='pyth'),["pr.r1a","pr.r1b","pr.r1c"]),chain('pyth')), tw(approx(3,5,rot='h'),leg(17,8,rot='h'))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":hyp(5,12),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C407":[hyp(9,12), leg(25,7), reason("ms.1",pfp(py='pyth',v=2),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C407":[hyp(16,30), leg(29,20), reason("ms.x1",pfp(pysq=[3,4]),["ms.x1a","ms.x1b","ms.x1c"])]},
+ "mastery":{"concepts":{"C407":[hyp(9,12), leg(25,7,rot='h'), reason("ms.1",pfp(py='pyth',v=2),["ms.1a","ms.1b","ms.1c"])]},
+  "alt":{"C407":[hyp(16,30,rot=200), leg(29,20,rot='h'), reason("ms.x1",pfp(pysq=[3,4]),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C407":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C407":[tw(sq(1,2),hyp(15,8))]},
   "mixed":{"lesson":"m4.u3.d3","concept":"C406","item":smiss([3,5,6],2,1)},
   "ok":"ms.ok"},
- "review":[hyp(12,16)|{"c":"C407"}, leg(30,24)|{"c":"C407"}, approx(1,2)|{"c":"C407"}, why('pyth',0,['sas','sss','looks'])|{"c":"C407"}],
+ "review":[hyp(12,16)|{"c":"C407"}, leg(30,24)|{"c":"C407"}, approx(1,2,rot=90)|{"c":"C407"}, why('pyth',0,['sas','sss','looks'])|{"c":"C407"}],
  "wrap":{"art":"pythArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"ارسموا معه مربعات على أضلاع مثلث قائم ورقي، واطلبوا عدّ المربعات. واسألوه: لماذا لا نجمع الأضلاع نفسها؟"}
 dump(U+'/d1.json', d1)
@@ -328,10 +332,10 @@ d5={"id":"m4.u4.d5","title":"بَوَّابَةُ حَيِّ فِيثَاغُو�
   {"s":"game","scene":"items","mode":"practice","stage":"game","intro":"gm.intro","items":[tw(isr(9,40,41),isr(5,8,10,rot=20)), tw(isr(10,24,26,rot=-10),isr(6,9,11))]},
   {"s":"practice"},{"s":"test"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(hyp(20,15),leg(41,9)), tw(sq(4,4),approx(1,4)), tw(leg(25,20,'perp'),case('rhs',v=1))],
+  "normal":[tw(hyp(20,15,rot='h'),leg(41,9,rot=120)), tw(sq(4,4),approx(1,4)), tw(leg(25,20,'perp'),case('rhs',v=1))],
   "challenge":[tw(why('perpPf',1,['pos','sss','measure']),isr(11,60,61))]},
  "test":{"remedial":"ts.rem","stoneLine":"ts.stone","winLines":["ts.win1","ts.win2"],"items":[   # أقسام المرجع: 3 الوتر والضلع، 2 العكس، 2 البرهان بالمربعات، 2 العمودي أقصر، 1 الوتر وضلع قائم، 1 خطأ، 1 مفتوح
-   T5(1,1,hyp(24,10)), T5(2,1,leg(39,15)), T5(3,1,approx(2,3)),
+   T5(1,1,hyp(24,10)), T5(2,1,leg(39,15,rot='h')), T5(3,1,approx(2,3)),
    T5(4,2,isr(20,21,29)), T5(5,2,isr(6,9,10)),
    T5(6,1,sq(3,5)), T5(7,1,why('pyth',2,['algebra','measure','sss'],q="gen.pf.q.reasonT")),
    T5(8,3,leg(30,18,'perp')), T5(9,3,leg(50,30,'perp')),
@@ -381,8 +385,10 @@ LB={"prjLadder":"السُّلَّمُ","prjBase":"القَاعِدَةُ","prjHe
 E={
  "pySub":("يطرح الأطوال بدل مربعاتها",["هَلْ {طَرَحْتَ|طَرَحْتِ} الطُّولَيْنِ أَمْ مُرَبَّعَيْهِمَا؟","مَا مُرَبَّعُ الوَتَرِ، وَمَا مُرَبَّعُ الضِّلْعِ؟"]),
  "pySqSum":("يربّع مجموع الضلعين",["هَلْ نُرَبِّعُ كُلَّ ضِلْعٍ أَمِ المَجْمُوعَ؟","كَمْ مُرَبَّعًا عَلَى كُلِّ ضِلْعٍ؟"]),
- "pyConvNo":("لا يرى أن المثلث قائم مع تحقق المعادلة",["هَلْ مُرَبَّعُ الأَطْوَلِ يُسَاوِي مَجْمُوعَ الآخَرَيْنِ؟","إِذَا تَسَاوَيَا، أَلَيْسَ قَائِمًا؟"]),
+ "pyConvNo":("لا يرى أن المثلث قائم مع تحقق المعادلة",["هَلْ مُرَبَّعُ الأَطْوَلِ يُسَاوِي مَجْمُوعَ الآخَرَيْنِ؟","وَمَاذَا يَقُولُ عَكْسُ فِيثَاغُورِسَ إِذَا تَسَاوَيَا؟"]),
  "pyNear":("يقبل القرب بدل المساواة في العكس",["هَلِ العَدَدَانِ مُتَسَاوِيَانِ تَمَامًا؟","هَلْ يَكْفِي أَنْ يَقْتَرِبَا؟"]),
+ "pyAddLeg":("يجمع الوتر والضلع بدل طرح المربعين",["هَلْ يَكُونُ الضِّلْعُ القَائِمُ أَطْوَلَ مِنَ الوَتَرِ؟","مُرَبَّعُ الضِّلْعِ: مُرَبَّعُ الوَتَرِ نَاقِصَ مُرَبَّعِ الآخَرِ، أَمْ زَائِدَهُ؟"]),
+ "pyLegOff":("يخطئ الضلع القائم",["مَا مُرَبَّعُ الوَتَرِ، وَمَا مُرَبَّعُ الضِّلْعِ المَعْلُومِ؟","أَيُّ عَدَدٍ مُرَبَّعُهُ الفَرْقُ بَيْنَهُمَا؟"]),
  "pyConvYes":("يحكم بالقائم دون أن تتحقق المعادلة",["كَمْ مُرَبَّعُ الأَطْوَلِ؟","وَكَمْ مَجْمُوعُ مُرَبَّعَيِ الآخَرَيْنِ؟"]),
 }
 p=ROOT+'/content/strings/gen.json'; g=json.load(open(p,encoding='utf8'))

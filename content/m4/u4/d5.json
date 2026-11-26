@@ -203,11 +203,13 @@
     "a": 20,
     "b": 15,
     "q": "gen.pre.q.py",
+    "rot": "h",
     "twin": {
      "t": "pyLeg",
      "hyp": 41,
      "a": 9,
-     "q": "gen.py.q.leg.tri"
+     "q": "gen.py.q.leg.tri",
+     "rot": 120
     }
    },
    {
@@ -284,7 +286,8 @@
      "t": "pyLeg",
      "hyp": 39,
      "a": 15,
-     "q": "gen.py.q.leg.tri"
+     "q": "gen.py.q.leg.tri",
+     "rot": "h"
     }
    },
    {

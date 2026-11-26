@@ -369,7 +369,8 @@
      "x2": 6,
      "y1": 5,
      "y2": 2,
-     "q": "gen.cg.q.perp"
+     "q": "gen.cg.q.perp",
+     "rot": 35
     }
    },
    {
@@ -440,7 +441,8 @@
      "x2": 5,
      "y1": 3,
      "y2": 5,
-     "q": "gen.cg.q.perp"
+     "q": "gen.cg.q.perp",
+     "rot": -30
     },
     {
      "t": "reason",
@@ -484,7 +486,8 @@
      "x2": 4,
      "y1": 2,
      "y2": 6,
-     "q": "gen.cg.q.perp"
+     "q": "gen.cg.q.perp",
+     "rot": 45
     },
     {
      "t": "reason",

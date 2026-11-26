@@ -40,25 +40,32 @@ function pyScene(g, ctx, hyp, a, want, o = {}) { const u = ctx === 'tri' ? Math.
   if (ctx === 'ladder') { const y = 200, W = 300, B = [W - a * u, y], T = [W, y - want * u]; el('rect', { x: W, y: 24, width: 20, height: y - 24, fill: PY.wall, 'pointer-events': 'none' }, g); geoLine(g, 30, y, W + 20, y, { color: PY.road, w: 5 });
     geoLine(g, B[0], B[1], T[0], T[1], { color: PY.c, w: 7 }); for (let i = 1; i < 8; i++) { const P = [B[0] + (T[0] - B[0]) * i / 8, B[1] + (T[1] - B[1]) * i / 8]; geoLine(g, P[0] - 7, P[1] - 3, P[0] + 7, P[1] + 3, { color: PY.c, w: 3 }); }
     preRight(g, [W, y], B, T, 12); labs.hyp = preLab(g, (B[0] + T[0]) / 2 - 18, (B[1] + T[1]) / 2, ciTxt(hyp, 'm'), { col: PY.c, fs: 15, dir: 'rtl', anchor: 'start' }); labs.a = preLab(g, (B[0] + W) / 2, y + 22, ciTxt(a, 'm'), { fs: 15, dir: 'rtl' }); labs.q = preLab(g, W + 28, (y + T[1]) / 2, '؟', { col: PY.q, fs: 18, anchor: 'start' }); labs.pts = { h: [B, T], k: [B, [W, y]], C: [W, y] }; return labs; }
+  if (o.rot) { const T = preRightTriPts(a, want, 34, { rot: o.rot, cen: [180, 146], box: [250, 128] }), cen = [(T.A[0] + T.B[0] + T.C[0]) / 3, (T.A[1] + T.B[1] + T.C[1]) / 3];   /* مداراً: الوتر قد يكون القاعدة (المراجع A لبوابة M4-U3/U4، 15) */
+    el('polygon', { points: polyStr([T.A, T.C, T.B]), fill: PY.fa, stroke: PY.ink, 'stroke-width': 3.2, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, g); preRight(g, T.C, T.A, T.B, 12);
+    labs.a = preSegLab(g, T.A, T.C, cen, MS(String(a)), { fs: 16 }); labs.q = preSegLab(g, T.C, T.B, cen, '؟', { col: PY.q, fs: 18 }); labs.hyp = preSegLab(g, T.A, T.B, cen, MS(String(hyp)), { col: PY.c, fs: 16 }); labs.pts = { h: [T.A, T.B], k: [T.A, T.C], C: T.C }; return labs; }
   const C = [250, 196], T = pyTri(g, C, a, want, u); labs.a = preLab(g, (T.A[0] + C[0]) / 2, C[1] + 22, MS(String(a)), { fs: 16 }); labs.q = preLab(g, C[0] + 14, (T.B[1] + C[1]) / 2 + 6, '؟', { col: PY.q, fs: 18, anchor: 'start' });
   labs.hyp = preLab(g, (T.A[0] + T.B[0]) / 2 - 12, (T.A[1] + T.B[1]) / 2 - 8, MS(String(hyp)), { col: PY.c, fs: 16, anchor: 'end' }); labs.pts = { h: [T.A, T.B], k: [T.A, C], C }; return labs; }
 const pyHx = it => it.ctx === 'perp' ? 250 : 150;   /* سطر العون فوق الشكل: في العمود يسار النقطة ن مشغول، فيُزاح يميناً */
 ITEM.pyLeg = cpItem({ H: 250, tLine: 'gen.py.together.leg', hint: 'gen.py.hint.leg', rLine: 'gen.py.reveal.leg', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const w2 = s.hyp * s.hyp - s.a * s.a, want = Math.round(Math.sqrt(w2)); /*T*/if (TESTHOOK && want * want !== w2) testBug('pyLeg: الضلع ليس عدداً صحيحاً');/*/T*/
     return { want, w2, nums: [want, s.hyp - s.a, w2 <= 100 ? w2 : s.hyp + s.a].filter((v, i, X) => X.indexOf(v) === i).concat([want + 1]).slice(0, 3), tag: 'py-leg-' + (s.ctx || 'tri') }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), L = pyScene(g, item.ctx || 'tri', item.hyp, item.a, item.want);
+  draw(svg, item, tries) { const g = el('g', {}, svg), L = pyScene(g, item.ctx || 'tri', item.hyp, item.a, item.want, { rot: item.rot });
     if (tries >= 3) ciEq(helpG(svg), pyHx(item), 34, `${item.hyp} × ${item.hyp} − ${item.a} × ${item.a} = ${item.w2}`, PY.hl, 16); return { L }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), P = ctx.L && ctx.L.pts; if (P) { hlSeg(m, P.h[0], P.h[1], H2C[2]); hlSeg(m, P.k[0], P.k[1], H2C[0]); hlRing(m, P.C, 18); }   /* المستوى الثاني رسمٌ: الوتر (الأطول، مقابل القائمة) والضلع المعلوم */
     ciRule(m, pyHx(item), 34, labelText('pyRuleLeg'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.L && ctx.L.q) { ctx.L.q.textContent = MS(String(item.want)); ctx.L.q.setAttribute('fill', PY.ok); } },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
-  errOf: (it, k) => k === it.hyp - it.a ? 'pySub' : k === it.w2 ? 'pyNoRoot' : 'pyOff' });
+  errOf: (it, k) => k === it.hyp - it.a ? 'pySub' : k === it.w2 ? 'pyNoRoot' : k === it.hyp + it.a ? 'pyAddLeg' : 'pyLegOff' });   /* (المراجع A لبوابة M4-U3/U4، 16) */
 
 /* ================= ③ الوتر بجذر تقريبي (C407): a، b؛ الجواب بمنزلة عشرية واحدة ================= */
 ITEM.pyApprox = cpItem({ H: 236, tLine: 'gen.py.together.approx', hint: 'gen.py.hint.approx', rLine: 'gen.py.reveal.approx', rSay: it => S('gen.py.v.' + pyKey(it.r), { append: true }), praise: 'praiseThink',
   make: s => { const r = +pyRt(s.a, s.b).toFixed(1), cands = [r, +(r - .1).toFixed(1), +(r + .1).toFixed(1)]; return { r, cands, want: pyKey(r), tag: 'py-approx' }; },   /* ثلاثة أعداد عشرية متجاورة: أيّها مربعه أقرب إلى مربع الوتر؟ فلا يُعرف الجواب بشكله (المراجع A لبوابة M4-U3/U4، 3) */
-  draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(60, 150 / item.b, 200 / item.a), C = [250, 196], T = pyTri(g, C, item.a, item.b, u); item._T = T;
-    preLab(g, (T.A[0] + C[0]) / 2, C[1] + 22, MS(String(item.a)), { fs: 16 }); preLab(g, C[0] + 14, (T.B[1] + C[1]) / 2 + 6, MS(String(item.b)), { fs: 16, anchor: 'start' }); preLab(g, (T.A[0] + T.B[0]) / 2 - 12, (T.A[1] + T.B[1]) / 2 - 8, '؟', { col: PY.q, fs: 18, anchor: 'end' });
+  draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(60, 150 / item.b, 200 / item.a);
+    if (item.rot) { const T = preRightTriPts(item.a, item.b, 60, { rot: item.rot, cen: [190, 150], box: [240, 120] }), cen = [(T.A[0] + T.B[0] + T.C[0]) / 3, (T.A[1] + T.B[1] + T.C[1]) / 3]; item._T = T;
+      el('polygon', { points: polyStr([T.A, T.C, T.B]), fill: PY.fa, stroke: PY.ink, 'stroke-width': 3.2, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, g); preRight(g, T.C, T.A, T.B, 12);
+      preSegLab(g, T.A, T.C, cen, MS(String(item.a)), { fs: 16 }); preSegLab(g, T.C, T.B, cen, MS(String(item.b)), { fs: 16 }); preSegLab(g, T.A, T.B, cen, '؟', { col: PY.q, fs: 18 }); }
+    else { const C = [250, 196], T = pyTri(g, C, item.a, item.b, u); item._T = T;
+    preLab(g, (T.A[0] + C[0]) / 2, C[1] + 22, MS(String(item.a)), { fs: 16 }); preLab(g, C[0] + 14, (T.B[1] + C[1]) / 2 + 6, MS(String(item.b)), { fs: 16, anchor: 'start' }); preLab(g, (T.A[0] + T.B[0]) / 2 - 12, (T.A[1] + T.B[1]) / 2 - 8, '؟', { col: PY.q, fs: 18, anchor: 'end' }); }
     if (tries >= 3) ciEq(helpG(svg), 130, 40, `${item.a * item.a} + ${item.b * item.b} = ${item.a * item.a + item.b * item.b}`, PY.hl, 16); return {}; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), T = item._T; if (T) { hlSeg(m, T.A, T.C, H2C[0]); hlSeg(m, T.C, T.B, H2C[1]); hlRing(m, T.C, 18); }   /* المستوى الثاني رسمٌ: الضلعان القائمان */
     ciRule(m, 130, 40, labelText('pyRuleApprox'), PY.hl, 15); await sleep(FAST ? 10 : 250); },

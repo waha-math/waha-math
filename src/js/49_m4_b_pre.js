@@ -62,8 +62,20 @@ ITEM.cgCase = cpItem({ H: 236, tLine: 'gen.pre.together.case', hint: 'gen.pre.hi
   errOf: (it, k) => it.want === 'yes' ? 'preCaseNo' : it.cs === 'aaa' ? 'preCaseAaa' : 'preCaseSsa' });
 
 /* ================= ② الضلع المجهول في المثلث المكبَّر (C406): s [ثلاثة أضلاع قائم، الأول أفقي والثاني رأسي]، k المعامل، ask رقم المجهول ================= */
-function preRightTri(g, C, h, v, u, o = {}) { const A = [C[0] - h * u, C[1]], B = [C[0], C[1] - v * u]; preTri(g, [A, C, B], o.col || PRE.a, o.fill || PRE.fillA); preRight(g, C, A, B); return { A, B, C }; }
-function preSideLabs(g, T, labs, cols) { const { A, B, C } = T, h = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], d = Math.hypot(B[0] - A[0], B[1] - A[1]), nx = -(B[1] - A[1]) / d, ny = (B[0] - A[0]) / d;
+function preRightTri(g, C, h, v, u, o = {}) { if (o.rot != null && o.rot !== 0) return preRightTriR(g, h, v, u, o); const A = [C[0] - h * u, C[1]], B = [C[0], C[1] - v * u]; preTri(g, [A, C, B], o.col || PRE.a, o.fill || PRE.fillA); preRight(g, C, A, B); return { A, B, C }; }
+/* الوضع غير النمطي (D240، D284 (7)؛ المراجع A لبوابة M4-U3/U4، 15): المثلث القائم مداراً بزاوية rot، أو 'h' فيكون الوتر قاعدةً أفقية والقائمة فوقها؛ يُلاءَم في صندوق o.box حول o.cen */
+const preRotOf = (h, v, rot) => rot === 'h' ? 180 - Math.atan2(-v, h) * 180 / Math.PI : +rot;
+function preRightTriPts(h, v, u, o) { const r = preRotOf(h, v, o.rot) * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), R = p => [p[0] * cs - p[1] * sn, p[0] * sn + p[1] * cs];
+  const L = [[-h, 0], [0, 0], [0, -v]].map(R), xs = L.map(p => p[0]), ys = L.map(p => p[1]), bw = Math.max(...xs) - Math.min(...xs), bh = Math.max(...ys) - Math.min(...ys), box = o.box || [250, 140], cen = o.cen || [180, 140];
+  const k = Math.min(u, box[0] / bw, box[1] / bh), mx = (Math.max(...xs) + Math.min(...xs)) / 2, my = (Math.max(...ys) + Math.min(...ys)) / 2, P = L.map(p => [cen[0] + (p[0] - mx) * k, cen[1] + (p[1] - my) * k]);
+  return { A: P[0], C: P[1], B: P[2], rot: true, u: k }; }
+function preRightTriR(g, h, v, u, o = {}) { const T = preRightTriPts(h, v, u, o); preTri(g, [T.A, T.C, T.B], o.col || PRE.a, o.fill || PRE.fillA); preRight(g, T.C, T.A, T.B); return T; }
+/* عدد ضلعٍ في أيّ وضع: عند منتصفه، خارج المثلث على العمود عليه */
+function preSegLab(g, P, Q, cen, s, o = {}) { const M = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2], d = Math.hypot(Q[0] - P[0], Q[1] - P[1]) || 1; let n = [-(Q[1] - P[1]) / d, (Q[0] - P[0]) / d];
+  if ((M[0] - cen[0]) * n[0] + (M[1] - cen[1]) * n[1] < 0) n = [-n[0], -n[1]]; const off = o.off || 15;
+  return preLab(g, M[0] + n[0] * off, M[1] + n[1] * off + 6 + (n[1] > .5 ? 4 : 0), s, { col: o.col, fs: o.fs || 17, anchor: n[0] > .45 ? 'start' : n[0] < -.45 ? 'end' : 'middle', dir: o.dir }); }
+function preSideLabs(g, T, labs, cols) { if (T.rot) { const cen = [(T.A[0] + T.B[0] + T.C[0]) / 3, (T.A[1] + T.B[1] + T.C[1]) / 3]; return [[T.A, T.C], [T.C, T.B], [T.A, T.B]].map(([P, Q], i) => preSegLab(g, P, Q, cen, labs[i], { col: cols[i] })); }
+  const { A, B, C } = T, h = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], d = Math.hypot(B[0] - A[0], B[1] - A[1]), nx = -(B[1] - A[1]) / d, ny = (B[0] - A[0]) / d;
   const P = [[(A[0] + C[0]) / 2, C[1] + 22], [C[0] + 16, (B[1] + C[1]) / 2 + 6], [h[0] - nx * 18 - 4, h[1] - ny * 18 + 4]];
   return labs.map((s, i) => preLab(g, P[i][0], P[i][1], s, { col: cols[i], anchor: i === 1 ? 'start' : i === 2 ? 'end' : 'middle' })); }
 ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hint.sim', rLine: 'gen.pre.reveal.sim', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
@@ -89,7 +101,7 @@ ITEM.pyHyp = cpItem({ H: 250, tLine: 'gen.pre.together.py', hint: 'gen.pre.hint.
   draw(svg, item, tries) { const g = el('g', {}, svg);
     if (item.ctx === 'ladder') { const L = pyScene(g, 'ladder', item.want, item.a, item.b, {}); L.hyp.textContent = '؟'; L.hyp.setAttribute('fill', PRE.q); L.q.textContent = ciTxt(item.b, 'm'); L.q.setAttribute('fill', PRE.ink); L.q.setAttribute('font-size', 15); L.q.setAttribute('direction', 'rtl');   /* سؤال السلّم بسلّمٍ لا بمثلثٍ مجرّد (المراجع A لبوابة M4-U3/U4، 7) */
       if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: L.hyp, T: { A: L.pts.k[0], C: L.pts.C, B: L.pts.h[1] } }; }
-    const u = Math.min(36, 150 / Math.max(item.a, item.b * 1.1)), T = preRightTri(g, [262, 206], item.a, item.b, u);
+    const u = Math.min(36, 150 / Math.max(item.a, item.b * 1.1)), T = preRightTri(g, [262, 206], item.a, item.b, u, { rot: item.rot, cen: [190, 146], box: [240, 132] });
     const labs = preSideLabs(g, T, [MS(String(item.a)), MS(String(item.b)), '؟'], [PRE.ink, PRE.ink, PRE.q]);
     if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: labs[2], T }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), T = ctx.T; if (T) { hlSeg(m, T.A, T.C, H2C[0]); hlSeg(m, T.C, T.B, H2C[1]); hlRing(m, T.C, 18); }   /* المستوى الثاني رسمٌ: الضلعان القائمان */

@@ -245,7 +245,8 @@
      "t": "pyHyp",
      "a": 8,
      "b": 6,
-     "q": "gen.pre.q.py"
+     "q": "gen.pre.q.py",
+     "rot": "h"
     }
    },
    {
@@ -257,7 +258,8 @@
      "t": "pyLeg",
      "hyp": 10,
      "a": 6,
-     "q": "gen.py.q.leg.tri"
+     "q": "gen.py.q.leg.tri",
+     "rot": 150
     }
    },
    {
@@ -305,11 +307,13 @@
     "a": 3,
     "b": 5,
     "q": "gen.py.q.approx",
+    "rot": "h",
     "twin": {
      "t": "pyLeg",
      "hyp": 17,
      "a": 8,
-     "q": "gen.py.q.leg.tri"
+     "q": "gen.py.q.leg.tri",
+     "rot": "h"
     }
    }
   ]
@@ -341,7 +345,8 @@
      "t": "pyLeg",
      "hyp": 25,
      "a": 7,
-     "q": "gen.py.q.leg.tri"
+     "q": "gen.py.q.leg.tri",
+     "rot": "h"
     },
     {
      "t": "reason",
@@ -372,13 +377,15 @@
      "t": "pyHyp",
      "a": 16,
      "b": 30,
-     "q": "gen.pre.q.py"
+     "q": "gen.pre.q.py",
+     "rot": 200
     },
     {
      "t": "pyLeg",
      "hyp": 29,
      "a": 20,
-     "q": "gen.py.q.leg.tri"
+     "q": "gen.py.q.leg.tri",
+     "rot": "h"
     },
     {
      "t": "reason",
@@ -466,6 +473,7 @@
    "a": 1,
    "b": 2,
    "q": "gen.py.q.approx",
+   "rot": 90,
    "c": "C407"
   },
   {

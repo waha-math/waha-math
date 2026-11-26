@@ -79,19 +79,34 @@ ITEM.quadDiag = cpItem({ H: 262, tLine: 'gen.cg.together.qd', hint: 'gen.cg.hint
     if (tries >= 3) { const m = helpG(svg); qdSketch(m, item.info, [64, 110], true); ciRule(m, 180, 228, labelText('cgRuleQd'), CG.hl, 15); } return {}; },   /* الحلّ المشترك: الرباعي من قطريه مرسوماً، والاسم للطفل */
   h2: async (item, ctx) => { const m = helpG(ctx.svg); qdSketch(m, item.info, [64, 110]); ciRule(m, 180, 228, labelText('cgRuleQd'), CG.hl, 15); await sleep(FAST ? 10 : 250); },   /* المستوى الثاني رسمٌ: القطران كما تقول البطاقات */
   pick: item => choosePick(item.cands.map(k => [k, labelText('qdName.' + k), '<i></i>', 'gen.cg.qd.' + k]), item.want),
-  errOf: (it, k) => it.want === 'unk' ? 'qdEqOnly' : k === 'para' ? 'qdMissProp' : k === 'unk' ? 'qdNoConv' : 'qdWrongName' });
+  errOf: (it, k) => it.want === 'unk' ? (it.info.eq && !it.info.perp ? 'qdEqOnly' : it.info.perp && !it.info.eq ? 'qdPerpOnly' : 'qdNoMid') : k === 'para' ? 'qdMissProp' : k === 'unk' ? 'qdNoConv' : it.want === 'square' && (k === 'rect' || k === 'rhom') ? 'qdGeneral' : 'qdWrongName' });   /* الوسم بما في البطاقات (المراجع A لبوابة M4-U3/U4، 16) */
 
+/* خطّ قياسٍ بسهمين للطول كله خارج الشكل، بخطّي امتداد من طرفيه، وعدده عند منتصفه (المراجع A لبوابة M4-U3/U4، 14): n إزاحة الخطّ عن القطعة */
+function cgDim(g, P, Q, n, txt, col, fs = 15) { const P2 = [P[0] + n[0], P[1] + n[1]], Q2 = [Q[0] + n[0], Q[1] + n[1]], ln = Math.hypot(n[0], n[1]) || 1, nu = [n[0] / ln, n[1] / ln];
+  [[P, P2], [Q, Q2]].forEach(([A, B]) => el('line', { x1: A[0], y1: A[1], x2: B[0] + nu[0] * 5, y2: B[1] + nu[1] * 5, stroke: '#9a8f7c', 'stroke-width': 1.3, 'stroke-dasharray': '3 3' }, g));
+  el('line', { x1: P2[0], y1: P2[1], x2: Q2[0], y2: Q2[1], stroke: col, 'stroke-width': 2 }, g); const L = Math.hypot(Q2[0] - P2[0], Q2[1] - P2[1]) || 1, d = [(Q2[0] - P2[0]) / L, (Q2[1] - P2[1]) / L], pp = [-d[1], d[0]];
+  [[P2, d], [Q2, [-d[0], -d[1]]]].forEach(([A, e]) => el('polygon', { points: polyStr([A, [A[0] + e[0] * 9 + pp[0] * 4, A[1] + e[1] * 9 + pp[1] * 4], [A[0] + e[0] * 9 - pp[0] * 4, A[1] + e[1] * 9 - pp[1] * 4]]), fill: col }, g));
+  const mx = (P2[0] + Q2[0]) / 2 + nu[0] * 12, my = (P2[1] + Q2[1]) / 2 + nu[1] * 12 + (Math.abs(nu[1]) > .5 ? (nu[1] > 0 ? 5 : 0) : 5);
+  return preLab(g, mx, my, MS(String(txt)), { col, fs, anchor: Math.abs(nu[0]) > .5 ? (nu[0] > 0 ? 'start' : 'end') : 'middle' }); }
 /* ================= ⑤ مساحة رباعي محدّب قطراه متعامدان (C421 ب): القطر الأفقي x1 + x2 (x1 يسار التقاطع)، والرأسي y1 + y2 (y1 فوقه)؛ لا c في المواصفة (وسم المفهوم) ================= */
-ITEM.perpArea = cpItem({ H: 250, tLine: 'gen.cg.together.perp', hint: 'gen.cg.hint.perp', rLine: 'gen.cg.reveal.perp', rSay: it => S(bigw(it.want), { append: true }), num: true, praise: 'praiseThink',
+ITEM.perpArea = cpItem({ H: 268, tLine: 'gen.cg.together.perp', hint: 'gen.cg.hint.perp', rLine: 'gen.cg.reveal.perp', rSay: it => S(bigw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const p = s.x1 + s.x2, r = s.y1 + s.y2, A = p * r / 2; /*T*/if (TESTHOOK && (!Number.isInteger(A) || A > 100)) testBug('perpArea: المساحة ليست عدداً صحيحاً حتى مئة');/*/T*/ return { p, r, want: A, nums: [A, p * r, p + r].filter((v, i, X) => X.indexOf(v) === i).concat([A + 5]).slice(0, 3), tag: 'perp-area' }; },
-  draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg), u = Math.min(17, 260 / item.p, 96 / Math.max(item.y1, item.y2)), L = [180 - item.p * u / 2, 118], M = [L[0] + item.x1 * u, 118], R = [L[0] + item.p * u, 118], T = [M[0], 118 - item.y1 * u], B = [M[0], 118 + item.y2 * u];
+  draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg), rd = (item.rot || 0) * Math.PI / 180, cs = Math.cos(rd), sn = Math.sin(rd), Rt = p => [p[0] * cs - p[1] * sn, p[0] * sn + p[1] * cs];
+    /* القطران متعامدان عند التقاطع؛ وبالدوران rot لا يكون القطران أفقياً ورأسياً (المراجع A لبوابة M4-U3/U4، 15) */
+    const U = [[-item.x1, 0], [0, -item.y1], [item.x2, 0], [0, item.y2]].map(Rt);
+    /* الملاءمة مع خطّي القياس: لكل قطرٍ جهتان، فيُختار ما يتّسع له أكبر مقياس داخل الإطار وفوق سطر القاعدة */
+    const lay = (u, s1, s2) => { const P = U.map(p => [p[0] * u, p[1] * u]), n1 = Rt([0, s1 * ((s1 > 0 ? item.y2 : item.y1) * u + 18)]), n2 = Rt([s2 * ((s2 > 0 ? item.x2 : item.x1) * u + 20), 0]), ln = n => Math.hypot(n[0], n[1]);
+      const ex = [...P, [P[0][0] + n1[0], P[0][1] + n1[1]], [P[2][0] + n1[0], P[2][1] + n1[1]], [P[1][0] + n2[0], P[1][1] + n2[1]], [P[3][0] + n2[0], P[3][1] + n2[1]]];
+      [[P[0], P[2], n1], [P[1], P[3], n2]].forEach(([A, B, n]) => { const k = (ln(n) + 26) / ln(n); ex.push([(A[0] + B[0]) / 2 + n[0] * k, (A[1] + B[1]) / 2 + n[1] * k]); });
+      const xs = ex.map(q => q[0]), ys = ex.map(q => q[1]); return { P, n1, n2, w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys), cx: (Math.max(...xs) + Math.min(...xs)) / 2, cy: (Math.max(...ys) + Math.min(...ys)) / 2 }; };
+    let best = null; for (const s1 of [1, -1]) for (const s2 of [1, -1]) for (let u = 17; u > 4; u -= .25) { const Y = lay(u, s1, s2); if (Y.w <= 316 && Y.h <= 194) { if (!best || u > best.u + .01) best = { u, Y }; break; } }
+    const Y = best ? best.Y : lay(5, 1, 1), ox = 180 - Y.cx, oy = 116 - Y.cy, [L, T, R, B] = Y.P.map(p => [ox + p[0], oy + p[1]]), M = [ox, oy];
     el('polygon', { points: polyStr([L, T, R, B]), fill: CG.fc, stroke: CG.ink, 'stroke-width': 3.2, 'stroke-linejoin': 'round' }, g);
-    geoLine(g, L[0], L[1], R[0], R[1], { color: CG.a, w: 3, dash: '7 4' }); geoLine(g, T[0], T[1], B[0], B[1], { color: CG.b, w: 3, dash: '7 4' });
-    el('path', { d: `M${M[0] + 10} ${M[1]} L${M[0] + 10} ${M[1] - 10} L${M[0]} ${M[1] - 10}`, fill: 'none', stroke: CG.ink, 'stroke-width': 1.6 }, g);
-    preLab(g, (L[0] + R[0]) / 2 + 30, M[1] + 22, MS(String(item.p)), { col: CG.a, fs: 15 }); preLab(g, M[0] + 14, (T[1] + M[1]) / 2, MS(String(item.r)), { col: CG.b, fs: 15, anchor: 'start' });
-    if (tries >= 3) ciEq(helpG(svg), 180, 238, `${item.p} × ${item.r} ÷ 2 = ؟`, CG.hl, 17); return { Q: [L, T, R, B] }; },
+    geoLine(g, L[0], L[1], R[0], R[1], { color: CG.a, w: 3, dash: '7 4' }); geoLine(g, T[0], T[1], B[0], B[1], { color: CG.b, w: 3, dash: '7 4' }); preRight(g, M, R, T, 10);
+    cgDim(g, L, R, Y.n1, item.p, CG.a); cgDim(g, T, B, Y.n2, item.r, CG.b);   /* القطران كلٌّ بطوله، لا جزءاً منه (المراجع A لبوابة M4-U3/U4، 14) */
+    if (tries >= 3) ciEq(helpG(svg), 180, 22, `${item.p} × ${item.r} ÷ 2 = ؟`, CG.hl, 17); return { Q: [L, T, R, B] }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Q) { const [L, T, R, B] = ctx.Q; el('polygon', { points: polyStr([L, T, R]), fill: H2C[0], opacity: .22, 'pointer-events': 'none' }, m); el('polygon', { points: polyStr([L, B, R]), fill: H2C[1], opacity: .22, 'pointer-events': 'none' }, m); }   /* المستوى الثاني رسمٌ: مثلثان على القطر الأفقي */
-    ciRule(m, 180, 236, labelText('cgRulePerp'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, 250, labelText('cgRulePerp'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.p * it.r ? 'dgNoHalf' : k === it.p + it.r ? 'dgSum' : 'a2AreaOff' });
 
@@ -144,11 +159,14 @@ SCENES.quadProof = async c => { const L = c.lines, svg = m3Stage(262), pfs = c.p
 /* د5: تعميم نصف حاصل ضرب القطرين: المثلثان على القطر الأفقي وارتفاعاهما */
 SCENES.cgPerpShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), [a, b, cc, d] = c.dims || [3, 7, 4, 2], u = 20, Lp = [180 - (a + b) * u / 2, 112], M = [Lp[0] + a * u, 112], R = [Lp[0] + (a + b) * u, 112], T = [M[0], 112 - cc * u], B = [M[0], 112 + d * u];
   el('polygon', { points: polyStr([Lp, T, R]), fill: CG.fa, stroke: CG.ink, 'stroke-width': 3 }, g); el('polygon', { points: polyStr([Lp, R, B]), fill: CG.fb, stroke: CG.ink, 'stroke-width': 3 }, g);
-  geoLine(g, T[0], T[1], B[0], B[1], { color: CG.b, w: 3, dash: '7 4' }); geoLine(g, Lp[0], Lp[1], R[0], R[1], { color: CG.a, w: 3 }); await cgSay(L, 0);
-  ciEq(g, 180, 226, `${a + b} × ${cc + d} ÷ 2 = ${(a + b) * (cc + d) / 2}`, CG.ok, 18); SFX.tick(); await cgSay(L, 1);
+  geoLine(g, T[0], T[1], B[0], B[1], { color: CG.b, w: 3, dash: '7 4' }); geoLine(g, Lp[0], Lp[1], R[0], R[1], { color: CG.a, w: 3 });
+  cgDim(g, Lp, R, [0, B[1] - 112 + 16], a + b, CG.a); preLab(g, M[0] - 8, (T[1] + M[1]) / 2 + 5, MS(String(cc)), { col: CG.b, fs: 15, anchor: 'end' }); preLab(g, M[0] - 8, (B[1] + M[1]) / 2 + 5, MS(String(d)), { col: CG.b, fs: 15, anchor: 'end' });
+  await cgSay(L, 0);   /* البرهان مرئياً: مثلثان قاعدتهما القطر، وارتفاعاهما جزءا الآخر (المراجع A لبوابة M4-U3/U4، 14) */
+  ciEq(g, 180, 214, `${a + b} × ${cc} ÷ 2 + ${a + b} × ${d} ÷ 2 = ${(a + b) * cc / 2} + ${(a + b) * d / 2}`, CG.q, 16); SFX.tick(); await sleep(FAST ? 10 : 700);
+  ciEq(g, 180, 240, `= ${a + b} × ${cc + d} ÷ 2 = ${(a + b) * (cc + d) / 2}`, CG.ok, 18); SFX.tick(); await cgSay(L, 1);
   if (L[2]) { g.innerHTML = ''; const P = [[108, 62], [252, 62], [252, 170], [108, 170]];   /* والمستطيل ٦ × ٨: قطراه عشرة لا يتعامدان، فنصف حاصل ضربهما ٥٠ ومساحته ٤٨ (المراجع A لبوابة M4-U3/U4، 10) */
     el('polygon', { points: polyStr(P), fill: CG.fc, stroke: CG.ink, 'stroke-width': 3.2 }, g); geoLine(g, P[0][0], P[0][1], P[2][0], P[2][1], { color: CG.a, w: 3, dash: '7 4' }); geoLine(g, P[1][0], P[1][1], P[3][0], P[3][1], { color: CG.b, w: 3, dash: '7 4' });
-    preLab(g, 180, 188, MS('8'), { fs: 15 }); preLab(g, 266, 121, MS('6'), { fs: 15, anchor: 'start' }); preLab(g, 150, 100, MS('10'), { fs: 14, col: CG.a });
+    preLab(g, 180, 188, MS('8'), { fs: 15 }); preLab(g, 266, 121, MS('6'), { fs: 15, anchor: 'start' }); preLab(g, 146, 84, MS('10'), { fs: 15, col: CG.a });
     ciEq(g, 180, 214, '10 × 10 ÷ 2 = 50', CG.q, 17); ciEq(g, 180, 238, '6 × 8 = 48', CG.ok, 17); SFX.tick(); await cgSay(L, 2); }
   for (const l of L.slice(3)) await S(l); };
 /* د5: البطاقات الثلاث للأقطار والعائلة (الشمول) */
