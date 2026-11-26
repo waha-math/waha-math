@@ -278,7 +278,8 @@ async def main():
             if aid in fr: how = 'wrong'
             elif aid is not None and len(fr) < 2: fr.add(aid); how = 'wrong'
           if a['kind'] == 'card' and sc.endswith(':chaos'):   # D236: «أعد الجملة» أثناء البطاقتين لا يكشف جملة فوضى نصاً، والبطاقتان مخفيتان ومتماثلتان بالنظر
-            cv = await pg.evaluate(CARDS)
+            twoCards = await pg.evaluate("() => { const L = CUR && LDATA[CUR.id]; return !(L && L.chaos && L.chaos.kind === 'scene'); }")   # chaosItem ببطاقات أسبابٍ مكتوبة عمداً ليست بطاقتي فوضى (المراجع B لبوابة M4-U1/U2، 16)
+            cv = await pg.evaluate(CARDS) if twoCards else None
             if cv: leaks.append((sc, cv))
             await pg.wait_for_timeout(300)              # «أعد الجملة» والخاطئة آخر ما قيل، أياً كان ترتيب البطاقتين (الدرس 98: هكذا ظهر الخطأ القديم)
             await pg.evaluate("() => { const L = CUR && LDATA[CUR.id]; if (L && L.chaos && L.chaos.wrong) { const [who, id, text] = lineOf(L.chaos.wrong, L); lastLine = { who, id, text, lesson: CUR.id, hideText: true }; } }")

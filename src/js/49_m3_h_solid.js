@@ -9,6 +9,8 @@
    ===================================================================== */
 const SO = { ink: '#24323a', edge: '#2a5f94', hid: '#7a8a94', face: '#f1dfb6', top: '#f7ebcd', side: '#dcc28e', ok: '#2f9d6b', bad: '#c8392d', hl: '#8e6bbf', grid: '#dfe5ea',
   pair: [SOLIDC.cube, SOLIDC.sphere, '#7fb6d9'] };
+/* المنشور المستطيل عنابيّ (هوية م3 §4؛ A38، قرار فراس 27 نوفمبر 2026): درجاتٌ فاتحة للأوجه ليُقرأ ما عليها، والحروف عنابية غامقة */
+const PRISM = { face: '#dba6ae', top: '#eccdd2', side: '#c4838e', edge: '#7a1f33' };
 /* العلبة: w العرض (أفقي)، h الارتفاع، d العمق (مائل)؛ s سنتيمترات الشاشة لكل وحدة؛ C مركز الوجه الأمامي تقريباً */
 function soGeom(w, h, d, o = {}) { const s = o.s || 22, k = o.k ?? .55, a = (o.a ?? 38) * Math.PI / 180, dx = d * s * k * Math.cos(a), dy = -d * s * k * Math.sin(a), W = w * s, H = h * s,
     x0 = (o.cx ?? 180) - (W + dx) / 2, y0 = (o.cy ?? 128) + (H - dy) / 2;
@@ -19,12 +21,12 @@ function soGeom(w, h, d, o = {}) { const s = o.s || 22, k = o.k ?? .55, a = (o.a
   return { P, E: E.map(([a, b], i) => ({ i, a, b, A: P[a], B: P[b], hid: hidden([a, b]) })), F, s, dx, dy, W, H }; }
 /* مقياسٌ يُدخل العلبة وتسمياتها في المسرح: العرض مع العمق المائل حتى W، والارتفاع معه حتى H */
 const soFit = (w, h, d, W = 210, H = 140) => Math.min(34, W / (w + d * .55 * Math.cos(38 * Math.PI / 180)), H / (h + d * .55 * Math.sin(38 * Math.PI / 180)));
-function soBox(parent, w, h, d, o = {}) { const G = soGeom(w, h, d, o), g = el('g', { 'pointer-events': 'none' }, parent), pts = k => polyStr(G.F[k].map(v => G.P[v]));
+function soBox(parent, w, h, d, o = {}) { const G = soGeom(w, h, d, o), g = el('g', { 'pointer-events': 'none' }, parent), pts = k => polyStr(G.F[k].map(v => G.P[v])), PC = w === h && h === d ? { face: SO.face, top: SO.top, side: SO.side, edge: SO.edge } : PRISM;   /* المكعب كما كان */
   if (o.ghost !== false) for (const k of ['back', 'left', 'bottom']) el('polygon', { points: pts(k), fill: 'none' }, g);
-  el('polygon', { points: pts('top'), fill: o.fill === false ? 'none' : (o.hl === 'top' ? SO.hl : SO.top), 'fill-opacity': o.hl === 'top' ? .45 : 1, 'data-face': 'top' }, g);
-  el('polygon', { points: pts('right'), fill: o.fill === false ? 'none' : (o.hl === 'right' ? SO.hl : SO.side), 'fill-opacity': o.hl === 'right' ? .45 : 1, 'data-face': 'right' }, g);
-  el('polygon', { points: pts('front'), fill: o.fill === false ? 'none' : (o.hl === 'front' ? SO.hl : SO.face), 'fill-opacity': o.hl === 'front' ? .45 : 1, 'data-face': 'front' }, g);
-  for (const e of G.E) { if (e.hid && o.hidden === false) continue; geoLine(g, e.A[0], e.A[1], e.B[0], e.B[1], { color: e.hid ? SO.hid : SO.edge, w: e.hid ? 2 : 3, dash: e.hid ? '6 5' : null }); }
+  el('polygon', { points: pts('top'), fill: o.fill === false ? 'none' : (o.hl === 'top' ? SO.hl : PC.top), 'fill-opacity': o.hl === 'top' ? .45 : 1, 'data-face': 'top' }, g);
+  el('polygon', { points: pts('right'), fill: o.fill === false ? 'none' : (o.hl === 'right' ? SO.hl : PC.side), 'fill-opacity': o.hl === 'right' ? .45 : 1, 'data-face': 'right' }, g);
+  el('polygon', { points: pts('front'), fill: o.fill === false ? 'none' : (o.hl === 'front' ? SO.hl : PC.face), 'fill-opacity': o.hl === 'front' ? .45 : 1, 'data-face': 'front' }, g);
+  for (const e of G.E) { if (e.hid && o.hidden === false) continue; geoLine(g, e.A[0], e.A[1], e.B[0], e.B[1], { color: e.hid ? SO.hid : o.edge || PC.edge, w: e.hid ? 2 : 3, dash: e.hid ? '6 5' : null }); }
   if (o.dims) { const lab = (p, t, col) => labFit(htLab(g, p, t, col || SO.ink, 14));
     lab([(G.P.flb[0] + G.P.frb[0]) / 2, G.P.flb[1] + 16], ciTxt(w, o.u || 'cm')); lab([G.P.flb[0] - 24, (G.P.flb[1] + G.P.flt[1]) / 2], ciTxt(h, o.u || 'cm')); lab([(G.P.frb[0] + G.P.brb[0]) / 2 + 26, (G.P.frb[1] + G.P.brb[1]) / 2 + 6], ciTxt(d, o.u || 'cm')); }
   return { g, G }; }

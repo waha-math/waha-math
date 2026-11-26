@@ -10,20 +10,32 @@
    ===================================================================== */
 const D2P = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
-function fingerInput(target, opt) {   /* opt: map(ev)→[x,y]، down(q, ev)→false يرفض، move(q)→false يوقف حتى الرفع، up(cancelled)، step (3) */
-  const step = opt.step || 3; let id = null, last = null, halt = false;
+/* عدسة الشبكة (B-1، قرار فراس 27 نوفمبر 2026، الخيار أ؛ وD275 موسّعاً إليها): الإصبع يغطّي التقاطعات المتقاربة، فتُرى فوقه دائرةٌ مكبَّرة
+   فيها الشبكة حول التقاطع الذي سيُختار وحلقته، والوضع برفع الإصبع كما كان. Pl: المستوى ({ g، P، snap })، half: أنصاف الوحدات */
+let LENS_N = 0;
+function gridLens(svg, Pl, o = {}) { const g = Pl && Pl.g, own = svg.ownerSVGElement || svg; if (!g) return null; if (!g.id) g.id = 'gl' + (++LENS_N); const R = o.r || 40, k = o.k || 2.2; let host = null;
+  const box = () => { const fr = own.querySelector('rect[x="20"][y="14"][rx="14"]'); return fr ? [20, 14, 340, 14 + (+fr.getAttribute('height'))] : [0, 0, 360, 240]; };
+  const L = { show(q) { L.hide(); const P = Pl.P(...Pl.snap(q, o.half)), [x0, y0, x1, y1] = box(); let cx = Math.max(x0 + R + 4, Math.min(x1 - R - 4, q[0])), cy = q[1] - R - 36; if (cy - R < y0 + 4) cy = q[1] + R + 36; cy = Math.max(y0 + R + 4, Math.min(y1 - R - 4, cy));
+      host = el('g', { 'pointer-events': 'none', 'data-lens': 1 }, own); const cid = 'glc' + (++LENS_N), cp = el('clipPath', { id: cid }, host); el('circle', { cx, cy, r: R }, cp);
+      el('circle', { cx, cy, r: R + 1.5, fill: '#fffdf6', stroke: '#5b6b75', 'stroke-width': 2.5 }, host);
+      const v = el('g', { 'clip-path': `url(#${cid})` }, host); el('use', { href: '#' + g.id, transform: `translate(${cx} ${cy}) scale(${k}) translate(${-P[0]} ${-P[1]})` }, v);
+      el('circle', { cx, cy, r: 7, fill: 'none', stroke: o.col || '#c0392b', 'stroke-width': 3 }, v); },
+    hide() { if (host) host.remove(); host = null; } };
+  return L; }
+function fingerInput(target, opt) {   /* opt: map(ev)→[x,y]، down(q, ev)→false يرفض، move(q)→false يوقف حتى الرفع، up(cancelled)، step (3)، lens { Pl، half } عدسة الشبكة */
+  const step = opt.step || 3; let id = null, last = null, halt = false; const lens = opt.lens ? gridLens(target, opt.lens.Pl, opt.lens) : null;
   const feed = q => { const from = last || q, L = D2P(from, q), m = Math.max(1, Math.ceil(L / step));
     for (let i = 1; i <= m; i++) { if (halt) return; const r = [from[0] + (q[0] - from[0]) * i / m, from[1] + (q[1] - from[1]) * i / m]; if (opt.move(r) === false) { halt = true; return; } }
-    last = q; };
+    last = q; if (lens && id !== null) lens.show(q); };
   const onDown = ev => { if (id !== null) return;   /* إصبعٌ ثانٍ أثناء الأول: يُهمل */
     const q = opt.map(ev); if (opt.down && opt.down(q, ev) === false) return;
-    id = ev.pointerId; last = q; halt = false; try { target.setPointerCapture(ev.pointerId); } catch (e) {} };
+    id = ev.pointerId; last = q; halt = false; try { target.setPointerCapture(ev.pointerId); } catch (e) {} if (lens) lens.show(q); };
   const onMove = ev => { if (ev.pointerId !== id || halt) return; const evs = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [];
     for (const e of (evs.length ? evs : [ev])) { if (halt || id === null) break; feed(opt.map(e)); } };
-  const onUp = ev => { if (ev.pointerId !== id) return; id = null; last = null; halt = false; try { target.releasePointerCapture(ev.pointerId); } catch (e) {} if (opt.up) opt.up(ev.type === 'pointercancel'); };
+  const onUp = ev => { if (ev.pointerId !== id) return; id = null; last = null; halt = false; if (lens) lens.hide(); try { target.releasePointerCapture(ev.pointerId); } catch (e) {} if (opt.up) opt.up(ev.type === 'pointercancel'); };
   const ac = new AbortController(), on = { signal: ac.signal };
   target.addEventListener('pointerdown', onDown, on); target.addEventListener('pointermove', onMove, on); target.addEventListener('pointerup', onUp, on); target.addEventListener('pointercancel', onUp, on);
-  return { off: () => { ac.abort(); id = null; }, active: () => id !== null,
+  return { off: () => { ac.abort(); id = null; if (lens) lens.hide(); }, active: () => id !== null,
     /* للفحص والعرض: مسارٌ مصنوع يمرّ بالطريق نفسه الذي يمرّ به الإصبع (لا طريقاً جانبياً) */
     sim: (pts) => { if (!pts.length) return; const q0 = pts[0]; if (opt.down && opt.down(q0, null) === false) return; last = q0; halt = false; for (const q of pts.slice(1)) { if (halt) break; feed(q); } last = null; halt = false; if (opt.up) opt.up(false); } };
 }

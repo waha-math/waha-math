@@ -194,7 +194,8 @@ async function orderTap(svg, cards, want, at) { const picked = [], badges = el('
   /*T*/window.__ordWant = want.split(',').map(Number); window.__ordAt = i => { const r = cards[i].getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };/*/T*/
   await gate(new Promise(res => { let bar = null; const draw = () => { badges.innerHTML = ''; cards.forEach((c, i) => c.querySelector('rect').setAttribute('fill', fill0[i])); picked.forEach((i, n) => { const [x, y] = at(i); badge(badges, x, y, n + 1, css('--compass')); cards[i].querySelector('rect').setAttribute('fill', '#eef6fb'); });
       if (picked.length === cards.length && !bar) { bar = doneBtn(); bar.b.onclick = () => { if (picked.length !== cards.length) return; AUTO_CLEAR(); hush(); bar.bar.remove(); res(); }; } else if (picked.length < cards.length && bar) { bar.bar.remove(); bar = null; } };
-    const pick = i => { const k = picked.indexOf(i); if (k >= 0) picked.splice(k); else picked.push(i); SFX.tick(); draw(); };
+    let lastI = -1, lastT = 0; const pick = i => { const now = performance.now(); if (i === lastI && now - lastT < 350) return; lastI = i; lastT = now;   /* لمستان سريعتان على البطاقة نفسها: لمسةٌ واحدة (المراجع B لبوابة M4-U1/U2، 17) */
+      const k = picked.indexOf(i); if (k >= 0) picked.splice(k); else picked.push(i); SFX.tick(); draw(); };
     cards.forEach((g, i) => { g.onclick = () => pick(i); g.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); pick(i); } }; });
     const fin = () => setTimeout(() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }, 0);
     AUTO({ kind: 'lenOrder', ok: () => { want.split(',').forEach(i => pick(+i)); fin(); }, wrong: () => { [...want.split(',')].reverse().forEach(i => pick(+i)); fin(); } }); }));

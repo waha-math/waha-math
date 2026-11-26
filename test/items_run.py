@@ -716,6 +716,9 @@ async def main():
     places = await pg.evaluate(PLACES); bad_places = [r for r in places if not r[3] or r[3] == r[2]]
     for lid, q, at, st in bad_places: cbase(False, '%s: «%s»: النجمة تبدأ في المنطقة المطلوبة (%s)' % (lid, q, st or 'لا علامة بداية'))
     cbase(bool(places) and not bad_places, '«ضع النجمة» (%d بنود) لا يبدأ والمطلوب صحيح' % len(places))
+    errlog = await pg.evaluate("() => { const k = Object.keys(localStorage).find(k => k.startsWith('hp_log:')); const L = JSON.parse(localStorage.getItem(k) || '{}'); return (L.errors || []).map(e => e.scene + ' ' + String(e.msg).slice(0, 300)); }")
+    for e in errlog[:20]: print('  LOG.errors:', e)
+    check(not errlog, 'LOG.errors فارغ بعد البنود كلها (%d)، ومنه حارس numberPick (المراجع B لبوابة M4-U1/U2، 5)' % len(errlog))
     await b.close()
     print('items run:', ', '.join('%s %d' % kv for kv in sorted(counts.items())), '| remedial twins %d of %d' % (twins, need_twins))
     cbase(sum(counts.values()) == 2 * len(items), 'كل البنود (%d بنداً × صحيح وخطأ) انتهت بلا خطأ' % len(items))

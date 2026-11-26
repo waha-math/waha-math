@@ -100,7 +100,7 @@ ITEM.c4Place = {
       if (item.kind === 'pt') await S('gen.c4.pt.' + preKey([item.x, item.y]), { append: true }); else if (item.kind === 'int') await S('gen.c4.eq.' + c4LKey(item.ln), { append: true }); };
     askQ(); REPLAY_HOOK = () => askQ(); REPLAY_HOOK.live = () => !done && svg.isConnected;
     const set = (x, y) => { cur = [x, y]; if (dot) dot.remove(); dot = c4Dot(svg, Pl, x, y, { art: item.art, col: item.art ? C4.q : C4.pt }); /*T*/window.__gridPt = cur;/*/T*/ };
-    const input = fingerInput(svg, { map: e => { const q = svgPoint(svg, e); return [q.x, q.y]; }, down(q) { if (!Pl.inside(q)) return false; set(...Pl.snap(q)); SFX.tick(); }, move(q) { set(...Pl.snap(q)); }, up() {} });
+    const input = fingerInput(svg, { map: e => { const q = svgPoint(svg, e); return [q.x, q.y]; }, down(q) { if (!Pl.inside(q)) return false; set(...Pl.snap(q)); SFX.tick(); }, move(q) { set(...Pl.snap(q)); }, up() {}, lens: { Pl } });
     /*T*/window.__gridPtAt = (x, y) => { const m = svg.getScreenCTM(), [px, py] = Pl.P(x, y); return { x: m.a * px + m.e, y: m.d * py + m.f }; }; window.__gridPtWant = item.want;/*/T*/
     const kg = el('g', { role: 'grid', 'aria-label': labelText('coPlane') }, svg);
     for (let y = Pl.m; y >= -Pl.m; y--) { const row = el('g', { role: 'row' }, kg); for (let x = -Pl.n; x <= Pl.n; x++) { const [px, py] = Pl.P(x, y), b = el('g', { role: 'gridcell', tabindex: 0, 'aria-label': plain(G(labelText('c4Cell'))).replace('X', x).replace('Y', y) }, row); el('circle', { cx: px, cy: py, r: 7, fill: 'transparent', 'pointer-events': 'none' }, b); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); set(x, y); SFX.tick(); } }; } }

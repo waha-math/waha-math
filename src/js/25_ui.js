@@ -55,6 +55,19 @@ function labelFit(svg, x, y, text, size, color, maxW) { if (!text) return null; 
   [w.slice(0, mid).join(' '), w.slice(mid).join(' ')].forEach((s, i) => { const sp = el('tspan', { x, dy: i ? size * 1.15 : -size * .2 }, t); sp.textContent = s; }); } catch (e) {} return t; }
 /* لون التفكير على ورقٍ فاتح ثابت (الإطار والبطاقة): بنّي غامق بالفاتح والداكن، فـ--think في الداكن فاتح على الورق الفاتح (1.8:1؛ المراجع B لبوابة S3-U0/U1، 5) */
 const THINK_INK = '#9a5f08';
+/* B-17 (قرار فراس 27 نوفمبر 2026، الخيار أ): الأسّ المشرقي مرفوع («سم٢»، «أ٢ + ب٢»). الأسّ ما كان «²» أو «³» في النصّ وحده: MS يجعله
+   علامةً غير مرئية (U+2063، لا تُرسم) ثم الرقم المشرقي، فلا يُرفع «١ و٢» ولا «م٣» (المرحلة) ولا «يخلط ٦ و٢». والعلامة والرقم يُلفّان معاً
+   في الرسم (tspan) وفي الصفحة (sup)، فالنصّ نفسه لا يتغيّر (textContent = MS)؛ ومع الغربية «²» حرفٌ مرفوع أصلاً */
+const SUP_RX = /\u2063[٢٣]/;
+function supRaise(n) { if (!n || n.nodeType !== 3 || SET.digits !== 'east') return; const p = n.parentNode; if (!p || p.dataset && p.dataset.sup) return; const m = SUP_RX.exec(n.data); if (!m) return;
+  const rest = n.splitText(m.index), after = rest.splitText(2), svg = p.namespaceURI === 'http://www.w3.org/2000/svg';
+  const s = svg ? document.createElementNS(p.namespaceURI, 'tspan') : document.createElement('sup'); s.dataset.sup = 1;
+  if (svg) { s.setAttribute('baseline-shift', 'super'); s.setAttribute('font-size', '70%'); } else s.style.fontSize = '70%';
+  p.insertBefore(s, rest); s.appendChild(rest); supRaise(after); }
+function supScan(root) { if (!root) return; if (root.nodeType === 3) return supRaise(root); if (root.nodeType !== 1) return; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), L = []; while (w.nextNode()) L.push(w.currentNode); L.forEach(supRaise); }
+{ const on = () => { new MutationObserver(ms => { if (SET.digits !== 'east') return; for (const m of ms) { if (m.type === 'characterData') supRaise(m.target); else m.addedNodes.forEach(supScan); } })
+    .observe(document.body, { childList: true, subtree: true, characterData: true }); supScan(document.body); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', on); else on(); }
 function labelText(k) { const D = CUR ? LDATA[CUR.id] : null, t = (D && D.labels && D.labels[k]) || LABELS.ui[k] || k; return k === 'myDigits' ? t : MS(G(t)); }   /* والتسمية بصيغتين {للولد|للبنت} تُحلّ هنا (بطاقة «قارِنِ القطرين» كُتبت بقوسيها على المسرح: المراجع B لبوابة S3-U2/U3) */   /* أعداد التسميات بأرقام الطفل (D279)، إلا زرّ «أرقامي» نفسه */
 /* شارة العدّ: لون النص يُختار بحسب الخلفية (T10) */
 function badge(parent, x, y, n, col) { const bg = col || css('--compass'); const m = el('g', { transform: `translate(${x} ${y})`, 'pointer-events': 'none', 'data-badge': 1 }, parent);
