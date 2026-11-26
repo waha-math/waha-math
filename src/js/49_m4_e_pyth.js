@@ -72,12 +72,13 @@ ITEM.pyApprox = cpItem({ H: 236, tLine: 'gen.py.together.approx', hint: 'gen.py.
   pick: item => choosePick(shuffle(item.cands.map(v => [pyKey(v), pyTxt(v), '<i></i>', 'gen.py.v.' + pyKey(v)])), item.want),
   errOf: () => 'pyOff' });
 
+/* ليس بالقياس: الزاوية الكبرى مرسومةً ٨٣° أو ٩٨° في القائم وغيره، والضلع الأقصر نصف الأوسط على الأقل، فلا يُعرف القائم بالنظر ولا تتزاحم الأعداد (D254؛ المراجع A لبوابة M4-U3/U4، 20 و24) */
+function pyTriNS(g, s3, o = {}) { const [a, b, c] = [...s3].sort((x, y) => x - y), ad = Math.max(a, .5 * b), ang = (a + b + c) % 2 ? 83 : 98, cd = Math.sqrt(ad * ad + b * b - 2 * ad * b * Math.cos(ang * Math.PI / 180)), u = Math.min(o.uMax || 22, (o.w || 230) / Math.max(cd, b));
+  return cgTri(g, [cd, ad, b], { cx: o.cx ?? 180, y: o.y ?? 180, u, rot: o.rot || 0, vals: [c, a, b], fs: o.fs }); }
 /* ================= ④ هل المثلث قائم؟ (C407 العكس): s ثلاثة أطوال ================= */
 ITEM.pyIsRight = cpItem({ H: 236, tLine: 'gen.py.together.isRight', hint: 'gen.py.hint.isRight', rLine: it => 'gen.py.reveal.isRight.' + it.want, praise: 'praiseThink',
   make: s => { const [a, b, c] = [...s.s].sort((x, y) => x - y); return { want: a * a + b * b === c * c ? 'yes' : 'no', sq: [a * a, b * b, c * c], tag: 'py-isright' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = [...item.s].sort((x, y) => x - y), ang = (a + b + c) % 2 ? 83 : 98, cd = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(ang * Math.PI / 180)), u = Math.min(22, 230 / Math.max(cd, b));
-    /* ليس بالقياس: الزاوية الكبرى مرسومةً ٨٣° أو ٩٨° في القائم وغيره، فلا يُعرف القائم بالنظر (D254؛ المراجع A لبوابة M4-U3/U4، 20) */
-    const P = cgTri(g, [cd, a, b], { cx: 180, y: 180, u, rot: item.rot || 0, vals: [c, a, b] }); item._P = P; cgNotScale(g, 180, 226);
+  draw(svg, item, tries) { const g = el('g', {}, svg), P = pyTriNS(g, item.s, { cx: 180, y: 180, uMax: 22, w: 230, rot: item.rot || 0 }); item._P = P; cgNotScale(g, 180, 226);
     if (tries >= 3) ciEq(helpG(svg), 180, 36, `${item.sq[0]} + ${item.sq[1]} ؟ ${item.sq[2]}`, PY.hl, 18); return {}; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), P = item._P; if (P) { hlSeg(m, P[0], P[1], H2C[2]); hlRing(m, P[2], 18); }   /* المستوى الثاني رسمٌ: الأطول، والزاوية المقابلة له: أهي قائمة؟ */
     ciRule(m, 180, 36, labelText('pyRuleConv'), PY.hl, 15); await sleep(FAST ? 10 : 250); },

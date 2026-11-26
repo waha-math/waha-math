@@ -78,7 +78,8 @@ function pfStep(g, y, k, n, o = {}) { const rs = PF_PROOFS[k].rs[n], t = el('tex
 /* ================= ① سلسلة السبب (C408): pf؛ ثلاث بطاقات خطوات تُرتَّب باللمس ================= */
 /* شكل البرهان في شريطٍ [T، B] بأسمائه وأقواسه داخله (المراجعان لبوابة M4-U1/U2): مدى الشكل مع تسمياته خطّيٌّ في s، فيُختار أكبر s ≤ sMax يسعه ثم y0.
    [a، b، c، d]: أعلى نقطة y0 + a·s + b، وأدناها y0 + c·s + d؛ وما لا يُعرف مداه (براهين U3 فما بعد) بـ y0 وs كما كانا */
-const PF_SPAN = { tri: [38, -21, 112, 18], ineq: [38, -21, 106, 10], vert: [62, -45, 62, 45], alt: [22, -33, 96, 33], coint: [22, -33, 96, 33], poly: [10, -6, 114, 6] };
+const PF_SPAN = { tri: [38, -21, 112, 18], ineq: [38, -21, 106, 10], vert: [62, -45, 62, 45], alt: [22, -33, 96, 33], coint: [22, -33, 96, 33], poly: [10, -6, 114, 6],
+  pyth: [0, 18, 109.2, 32], perpPf: [30, -12, 96, 20], pyConv: [30, -8, 100, 4] };   /* براهين U4 تملأ مكانها في السلسلة والتعليل (المراجع A لبوابة M4-U3/U4، 24) */
 function pfFitFig(g, k, T, B, o = {}) { const S = PF_SPAN[k]; if (!S) return pfFig(g, k, { y0: o.y0 ?? 2, s: o.s ?? .7, v: o.v });
   const [a, b, c, d] = S, s = Math.min(o.sMax || .72, c > a ? (B - T - (d - b)) / (c - a) : 1), y0 = T - (a * s + b); return pfFig(g, k, { y0, s, v: o.v }); }
 const PF_CY = i => 126 + i * 76;
@@ -260,7 +261,7 @@ function pfReasonPic(g, P) { const sc = el('g', {}, g);
   else if (P.trap) { const Q = isoTrapAt(sc, P.trap, { y1: 50, y2: 150, axis: !!P.axis }); pfAng(sc, Q.B1, Q.B2, Q.T1, { col: PF.a, r: 24, deg: P.trap, dl: 18, fs: 14 }); }
   else if (P.cg) { cgTri(sc, P.cg[0], { cx: 268, y: 160, u: P.u || 13 }); cgTri(sc, P.cg[1], { cx: 92, y: 160, u: P.u || 13, col: CG.b, fill: CG.fb, rot: P.rot || 0 }); }   /* M4-U3 */
   else if (P.cs) preCaseTris(sc, P.cs, P.v || 0);
-  else if (P.tri1) cgTri(sc, P.tri1, { cx: 180, y: 168, u: P.u || Math.min(13, 230 / Math.max(...P.tri1)), rot: P.rot || 0, fs: 15 });   /* مثلثٌ بأضلاعه الثلاثة: حكمٌ وتعليل (المراجع A لبوابة M4-U3/U4، 17) */
+  else if (P.tri1) { pyTriNS(sc, P.tri1, { cx: 180, y: 166, uMax: 13, w: 220, rot: P.rot || 0, fs: 15 }); cgNotScale(sc, 180, 22); }   /* مثلثٌ بأضلاعه الثلاثة: حكمٌ وتعليل (المراجع A لبوابة M4-U3/U4، 17) */
   else if (P.sim) { const mx = Math.max(...P.sim.a, ...P.sim.b), u = Math.min(22, 120 / mx); simShape(sc, P.sim.fig, P.sim.a, { cx: 262, y: 160, u, col: CG.a, fill: CG.fa }); simShape(sc, P.sim.fig, P.sim.b, { cx: 96, y: 160, u, col: CG.b, fill: CG.fb }); }
   else if (P.trapD) { const Q = isoTrapAt(sc, P.trapD, { y1: 50, y2: 150 }); geoLine(sc, Q.B1[0], Q.B1[1], Q.T2[0], Q.T2[1], { color: CG.c, w: 2.6 }); geoLine(sc, Q.B2[0], Q.B2[1], Q.T1[0], Q.T1[1], { color: CG.c, w: 2.6 }); }
   else if (P.qd) pfFig(sc, P.qd, { y0: 30, s: 1, v: P.v });
