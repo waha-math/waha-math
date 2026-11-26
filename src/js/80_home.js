@@ -145,7 +145,7 @@ const unitOpen = ui => { if (ui === 0 || PROG.unlockAll) return true; const P = 
   const R = FINAL_UNIT[P] && PROG['final:' + FINAL_UNIT[P]]; return !!(R && (R.level === 'master' || R.level === 'adv')); };
 const isTestLesson = id => !!LDATA[id].test;
 function lessonOpen(U, i) { const ids = U.lessons; if (PROG.unlockAll) return true; if (i > 0 && !(PROG[ids[i - 1]] || {}).done) return false;
-  if (isTestLesson(ids[i]) && WS[U.id] && wsSolved(U.id) < 1) return false; if (isTestLesson(ids[i]) && !retakeOpen(PROG[ids[i]] || {})) return false; return true; }
+  if (isTestLesson(ids[i]) && WS[U.id] && !WS[U.id].optional && wsSolved(U.id) < 1) return false; if (isTestLesson(ids[i]) && !retakeOpen(PROG[ids[i]] || {})) return false; return true; }
 const wsOpen = U => PROG.unlockAll || !!PROG['badge:' + U.id] || !!(PROG[U.lessons[U.lessons.length - 2]] || {}).done;
 
 /* لافتة الواحة: النبع بحجارة الشارات، وجدول لكل حيّ أُتقن، ونخيل يخضرّ */
@@ -209,7 +209,7 @@ function showHome() {
   const nowBtn = path.querySelector('.stop.now'); if (nowBtn && !FAST) setTimeout(() => { try { nowBtn.scrollIntoView({ block: 'nearest', behavior: RM ? 'auto' : 'smooth' }); } catch (e) {} }, 300);
 }
 function wsStop(U, uOpen) { const open = uOpen && wsOpen(U); const solved = wsSolved(U.id), total = WS[U.id].puzzles.length;
-  const wb = document.createElement('button'); wb.className = 'stop ws' + (open && solved < 1 ? ' must' : ''); wb.dataset.workshop = U.id; wb.setAttribute('aria-disabled', !open);
+  const wb = document.createElement('button'); wb.className = 'stop ws' + (open && solved < 1 ? (WS[U.id].optional ? ' opt fresh' : ' must') : ''); wb.dataset.workshop = U.id; wb.setAttribute('aria-disabled', !open);
   wb.innerHTML = `<svg viewBox="0 0 72 56" aria-hidden="true">${hostsSVG(U.id).replace(/^<svg[^>]*>/, '<g transform="translate(-14 -10) scale(.5)">').replace(/<\/svg>$/, '</g>')}<path d="M8 50 h56" stroke="${css('--basket-dk')}" stroke-width="4" stroke-linecap="round"/></svg>`
     + `<span>${esc(G(labelText('workshop')))}<small aria-label="${solved} / ${total}">${esc(G(labelText(wsWord(U.id, 'wsShadows'))))} <span class="dots" aria-hidden="true">${'<i class="on"></i>'.repeat(solved)}${'<i></i>'.repeat(Math.max(0, total - solved))}</span></small></span>` + (open ? (solved ? ST_ICON.done(css('--good')) : '') : ST_ICON.lock(css('--muted')));
   wb.onclick = () => { if (!open) { SFX.soft(); return; } SFX.tick(); runWorkshop(U); }; return wb; }

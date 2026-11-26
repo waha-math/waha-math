@@ -134,7 +134,7 @@ async function kidDeleteRun(id) {
 let KID_DEL_STATE = null;   // null، أو { id, why } لم يكتمل، أو { id, cancelled: true }
 function kidDelCheck() { const id = kidDelPending(); if (id && id === KID && store.del(KID_DEL)) KID_DEL_STATE = { id, cancelled: true }; }
 function designSVG(d, w = 150) { const s = el('svg', { viewBox: '0 0 360 250', width: w, 'aria-hidden': 'true' }); el('rect', { width: 360, height: 250, fill: css('--sky-bot') }, s);
-  d.pieces.forEach(p => wsDraw(s, p, p.x, p.y, 1)); return s.outerHTML; }
+  if (d.cubes) cuVox(s, cuVoxOf(d.cubes), { cx: 180, cy: 125, W: 320, H: 220, s: 44, floor: [d.cubes[0].length, d.cubes.length] }); else d.pieces.forEach(p => wsDraw(s, p, p.x, p.y, 1)); return s.outerHTML; }
 async function openGallery() {
   hush(); /*T*/window.__scene = 'gallery';/*/T*/
   const open = HUNT.filter(([k, l]) => (PROG[l] || {}).done);

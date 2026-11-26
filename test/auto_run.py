@@ -174,13 +174,17 @@ async def main():
     tw_seen = {}; prev_twin = False
     if ONLY: await pg.evaluate("() => { PROG.unlockAll = true; saveProg(); showHome(); }"); await pg.wait_for_timeout(300)
     matd = {}; matq = [0]; small = {}; nearT = {}; noname = {}; empty = {}; squeeze = {}; clipt = {}; coverb = {}; keyless = {}; knon = [0]; kasync = [0]; krace = [0]; kpress = [0]; kspace = [0]; kpan = [0]; taps = {}; leaks = []; failed_rev = {}; redo_seen = set(); replay_q = None; crashes = 0; seen_types = set(); deep = {}; failed_test = {}; shots = set(); report = []; lessons = 0
-    visits = 0   # MAXL يعدّ الدروس وحدها (لا المراجعة ولا الورشة)، وسقف الزيارات كلها 200 حارس من حلقة
+    opt_seen = set(); visits = 0   # MAXL يعدّ الدروس وحدها (لا المراجعة ولا الورشة)، وسقف الزيارات كلها 200 حارس من حلقة
     VCAP = int(os.environ.get('VCAP', '400'))   # سقف الزيارات: failreview يعيد كل درس ويمرّ بالمراجعات، و38 درساً تتجاوز 200 (Gate، 19 نوفمبر)
     while lessons < MAXL and visits < VCAP:
       if os.environ.get('ONLY'):
         if not ONLY: break
         nx = ONLY.pop(0); target = ['ws', nx[3:]] if nx.startswith('ws:') else ['lesson', nx]
-      else: target = await pg.evaluate("""() => { const n = document.querySelector('.stop.now'); if (n) return n.dataset.lesson ? ['lesson', n.dataset.lesson] : n.dataset.review ? ['review', 'review'] : null;
+      else:
+        # ورشة م3 وم4 الاختيارية (63_cubes.js، D245): تُزار مرة حين تُفتح، قبل الدرس التالي، فتُفحص ألغازها في كل تشغيل؛ ولا تُعاد إن لم تُحلّ
+        opt = [w for w in await pg.evaluate("() => [...document.querySelectorAll('.stop.ws.opt.fresh[aria-disabled=false]')].map(e => e.dataset.workshop)") if w not in opt_seen]
+        if opt: opt_seen.add(opt[0]); target = ['ws', opt[0]]
+        else: target = await pg.evaluate("""() => { const n = document.querySelector('.stop.now'); if (n) return n.dataset.lesson ? ['lesson', n.dataset.lesson] : n.dataset.review ? ['review', 'review'] : null;
         const w = document.querySelector('.stop.ws.must[aria-disabled=false]'); if (w) return ['ws', w.dataset.workshop]; return null; }""")
       if MODE == 'failreview' and not target is None and await pg.evaluate("() => Object.values(PROG.srs).some(r => Object.values(r.cs || {}).some(x => x.due != null && x.due > Date.now()))"):   # المراجعة تحين فوراً (لا ننتظر يوماً)
         await pg.evaluate("() => { Object.values(PROG.srs).forEach(r => Object.values(r.cs || {}).forEach(x => { if (x.due != null) x.due = Date.now() - 1; })); saveProg(); showHome(); }"); await pg.wait_for_timeout(200); continue

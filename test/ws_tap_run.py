@@ -29,7 +29,7 @@ async def run(p, dev, rev, kbd=False):   # kbd: القطعة والتدوير و
   await pg.evaluate("""() => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([{ id: 'k1', name: 'سلمى', gender: 'f' }])); localStorage.setItem('hp_kid', JSON.stringify('k1'));
     localStorage.setItem('hp_settings:k1', JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:k1', JSON.stringify({ schema: 3, unlockAll: true })); }""")
   await pg.reload(); await pg.wait_for_timeout(500)
-  puzzles = await pg.evaluate("() => UNITS.filter(u => WS[u.id]).flatMap(u => WS[u.id].puzzles.map((P, i) => [u.id, i, P.id]))")
+  puzzles = await pg.evaluate("() => UNITS.filter(u => WS[u.id] && WS[u.id].kind !== 'cubes').flatMap(u => WS[u.id].puzzles.map((P, i) => [u.id, i, P.id]))")   # ألغاز الظلال؛ والمكعّبات في cu_tap_run.py
   for uid, i, pid in puzzles:
     # ترتيب الرفّ بمولّدٍ مبذورٍ لكل لغز (كان يتبع ما استهلكته المؤقّتات قبله، فتنجو طفرة «قطع الرفّ تتنازع اللمس» أحياناً: مراجعة الخصم، نوفمبر 2026)
     await pg.evaluate("([uid, i]) => { hush(); CUR = null; FLOW++; reseed('wstap|' + uid + '|' + i); show('lesson'); window.__wsDone = false; wsPuzzle(UNITS.find(u => u.id === uid), WS[uid].puzzles[i], i).then(() => { window.__wsDone = true; }); }", [uid, i])

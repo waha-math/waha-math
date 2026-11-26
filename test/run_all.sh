@@ -40,6 +40,7 @@ timeout 1800 python3 test/replay_run.py                         > "$O/replay.txt
 timeout 5400 python3 test/realtap_run.py 'iPhone SE' 'Galaxy S5' 'Pixel 5' > "$O/realtap.txt" 2>&1 || echo realtap >> "$O/FAILED"   # اللمس الحقيقي بالإصبع في مركز كل هدف (D255)
 MOUSE=1 timeout 1800 python3 test/realtap_run.py 'Pixel 5'      > "$O/realtap_mouse.txt" 2>&1 || echo realtap_mouse >> "$O/FAILED" # وبالفأرة
 timeout 2700 python3 test/ws_tap_run.py 'iPhone SE' 'Pixel 5' 'Galaxy S5' > "$O/ws_tap.txt" 2>&1       || echo ws_tap >> "$O/FAILED"   # ألغاز الورشة باللمس: القطعة ثم ظلّها، بالترتيبين (الفحص المستقل B لبوابة S1-U4، D246)
+timeout 2700 python3 test/cu_tap_run.py 'iPhone SE' 'Pixel 5' 'Galaxy S5' > "$O/cu_tap.txt" 2>&1       || echo cu_tap >> "$O/FAILED"   # ورشة المكعّبات في م3 وم4: كل لغز بالأصابع (وبلوحة المفاتيح على الثالث)، وأهدافها 56، والحفظ في المعرض
 timeout 1800 python3 test/layout_run.py                         > "$O/layout.txt" 2>&1        || echo layout >> "$O/FAILED"   # الأشياء المبعثرة: لا تراكب، ومركز كل شيء له، و«لمس واحد» لما تحت الإصبع (D255)
 timeout 1800 python3 test/backup_voice_run.py                   > "$O/backup_voice.txt" 2>&1  || echo backup_voice >> "$O/FAILED"   # حزمة الصوت والنسخة الاحتياطية (D181، D246)
 timeout 1800 python3 test/quicktap_run.py                       > "$O/quicktap.txt" 2>&1      || echo quicktap >> "$O/FAILED"   # اللمس السريع على طريق الأعداد (الفحص المستقل B)

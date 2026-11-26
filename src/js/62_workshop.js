@@ -29,7 +29,10 @@ const wsSolved = uid => (PROG.ws || {})[uid] || 0;
 const wsRoom = uid => !!(WS[uid] && WS[uid].puzzles.some(p => p.frame === 'room'));
 /* وألغاز الألواح (S1-U4) كذلك باسمها */
 const wsPlank = uid => !!(WS[uid] && WS[uid].puzzles.some(p => p.frame === 'plank'));
-const wsWord = (uid, base) => base + (wsRoom(uid) ? 'Room' : wsPlank(uid) ? 'Plank' : '');
+/* وورشة المكعّبات في م3 وم4 (63_cubes.js) باسمها، واختيارية: لا تحجب اختبار الوحدة (D245) */
+const wsCube = uid => !!(WS[uid] && WS[uid].kind === 'cubes');
+const wsOpt = uid => !!(WS[uid] && WS[uid].optional);
+const wsWord = (uid, base) => base + (wsRoom(uid) ? 'Room' : wsPlank(uid) ? 'Plank' : wsCube(uid) ? 'Cube' : '');
 async function runWorkshop(U) {
   if (TAB_LOST) { showTabLost(); return; }
   CUR = null; FLOW++; reseed((KID || 'k0') + '|ws|' + U.id + '|' + Date.now()); show('lesson'); lockGo(); setSteps(0); SCENE_NOW = 'ws'; /*T*/window.__scene = 'ws:menu';/*/T*/ const W = WS[U.id];
@@ -38,12 +41,12 @@ async function runWorkshop(U) {
   let mode = 'puzzle';
   if (freeOpen) { say(...lineOf(wsWord(U.id, 'gen.ws.intro')), { free: true }); mode = await choosePick([['puzzle', labelText(wsWord(U.id, 'wsPuzzles')), WS_ICON.puzzle], ['free', labelText('wsFree'), WS_ICON.free]], null); hush(); }
   else await S(wsSolved(U.id) ? wsWord(U.id, 'gen.ws.again') : wsWord(U.id, 'gen.ws.first'));
-  if (mode === 'free') return wsFree(U);
+  if (mode === 'free') return wsCube(U.id) ? cuFree(U) : wsFree(U);
   PROG.ws = isObj(PROG.ws) ? PROG.ws : {}; let i = wsSolved(U.id) % W.puzzles.length;
   setSteps(W.puzzles.length);
-  for (let n = 0; n < W.puzzles.length; n++, i = (i + 1) % W.puzzles.length) { setStep(i); await wsPuzzle(U, W.puzzles[i], i);
+  for (let n = 0; n < W.puzzles.length; n++, i = (i + 1) % W.puzzles.length) { setStep(i); await (wsCube(U.id) ? cuPuzzle : wsPuzzle)(U, W.puzzles[i], i);
     PROG.ws[U.id] = Math.max(wsSolved(U.id), i + 1); saveProg();
-    if (!freeOpen && n === 0) { await S('gen.ws.openNext'); break; }          // المحطة الإلزامية: لغز واحد يكفي لفتح الدرس التالي، والبقية متى شاء
+    if (!freeOpen && n === 0 && !W.optional) { await S('gen.ws.openNext'); break; }          // المحطة الإلزامية: لغز واحد يكفي لفتح الدرس التالي، والبقية متى شاء
     if (n + 1 < W.puzzles.length) { const more = await wsMore(); if (!more) break; } }
   await nextBtn(labelText('toMap')); showHome();
 }
