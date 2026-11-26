@@ -87,6 +87,17 @@ const HOME_SAY = {
   frameAgain: async (r, v) => S(v.fk === 0 && v.fu === 0 ? 'gen.home.frameOk' : 'gen.home.frameNo'),
   tileAgain: async (r, v) => S(v.tile === 4 ? 'gen.home.tileOk' : 'gen.home.tileNo'),
   winAgain: async (r, v) => S(v.sides === v.verts ? 'gen.home.winEq' : 'gen.home.winNe'),
+  /* S3-U0 (المراجع A لبوابة S3-U0/U1، 8): أطوال ثلاثة بالسنتيمتر تُكتب بالمتر بخانتين، مرتّبةً، والفرق بين الأطول والأقصر */
+  decHome: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }), hs = ['h1', 'h2', 'h3'].map(k => v[k]).sort((a, b) => a - b), m = c => `${(c / 100).toFixed(2)} ${labelText('lenM')}`, k = 190 / Math.max(...hs);
+    hs.forEach((c, i) => { const y = 40 + i * 48; el('rect', { x: 330 - c * k, y, width: c * k, height: 18, rx: 5, fill: i === 2 ? DEC.ok : i ? LENC.soft : DEC.frac, opacity: .85 }, svg);
+      const t = el('text', { x: 322 - c * k, y: y + 15, 'text-anchor': 'start', 'font-size': 17, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, svg); t.textContent = m(c); });   /* العدد يسار شريطه */
+    const d = el('text', { x: 180, y: 204, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg); d.textContent = `${m(hs[2])} − ${m(hs[0])} = ${m(hs[2] - hs[0])}`;
+    await S('gen.home.decDiff'); },
+  ropeAgain: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }); homeArt(svg, 'tape'); const t = el('text', { x: 180, y: 190, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg);
+    t.textContent = `${mcTxt(v.rm, v.rc)} = ${((v.rm * 100 + v.rc) / 100).toFixed(2)} ${labelText('lenM')}`; await S('gen.home.ropeSay'); },
+  /* S3-U1: عدد البلاطات حول الرأس × زاوية الركن، وزوايا الشطيرة بعد أسبوع */
+  tileSum: async (r, v) => S(v.n * v.ang === 360 ? 'gen.home.tile360' : 'gen.home.tileNot360'),
+  sandAgain: async (r, v) => S(v.a + v.b + v.c === 180 ? 'gen.home.sandOk' : 'gen.home.sandNo'),   /* الثالثة محسوبةٌ قبل قياسها: المجموع 180 تماماً */
   clockAgain: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }); homeArt(svg, 'clock'); homeClock(svg, 6); await S(v.kind === 2 ? 'gen.home.sixOk' : 'gen.home.sixNo'); await S(v.q === 1 ? 'gen.home.quarterOk' : 'gen.home.quarterNo'); },
 };
 /* صورة ناتج مهمة البيت عبر «صيد الكاميرا» (المرجع: U7 السجادة والخيط، U8 الشريحتان؛ المراجع A لبوابتي U6/U7 (30) وU8/U9 (21)):

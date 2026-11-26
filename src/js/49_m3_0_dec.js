@@ -141,7 +141,8 @@ SCENES.decTenths = async c => { const L = c.lines, svg = decStage(262), R = rule
   const s = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, svg); s.textContent = `${cmmTxt(74)} = ${lenTxt([7.4, 'dcm'])}`;
   await S(L[2]); N.g.remove(); P.g.remove(); s.textContent = `${cmmTxt(58)} = ${lenTxt([5.8, 'dcm'])}`; s.setAttribute('fill', DEC.ok); s.setAttribute('y', 150); SFX.good();
   await S(L[3]);
-  for (const l of L.slice(4)) await S(l); };
+  if (L[4]) { s.textContent = `7 ${U_('cm')} = ${lenTxt([7, 'dcm'])}`; s.setAttribute('fill', LENC.ink); SFX.tick(); await S(L[4]); }   /* «7 سم = 7.0 سم» قبل أن تظهر «٩٧٫٠» في الخيارات (المراجع A لبوابة S3-U0/U1، 21) */
+  for (const l of L.slice(5)) await S(l); };
 /* الإشعال (د2): فوضى تقول 2.35 م أطول من 2.5 م */
 SCENES.decCmpHook = async c => { const L = c.lines, svg = decStage(232); lenCard(svg, 262, 84, [2.35, 'dm'], { w: 150 }); lenCard(svg, 98, 84, [2.5, 'dm'], { w: 150 });
   const tag = el('text', { x: 262, y: 40, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: RUL.chaos, direction: 'rtl' }, svg); tag.textContent = labelText('decLonger');   /* ادّعاء فوضى فوق بطاقتها، بلا رمز «>» يلتبس اتجاهه */
@@ -168,4 +169,18 @@ SCENES.decCalcShow = async c => { const L = c.lines, svg = decStage(250), rows =
     T(112, `${sa} ${sg} ${sb} = ${sw} ${U_(su)}`, DEC.frac, 22); SFX.tick(); await S(L[3 * i + 1]);
     T(160, `= ${f(w)} ${uu}`, DEC.ok); T(204, `≈ ${ra} ${sg} ${rb} = ${re}`, css('--think'), 19); SFX.good(); await S(L[3 * i + 2]); }
   for (const l of L.slice(3 * rows.length)) await S(l); };
+/* تذكير بوابة الوحدة (د3): الوحدتان بالرسم، ثم الحساب بالوحدة الصغرى والتحقّق بالتقريب (المراجع A لبوابة S3-U0/U1، 21) */
+SCENES.decRecap = async c => { const L = c.lines, svg = decStage(236), R = rulerAt(svg, { x: 60, y: 30, pxcm: 240, from: 3, to: 4, mm: true, broken: true });
+  const T = (y, s, col, fs = 21) => { const t = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); t.textContent = s; return t; };
+  T(112, `1 ${U_('cm')} = 10 ${U_('mm')}`, DEC.frac); el('rect', { x: 60, y: 136, width: 240, height: 14, rx: 4, fill: LENC.tape, stroke: LENC.tapeEd, 'stroke-width': 2 }, svg);
+  for (let i = 0; i <= 10; i++) el('line', { x1: 60 + i * 24, y1: 136, x2: 60 + i * 24, y2: i % 5 ? 144 : 150, stroke: LENC.tapeEd, 'stroke-width': 1.6 }, svg);
+  T(182, `1 ${U_('m')} = 100 ${U_('cm')}`, DEC.int); void R; await S(L[0]);
+  [['m', 270], ['cm', 180], ['mm', 90]].forEach(([u, x], i) => { el('rect', { x: x - 34, y: 198, width: 68, height: 32, rx: 10, fill: i === 2 ? DEC.ok : '#fff', stroke: DEC.ok, 'stroke-width': 2 }, svg);
+    const t = el('text', { x, y: 220, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: i === 2 ? '#fff' : DEC.ok, direction: 'rtl' }, svg); t.textContent = U_(u); }); SFX.tick(); await S(L[1]);
+  for (const l of L.slice(2)) await S(l); };
+/* ختام د2: المتر بالأجزاء من المئة */
+WRAP_ART.decMeterArt = svg => { const x0 = 40, W = 280, y = 120; el('rect', { x: x0, y, width: W, height: 22, rx: 4, fill: LENC.tape, stroke: LENC.tapeEd, 'stroke-width': 2.5 }, svg);
+  for (let i = 0; i <= 30; i++) el('line', { x1: x0 + i * W / 30, y1: y, x2: x0 + i * W / 30, y2: y + (i % 10 ? 8 : 22), stroke: LENC.tapeEd, 'stroke-width': i % 10 ? 1.4 : 2.4 }, svg);
+  el('rect', { x: x0, y: y - 14, width: W * 2.35 / 3, height: 10, rx: 3, fill: DEC.ok }, svg);
+  const t = el('text', { x: 180, y: 80, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg); t.textContent = `2.35 ${U_('m')}`; };
 WRAP_ART.decArt = svg => { const R = rulerAt(svg, { x: 70, y: 120, pxcm: 55, from: 5, to: 9, mm: true, broken: true }); rulThingAt(svg, 'pencil', R.X(5) - 60, R.X(7.4), 118); const t = el('text', { x: 180, y: 70, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: DEC.frac, direction: 'ltr' }, svg); t.textContent = '7.4'; };

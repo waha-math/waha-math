@@ -74,6 +74,34 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u0",
+   "art": "tape",
+   "again": [
+    {
+     "key": "rm",
+     "q": "gen.home.ropeM",
+     "min": 0,
+     "max": 9,
+     "val": 1,
+     "unit": "lenM"
+    },
+    {
+     "key": "rc",
+     "q": "gen.home.ropeC",
+     "min": 0,
+     "max": 99,
+     "val": 20,
+     "unit": "rulCm"
+    }
+   ],
+   "askAgain": "gen.home.askRope",
+   "sayAgain": "ropeAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "concaveTriHook",
    "lines": [
     "hook.01",

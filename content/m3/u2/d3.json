@@ -74,6 +74,42 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u1",
+   "art": "shapes",
+   "again": [
+    {
+     "key": "a",
+     "q": "gen.home.sandA",
+     "min": 10,
+     "max": 170,
+     "val": 60,
+     "unit": "cpDeg"
+    },
+    {
+     "key": "b",
+     "q": "gen.home.sandB",
+     "min": 10,
+     "max": 170,
+     "val": 60,
+     "unit": "cpDeg"
+    },
+    {
+     "key": "c",
+     "q": "gen.home.sandC",
+     "min": 0,
+     "max": 170,
+     "val": 60,
+     "unit": "cpDeg"
+    }
+   ],
+   "askAgain": "gen.home.askSand",
+   "sayAgain": "sandAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "dqClaimHook",
    "k": "rect",
    "paper": true,
