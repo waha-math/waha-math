@@ -372,7 +372,8 @@
      "pic": {
       "kind": "pfpic",
       "py": "pyth",
-      "rm": 1
+      "rm": 1,
+      "v": 1
      },
      "opts": [
       {

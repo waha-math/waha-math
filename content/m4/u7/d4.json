@@ -364,7 +364,8 @@
      "pic": {
       "kind": "pfpic",
       "c7": {
-       "fig": "cyl"
+       "litre": true,
+       "small": true
       }
      },
      "opts": [

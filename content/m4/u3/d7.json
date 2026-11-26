@@ -293,8 +293,13 @@
       "axis": "v",
       "at": 6
      },
-     "side": "ab",
-     "q": "gen.xf.q.part.ab"
+     "side": "aj",
+     "q": "gen.xf.q.partp.hdw.aj",
+     "perm": [
+      1,
+      0,
+      2
+     ]
     }
    },
    {
@@ -304,7 +309,7 @@
      "t": "cgCase",
      "cs": "sss",
      "q": "gen.pre.q.case",
-     "v": 3
+     "v": 5
     }
    },
    {

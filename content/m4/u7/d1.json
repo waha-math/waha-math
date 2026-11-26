@@ -380,7 +380,7 @@
      "pic": {
       "kind": "pfpic",
       "c7": {
-       "tank": true
+       "layers": true
       }
      },
      "opts": [

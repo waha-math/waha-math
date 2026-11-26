@@ -294,7 +294,7 @@ d4={"id":"m3.u2.d4","title":"تَعْرِيفَانِ أَوْسَعُ","icon":[
   "remedial":{"C333":[tw(dm('rhom',PK['rhom'],p=8,r=4),dm('kite',PK['kite'],p=8,r=5))]},
   "mixed":{"lesson":"m3.u2.d3","concept":"C332","item":ra(90,'half')},
   "ok":"ms.ok"},
- "review":[dict(qi('square','rect'),c="C333"), dict(qi('rhom','trap'),c="C333"), dict(dm('rect',PK['rect'],p=8,r=8),c="C333"), dict(dm('para',PK['para'],p=12,r=6),c="C333")],
+ "review":[dict(qi('square','rect'),c="C333"), dict(qi('para','rect'),c="C333"), dict(dm('rect',PK['rect'],p=8,r=8),c="C333"), dict(dm('para',PK['para'],p=12,r=6),c="C333")],
  "wrap":{"art":"diagArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اسألوه: هل المعيّن طائرة ورقية؟ هل المستطيل شبه منحرف؟ ودعوه يعدّ أسماء المربع كلها."}
 dump(U+'/d4.json', d4)

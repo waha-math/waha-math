@@ -517,7 +517,12 @@
       "at": 6
      },
      "side": "aj",
-     "q": "gen.xf.q.part.aj"
+     "q": "gen.xf.q.partp.hwd.aj",
+     "perm": [
+      1,
+      2,
+      0
+     ]
     },
     {
      "t": "reason",
@@ -593,7 +598,12 @@
       "at": 6
      },
      "side": "bj",
-     "q": "gen.xf.q.part.bj"
+     "q": "gen.xf.q.partp.wdh.bj",
+     "perm": [
+      2,
+      0,
+      1
+     ]
     },
     {
      "t": "reason",
@@ -736,8 +746,13 @@
     "axis": "v",
     "at": 6
    },
-   "side": "bj",
-   "q": "gen.xf.q.part.bj",
+   "side": "ab",
+   "q": "gen.xf.q.partp.dwh.ab",
+   "perm": [
+    0,
+    2,
+    1
+   ],
    "c": "C405"
   }
  ],

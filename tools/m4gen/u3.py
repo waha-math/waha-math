@@ -25,8 +25,12 @@ def cpick(orig,cands,rots=None):
     d={"t":"cgPick","orig":orig,"cands":cands,"q":"gen.cg.q.pick"}
     if rots: d['rots']=rots
     return d
-def case(cs,v=0): assert 0<=v<7, v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
-def part(pts,xf,side): return {"t":"congPart","pts":pts,"xf":xf,"side":side,"q":"gen.xf.q.part."+side}
+def case(cs,v=0): assert 0<=v<(9 if cs=='ssa' else 7), v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
+# perm: ترتيب رؤوس الثاني في عبارة التطابق («أ ب ج ≅ هـ و د»)، فيتغيّر المناظر بالعبارة لا بالصورة وحدها (المراجع A لبوابة M4-U3/U4، 2)
+def part(pts,xf,side,perm=None):
+    d={"t":"congPart","pts":pts,"xf":xf,"side":side,"q":"gen.xf.q.part."+side}
+    if perm: d.update(perm=perm, q="gen.xf.q.partp.%s.%s"%(''.join('dhw'[i] for i in perm),side))
+    return d
 def smiss(s,k,ask): assert all(float(v*k).is_integer() for v in s) and tri_ok(s); return {"t":"simMiss","s":s,"k":k,"ask":ask,"q":"gen.pre.q.sim"}
 def syn(fig,a,b): return {"t":"simYN","fig":fig,"a":a,"b":b,"q":"gen.cg.q.simYN."+fig}
 def endims(a,b,k,cands): return {"t":"enDims","fig":"rect","a":a,"b":b,"k":k,"cands":cands,"q":"gen.en.q.dims.rect"}
@@ -95,13 +99,13 @@ d1={"id":"m4.u3.d1","title":"التَّطَابُقُ بِثَلَاثَةِ أ�
   "normal":[tw(sides([5,6,7],[7,5,6],rot=25),sides([4,5,6],[4,5,7])), tw(part([[1,1],[4,1],[2,4]],{"k":"ref","axis":"v","at":6},"bj"),part([[2,1],[5,1],[2,3]],{"k":"ref","axis":"v","at":6},"ab")), tw(sides([3,4,5],[6,8,10]),sides([2,3,4],[4,6,8],rot=-20))],
   "challenge":[tw(reason("pr.r1",pfp(cg=[[3,4,5],[6,8,10]],u=11),["pr.r1a","pr.r1b","pr.r1c"]),case('sss',v=1)), tw(sides([6,6,8],[8,6,6],flip=True),sides([5,7,8],[5,8,8]))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":sides([4,5,6],[8,10,12]),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C405":[sides([6,7,8],[8,6,7],rot=-30), part([[1,2],[4,1],[3,4]],{"k":"ref","axis":"v","at":6},"aj"), reason("ms.1",pfp(cg=[[6,5,4],[4,6,5]],u=13,rot=40),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C405":[sides([5,7,9],[9,5,7],rot=35), part([[2,1],[5,2],[3,4]],{"k":"ref","axis":"v","at":6},"bj"), reason("ms.x1",pfp(cg=[[7,5,6],[5,6,7]],u=13,rot=-35),["ms.x1a","ms.x1b","ms.x1c"])]},
+ "mastery":{"concepts":{"C405":[sides([6,7,8],[8,6,7],rot=-30), part([[1,2],[4,1],[3,4]],{"k":"ref","axis":"v","at":6},"aj",perm=[1,2,0]), reason("ms.1",pfp(cg=[[6,5,4],[4,6,5]],u=13,rot=40),["ms.1a","ms.1b","ms.1c"])]},
+  "alt":{"C405":[sides([5,7,9],[9,5,7],rot=35), part([[2,1],[5,2],[3,4]],{"k":"ref","axis":"v","at":6},"bj",perm=[2,0,1]), reason("ms.x1",pfp(cg=[[7,5,6],[5,6,7]],u=13,rot=-35),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C405":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C405":[tw(sides([4,4,6],[6,4,4]),case('sss'))]},
   "mixed":{"lesson":"m4.u2.d3","concept":"C402","item":{"t":"ineqYN","s":[3,5,9],"q":"gen.pf.q.ineq"}},
   "ok":"ms.ok"},
- "review":[sides([5,6,9],[9,5,6],rot=20)|{"c":"C405"}, sides([3,6,7],[6,12,14])|{"c":"C405"}, case('sss',v=2)|{"c":"C405"}, part([[2,2],[5,1],[4,4]],{"k":"ref","axis":"v","at":6},"bj")|{"c":"C405"}],
+ "review":[sides([5,6,9],[9,5,6],rot=20)|{"c":"C405"}, sides([3,6,7],[6,12,14])|{"c":"C405"}, case('sss',v=2)|{"c":"C405"}, part([[2,2],[5,1],[4,4]],{"k":"ref","axis":"v","at":6},"ab",perm=[0,2,1])|{"c":"C405"}],
  "wrap":{"art":"congArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اصنعوا معه مثلثين من ثلاث شرائط متساوية الأطوال، واسألوه: لماذا لا يمكن أن يختلفا؟ ثم غيّروا شريطاً واحداً."}
 dump(U+'/d1.json', d1)
@@ -163,7 +167,7 @@ d2={"id":"m4.u3.d2","title":"ضِلْعَانِ وَزَاوِيَةٌ، أَو�
   "remedial":{"C405":[tw(case('sss',v=4),case('aaa',v=3))]},
   "mixed":{"lesson":"m4.u3.d1","concept":"C405","item":sides([4,6,9],[9,4,6],rot=15)},
   "ok":"ms.ok"},
- "review":[case('ssa',v=3)|{"c":"C405"}, case('aaa',v=2)|{"c":"C405"}, case('asa',v=3)|{"c":"C405"}],
+ "review":[case('ssa',v=6)|{"c":"C405"}, case('aaa',v=2)|{"c":"C405"}, case('asa',v=3)|{"c":"C405"}],
  "wrap":{"art":"congArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"ارسموا مثلثاً على ورق، واسألوه: إن أعطيتك ضلعين والزاوية بينهما، هل ترسم مثلثي نفسه؟ وإن أعطيتك زاوية ليست بينهما؟"}
 dump(U+'/d2.json', d2)
@@ -365,16 +369,16 @@ d5={"id":"m4.u3.d5","title":"العَكْسُ وَتَصْنِيفُ الرُّ�
   {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(qd(True,False,False),qd(True,False,True)), tw(qd(False,False,True),qd(True,True,True))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(parea(3,5,2,4),parea(2,6,3,3)), tw(why('conv',2,['altConv','alt','looks']),chain('conv')), tw(reason("pr.r1",pfp(trapD=70),["pr.r1a","pr.r1b","pr.r1c"]),qd(False,True,True))],
+  "normal":[tw(parea(3,5,2,4),parea(2,4,1,5)), tw(why('conv',2,['altConv','alt','looks']),chain('conv')), tw(reason("pr.r1",pfp(trapD=70),["pr.r1a","pr.r1b","pr.r1c"]),qd(False,True,True))],
   "challenge":[tw(reason("pr.r2",pfp(qd='rectDiag'),["pr.r2a","pr.r2b","pr.r2c"]),parea(4,6,5,2)), tw(dmake('rhom',['rhom','rect','para'],12,8),dmake('rect',['rect','square','rhom'],12,12))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":qd(False,True,True,['rect','square','rhom','unk']),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{"C421":[why('conv',1,['sas','sss','measure']), parea(5,5,3,5), reason("ms.1",pfp(poly=4),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C421":[why('conv',0,['given','sas','measure']), parea(4,4,2,6), reason("ms.x1",pfp(qd='rhombDiag'),["ms.x1a","ms.x1b","ms.x1c"])]},
+  "alt":{"C421":[why('conv',0,['given','sas','measure']), parea(4,4,2,6), reason("ms.x1",pfp(qd='rhombDiag',v=1),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C421":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C421":[tw(qd(True,False,False,['para','rect','rhom','unk']),parea(2,4,3,1))]},
   "mixed":{"lesson":"m4.u3.d3","concept":"C406","item":smiss([3,7,8],2,2)},
   "ok":"ms.ok"},
- "review":[why('conv',0,['given','alt','looks'])|{"c":"C421"}, parea(1,7,2,4)|{"c":"C421"}],
+ "review":[why('conv',0,['given','alt','looks'])|{"c":"C421"}, parea(2,7,3,3)|{"c":"C421"}],
  "wrap":{"art":"congArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"ثبّتوا معه عودين من وسطيهما واسألوه: متى يصير الرباعي مستطيلاً؟ ومتى معيّناً؟ ولماذا لا يكفي تساوي القطرين وحده؟"}
 dump(U+'/d5.json', d5)
@@ -419,7 +423,7 @@ d6={"id":"m4.u3.d6","title":"مَشْرُوعُ: خَرِيطَةٌ مُكَبَ
  "flow":[
   {"s":"explore","scene":"pfPicHook","pic":{"sim":{"fig":"rect","a":[4,2],"b":[6,3]}},"mat":MAT(),"lines":["mp.01","mp.02"]},
   {"s":"game","scene":"items","mode":"practice","intro":"prj.intro","items":[tw(endims(2,2,1.5,[[3,3,None],[3.5,3.5,"enAdd"],[3,2,"enOneSide"]]),endims(4,6,0.5,[[2,3,None],[2,6,"enOneSide"],[3.5,5.5,"enAdd"]])), tw(endims(6,4,1.5,[[9,6,None],[6.5,4.5,"enAdd"],[9,4,"enOneSide"]]),endims(2,6,1.5,[[3,9,None],[2.5,6.5,"enAdd"],[3,6,"enOneSide"]]))]},
-  {"s":"explore","scene":"lines","table":True,"lines":["tb.01","tb.02"]},
+  {"s":"explore","scene":"projTable","cols":["prjBefore","prjAfter","prjRatio"],"rows":[[2,3,1.5],[6,9,1.5],[4,6,1.5]],"lastCol":True,"lines":["tb.01","tb.02"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(smiss([4,6,8],1.5,2),smiss([6,8,12],0.5,1)), tw(syn('rect',[6,4],[9,5]),syn('rect',[4,6],[6,9])), tw(sides([4,6,8],[6,9,12]),sides([5,6,8],[10,12,15]))],
@@ -434,7 +438,7 @@ d6={"id":"m4.u3.d6","title":"مَشْرُوعُ: خَرِيطَةٌ مُكَبَ
  "review":[smiss([4,4,6],1.5,2)|{"c":"C406"}, syn('rect',[8,6],[4,3])|{"c":"C406"}],
  "wrap":{"art":"congArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"كبّروا معه رسمة صغيرة على ورق مربعات، واسألوه: هل أضفت إلى الأطوال أم ضربتها؟ وكيف تتحقق؟"}
-d6["mastery"]["mixed"]={"lesson":"m4.u3.d5","concept":"C421","item":parea(5,3,2,6)}
+d6["mastery"]["mixed"]={"lesson":"m4.u3.d5","concept":"C421","item":parea(4,8,2,3)}
 dump(U+'/d6.json', d6)
 
 # ---------------- د7: «بوابة حيّ المرايا المتطابقة» (محكمة التطابق: المراجعة والاختبار 14) ----------------
@@ -476,7 +480,7 @@ d7={"id":"m4.u3.d7","title":"بَوَّابَةُ حَيِّ المَرَايَ�
   "normal":[tw(case('sss',v=4),case('aaa',v=4)), tw(smiss([3,6,8],2,2),syn('tri',[3,5,6],[6,10,12])), tw(why('paraDiag',2,['asa','sss','looks']),qd(True,False,True,['rhom','square','para','unk']))],
   "challenge":[tw(parea(3,3,4,2),case('ssa',v=2))]},
  "test":{"remedial":"ts.rem","stoneLine":"ts.stone","winLines":["ts.win1","ts.win2"],"items":[   # أقسام المرجع: 3 SSS، 3 SAS وASA، 3 التشابه، 2 براهين الرباعيات، 1 مثال مضاد، 1 اكتشاف خطأ، 1 مفتوح
-   T7(1,1,sides([7,8,9],[9,7,8],rot=-25)), T7(2,1,part([[1,1],[5,2],[2,4]],{"k":"ref","axis":"v","at":6},"ab")), T7(3,1,case('sss',v=3)|{"v":3}),
+   T7(1,1,sides([7,8,9],[9,7,8],rot=-25)), T7(2,1,part([[1,1],[5,2],[2,4]],{"k":"ref","axis":"v","at":6},"aj",perm=[1,0,2])), T7(3,1,case('sss',v=5)|{"v":5}),
    T7(4,2,case('sas',v=3)), T7(5,2,case('asa',v=4)), T7(6,2,case('ssa',v=4)),
    T7(7,3,smiss([5,6,8],2,1)), T7(8,3,syn('rect',[5,3],[10,7])), T7(9,3,sides([4,6,7],[8,12,14],rot=20)),
    T7(10,4,why('paraSide',0,['alt','corr','measure'],q="gen.pf.q.reasonT")), T7(11,5,qd(True,True,False,['rect','para','rhom','unk'])),
@@ -488,6 +492,8 @@ d7={"id":"m4.u3.d7","title":"بَوَّابَةُ حَيِّ المَرَايَ�
 dump(U+'/d7.json', d7)
 
 # ---------------- الجمل والتسميات والأخطاء ----------------
+_NM={'d':'دَال','h':'هَاء','w':'وَاو'}; _S1={'ab':'أَلِف بَاء','bj':'بَاء جِيم','aj':'أَلِف جِيم'}; _SI={'ab':(0,1),'bj':(1,2),'aj':(0,2)}
+_PERMS=[[1,2,0],[2,0,1],[0,2,1],[1,0,2],[2,1,0]]
 G={
  "gen.cg.q.sides":"مُثَلَّثَانِ بِأَطْوَالِ أَضْلَاعِهِمَا. مَا العَلَاقَةُ بَيْنَهُمَا؟",
  "gen.cg.together.sides":"هَيَّا مَعًا: قَسَمْنَا كُلَّ ضِلْعٍ عَلَى مُنَاظِرِهِ. هَلِ النَّاتِجُ وَاحِدٌ؟ وَهَلْ هُوَ وَاحِدٌ صَحِيحٌ أَمْ غَيْرُهُ؟",
@@ -521,6 +527,13 @@ G={
  "gen.pf.rs.rhomb":"أَضْلَاعُ المُعَيَّنِ مُتَسَاوِيَةٌ، وَقُطْرَاهُ يَتَنَاصَفَانِ.","gen.pf.rs.cpct":"أَجْزَاءُ المُتَطَابِقَيْنِ المُتَنَاظِرَةُ مُتَسَاوِيَةٌ.",
  "gen.pf.rs.given":"هَذَا المُعْطَى، وَالمُتَقَابِلَتَانِ بِالرَّأْسِ مُتَسَاوِيَتَانِ.","gen.pf.rs.altConv":"تَسَاوِي زَاوِيَتَيِ التَّبَادُلِ يَجْعَلُ المُسْتَقِيمَيْنِ مُتَوَازِيَيْنِ.",
 }
+for _p in _PERMS:
+    _n=['dhw'[i] for i in _p]
+    for _s,(_i,_j) in _SI.items():
+        G["gen.xf.q.partp.%s.%s"%(''.join(_n),_s)]="المُثَلَّثُ أَلِف بَاء جِيم يُطَابِقُ المُثَلَّثَ %s. مَا الضِّلْعُ المُنَاظِرُ لِلضِّلْعِ %s؟"%(' '.join(_NM[c] for c in _n),_S1[_s])
+for _a in 'dhw':
+    for _b in 'dhw':
+        if _a!=_b: G["gen.xf.side2p.%s%s"%(_a,_b)]="%s %s."%(_NM[_a],_NM[_b])
 NUMW={0.5:'نِصْفٌ',1:'وَاحِدٌ',1.5:'وَاحِدٌ وَنِصْفٌ',2:'اثْنَانِ',2.5:'اثْنَانِ وَنِصْفٌ',3:'ثَلَاثَةٌ',3.5:'ثَلَاثَةٌ وَنِصْفٌ',4:'أَرْبَعَةٌ',4.5:'أَرْبَعَةٌ وَنِصْفٌ',5:'خَمْسَةٌ',5.5:'خَمْسَةٌ وَنِصْفٌ',6:'سِتَّةٌ',6.5:'سِتَّةٌ وَنِصْفٌ',7:'سَبْعَةٌ',8:'ثَمَانِيَةٌ',9:'تِسْعَةٌ',10:'عَشَرَةٌ'}
 NUMG={0.5:'نِصْفٍ',1:'وَاحِدٍ',1.5:'وَاحِدٍ وَنِصْفٍ',2:'اثْنَيْنِ',2.5:'اثْنَيْنِ وَنِصْفٍ',3:'ثَلَاثَةٍ',3.5:'ثَلَاثَةٍ وَنِصْفٍ',4:'أَرْبَعَةٍ',4.5:'أَرْبَعَةٍ وَنِصْفٍ',5:'خَمْسَةٍ',5.5:'خَمْسَةٍ وَنِصْفٍ',6:'سِتَّةٍ',6.5:'سِتَّةٍ وَنِصْفٍ',7:'سَبْعَةٍ',8:'ثَمَانِيَةٍ',9:'تِسْعَةٍ',10:'عَشَرَةٍ'}
 fmt=lambda v: ('%g'%v)
@@ -536,7 +549,7 @@ for f in glob.glob(U+'/d*.json'):
         elif isinstance(x,list):
             for v in x: walk(v)
     walk(d)
-LB={"cgK.cong":"مُتَطَابِقَانِ","cgK.sim":"مُتَشَابِهَانِ فَقَطْ","cgK.none":"لَا هَذَا وَلَا ذَاكَ","cgOrig":"الأَصْلُ",
+LB={"prjBefore":"قَبْلَ","prjAfter":"بَعْدَ","prjRatio":"بَعْدَ ÷ قَبْلَ","cgK.cong":"مُتَطَابِقَانِ","cgK.sim":"مُتَشَابِهَانِ فَقَطْ","cgK.none":"لَا هَذَا وَلَا ذَاكَ","cgOrig":"الأَصْلُ",
     "cgRuleSides":"مُتَسَاوِيَةٌ: تَطَابُقٌ · مُتَنَاسِبَةٌ: تَشَابُهٌ","cgRuleSss":"ثَلَاثَةُ أَضْلَاعٍ مُتَسَاوِيَةٍ: تَطَابُقٌ","cgRuleSim":"كُلُّ بُعْدٍ × المُعَامِلِ نَفْسِهِ",
     "cgRulePost":"مُسَلَّمَةُ التَّطَابُقِ: ضِلْعَانِ وَالزَّاوِيَةُ بَيْنَهُمَا","cgRuleQd":"تَنَاصُفٌ: مُتَوَازٍ · وَتَسَاوٍ: مُسْتَطِيلٌ · وَتَعَامُدٌ: مُعَيَّنٌ","cgRulePerp":"المِسَاحَةُ = القُطْرُ × القُطْرِ ÷ ٢",
     "qdInfo.mid":"يُنَصِّفُ كُلٌّ مِنَ القُطْرَيْنِ الآخَرَ","qdInfo.eq":"القُطْرَانِ مُتَسَاوِيَانِ","qdInfo.perp":"القُطْرَانِ مُتَعَامِدَانِ","qdYes":"نَعَمْ","qdNo":"لَا",

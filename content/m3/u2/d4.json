@@ -486,8 +486,8 @@
   },
   {
    "t": "quadIs",
-   "k": "rhom",
-   "as": "trap",
+   "k": "para",
+   "as": "rect",
    "c": "C333"
   },
   {

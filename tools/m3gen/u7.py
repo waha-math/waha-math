@@ -134,7 +134,7 @@ d1={"id":"m3.u7.d1","title":"أَجْزَاءُ الدَّائِرَةِ وَا�
           "C236":[rd(r=13), rd(d=30), reason("ms.x2",cip(compass=1),["ms.x2a","ms.x2b","ms.x2c"])]},
   "recall":{"C235":{"scene":"lines","lines":["ms.recall"]},"C236":{"scene":"lines","lines":["ms.recall2"]}},
   "remedial":{"C235":[tw(cp('diameter',rot=80),cp('radius',rot=130))],"C236":[tw(rd(r=2),rd(d=28))]},
-  "mixed":{"lesson":"m3.u6.d5","concept":"C314","item":{"t":"congPart","pts":[[1,1],[4,1],[1,3]],"xf":{"k":"tr","dx":6,"dy":3},"side":"bj"}},
+  "mixed":{"lesson":"m3.u6.d5","concept":"C314","item":{"t":"congPart","pts":[[1,1],[4,1],[1,3]],"xf":{"k":"tr","dx":6,"dy":3},"side":"bj","perm":[0,2,1],"q":"gen.xf.q.partp.dwh.bj"}},
   "ok":"ms.ok"},
  "review":[cp('radius',rot=10)|{"c":"C235"}, rd(r=12)|{"c":"C236"}, rd(d=36)|{"c":"C236"}, cp('diameter',rot=170)|{"c":"C235"}],
  "wrap":{"art":"circArt","lines":["wrap.01"],"home":"wrap.home"},

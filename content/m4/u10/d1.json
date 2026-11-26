@@ -267,8 +267,8 @@
      "id": "f11",
      "item": {
       "t": "pyLeg",
-      "hyp": 17,
-      "a": 8,
+      "hyp": 37,
+      "a": 12,
       "q": "gen.py.q.leg.perp",
       "ctx": "perp"
      }

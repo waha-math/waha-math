@@ -226,8 +226,30 @@
   },
   {
    "s": "explore",
-   "scene": "lines",
-   "table": true,
+   "scene": "projTable",
+   "cols": [
+    "prjBefore",
+    "prjAfter",
+    "prjRatio"
+   ],
+   "rows": [
+    [
+     2,
+     3,
+     1.5
+    ],
+    [
+     6,
+     9,
+     1.5
+    ],
+    [
+     4,
+     6,
+     1.5
+    ]
+   ],
+   "lastCol": true,
    "lines": [
     "tb.01",
     "tb.02"
@@ -547,10 +569,10 @@
    "concept": "C421",
    "item": {
     "t": "perpArea",
-    "x1": 5,
-    "x2": 3,
+    "x1": 4,
+    "x2": 8,
     "y1": 2,
-    "y2": 6,
+    "y2": 3,
     "q": "gen.cg.q.perp"
    }
   },

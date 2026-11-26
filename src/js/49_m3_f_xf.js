@@ -254,23 +254,23 @@ function xfCongSym(g, x, y, s = 1, col = CO.ink) { el('path', { d: `M${x - 7 * s
   for (const dy of [-1.5, 3.5]) geoLine(g, x - 7 * s, y + dy * s, x + 7 * s, y + dy * s, { color: col, w: 2.2 * s }); }
 function xfTriSym(g, x, y, s = 1, col = CO.ink) { el('polygon', { points: polyStr([[x, y - 8 * s], [x + 7 * s, y + 4 * s], [x - 7 * s, y + 4 * s]]), fill: 'none', stroke: col, 'stroke-width': 2 * s, 'stroke-linejoin': 'round' }, g); }
 /* «∆ أ ب ج ≅ ∆ د هـ و» من اليمين: المثلّث ورؤوسه، ثم الرمز، ثم صورته */
-function xfCongStmt(parent, cx, y, o = {}) { const g = el('g', { 'pointer-events': 'none' }, parent), fs = o.fs || 16, col = o.col || CO.ink, t1 = ['a', 'b', 'j'].map(k => LTR[k]).join(' '), t2 = ['d', 'h', 'w'].map(k => LTR[k]).join(' ');
+function xfCongStmt(parent, cx, y, o = {}) { const g = el('g', { 'pointer-events': 'none' }, parent), fs = o.fs || 16, col = o.col || CO.ink, t1 = ['a', 'b', 'j'].map(k => LTR[k]).join(' '), t2 = (o.n2 || ['d', 'h', 'w']).map(k => LTR[k]).join(' ');
   const T = s => { const t = el('text', { x: 0, y: y + fs * .35, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, direction: 'rtl' }, g); t.textContent = s; let w = 0; try { w = t.getComputedTextLength(); } catch (e) {} return [t, w || s.length * fs * .45]; };
   const [a, wa] = T(t1), [b, wb] = T(t2), W = 14 + 6 + wa + 12 + 16 + 12 + 14 + 6 + wb; let x = cx + W / 2;
   xfTriSym(g, x - 7, y, 1, col); x -= 20; a.setAttribute('x', x - wa / 2); x -= wa + 12; xfCongSym(g, x - 8, y + 1, 1, col); x -= 28; xfTriSym(g, x - 7, y, 1, col); x -= 20; b.setAttribute('x', x - wb / 2);
   return g; }
 ITEM.congPart = {
   make(spec) { return { ...spec, want: spec.side, tag: 'cong-part' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: 12, m: 8, axes: false, top: 40 }), a = item.pts, b = a.map(p => xfApply(item.xf, p)), N2 = ['d', 'h', 'w'];   /* العبارة فوق الورقة الداخلية لا على حافة الإطار (المراجع B) */
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: 12, m: 8, axes: false, top: 40 }), a = item.pts, b = a.map(p => xfApply(item.xf, p)), N2 = item.perm ? item.perm.map(i => ['d', 'h', 'w'][i]) : ['d', 'h', 'w'];   /* perm: رؤوس الثاني بترتيب عبارة التطابق (المراجع A لبوابة M4-U3/U4، 2) */   /* العبارة فوق الورقة الداخلية لا على حافة الإطار (المراجع B) */
     xfPoly(svg, Pl, a); xfPoly(svg, Pl, b, { col: XF.img, fill: XF.imgF, label: i => LTR[N2[i]] });
-    xfCongStmt(svg, 180, 34);
+    xfCongStmt(svg, 180, 34, { n2: N2 });
     const sideTxt = (k, two) => { const [i, j] = CG_SIDES[k], n = two ? N2 : XF_NM; return LTR[n[i]] + ' ' + LTR[n[j]]; };
-    if (tries >= 3) { const m = helpG(svg); a.forEach((p, i) => { const P = Pl.P(...p), Q = Pl.P(...b[i]); geoLine(m, P[0], P[1], Q[0], Q[1], { color: THINK_INK, w: 1.6, dash: '4 4' }); }); await S('gen.xf.together.part'); } else { await S('gen.xf.q.part.' + item.side); }
-    const k = await choosePick(shuffle(Object.keys(CG_SIDES).map(s => [s, sideTxt(s, true), '<i></i>', 'gen.xf.side2.' + s])), item.want); void sideTxt; return { ans: k, ctx: { svg, Pl } }; },
+    if (tries >= 3) { const m = helpG(svg); a.forEach((p, i) => { const P = Pl.P(...p), Q = Pl.P(...b[i]); geoLine(m, P[0], P[1], Q[0], Q[1], { color: THINK_INK, w: 1.6, dash: '4 4' }); }); await S('gen.xf.together.part'); } else { await S(item.perm ? item.q : 'gen.xf.q.part.' + item.side); }
+    const sideLine = s => item.perm ? 'gen.xf.side2p.' + CG_SIDES[s].map(i => N2[i]).join('') : 'gen.xf.side2.' + s, k = await choosePick(shuffle(Object.keys(CG_SIDES).map(s => [s, sideTxt(s, true), '<i></i>', sideLine(s)])), item.want); void sideTxt; return { ans: k, ctx: { svg, Pl } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'congOrder' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { const m = helpG(r.ctx.svg), P = r.ctx.Pl.P(...item.pts[0]), Q = r.ctx.Pl.P(...xfApply(item.xf, item.pts[0])); geoLine(m, P[0], P[1], Q[0], Q[1], { color: THINK_INK, w: 2.2, dash: '4 4' }); xfRing(m, r.ctx.Pl, [item.pts[0], xfApply(item.xf, item.pts[0])]); } await S('gen.xf.hint.part'); }, async together() {},   /* الأوّل مع الأوّل مرسوماً، والباقي للطفل */
-  async reveal(item) { await S('gen.xf.side2.' + item.side); },
+  async reveal(item) { await S(item.perm ? 'gen.xf.side2p.' + CG_SIDES[item.side].map(i => ['d', 'h', 'w'][item.perm[i]]).join('') : 'gen.xf.side2.' + item.side); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 /* ================= ⑧ هل تحدّد المعطيات مثلثاً واحداً؟ (C314 د، تجريبياً): case sas | sss | ss | aaa | asa ================= */

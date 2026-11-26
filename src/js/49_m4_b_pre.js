@@ -25,9 +25,15 @@ function preRight(g, C, A, B, s = 13) { const u = p => { const d = Math.hypot(p[
 const PRE_CASE_OK = { sas: 'yes', sss: 'yes', asa: 'yes', aaa: 'no', ssa: 'no', rhs: 'yes' };
 const PRE_CASE_RHS = [[[44, 192], [166, 192], [44, 84]], [[60, 196], [150, 196], [60, 80]], [[40, 190], [170, 190], [40, 110]], [[52, 186], [146, 186], [52, 92]], [[50, 192], [160, 192], [50, 92]], [[46, 194], [168, 194], [46, 118]], [[56, 188], [136, 188], [56, 78]]];   /* قائمة عند الرأس الأول (M4-U4، الوتر وضلع قائم) */
 const PRE_CASE_V = [[[44, 192], [160, 192], [76, 86]], [[40, 188], [156, 192], [128, 84]], [[50, 176], [164, 196], [66, 90]], [[46, 190], [150, 180], [112, 80]], [[40, 172], [170, 192], [92, 94]], [[42, 190], [168, 182], [60, 96]], [[48, 180], [158, 196], [140, 92]]];   /* صور المثلث (v): مسألة جديدة بشكل آخر */
-function preCaseTris(svg, cs, v = 0) { const g = el('g', { 'pointer-events': 'none' }, svg), A = cs === 'rhs' ? PRE_CASE_RHS[v] : PRE_CASE_V[v];
+/* «ضلعان وزاوية ليست بينهما» (ssa): الحالة الملتبسة حقّاً (المراجع A لبوابة M4-U3/U4، 1): الزاوية عند P، والضلع المقابل لها QR أقصر من PQ وأطول من PQ·جا P،
+   فيقطع القوسُ من Q الشعاعَ من P في نقطتين: مثلثان مختلفان بالقياسات نفسها، لا مثلثٌ ومرآته. [الزاوية، QR ÷ PQ، الأقرب أولاً، المرآة] */
+const PRE_SSA_V = [[40, .73, 0, 0], [35, .70, 1, 0], [45, .82, 0, 1], [38, .75, 1, 1], [42, .78, 0, 0], [36, .68, 1, 0], [44, .80, 0, 1], [33, .66, 0, 1], [47, .84, 1, 0]];
+function preSsaTris(v) { const [th, dr, near1, mir] = PRE_SSA_V[v] || PRE_SSA_V[0], L = 108, d = dr * L, t = th * Math.PI / 180, c = L * Math.cos(t), q = Math.sqrt(d * d - (L * Math.sin(t)) ** 2), ts = [c + q, c - q];
+  const tri = (x0, tt) => { const P = [x0, 190], Q = [x0 + L, 190], R = [x0 + tt * Math.cos(t), 190 - tt * Math.sin(t)]; return [P, Q, R]; };
+  let A = tri(36, ts[near1 ? 1 : 0]), B = tri(200, ts[near1 ? 0 : 1]); if (mir) { A = A.map(([x, y]) => [360 - x, y]); B = B.map(([x, y]) => [360 - x, y]); } return [A, B]; }
+function preCaseTris(svg, cs, v = 0) { const g = el('g', { 'pointer-events': 'none' }, svg), A = cs === 'ssa' ? preSsaTris(v)[0] : cs === 'rhs' ? PRE_CASE_RHS[v] : PRE_CASE_V[v];
   const k = cs === 'aaa' ? .7 : 1, B = A.map(([x, y]) => [360 - x, y]);   /* الثاني صورة الأول بالمرآة، ومصغَّرٌ في «الزوايا وحدها» */
-  const ctr = B.reduce((s, p) => [s[0] + p[0] / 3, s[1] + p[1] / 3], [0, 0]), B2 = B.map(([x, y]) => [ctr[0] + (x - ctr[0]) * k, ctr[1] + (y - ctr[1]) * k + (1 - k) * 40]);
+  const ctr = B.reduce((s, p) => [s[0] + p[0] / 3, s[1] + p[1] / 3], [0, 0]), B2 = cs === 'ssa' ? preSsaTris(v)[1] : B.map(([x, y]) => [ctr[0] + (x - ctr[0]) * k, ctr[1] + (y - ctr[1]) * k + (1 - k) * 40]);
   preTri(g, A, PRE.a, PRE.fillA); preTri(g, B2, PRE.b, PRE.fillB);
   for (const T of [A, B2]) { const [P, Q, R] = T;
     if (cs === 'sas') { preTicks(g, P, Q, 1); preTicks(g, P, R, 2); preArcs(g, P, Q, R, 1); }

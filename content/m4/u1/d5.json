@@ -319,7 +319,7 @@
     },
     {
      "t": "arTrCalc",
-     "phi": 55,
+     "phi": 50,
      "given": 6,
      "ask": 3,
      "q": "gen.ar.q.ang"

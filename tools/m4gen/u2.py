@@ -358,7 +358,7 @@ d5={"id":"m4.u2.d5","title":"بَوَّابَةُ حَيِّ البُرْهَا�
    T5(6,3,yn(6,9,14)), T5(7,3,why('ineq',1,['short','tri','looks'],v=2,q="gen.pf.q.reasonT")),
    T5(8,4,psum(11)), T5(9,4,ptri(12)), T5(10,4,preg(10,'in')),
    T5(11,4,trap(65,'base')),
-   T5(12,2,reason("ts.12",pfp(fig='vert',v=1),["ts.12a","ts.12b","ts.12c"]))]},
+   T5(12,2,reason("ts.12",pfp(fig='vert',v=2),["ts.12a","ts.12b","ts.12c"]))]},
  "wrap":{"art":"medal","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اسألوه أن يبرهن لكم مجموع زوايا المثلث بخطواته، وأن يقول سبب كل خطوة. واسألوه: هل القياس برهان؟"}
 dump(U+'/d5.json', d5)

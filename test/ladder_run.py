@@ -77,7 +77,8 @@ HELP2 = {'decPointer', 'decConv', 'decOrder', 'decCalc', 'decCmp', 'decRuler', '
          'raTable', 'raEq', 'enDims', 'enArea', 'enDraw', 'enYN', 'scConv', 'scBig', 'scDraw', 'scRoom', 'arComp', 'arPair', 'arVert', 'arWhich', 'arTrCalc', 'arPar', 'arTurn', 'prChain', 'prReason', 'ineqYN', 'ineqRange', 'ineqPick', 'polyTri', 'polySum', 'polyReg', 'isoTrap', 'polyBuild'}   # M4-U1/U2 (المراجع A لبوابة M4-U1/U2، 22)   # S3-U10: المستوى الثاني رسمٌ يبقى (المراجع A لبوابة S3-U10، 10)   # المراجع B لبوابة S3-U8/U9، 11   # المراجع B لبوابة S3-U6/U7، 6
 H2 = "() => !!document.querySelector('#stage [data-help], #stage .pick.tried, #stage .pick.mine')"
 # وفي M4-U1/U2 المستوى الثاني رسمٌ لا بطاقةٌ مكتوبة وحدها (D286 (3)؛ المراجع B لبوابة M4-U1/U2، 8): شكلٌ (قوس، خط، مضلّع…) داخل data-help
-HELP2_DRAW = {'arComp', 'arPair', 'arVert', 'arWhich', 'arTrCalc', 'arPar', 'arTurn', 'prChain', 'prReason', 'ineqYN', 'ineqRange', 'ineqPick', 'polyTri', 'polySum', 'polyReg', 'isoTrap', 'polyBuild'}
+HELP2_DRAW = {'arComp', 'arPair', 'arVert', 'arWhich', 'arTrCalc', 'arPar', 'arTurn', 'prChain', 'prReason', 'ineqYN', 'ineqRange', 'ineqPick', 'polyTri', 'polySum', 'polyReg', 'isoTrap', 'polyBuild',
+              'cgCase', 'cgSides', 'cgPick', 'simYN', 'simMiss', 'quadDiag', 'perpArea', 'pySq', 'pyLeg', 'pyApprox', 'pyIsRight', 'pyHyp'}   # وM4-U3/U4
 H2D = "() => !!document.querySelector(['path', 'line', 'circle', 'polygon', 'polyline'].map(t => '#stage [data-help] ' + t).join(', '))"
 # ولا يرسم المستوى الثاني الجوابَ في بنود النقطة الواحدة: لا حلقة مساعدة على موضع الجواب (المراجع B لبوابة S3-U6/U7، 2 و18)؛ والحلّ المشترك فيها مرسوم (3)
 ONANS = """() => { const W = window.__axWant || (window.__gridPtWant ? [window.__gridPtWant] : null), at = window.__axWant ? window.__axAt : window.__gridPtAt; if (!W || W.length !== 1 || !at) return null;

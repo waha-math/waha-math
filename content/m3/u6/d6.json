@@ -423,7 +423,13 @@
       "axis": "v",
       "at": 6
      },
-     "side": "aj"
+     "side": "aj",
+     "q": "gen.xf.q.partp.hdw.aj",
+     "perm": [
+      1,
+      0,
+      2
+     ]
     }
    }
   ],
@@ -749,7 +755,13 @@
       ],
       "q": 2
      },
-     "side": "ab"
+     "side": "ab",
+     "q": "gen.xf.q.partp.whd.ab",
+     "perm": [
+      2,
+      1,
+      0
+     ]
     }
    },
    {

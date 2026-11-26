@@ -474,7 +474,13 @@
       ],
       "q": 2
      },
-     "side": "bj"
+     "side": "bj",
+     "q": "gen.xf.q.partp.hdw.bj",
+     "perm": [
+      1,
+      0,
+      2
+     ]
     }
    },
    {
@@ -703,7 +709,13 @@
       "axis": "v",
       "at": 6
      },
-     "side": "bj"
+     "side": "bj",
+     "q": "gen.xf.q.partp.hwd.bj",
+     "perm": [
+      1,
+      2,
+      0
+     ]
     },
     {
      "t": "reason",
@@ -794,7 +806,13 @@
       ],
       "q": 2
      },
-     "side": "aj"
+     "side": "aj",
+     "q": "gen.xf.q.partp.wdh.aj",
+     "perm": [
+      2,
+      0,
+      1
+     ]
     },
     {
      "t": "reason",
@@ -892,7 +910,13 @@
        "dx": 6,
        "dy": 2
       },
-      "side": "ab"
+      "side": "ab",
+      "q": "gen.xf.q.partp.dwh.ab",
+      "perm": [
+       0,
+       2,
+       1
+      ]
      }
     }
    ]
@@ -958,6 +982,12 @@
     "q": 2
    },
    "side": "aj",
+   "q": "gen.xf.q.partp.whd.aj",
+   "perm": [
+    2,
+    1,
+    0
+   ],
    "c": "C314"
   },
   {

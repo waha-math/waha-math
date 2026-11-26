@@ -31,7 +31,9 @@ def rl(pts,axis,k,q=None): return _o({"t":"refLine","pts":[list(p) for p in pts]
 def tv(a,dx,dy,art=None,q=None): return _o({"t":"trVector","a":list(a),"dx":dx,"dy":dy},art=art,q=q)
 def rs(k,ask=None,q=None): return _o({"t":"rotSym","k":k},ask=ask,q=q)
 def cj(pts,mv,xf=None,ask=None,q=None,s=None,at=None): return _o({"t":"congJudge","pts":[list(p) for p in pts],"mv":mv},xf=xf,ask=ask,q=q,s=s,at=at)
-def cpt(pts,xf,side,q=None): return _o({"t":"congPart","pts":[list(p) for p in pts],"xf":xf,"side":side},q=q)
+def cpt(pts,xf,side,q=None,perm=None):   # perm: ترتيب رؤوس الثاني في عبارة التطابق، فالمناظر جديدٌ بالعبارة (المراجع A لبوابة M4-U3/U4، 2)
+    if perm: q="gen.xf.q.partp.%s.%s"%(''.join('dhw'[i] for i in perm),side)
+    return _o({"t":"congPart","pts":[list(p) for p in pts],"xf":xf,"side":side},q=q,perm=perm)
 def td(case,q=None): return _o({"t":"triDet","case":case},q=q)
 def xis(pts,xf,is_,line=None,q=None): return _o({"t":"xfWhich","pts":[list(p) for p in pts],"xf":xf,"is":is_},line=line,q=q)   # هل البرتقالي صورته بالانعكاس/بالانسحاب؟ (المراجع A لبوابة S3-U6/U7، 11)
 def _app(xf,p):
@@ -386,17 +388,17 @@ d5={"id":"m3.u6.d5","title":"التَّطَابُقُ","icon":["xficon"],
   {"s":"explore","scene":"tileShow2","lines":["bt.01","bt.02","bt.03"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(cj([(1,1),(4,1),(2,4)],'tr',xf=T(5,2)),cj([(1,1),(3,1),(2,3)],'scale',s=2,at=[6,2])), tw(cpt([(1,1),(4,1),(2,4)],V(6),'ab'),cpt([(1,2),(5,2),(2,5)],R((6,4),2),'bj')), tw(two("pr.two",["pr.twoa","pr.twob","pr.twoc"],hint="pr.twoHint"),td('aaa')), tw(td('sas'),td('ss'))],
+  "normal":[tw(cj([(1,1),(4,1),(2,4)],'tr',xf=T(5,2)),cj([(1,1),(3,1),(2,3)],'scale',s=2,at=[6,2])), tw(cpt([(1,1),(4,1),(2,4)],V(6),'ab'),cpt([(1,2),(5,2),(2,5)],R((6,4),2),'bj',perm=[1,0,2])), tw(two("pr.two",["pr.twoa","pr.twob","pr.twoc"],hint="pr.twoHint"),td('aaa')), tw(td('sas'),td('ss'))],
   "challenge":[tw(two("pr.two",["pr.twoa","pr.twob","pr.twoc"],hint="pr.twoHint"),cj([(1,2),(4,3),(2,6)],'ref',xf=V(6))), tw(td('sss'),td('ss')), tw(cpt([(2,1),(5,1),(2,4)],T(6,3),'aj'),reason("pr.r1",xp([(1,1),(3,1),(1,3)],mv="scale",s=2,at=[5,1]),["pr.r1a","pr.r1b","pr.r1c"]))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":cj([(1,1),(4,1),(2,3)],'scale',s=2,at=[6,1]),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
-   "C314":[cj([(2,2),(5,2),(3,5)],'rot',xf=R((6,4),2)), cpt([(1,1),(5,1),(3,4)],V(6),'bj'), reason("ms.1",xp([(1,1),(3,1),(2,4)],T(5,1)),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C314":[cj([(2,1),(5,2),(3,5)],'ref',xf=V(6)), cpt([(1,2),(4,1),(3,5)],R((6,4),2),'aj'), reason("ms.x1",xp([(1,1),(4,2),(2,4)],R((6,4),2)),["ms.x1a","ms.x1b","ms.x1c"])]},
+   "C314":[cj([(2,2),(5,2),(3,5)],'rot',xf=R((6,4),2)), cpt([(1,1),(5,1),(3,4)],V(6),'bj',perm=[1,2,0]), reason("ms.1",xp([(1,1),(3,1),(2,4)],T(5,1)),["ms.1a","ms.1b","ms.1c"])]},
+  "alt":{"C314":[cj([(2,1),(5,2),(3,5)],'ref',xf=V(6)), cpt([(1,2),(4,1),(3,5)],R((6,4),2),'aj',perm=[2,0,1]), reason("ms.x1",xp([(1,1),(4,2),(2,4)],R((6,4),2)),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C314":{"scene":"lines","lines":["ms.recall"]}},
-  "remedial":{"C314":[tw(cj([(1,3),(3,3),(2,5)],'tr',xf=T(6,-2)),cpt([(1,1),(4,1),(1,4)],T(6,2),'ab'))]},
+  "remedial":{"C314":[tw(cj([(1,3),(3,3),(2,5)],'tr',xf=T(6,-2)),cpt([(1,1),(4,1),(1,4)],T(6,2),'ab',perm=[0,2,1]))]},
   "mixed":{"lesson":"m3.u6.d4","concept":"C317","item":rs('oct','angle')},
   "ok":"ms.ok"},
- "review":[cj([(1,1),(4,1),(4,3)],'ref',xf=V(6))|{"c":"C314"}, cpt([(2,2),(5,2),(2,5)],R((6,4),2),'aj')|{"c":"C314"}, cj([(1,1),(5,2),(2,4)],'rot',xf=R((6,4),2))|{"c":"C314"}, cj([(1,2),(3,2),(1,4)],'scale',s=2,at=[6,1])|{"c":"C314"}],
+ "review":[cj([(1,1),(4,1),(4,3)],'ref',xf=V(6))|{"c":"C314"}, cpt([(2,2),(5,2),(2,5)],R((6,4),2),'aj',perm=[2,1,0])|{"c":"C314"}, cj([(1,1),(5,2),(2,4)],'rot',xf=R((6,4),2))|{"c":"C314"}, cj([(1,2),(3,2),(1,4)],'scale',s=2,at=[6,1])|{"c":"C314"}],
  "wrap":{"art":"xfArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اطلبوا منه بلاطة بأربعة مثلثات متطابقة حول مركز، واسألوه: كم انطباقاً؟ وما أصغر زاوية؟ ولماذا المثلثات متطابقة؟"}
 dump(U+'/d5.json', d5)
@@ -445,14 +447,14 @@ d6={"id":"m3.u6.d6","title":"بَوَّابَةُ حَيِّ المِرْآةِ 
   {"s":"game","scene":"items","mode":"practice","stage":"game","intro":"gm.intro","items":[tw(xd([(1,2),(3,2),(1,5)],V(5),q='gm.copy'),xd([(2,1),(4,1),(4,3)],H(4),q='gm.copy')), tw(xd([(2,1),(4,1),(2,3)],T(4,2),q='gm.turn'),xd([(1,4),(3,4),(3,6)],T(5,-3),q='gm.turn')), tw(xd([(5,4),(8,4),(8,6)],R((5,4),1),q='gm.center'),xd([(4,3),(6,3),(6,5)],R((4,3),2),q='gm.center')), tw(cj([(1,1),(3,1),(1,4)],'scale',s=2,at=[6,1],q='gm.angles'),cj([(1,2),(4,2),(2,4)],'scale',s=2,at=[4,1],q='gm.angles'))]},
   {"s":"practice"},{"s":"test"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(xd([(3,4)],V(6)),xd([(2,2)],T(5,4))), tw(xd([(7,4)],R((5,4),3)),rs('eqTri')), tw(cj([(1,1),(4,1),(2,4)],'rot',xf=R((6,4),2)),cpt([(1,1),(4,1),(2,4)],V(6),'aj'))],
+  "normal":[tw(xd([(3,4)],V(6)),xd([(2,2)],T(5,4))), tw(xd([(7,4)],R((5,4),3)),rs('eqTri')), tw(cj([(1,1),(4,1),(2,4)],'rot',xf=R((6,4),2)),cpt([(1,1),(4,1),(2,4)],V(6),'aj',perm=[1,0,2]))],
   "challenge":[tw(rl([(1,1),(2,4),(4,1)],'v',5),tv((4,1),3,6)), tw(rs('rhom','angle'),rs('fan3','kinds')), tw(xw([(6,4),(9,4),(9,6)],R((6,4),1)),td('sss'))]},
  "test":{"remedial":"ts.rem","stoneLine":"ts.stone","winLines":["ts.win1","ts.win2"],"items":[   # كما في المرجع (14): 2 انعكاس، 2 انسحاب، 2 دوران، 3 تماثل دوراني، 2 تطابق، 1 إحداثيات، 1 خطأ، 1 مفتوح
    T6(1,1,xd([(1,2),(4,1),(3,4)],V(5))), T6(2,1,reason("ts.2",xp([(2,3)],V(5),img=[[7,3]]),["ts.2a","ts.2b","ts.2c"])),
    T6(3,2,tv((2,1),5,3)), T6(4,2,xd([(1,3),(4,3),(2,5)],T(5,-2))),
    T6(5,3,xd([(6,3),(8,4),(7,6)],R((6,3),1))), T6(6,3,xd([(2,2),(4,3),(3,5)],R((5,3),2))),
    T6(7,4,rs('fan6')), T6(8,4,rs('star5','angle')), T6(9,4,rs('arrow','kinds')),
-   T6(10,5,cj([(1,1),(4,1),(1,3)],'ref',xf=V(6),ask='move')), T6(11,5,cpt([(2,1),(5,1),(3,4)],R((6,3),2),'ab')),
+   T6(10,5,cj([(1,1),(4,1),(1,3)],'ref',xf=V(6),ask='move')), T6(11,5,cpt([(2,1),(5,1),(3,4)],R((6,3),2),'ab',perm=[2,1,0])),
    T6(12,1,xd([(2,7)],H(4))),
    T6(13,3,reason("ts.13",xp([(2,2),(5,2),(2,4)],R((2,2),1)),["ts.13a","ts.13b","ts.13c"])),
    T6(14,4,reason("ts.14",xp(rsk="paraT"),["ts.14a","ts.14b","ts.14c"]))]},

@@ -24,7 +24,7 @@ def chain(pf,q=None): return {"t":"prChain","pf":pf,"q":q or "gen.pf.q.chain"}
 def why(pf,step,opts,q=None):
     assert opts[0]==RS[pf][step] and len(set(opts))==3, (pf,step,opts)
     return {"t":"prReason","pf":pf,"step":step,"cands":opts,"q":q or "gen.pf.q.reason"}
-def case(cs,v=0): assert 0<=v<7, v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
+def case(cs,v=0): assert 0<=v<(9 if cs=='ssa' else 7), v; d={"t":"cgCase","cs":cs,"q":"gen.pre.q.case"}; d.update({"v":v} if v else {}); return d
 def smiss(s,k,ask): return {"t":"simMiss","s":s,"k":k,"ask":ask,"q":"gen.pre.q.sim"}
 dump(U+'/unit.json', {"id":"m4.u4","title":"نَظَرِيَّةُ فِيثَاغُورْسَ","sub":"المَرْحَلَةُ الرَّابِعَةُ: المُخْتَرِعُونَ","district":"حَيُّ فِيثَاغُورْسَ","hosts":["triangle","square","rect"],"hunt":[]})
 ADULT={"title":"نظرية فيثاغورس: سلّم الأداء (المرجع M4-U4، مشروع «السلّم والجدار»)","how":"اسألوه بالسلّم والجدار والشريط، ثم اختاروا لكل معيار:","levels":True,
@@ -94,7 +94,7 @@ d1={"id":"m4.u4.d1","title":"نَظَرِيَّةُ فِيثَاغُورْسَ",
   "remedial":{"C407":[tw(sq(1,2),hyp(15,8))]},
   "mixed":{"lesson":"m4.u3.d3","concept":"C406","item":smiss([3,5,6],2,1)},
   "ok":"ms.ok"},
- "review":[hyp(12,16)|{"c":"C407"}, leg(15,9)|{"c":"C407"}, approx(1,2)|{"c":"C407"}, why('pyth',0,['sas','sss','looks'])|{"c":"C407"}],
+ "review":[hyp(12,16)|{"c":"C407"}, leg(30,24)|{"c":"C407"}, approx(1,2)|{"c":"C407"}, why('pyth',0,['sas','sss','looks'])|{"c":"C407"}],
  "wrap":{"art":"pythArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"ارسموا معه مربعات على أضلاع مثلث قائم ورقي، واطلبوا عدّ المربعات. واسألوه: لماذا لا نجمع الأضلاع نفسها؟"}
 dump(U+'/d1.json', d1)
@@ -220,13 +220,13 @@ d3={"id":"m4.u4.d3","title":"العَمُودِيُّ أَقْصَرُ","icon":[
   "challenge":[tw(reason("pr.r1",pfp(py='perpPf'),["pr.r1a","pr.r1b","pr.r1c"]),leg(26,10,'perp'))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":leg(13,5),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{"C407":[leg(25,15,'perp'), why('perpPf',2,['so2','pos','measure']), reason("ms.1",pfp(py='perpPf',rm=1),["ms.1a","ms.1b","ms.1c"])],
-                        "C405":[case('rhs',v=2), case('ssa',v=2), reason("ms.2",pfp(cs='rhs',v=1),["ms.2a","ms.2b","ms.2c"])]},
-  "alt":{"C407":[leg(25,24,'perp'), leg(25,20,'perp'), reason("ms.x1",pfp(py='perpPf',rm=2),["ms.x1a","ms.x1b","ms.x1c"])], "C405":[case('rhs',v=4), case('ssa',v=3), reason("ms.x2",pfp(cs='rhs',v=3),["ms.x2a","ms.x2b","ms.x2c"])]},
+                        "C405":[case('rhs',v=2), case('ssa',v=7), reason("ms.2",pfp(cs='rhs',v=1),["ms.2a","ms.2b","ms.2c"])]},
+  "alt":{"C407":[leg(25,24,'perp'), leg(25,20,'perp'), reason("ms.x1",pfp(py='perpPf',rm=2),["ms.x1a","ms.x1b","ms.x1c"])], "C405":[case('rhs',v=4), case('ssa',v=8), reason("ms.x2",pfp(cs='rhs',v=3),["ms.x2a","ms.x2b","ms.x2c"])]},
   "recall":{"C407":{"scene":"lines","lines":["ms.recall"]},"C405":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C407":[tw(leg(10,6,'perp'),leg(5,3,'perp'))],"C405":[tw(case('sas',v=1),case('ssa',v=1))]},
   "mixed":{"lesson":"m4.u4.d2","concept":"C407","item":isr(9,10,13)},
   "ok":"ms.ok"},
- "review":[leg(29,21,'perp')|{"c":"C407"}, why('perpPf',0,['pyth','sas','looks'])|{"c":"C407"}, case('sas',v=2)|{"c":"C405"}, case('asa',v=2)|{"c":"C405"}],
+ "review":[leg(29,21,'perp')|{"c":"C407"}, why('perpPf',0,['pyth','sas','looks'])|{"c":"C407"}, case('sas',v=5)|{"c":"C405"}, case('asa',v=5)|{"c":"C405"}],
  "wrap":{"art":"pythArt","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اسألوه: لماذا الطريق العمودي إلى الشارع أقصر من أي طريق مائل؟ واطلبوا الحساب بالنظرية لا بالنظر."}
 dump(U+'/d3.json', d3)
@@ -270,16 +270,17 @@ d4={"id":"m4.u4.d4","title":"مَشْرُوعُ: السُّلَّمُ وَالج
  "bag":{**BAG("tapeM","gridPaper","bagTape","bagGrid"),"adult":"شريط قياس وورق مربعات.","screenPath":"على الشاشة يحسب الطفل ارتفاع السلالم وأطوالها، ويقارن سلّمين متشابهين."},
  "labels":{"bagTape":"شَرِيطُ قِيَاسٍ","bagGrid":"وَرَقُ مُرَبَّعَاتٍ"},"lines":L4,
  "flow":[
-  {"s":"explore","scene":"ladderShow","mat":MAT(),"lines":["ld.01","ld.02","ld.03"]},
+  {"s":"explore","scene":"ladderShow","to":1,"mat":MAT(),"lines":["ld.01"]},
   {"s":"game","scene":"items","mode":"practice","intro":"prj.intro","items":[tw(leg(13,5,'ladder'),leg(20,12,'ladder')), tw(leg(17,8,'ladder'),leg(15,12,'ladder'))]},
-  {"s":"explore","scene":"lines","table":True,"lines":["tb.01","tb.02"]},
+  {"s":"explore","scene":"ladderShow","from":1,"lines":["ld.02","ld.03"]},
+  {"s":"explore","scene":"projTable","cols":["prjLadder","prjBase","prjHeight"],"rows":[[13,5,12],[17,8,15]],"lastCol":True,"lines":["tb.01","tb.02"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(hyp(8,6)|{"q":"gen.py.q.ladderLen"},hyp(40,9)|{"q":"gen.py.q.ladderLen"}), tw(smiss([3,4,5],3,1),smiss([5,12,13],2,0)), tw(leg(25,7,'ladder'),leg(20,16,'ladder'))],
   "challenge":[tw(reason("pr.r1",pfp(py='ladder'),["pr.r1a","pr.r1b","pr.r1c"]),smiss([6,8,10],1.5,1))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":leg(13,5,'ladder')|{"twin":None},"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{"C407":[leg(26,24,'ladder'), smiss([8,6,10],2,2), reason("ms.1",pfp(py='ladder',rm=1),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C407":[leg(17,15,'ladder'), smiss([6,8,10],1.5,0), reason("ms.x1",pfp(py='ladder',rm=2),["ms.x1a","ms.x1b","ms.x1c"])]},
+  "alt":{"C407":[leg(39,36,'ladder'), smiss([6,8,10],2.5,1), reason("ms.x1",pfp(py='ladder',rm=2),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C407":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C407":[tw(leg(5,3,'ladder'),hyp(9,12)|{"q":"gen.py.q.ladderLen"})]},
   "mixed":{"lesson":"m4.u4.d3","concept":"C405","item":case('rhs',v=1)|{"v":1}},
@@ -335,7 +336,7 @@ d5={"id":"m4.u4.d5","title":"بَوَّابَةُ حَيِّ فِيثَاغُو�
    T5(6,1,sq(3,5)), T5(7,1,why('pyth',2,['algebra','measure','sss'],q="gen.pf.q.reasonT")),
    T5(8,3,leg(30,18,'perp')), T5(9,3,leg(50,30,'perp')),
    T5(10,3,case('rhs',v=3)|{"v":3}),
-   T5(11,1,reason("ts.11",pfp(py='pyth',rm=1),["ts.11a","ts.11b","ts.11c"])),
+   T5(11,1,reason("ts.11",pfp(py='pyth',rm=1,v=1),["ts.11a","ts.11b","ts.11c"])),
    T5(12,3,reason("ts.12",pfp(py='perpPf',rm=4),["ts.12a","ts.12b","ts.12c"]))]},
  "wrap":{"art":"medal","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اسألوه: لماذا الوتر أطول من أي ضلع قائم؟ وكيف يعرف البنّاء أن الركن قائم بستين وثمانين ومئة؟"}
@@ -369,9 +370,9 @@ G={
 }
 for a,b in [(2,2),(1,3),(3,5),(1,2),(1,4),(2,3)]:
     r=round((a*a+b*b)**.5,1)
-    for v in [r, a+b, a*a+b*b]:
+    for v in [r, round(r-.1,1), round(r+.1,1)]:
         G['gen.py.v.'+('%g'%v).replace('.','_')]=decphrase(v)+'.'
-LB={"pyRuleSq":"مُرَبَّعُ الوَتَرِ = مُرَبَّعُ ضِلْعٍ + مُرَبَّعُ ضِلْعٍ","pyRuleLeg":"مُرَبَّعُ الضِّلْعِ = مُرَبَّعُ الوَتَرِ − مُرَبَّعُ الآخَرِ","pyRuleApprox":"الوَتَرُ جَذْرُ المَجْمُوعِ تَقْرِيبًا",
+LB={"prjLadder":"السُّلَّمُ","prjBase":"القَاعِدَةُ","prjHeight":"الارْتِفَاعُ","pyRuleSq":"مُرَبَّعُ الوَتَرِ = مُرَبَّعُ ضِلْعٍ + مُرَبَّعُ ضِلْعٍ","pyRuleLeg":"مُرَبَّعُ الضِّلْعِ = مُرَبَّعُ الوَتَرِ − مُرَبَّعُ الآخَرِ","pyRuleApprox":"الوَتَرُ جَذْرُ المَجْمُوعِ تَقْرِيبًا",
     "pyRuleConv":"مُرَبَّعُ الأَطْوَلِ = مُرَبَّعَا الآخَرَيْنِ؟","pyGiven":"المُعْطَى","pyDrawn":"القَائِمُ المَرْسُومُ",
     "pf.rs.areaSum":"الكُلُّ مَجْمُوعُ أَجْزَائِهِ","pf.rs.algebra":"نَفُكُّ وَنَطْرَحُ المُتَكَرِّرَ","pf.rs.draw2":"نَرْسُمُ قَائِمَةً بِضِلْعَيْنِ","pf.rs.pyth":"نَظَرِيَّةُ فِيثَاغُورْسَ","pf.rs.pos":"مُرَبَّعُ غَيْرِ الصِّفْرِ مُوجَبٌ","pf.rs.so2":"مِنَ الخُطْوَتَيْنِ",
     "pf.pyth.1":"أَرْبَعَةُ مُثَلَّثَاتٍ مُتَطَابِقَةٍ، وَفِي الوَسَطِ مُرَبَّعُ ج","pf.pyth.2":"مِسَاحَةُ الكَبِيرِ = ٤ مُثَلَّثَاتٍ + مُرَبَّعُ ج","pf.pyth.3":"أ² + ب² = ج²",

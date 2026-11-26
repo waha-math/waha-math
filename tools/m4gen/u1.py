@@ -316,7 +316,7 @@ d5={"id":"m4.u1.d5","title":"مَشْرُوعُ: جِسْرُ الزَّوَاي
   "challenge":[tw(trc(40,1,6),trc(40,5,3)), tw(reason("pr.r1",arp(tr=70,mark=[2,7],vals=1),["pr.r1a","pr.r1b","pr.r1c"]),par(85,10))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":trc(75,4,6),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{"C404":[trc(35,2,8), trc(35,7,1,rot=-25), reason("ms.1",arp(tr=65,mark=[6],vals=1),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C404":[trc(55,1,8), trc(55,6,3), reason("ms.x1",arp(tr=55,mark=[1],vals=1),["ms.x1a","ms.x1b","ms.x1c"])]},
+  "alt":{"C404":[trc(55,1,8), trc(50,6,3), reason("ms.x1",arp(tr=55,mark=[1],vals=1),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C404":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C404":[tw(trc(60,1,5),trc(60,1,8))]},
   "mixed":{"lesson":"m4.u1.d1","concept":"C413","item":pair(15,165)},

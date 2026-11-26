@@ -531,7 +531,13 @@
      "dx": 6,
      "dy": 3
     },
-    "side": "bj"
+    "side": "bj",
+    "perm": [
+     0,
+     2,
+     1
+    ],
+    "q": "gen.xf.q.partp.dwh.bj"
    }
   },
   "ok": "ms.ok"

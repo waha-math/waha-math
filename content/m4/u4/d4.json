@@ -83,6 +83,7 @@
   {
    "s": "explore",
    "scene": "ladderShow",
+   "to": 1,
    "mat": {
     "prompt": "mat.01",
     "show": [],
@@ -91,9 +92,7 @@
     "facts": []
    },
    "lines": [
-    "ld.01",
-    "ld.02",
-    "ld.03"
+    "ld.01"
    ],
    "predBefore": [
     4,
@@ -142,8 +141,34 @@
   },
   {
    "s": "explore",
-   "scene": "lines",
-   "table": true,
+   "scene": "ladderShow",
+   "from": 1,
+   "lines": [
+    "ld.02",
+    "ld.03"
+   ]
+  },
+  {
+   "s": "explore",
+   "scene": "projTable",
+   "cols": [
+    "prjLadder",
+    "prjBase",
+    "prjHeight"
+   ],
+   "rows": [
+    [
+     13,
+     5,
+     12
+    ],
+    [
+     17,
+     8,
+     15
+    ]
+   ],
+   "lastCol": true,
    "lines": [
     "tb.01",
     "tb.02"
@@ -311,8 +336,8 @@
    "C407": [
     {
      "t": "pyLeg",
-     "hyp": 17,
-     "a": 15,
+     "hyp": 39,
+     "a": 36,
      "q": "gen.py.q.leg.ladder",
      "ctx": "ladder"
     },
@@ -323,8 +348,8 @@
       8,
       10
      ],
-     "k": 1.5,
-     "ask": 0,
+     "k": 2.5,
+     "ask": 1,
      "q": "gen.pre.q.sim"
     },
     {

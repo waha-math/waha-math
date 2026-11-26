@@ -23,7 +23,7 @@ A=[C(1,{"t":"arComp","a":65,"kind":"comp","q":"gen.ar.q.ang"}),                 
    C(8,R("w.2",{"kind":"pfpic","cg":[[3,4,5],[6,8,10]],"u":9,"rot":20},["w.2a","w.2b","w.2c"])),               # «لماذا؟» U3: الزوايا وحدها لا تكفي
    C(9,{"t":"pyHyp","a":20,"b":21,"q":"gen.pre.q.py"}),                                                         # U4: الوتر
    C(10,{"t":"pyIsRight","s":[12,35,37],"q":"gen.py.q.isRight"}),                                               # U4: العكس
-   C(11,{"t":"pyLeg","hyp":17,"a":8,"q":"gen.py.q.leg.perp","ctx":"perp"}),                                   # U4: العمودي أقصر مسافة
+   C(11,{"t":"pyLeg","hyp":37,"a":12,"q":"gen.py.q.leg.perp","ctx":"perp"}),                                   # U4: العمودي أقصر مسافة
    C(12,{"t":"c4Quad","x":4,"y":-5,"q":"gen.c4.q.quad"}),                                                      # U5: الربع
    C(13,{"t":"c4Dist","a":[-2,1],"b":[1,5],"q":"gen.c4.q.dist"}),                                              # U5: المسافة
    C(14,{"t":"c4Eq","ln":[3,-2],"q":"gen.c4.q.eq"}),                                                          # U5: معادلة المستقيم

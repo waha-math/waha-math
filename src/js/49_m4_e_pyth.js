@@ -55,13 +55,13 @@ ITEM.pyLeg = cpItem({ H: 250, tLine: 'gen.py.together.leg', hint: 'gen.py.hint.l
 
 /* ================= ③ الوتر بجذر تقريبي (C407): a، b؛ الجواب بمنزلة عشرية واحدة ================= */
 ITEM.pyApprox = cpItem({ H: 236, tLine: 'gen.py.together.approx', hint: 'gen.py.hint.approx', rLine: 'gen.py.reveal.approx', rSay: it => S('gen.py.v.' + pyKey(it.r), { append: true }), praise: 'praiseThink',
-  make: s => { const r = +pyRt(s.a, s.b).toFixed(1), cands = [r, s.a + s.b, s.a * s.a + s.b * s.b].filter((v, i, X) => X.indexOf(v) === i); return { r, cands, want: pyKey(r), tag: 'py-approx' }; },
+  make: s => { const r = +pyRt(s.a, s.b).toFixed(1), cands = [r, +(r - .1).toFixed(1), +(r + .1).toFixed(1)]; return { r, cands, want: pyKey(r), tag: 'py-approx' }; },   /* ثلاثة أعداد عشرية متجاورة: أيّها مربعه أقرب إلى مربع الوتر؟ فلا يُعرف الجواب بشكله (المراجع A لبوابة M4-U3/U4، 3) */
   draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(60, 150 / item.b, 200 / item.a), C = [250, 196], T = pyTri(g, C, item.a, item.b, u);
     preLab(g, (T.A[0] + C[0]) / 2, C[1] + 22, MS(String(item.a)), { fs: 16 }); preLab(g, C[0] + 14, (T.B[1] + C[1]) / 2 + 6, MS(String(item.b)), { fs: 16, anchor: 'start' }); preLab(g, (T.A[0] + T.B[0]) / 2 - 12, (T.A[1] + T.B[1]) / 2 - 8, '؟', { col: PY.q, fs: 18, anchor: 'end' });
     if (tries >= 3) ciEq(helpG(svg), 130, 40, `${item.a * item.a} + ${item.b * item.b} = ${item.a * item.a + item.b * item.b}`, PY.hl, 16); return {}; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 130, 40, labelText('pyRuleApprox'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.cands.map(v => [pyKey(v), pyTxt(v), '<i></i>', 'gen.py.v.' + pyKey(v)])), item.want),
-  errOf: (it, k) => k === pyKey(it.a + it.b) ? 'pyAdd' : k === pyKey(it.a * it.a + it.b * it.b) ? 'pyNoRoot' : 'pyOff' });
+  errOf: () => 'pyOff' });
 
 /* ================= ④ هل المثلث قائم؟ (C407 العكس): s ثلاثة أطوال ================= */
 ITEM.pyIsRight = cpItem({ H: 236, tLine: 'gen.py.together.isRight', hint: 'gen.py.hint.isRight', rLine: it => 'gen.py.reveal.isRight.' + it.want, praise: 'praiseThink',
@@ -107,8 +107,10 @@ SCENES.pyPumpShow = async c => { const L = c.lines, svg = m3Stage(250); let g = 
     preLab(g, (N[0] + R[0]) / 2 + 14, (N[1] + R[1]) / 2, MS(String(+len.toFixed(1))), { col: d ? PY.c : PY.ok, fs: 17, anchor: 'start' }); SFX.tick(); await pySay(L, i); }
   for (const l of L.slice((c.ds || [0, 0, 0]).length)) await S(l); };
 /* د4: السلّم والجدار، ثم السلّم ضعفه */
-SCENES.ladderShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg); pyScene(g, 'ladder', 5, 3, 4, { u: 30 }); await pySay(L, 0);
-  g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); pyScene(g, 'ladder', 10, 6, 8, { u: 17 }); SFX.tick(); await pySay(L, 1);
-  g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const t1 = preRightTri(g, [128, 200], 3, 4, 18), t2 = preRightTri(g, [330, 200], 6, 8, 18, { col: PRE.b, fill: PRE.fillB });
-  for (const t of [t1, t2]) { preArcs(g, t.A, t.C, t.B, 1); preArcs(g, t.B, t.A, t.C, 2); } SFX.tick(); await pySay(L, 2); for (const l of L.slice(3)) await S(l); };
+/* from وto: أجزاء المشهد، فالسلّم الأول قبل لعبة المشروع، والسلّم الضعف والتشابه بعدها (المراجع A لبوابة M4-U3/U4، 4: لا يحلّ المشهد خطوات الطفل قبله) */
+SCENES.ladderShow = async c => { const L = c.lines, from = c.from || 0, to = c.to ?? 3, svg = m3Stage(250); let g = null;
+  const parts = [() => pyScene(g, 'ladder', 5, 3, 4, { u: 30 }), () => pyScene(g, 'ladder', 10, 6, 8, { u: 17 }),
+    () => { const t1 = preRightTri(g, [128, 200], 3, 4, 18), t2 = preRightTri(g, [330, 200], 6, 8, 18, { col: PRE.b, fill: PRE.fillB }); for (const t of [t1, t2]) { preArcs(g, t.A, t.C, t.B, 1); preArcs(g, t.B, t.A, t.C, 2); } }];
+  for (let i = from; i < to; i++) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); parts[i](); if (i > from) SFX.tick(); await pySay(L, i - from); }
+  for (const l of L.slice(to - from)) await S(l); };
 WRAP_ART.pythArt = svg => { const g = el('g', { 'pointer-events': 'none' }, svg); pySquares(g, [214, 150], 3, 4, 16); };

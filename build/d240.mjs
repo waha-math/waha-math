@@ -347,15 +347,15 @@ export const factOf = it => { const t = it.t;
   if (t === 'polyBuild') return `pbd|${it.sum}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'pfpic') return pfpicK(it.pic);
   if (t === 'cgCase') return `cgc|${it.cs}|${it.v || 0}`;
-  if (t === 'pySq') return `pys|${it.a}|${it.b}`;
-  if (t === 'pyLeg') return `pyl|${it.hyp}|${it.a}|${it.ctx || 'tri'}`;
+  if (t === 'pySq') return `pys|${[it.a, it.b].sort((x, y) => x - y)}`;   /* مفاتيح دلالية (المراجع A لبوابة M4-U3/U4، 2): الضلعان مرتّبين */
+  if (t === 'pyLeg') return `pyl|${it.hyp}|${it.a}`;   /* والمسألة العددية نفسها وإن تغيّر سياقها (سلّم، مضخة، مثلث) */
   if (t === 'pyApprox') return `pya|${[it.a, it.b].sort((x, y) => x - y)}`;
   if (t === 'pyIsRight') return `pir|${cgS(it.s)}`;
   if (t === 'cgSides') return `cgs|${cgS(it.a)}|${cgS(it.b)}`;
   if (t === 'cgPick') return `cgp|${cgS(it.orig)}|${it.cands.map(cgS).sort().join(' ')}`;
   if (t === 'simYN') return `smy|${it.fig}|${it.a.join(',')}|${it.b.join(',')}`;
   if (t === 'quadDiag') return `qdg|${['mid', 'eq', 'perp'].map(k => it.info[k] ? 1 : 0).join('')}`;
-  if (t === 'perpArea') return `ppa|${it.x1}|${it.x2}|${it.y1}|${it.y2}`;
+  if (t === 'perpArea') return `ppa|${[it.x1 + it.x2, it.y1 + it.y2].sort((x, y) => x - y)}`;   /* القطران بطوليهما */
   if (t === 'simMiss') return `sim|${it.s.join(',')}|${it.k}|${it.ask}`;
   if (t === 'pyHyp') return `pyh|${[it.a, it.b].sort((x, y) => x - y)}`;
   if (t === 'coDist2') return `cd2|${it.a.join(',')}|${it.b.join(',')}`;
@@ -442,7 +442,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'trVector') return `trv|${it.a.join(',')}|${it.dx}|${it.dy}`;
   if (t === 'rotSym') return `rs|${it.k}|${it.ask || 'count'}`;
   if (t === 'congJudge') return `cj|${it.mv}|${it.ask || 'yn'}|${it.pts.map(p => p.join(',')).join(' ')}`;
-  if (t === 'congPart') return `cpart|${it.side}|${JSON.stringify(it.xf)}|${it.pts.map(p => p.join(',')).join(' ')}`;
+  if (t === 'congPart') return `cpart|${it.side}|${(it.perm || [0, 1, 2]).join('')}`;   /* المناظر تقوله العبارة وحدها: الضلع وترتيب العبارة (المراجع A لبوابة M4-U3/U4، 2) */
   if (t === 'triDet') return `tdet|${it.case}`;
   if (t === 'estPick') return `est|${it.thing}`;
   if (t === 'trackDesign') return `track|${it.n || 4}`;
@@ -667,11 +667,12 @@ export function d240(lessons, code, MAKERS) {
     cgHook: c => simShown(c.a || [3, 4, 5], c.k || 2), simShow: c => simShown(c.a || [4, 6, 8], c.k || 1.5),
     cgSasShow: () => ['cgc|sas|0', 'cgc|ssa|0', 'cgc|asa|0'],
     quadProof: c => (c.pfs || [c.pf]).flatMap(pfShown),
-    cgPerpShow: c => { const [a, b, cc, d] = c.dims || [3, 7, 4, 2]; return [`ppa|${a}|${b}|${cc}|${d}`, `ppa|${b}|${a}|${d}|${cc}`]; },
-    pyHook: () => ['pyh|3,4', 'pys|3|4', 'pys|4|3'],
-    pySqShow: c => { const [a, b] = c.ab || [3, 4]; return [`pys|${a}|${b}`, `pys|${b}|${a}`, `pyh|${[a, b].sort((x, y) => x - y)}`]; },
-    pyPumpShow: c => { const h = c.h || 12; return (c.ds || [9, 5, 0]).filter(d => d).flatMap(d => { const L = Math.sqrt(h * h + d * d); return [`pyh|${[h, d].sort((x, y) => x - y)}`, `pya|${[h, d].sort((x, y) => x - y)}`, `pyl|${+L.toFixed(1)}|${h}|perp`, `pyl|${+L.toFixed(1)}|${d}|perp`]; }); },
-    ladderShow: () => ['pyl|5|3|ladder', 'pyl|5|4|ladder', 'pyl|10|6|ladder', 'pyl|10|8|ladder', 'pyh|3,4', 'pyh|6,8'],
+    cgPerpShow: c => { const [a, b, cc, d] = c.dims || [3, 7, 4, 2]; return [`ppa|${[a + b, cc + d].sort((x, y) => x - y)}`]; },
+    pyHook: () => ['pyh|3,4', 'pys|3,4', 'pyl|5|3', 'pyl|5|4'],
+    pySqShow: c => { const [a, b] = c.ab || [3, 4]; return [`pys|${[a, b].sort((x, y) => x - y)}`, `pyh|${[a, b].sort((x, y) => x - y)}`]; },
+    pyPumpShow: c => { const h = c.h || 12; return (c.ds || [9, 5, 0]).filter(d => d).flatMap(d => { const L = Math.sqrt(h * h + d * d); return [`pyh|${[h, d].sort((x, y) => x - y)}`, `pya|${[h, d].sort((x, y) => x - y)}`, `pyl|${+L.toFixed(1)}|${h}`, `pyl|${+L.toFixed(1)}|${d}`]; }); },
+    ladderShow: c => [['pyl|5|3', 'pyl|5|4', 'pyh|3,4'], ['pyl|10|6', 'pyl|10|8', 'pyh|6,8'], []].slice(c.from || 0, c.to ?? 3).flat(),
+    projTable: c => c.facts || [],
     polyTable: () => [3, 4, 5, 6].flatMap(n => [`ptr|${n}`, `psm|${n}`, `pfpic|poly|${n}|1`]),
     regExShow: () => ['prg|6|in', 'prg|6|ex', 'pfpic|poly|6|0'],
     trapShow: () => ['itp|70|base', 'itp|70|top', 'pfpic|trap|70|1', 'pfpic|trap|70|0'],
@@ -807,7 +808,7 @@ export function d240(lessons, code, MAKERS) {
     return out; };
   /* ما يرسمه المشهد بنفسه (لا من بياناته) من أشياء لها مولّد: عجلات العربتين في الإشعال، وبابا الزرافة. لكل مشهد في الكود سطر هنا (ولو فارغاً)، فلا يُضاف مشهد يرسم شيئاً دون أن يراه الفحص */
   const SCENE_DRAWS = { cartsRace: [['wheel', 'cls']], giraffeDoors: [['door', 'cls']] };
-  const SCENE_NONE = ['items', 'material', 'lines', 'cityTable', 'a2CmpShow', 'decCalcShow', 'decRecap', 'asRecap', 'protCheck', 'dqTable', 'mdShow', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'mirrorHook', 'refShow', 'trHook', 'trShow', 'rotHook', 'rotShow', 'rsHook', 'rsShow', 'congHook', 'congShow', 'tileShow2', 'triDetShow', 'circHook', 'compassShow', 'piHook', 'ciStringShow', 'piShow', 'archShow', 'areaHook', 'discShow', 'boundShow', 'ciDoubleShow', 'gardenShow', 'soHook', 'soFacesShow', 'soEdgesShow', 'eulerShow', 'boxHook', 'boxShow', 'netHook', 'netShow', 'wrapHook', 'saShow', 'viewHook', 'viewsShow', 'giftShow', 'voHook', 'voFillShow', 'voVsArea', 'voToMul', 'voSumHook', 'voMulShow', 'voSameShow', 'treasureShow', 'raHook', 'raShow', 'raTableShow', 'raFracShow', 'enHook', 'enSqShow', 'enTriShow', 'enRuleShow', 'scHook', 'scShow', 'scUpShow', 'scDownShow', 'roomShow', 'arHook', 'arCompShow', 'arCrossShow', 'arVertShow', 'arTransShow', 'arCorrShow', 'arAltShow', 'arBridgeShow', 'pfHook', 'pfPicHook', 'pfTriShow', 'pfVertShow', 'pfAltShow', 'ineqShow', 'ineqProof', 'polyShow', 'polyTable', 'regExShow', 'trapShow', 'cgHook', 'sssBuild', 'cgSasShow', 'simShow', 'quadProof', 'quadFamily', 'cgPerpShow', 'pyHook', 'pySqShow', 'pyPumpShow', 'ladderShow', 'c4Hook', 'c4QuadShow', 'c4SignShow', 'c4DistShow', 'c4SlopeShow', 'c4LineHook', 'c4LineShow', 'c4CheckShow', 'c4CityShow', 'ci4ChordHook', 'ci4ChordShow', 'ci4TanHook', 'ci4TanShow', 'ci4TwoTanShow', 'ci4InscHook', 'ci4InscShow', 'ci4ArcShow', 'ci4SectorShow', 'ci4GardenShow', 'c7CylHook', 'c7CylShow', 'c7NetShow', 'c7ThirdShow', 'c7SphereShow', 'c7LiterShow', 'c7TankShow', 'c8BisHook', 'c8BisBuild', 'c8PbHook', 'c8PbBuild', 'c8TrigHook', 'c8TableShow', 'c8SimShow', 'c8TanShow', 'c8SurveyShow', 'c8BiruniShow', 'c9MirrorHook', 'c9RefShow', 'c9RotHook', 'c9RotShow', 'c9ProtHook', 'c9ProtShow', 'c9TwoMirrorShow', 'c9CityShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
+  const SCENE_NONE = ['items', 'material', 'lines', 'projTable', 'cityTable', 'a2CmpShow', 'decCalcShow', 'decRecap', 'asRecap', 'protCheck', 'dqTable', 'mdShow', 'paraShow', 'orderShow', 'landTable', 'cakeTable', 'bestFarm', 'twoRightHook', 'tearCorners', 'sizeSum', 'missingShow', 'arrowHook', 'convexShow', 'quadSplit', 'concaveSum', 'concaveTriHook', 'tessShow', 'isoFold', 'decHook', 'decTenths', 'decCmpHook', 'decMeter', 'frameHook', 'carpenterShow', 'midShow', 'dqPerpShow', 'familyShow', 'dqClaimHook', 'pumpHook', 'perpDist', 'heightShow', 'paraCut', 'frameArea', 'triDouble', 'landProject', 'htClaim', 'trapHook', 'trapCopies', 'diagHook', 'rhombFour', 'rectCounter', 'houseHook', 'compShow', 'm2Hook', 'm2Cover', 'tileShow', 'hallProject', 'coordHook', 'axesShow', 'orderHook', 'readShow', 'distHook', 'vertexHook', 'shapeShow', 'cityMap', 'coDistShow', 'mirrorHook', 'refShow', 'trHook', 'trShow', 'rotHook', 'rotShow', 'rsHook', 'rsShow', 'congHook', 'congShow', 'tileShow2', 'triDetShow', 'circHook', 'compassShow', 'piHook', 'ciStringShow', 'piShow', 'archShow', 'areaHook', 'discShow', 'boundShow', 'ciDoubleShow', 'gardenShow', 'soHook', 'soFacesShow', 'soEdgesShow', 'eulerShow', 'boxHook', 'boxShow', 'netHook', 'netShow', 'wrapHook', 'saShow', 'viewHook', 'viewsShow', 'giftShow', 'voHook', 'voFillShow', 'voVsArea', 'voToMul', 'voSumHook', 'voMulShow', 'voSameShow', 'treasureShow', 'raHook', 'raShow', 'raTableShow', 'raFracShow', 'enHook', 'enSqShow', 'enTriShow', 'enRuleShow', 'scHook', 'scShow', 'scUpShow', 'scDownShow', 'roomShow', 'arHook', 'arCompShow', 'arCrossShow', 'arVertShow', 'arTransShow', 'arCorrShow', 'arAltShow', 'arBridgeShow', 'pfHook', 'pfPicHook', 'pfTriShow', 'pfVertShow', 'pfAltShow', 'ineqShow', 'ineqProof', 'polyShow', 'polyTable', 'regExShow', 'trapShow', 'cgHook', 'sssBuild', 'cgSasShow', 'simShow', 'quadProof', 'quadFamily', 'cgPerpShow', 'pyHook', 'pySqShow', 'pyPumpShow', 'ladderShow', 'c4Hook', 'c4QuadShow', 'c4SignShow', 'c4DistShow', 'c4SlopeShow', 'c4LineHook', 'c4LineShow', 'c4CheckShow', 'c4CityShow', 'ci4ChordHook', 'ci4ChordShow', 'ci4TanHook', 'ci4TanShow', 'ci4TwoTanShow', 'ci4InscHook', 'ci4InscShow', 'ci4ArcShow', 'ci4SectorShow', 'ci4GardenShow', 'c7CylHook', 'c7CylShow', 'c7NetShow', 'c7ThirdShow', 'c7SphereShow', 'c7LiterShow', 'c7TankShow', 'c8BisHook', 'c8BisBuild', 'c8PbHook', 'c8PbBuild', 'c8TrigHook', 'c8TableShow', 'c8SimShow', 'c8TanShow', 'c8SurveyShow', 'c8BiruniShow', 'c9MirrorHook', 'c9RefShow', 'c9RotHook', 'c9RotShow', 'c9ProtHook', 'c9ProtShow', 'c9TwoMirrorShow', 'c9CityShow', 'steps', 'trace', 'roofFit', 'countModel', 'chaosDouble', 'houseMatch', 'compareAlign', 'scatterHook', 'huntSort', 'spread', 'mailHook', 'mailExplore', 'digitCards', 'traceIntro', 'robot', 'reviewCards', 'stoneHook',
     'bagFeel', 'pushLab', 'poses', 'faceLab', 'coneRoll', 'cylRoll', 'towersPredict', 'paperPush', 'stampLab', 'towerBuild', 'mosque', 'takeHook', 'facesCount', 'roomHunt', 'feelBox', 'shelvesWalk',
     'simonSays', 'lidCheck', 'chaosLid', 'queueBadge', 'queueSwap', 'trainOrdinals', 'chaosTrainBadge', 'ribbonHook', 'bodyMoves', 'robotIntro', 'chaosTurn', 'mapChaosHook', 'birdView', 'chaosSideDraw',
     'roadChaosHook', 'roadListen', 'roadCountChaos', 'chaosSkipBack', 'jumpChaosHook', 'roadRace', 'chaosSubForward', 'recallPic', 'queueOrdinals',   /* S1-U3: أشياؤها رسوم المواضع لا مولّدات */
@@ -864,7 +865,7 @@ export function d240(lessons, code, MAKERS) {
     if (L.sort && L.sort.twins) visit(L.sort.twins, 'التوأم', ['cls'], null);
     /* وما حلّه الطفل في التقييم نفسه: الإتقان قبل المراجعة، والإتقان والمراجعة قبل البند المشتبك والاختبار */
     nameOK = false;
-    if (solved.mastery && L.mastery) visit(L.mastery.concepts, 'الإتقان', ['cls'], null);
+    if (solved.mastery && L.mastery) { visit(L.mastery.concepts, 'الإتقان', ['cls'], null); visit(L.mastery.alt || {}, 'الإتقان البديل', ['cls'], null); }   /* والبديل حُلّ في الدورة الثانية (D284 (1)؛ المراجع A لبوابة M4-U3/U4، 2 (ب)) */
     if (solved.review && L.review) visit(L.review, solved.reviewLabel || 'المراجعة', ['cls'], null);
     return { names, sigs, items, facts, hobj, near };
   }
@@ -916,8 +917,14 @@ export function d240(lessons, code, MAKERS) {
         for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (at(y, x) === '.' && !seen2.has(y + ',' + x)) { errors.push(`${L.id}: ${v.t}: الشكل بثقب مغلق عند الصف ${y + 1} (${R.join('/')})`); y = H; break; } }
       for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walk(x, L); };
     for (const L of Object.values(lessons)) if (/^m2\./.test(L.id)) walk(L, L); }
+  /* وما حُلّ أو عُرض في دروس المرحلة قبله يُحسب لتقييم الدرس (D253 (1)؛ المراجع A لبوابة M4-U3/U4، 2 (ج): بنود U4 تعيد بنود U3) */
+  const ORD = id => { const m = /^(m\d)\.u(\d+)\.d(\d+)$/.exec(id); return m ? [m[1], +m[2], +m[3]] : null; };
+  const priorOf = L => { const o = ORD(L.id); return o ? Object.values(lessons).filter(x => { const p = ORD(x.id); return p && p[0] === o[0] && (p[1] < o[1] || (p[1] === o[1] && p[2] < o[2])); }) : []; };
   for (const L of Object.values(lessons)) {
-    const M = L.mastery;
+    const M = L.mastery, PR = /^m4\./.test(L.id) ? priorOf(L) : [];   /* م4 أولاً (المراحل قبلها أُغلقت بوابتها بالفحص السابق) */
+    if (PR.length) { if (M) { for (const [C, items] of Object.entries(M.concepts)) items.forEach((it, i) => check(L, it, `إتقان ${C}[${i}]`, PR, 'after'));
+        for (const [C, items] of Object.entries(M.alt || {})) items.forEach((it, i) => check(L, it, `إتقان بديل ${C}[${i}]`, PR, 'after')); }
+      (L.review || []).forEach((it, i) => check(L, it, `المراجعة[${i}]`, PR, 'after')); }
     if (M) { for (const [C, items] of Object.entries(M.concepts)) items.forEach((it, i) => check(L, it, `إتقان ${C}[${i}]`, [L], 'mastery'));
       for (const [C, items] of Object.entries(M.alt || {})) items.forEach((it, i) => check(L, it, `إتقان بديل ${C}[${i}]`, [L], 'mastery'));   /* بنود الدورة الثانية (D284 (1)) كالأولى: جديدة على ما عُرض */
       if (M.mixed && lessons[M.mixed.lesson]) check(L, M.mixed.item, 'البند المشتبك', [lessons[M.mixed.lesson]], 'after'); }
