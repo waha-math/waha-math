@@ -7,7 +7,7 @@
    ===================================================================== */
 const DEC = { line: '#33454c', tick: '#6b7f88', ptr: '#e07b39', ok: '#2f9d6b', int: '#3d7cc0', frac: '#e07b39' };
 /* الطول بالوحدة الأصغر التي تُحوَّل إليها المقارنة والحساب: الملم للسنتيمتر العشري، والسنتيمتر للمتر العشري */
-const decSmall = v => v[1] === 'dm' ? ['cm', Math.round(v[0] * 100)] : v[1] === 'mc' ? ['cm', v[0]] : v[1] === 'cm' ? ['mm', v[0] * 10] : ['mm', Math.round(lenMM(v))];
+const decSmall = v => v[1] === 'dm' ? ['cm', Math.round(v[0] * 100)] : v[1] === 'mc' ? ['cm', v[0]] : v[1] === 'pair' ? ['cm', v[0][0] * 100 + v[0][1]] : v[1] === 'cm' ? ['mm', v[0] * 10] : ['mm', Math.round(lenMM(v))];   /* والمتر والسنتيمتر إلى السنتيمتر لا الملّيمتر (المراجع A لبوابة S3-U0/U1، 9) */
 const decSmallTxt = v => { const [u, n] = decSmall(v); return `${n} ${U_(u)}`; };
 const decStage = (H = 232) => lenStage(H);
 /* ---------- خط أعشار: من lo إلى hi سنتيمتراً، بتدريجة لكل عُشر، والأعداد الصحيحة مكتوبة ---------- */
@@ -41,7 +41,8 @@ ITEM.decRuler = {
 ITEM.decConv = {
   make(spec) { const [ok, ...bad] = spec.ch, want = lenKey(ok), errs = {}; bad.forEach(([v, e]) => { errs[lenKey(v)] = e; }); return { ...spec, want, vals: [ok, ...bad.map(b => b[0])], errs, tag: 'dec-conv-' + spec.v[1] }; },
   async ask(item, mode, tries) { const svg = decStage(200); lenCard(svg, 180, 66, item.v, { w: 190, h: 64, fs: 26 }); const eq = el('text', { x: 180, y: 136, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: LENC.ink }, svg); eq.textContent = '= ؟';
-    let aid = null; if (tries >= 3) { aid = helpG(svg); const t = el('text', { x: 180, y: 172, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, aid); t.textContent = '= ' + decSmallTxt(item.v); await S('gen.dec.together.conv'); }
+    let aid = null; if (tries >= 3) { aid = helpG(svg); const t = el('text', { x: 180, y: 172, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, aid); const [su, sn] = decSmall(item.v), ans = item.vals[0], bare = item.v[1] === su || (ans[1] === su && ans[0] === sn);   /* الصغرى هي المعطى أو الجواب: الخطوة قبلها لا الجواب */
+      t.textContent = bare ? (su === 'mm' ? `1 ${U_('cm')} = 10 ${U_('mm')}` : `1 ${U_('m')} = 100 ${U_('cm')}`) : '= ' + decSmallTxt(item.v); await S('gen.dec.together.conv'); }
     else if (item.say === false) await S(item.q); else { await S(item.q || 'gen.dec.q.conv', { noGap: true }); await S(lenLn(item.v), { append: true }); }   /* say: false: السؤال يقول الطول بنفسه (فوضى) */
     const k = await choosePick(shuffle(lenOpts(item.vals)), item.want); return { ans: k, ctx: { svg, aid } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.errs[k] || 'decConv' }; },
@@ -132,7 +133,8 @@ SCENES.decHook = async c => { const L = c.lines, b = c.mm || 58, svg = decStage(
   const card = lenCard(svg, 180, 152, [Math.floor(b / 10) + (b % 10) / 100, 'dcm'], { w: 150, h: 40, fs: 22, stroke: RUL.chaos }); card.querySelector('text').setAttribute('fill', RUL.chaos); SFX.tick();
   await S(L[1]); await axPredictYN('no', 'gen.dec.pr.hook'); for (const l of L.slice(2)) await S(l); };
 /* الاكتشاف (د1): المسافة بين 7 و8 عشرة أجزاء، وكل جزء عُشر؛ ثم خط الأعشار وموضع 7.4؛ ثم تصحيح فوضى */
-SCENES.decTenths = async c => { const L = c.lines, svg = decStage(262), R = rulerAt(svg, { x: 50, y: 40, pxcm: 260, from: 7, to: 8, mm: true, broken: true }); await S(L[0]);
+SCENES.decTenths = async c => { const L = c.lines, svg = decStage(262), R = rulerAt(svg, { x: 50, y: 40, pxcm: 260, from: 7, to: 8, mm: true, broken: true });
+  await lenPredict([5, 10, 100].map(n => [String(n), DG(n), '']), '10', 'gen.dec.pr.parts'); await S(L[0]);   /* توقّعٌ قبل العدّ (المراجع A لبوابة S3-U0/U1، 15) */
   const hops = el('g', { 'pointer-events': 'none' }, svg); for (let i = 0; i < 10; i++) { el('path', { d: `M${R.X(7 + i / 10)} 36 Q${R.X(7 + (i + .5) / 10)} 14 ${R.X(7 + (i + 1) / 10)} 36`, fill: 'none', stroke: DEC.frac, 'stroke-width': 2.4 }, hops); SFX.tick(); await sleep(FAST ? 5 : 160); }
   const t = el('text', { x: 180, y: 128, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: DEC.frac, direction: 'ltr' }, svg); t.textContent = `1 ${U_('mm')} = 0.1 ${U_('cm')}`; await S(L[1]);
   hops.remove(); R.g.remove(); t.setAttribute('y', 40); const N = decLineAt(svg, 7, 8, { y: 150, tenths: true }), P = decPtrAt(svg, N, 7.4); SFX.tick();
@@ -150,9 +152,20 @@ SCENES.decCmpHook = async c => { const L = c.lines, svg = decStage(232); lenCard
 /* الاكتشاف (د2): المتر مئة سنتيمتر، فالسنتيمتر جزء من مئة؛ وثلاثة أمثلة، والصفر يحجز خانة الأعشار */
 SCENES.decMeter = async c => { const L = c.lines, svg = decStage(262), x0 = 40, W = 280, y = 50; el('rect', { x: x0, y, width: W, height: 22, rx: 4, fill: '#e6eef3', stroke: LENC.ink, 'stroke-width': 2 }, svg);
   for (let i = 0; i <= 100; i++) el('line', { x1: x0 + W * i / 100, y1: y + 22, x2: x0 + W * i / 100, y2: y + 22 + (i % 10 ? 5 : 11), stroke: LENC.ink, 'stroke-width': i % 10 ? .8 : 1.6 }, svg);
-  const t0 = el('text', { x: 180, y: 34, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: LENC.ink, direction: 'ltr' }, svg); t0.textContent = `1 ${U_('m')} = 100 ${U_('cm')}`; await S(L[0]);
+  const t0 = el('text', { x: 180, y: 34, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: LENC.ink, direction: 'ltr' }, svg); t0.textContent = `1 ${U_('m')} = ؟ ${U_('cm')}`; await lenPredict([10, 100, 1000].map(n => [String(n), DG(n), '']), '100', 'gen.dec.pr.meter'); t0.textContent = `1 ${U_('m')} = 100 ${U_('cm')}`; await S(L[0]);
   el('rect', { x: x0, y: y + 1, width: W / 100, height: 20, fill: DEC.frac }, svg); const t1 = el('text', { x: 180, y: 112, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: DEC.frac, direction: 'ltr' }, svg); t1.textContent = `1 ${U_('cm')} = 0.01 ${U_('m')}`; SFX.tick(); await S(L[1]);
   const rows = c.rows || [[1, 50], [2, 35], [3, 5]];
   for (const [i, [m, cm]] of rows.entries()) { const t = el('text', { x: 180, y: 152 + i * 34, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: i === 2 ? DEC.ok : LENC.ink, direction: 'rtl' }, svg); t.textContent = `${mcTxt(m, cm)} = ${lenTxt([(m * 100 + cm) / 100, 'dm'])}`; SFX.tick(); if (L[2 + i]) await S(L[2 + i]); }
   for (const l of L.slice(2 + rows.length)) await S(l); };
+/* المثال المحلول (د2؛ المراجع A لبوابة S3-U0/U1، 1): الجمع والطرح بالتحويل إلى الوحدة الأصغر ثم العودة، والتحقّق بالتقريب، وقبل الأول تقديرٌ من الطفل.
+   rows: [[أ، op، ب]…]، وجمل كل صفّ ثلاث: السؤال، والتحويل والحساب، والعودة والتقريب */
+SCENES.decCalcShow = async c => { const L = c.lines, svg = decStage(250), rows = c.rows || [[[5.4, 'dcm'], '+', [3.3, 'dcm']], [[8.3, 'dcm'], '-', [2.7, 'dcm']], [[1.2, 'dm'], '+', [2.45, 'dm']]];
+  const T = (y, s, col, fs = 24) => { const t = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col || LENC.ink, direction: 'ltr', 'data-calcrow': 1 }, svg); t.textContent = s; return t; };
+  for (const [i, [a, op, b]] of rows.entries()) { svg.querySelectorAll('[data-calcrow]').forEach(n => n.remove()); const sg = op === '-' ? '−' : '+', f = v => decFmt(v[0], v[1] === 'dcm' ? 1 : 0), [su, sa] = decSmall(a), sb = decSmall(b)[1], sw = op === '-' ? sa - sb : sa + sb;
+    const w = [su === 'mm' ? sw / 10 : sw / 100, a[1]], ra = Math.round(a[0]), rb = Math.round(b[0]), re = op === '-' ? ra - rb : ra + rb, uu = U_(a[1] === 'dm' ? 'm' : 'cm');
+    T(54, `${f(a)} ${sg} ${f(b)} = ؟ ${uu}`); await S(L[3 * i]);
+    if (!i) await lenPredict([re, re + 1, sw].map(n => [String(n), DG(n), '']), String(re), 'gen.dec.pr.est');   /* تقديرٌ قبل الحساب: بالأعداد الكاملة */
+    T(112, `${sa} ${sg} ${sb} = ${sw} ${U_(su)}`, DEC.frac, 22); SFX.tick(); await S(L[3 * i + 1]);
+    T(160, `= ${f(w)} ${uu}`, DEC.ok); T(204, `≈ ${ra} ${sg} ${rb} = ${re}`, css('--think'), 19); SFX.good(); await S(L[3 * i + 2]); }
+  for (const l of L.slice(3 * rows.length)) await S(l); };
 WRAP_ART.decArt = svg => { const R = rulerAt(svg, { x: 70, y: 120, pxcm: 55, from: 5, to: 9, mm: true, broken: true }); rulThingAt(svg, 'pencil', R.X(5) - 60, R.X(7.4), 118); const t = el('text', { x: 180, y: 70, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 800, fill: DEC.frac, direction: 'ltr' }, svg); t.textContent = '7.4'; };

@@ -25,7 +25,7 @@ let STAGE_RO = null, STAGE_MO = null;   /* إن تغيّر حجم المسرح (
    والصيغ والخيارات والبطاقات — إلا ترقيم الأدوات الحقيقية (المسطرة وشريط القياس والمنقلة والعدسة، وما عُلِّم data-west كمقابلة الأرقام في digitPairs).
    الصيغة (نصّ ltr فيه + − × ÷ = بلا حروف) تُعكس رموزها لتُقرأ من اليمين (D251) بـ mfSet، والنصّ ltr الذي فيه كلمات («1 ملم = 0.1 سم») يصير rtl.
    مراقبٌ واحد على المسرح بدل ضبط كل موضع: ما يُكتب بعد اليوم في م3 يتبع القرار وحده. ومع الأرقام الغربية يقلب النصَّ الذي فيه حرف عربي وحده إلى rtl (D280) */
-const WEST_TOOL = '[data-ruler],[data-tape],[data-prot],[data-lens],[data-west]';
+const WEST_TOOL = '[data-ruler],[data-tape],[data-prot],[data-prot-lab],[data-lens],[data-west]';   /* وأعداد المنقلة إن رُفعت فوق ما يُرسم (protAt().top()) بقيت غربية (D279 (2)؛ المراجع A لبوابة S3-U0/U1، 7) */
 function measFix(t) { if (!t || !t.closest || t.closest(WEST_TOOL)) return;
   /* وبالأرقام الغربية (D280): النصّ ltr الذي فيه حرف عربي وعدد يصير rtl كما يصير مع المشرقية، فالحرف العربي يُقرأ من اليمين بالكتابتين؛ والصيغة بالأعداد وحدها تبقى من اليسار (D251) */
   if (SET.digits !== 'east') { if (t instanceof SVGElement && t.tagName === 'text' && !t.hasAttribute('data-sent') && !t.childElementCount && !t.hasAttribute('unicode-bidi') && t.getAttribute('direction') === 'ltr' && /[0-9]/.test(t.textContent) && /[\u0621-\u064A]/.test(t.textContent)) t.setAttribute('direction', 'rtl'); return; }
