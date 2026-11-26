@@ -38,7 +38,7 @@ function measWatch(st) { if (MEAS_MO || !st || typeof MutationObserver === 'unde
     if (tg instanceof SVGElement && tg.tagName === 'text') measFix(tg);
     for (const n of m.addedNodes || []) { if (n.nodeType === 3) { if (n.parentElement instanceof SVGElement) measFix(n.parentElement); else if (n.parentElement) measFix(n.parentElement); } else if (n.nodeType === 1) { if (n instanceof SVGElement) { if (n.tagName === 'text') measFix(n); n.querySelectorAll && n.querySelectorAll('text').forEach(measFix); } else { measFix(n); n.querySelectorAll('svg text').forEach(measFix); } } } } });
   MEAS_MO.observe(st, { childList: true, subtree: true, characterData: true }); }
-function newStage(H = 300, bg = {}, aria) { const st = $('#stage'); measWatch(st); st.innerHTML = ''; STAGE_T = performance.now(); HIST = []; BACK_I = null; if (typeof updateSkip === 'function') updateSkip(); if (PEND_INTRO) Promise.resolve().then(flushIntro);   /* المقدّمة بعد رسم المشهد (D270) */ const svg = el('svg', { viewBox: `0 0 360 ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': aria || (CUR ? plain(CUR.title || '') : '') }); st.appendChild(svg);
+function newStage(H = 300, bg = {}, aria) { const st = $('#stage'); measWatch(st); st.innerHTML = ''; const LS = $('#lesson'); if (LS) LS.classList.remove('dense'); STAGE_T = performance.now(); HIST = []; BACK_I = null; if (typeof updateSkip === 'function') updateSkip(); if (PEND_INTRO) Promise.resolve().then(flushIntro);   /* المقدّمة بعد رسم المشهد (D270) */ const svg = el('svg', { viewBox: `0 0 360 ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': aria || (CUR ? plain(CUR.title || '') : '') }); st.appendChild(svg);
   try { if (STAGE_RO) STAGE_RO.disconnect(); STAGE_RO = new ResizeObserver(() => refreshPads(svg)); STAGE_RO.observe(svg); } catch (e) {}
   /* وحين تظهر الخيارات تحت المسرح أو تزول يصغر أو يكبر قبل أن يُبلغ ResizeObserver: يُعاد الحساب فوراً، فلا تبقى منطقة لمس دون حدّها لحظةً
      (الفحصان المستقلان C وD: زرّ تحريك الطريق 55 بكسلاً، وقطعة الورشة 61، على iPhone SE) */
@@ -104,10 +104,17 @@ async function ghostHand(svg, path, ms = 1200) {
 
 /* ---------- اختيار بأيقونة وكلمة (الكلام يقوله المرشد) ----------
    options: [k، النص، الأيقونة، جملة اسمه]؛ إن كان لكل خيار جملة قُرئت الخيارات بعد السؤال وهي تُضاء (المبدأ 8: الطفل قد لا يقرأ) */
+/* الدرس «الكثيف» (Gate، 26 نوفمبر 2026): بنود التعليل في م3 وم4 بسؤالٍ من أربعة أسطر وثلاث بطاقات من سطرين صغّرت الرسم إلى 22–41٪ على Pixel 5
+   حين يعود السؤال إلى الفقاعة (D254 (5))، فلا يُرى الشكل الذي يُعلَّل. إن صغُر الرسم عن 85٪ من عرضه حين تظهر الخيارات، صارت الفقاعة ثلاثة أسطر تُمرَّر
+   وخطّ البطاقات أصغر، كالشاشات القصيرة؛ ويزول مع المسرح التالي. يُقاس فوراً (لا في الإطار التالي) فلا يسبقه الانتظار. وبالعرض تخطيطه الخاص */
+function fitDense() { try { const s = $('#stage svg'), L = $('#lesson'); if (!s || !L || L.classList.contains('dense') || matchMedia('(orientation: landscape) and (max-height: 520px)').matches) return;
+  const r = s.getBoundingClientRect(), vb = s.viewBox.baseVal; if (!vb || !vb.width || !vb.height || !r.width) return;   /* بالمستطيل لا بـ getScreenCTM: رسمٌ انضغط إلى صفر يُرجع مقياسه 1 */
+  if (Math.min(1, r.height / vb.height / (r.width / vb.width)) < .85) { L.classList.add('dense'); if (typeof bubbleMore === 'function') bubbleMore(); } } catch (e) {} }
 function choosePick(options, okKey, opt = {}) {
   const box = document.createElement('div'); box.className = 'choices icons' + (opt.cls ? ' ' + opt.cls : ''); (opt.host || $('#stage')).appendChild(box);
   const btns = options.map(([k, t, ic]) => { const b = document.createElement('button'); b.className = 'pick'; b.innerHTML = (ic || PICKICON[k] || '') + `<span>${esc(G(t))}</span>`; b.dataset.k = k; b.setAttribute('aria-label', plain(G(t)));
     /*T*/if (TESTHOOK) b.dataset.ok = okKey == null ? '' : (Array.isArray(okKey) ? okKey.includes(k) : k === okKey);/*/T*/ box.appendChild(b); return b; });
+  fitDense();
   AUTO({ kind: 'pick', ok: () => (btns.find(b => okKey == null || (Array.isArray(okKey) ? okKey.includes(b.dataset.k) : b.dataset.k === okKey)) || btns[0]).click(), wrong: () => (btns.find(b => okKey != null && !(Array.isArray(okKey) ? okKey.includes(b.dataset.k) : b.dataset.k === okKey)) || btns[0]).click() });
   const r = gate(new Promise(res => btns.forEach(b => b.onclick = () => { if (box.dataset.done) return; box.dataset.done = 1; AUTO_CLEAR(); hush();
     b.classList.add(NEUTRAL_ANS ? 'chosen' : okKey == null || (Array.isArray(okKey) ? okKey.includes(b.dataset.k) : b.dataset.k === okKey) ? 'ok' : 'no'); SFX.tick(); res(b.dataset.k); })))
@@ -128,6 +135,7 @@ function cardPick(cards, opt = {}) {   // cards: [{id(line), k, ok, icon, hide, 
     /*T*/if (TESTHOOK) b.dataset.ok = !!c.ok;/*/T*/ box.appendChild(b); return b; });
   /* بطاقتان مسموعتان بلا نصّ: جنباً إلى جنب، فلا تأخذان من المسرح ارتفاع بطاقتين (Gate، 18 نوفمبر 2026: في S1-U3 د6 صغر الطريق إلى 71٪ وسهماه إلى 45 بكسل على Pixel 5)؛ وحين يُكتب نصّ أيٍّ منهما تعودان عموداً */
   if (list.length === 2 && list.every(c => c.hide)) box.classList.add('pair');
+  fitDense();
   let answered = false, run = 0, shown = false;
   /* بطاقةٌ مخفيّة لم تُسمع (كتمٌ، أو «بلا صوت»، أو «تخطَّ»، أو جهازٌ بلا صوت عربي): تُكتب البطاقتان، وبطاقة فوضى بنغمتها المكتوبة «فوضى تظنّ:»
      بلونها، كما تُسمع (D271)؛ فلا يبقى سؤالٌ بلا نصّ ولا صوت */
@@ -187,7 +195,7 @@ function numberPick(nums, ok, opt = {}) {
   const btns = nums.map(n => { const b = document.createElement('button'); b.className = 'pick num'; b.dataset.k = n;
     b.innerHTML = (opt.west ? `<b dir="ltr">${MS(n)}</b>` : showDigits && (n <= 10 || teens) ? `<b>${DG(n)}</b>` : '') + `<span>${esc(T(W(n)))}</span>`; b.setAttribute('aria-label', plain(T(W(n))));
     /*T*/if (TESTHOOK) b.dataset.ok = n === ok;/*/T*/ box.appendChild(b); return b; });
-  let answered = false;
+  let answered = false; fitDense();
   AUTO({ kind: 'num', ok: () => btns.find(b => +b.dataset.k === ok).click(), wrong: () => (btns.find(b => +b.dataset.k !== ok) || btns[0]).click() });
   const p = gate(new Promise(res => btns.forEach(b => b.onclick = () => { if (box.dataset.done) return; box.dataset.done = 1; answered = true; AUTO_CLEAR(); hush(); SFX.tick(); res(+b.dataset.k); })));
   if (opt.read !== false) readChoices(btns.map(b => ({ line: lineOf(W(+b.dataset.k)), el: b })), { intro: opt.intro, host: box, noGap: true });   /* الأعداد خيارات: لا تحلّ محلّ السؤال، و«أعد الجملة» يعيد السؤال ثم الأعداد */

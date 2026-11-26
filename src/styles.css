@@ -308,6 +308,12 @@ html.lpause #confetti { visibility: hidden; }
   .choices.cards .card { min-height: 56px; font-size: 18px; } .choices.nums .num { min-height: 60px; } .choices.nums .num b { font-size: 26px; }
   .bin { min-height: 56px; font-size: 15px; } .bin svg { max-width: 84px; }
 }
+/* الدرس الكثيف (fitDense): سؤالٌ طويل وخيارات طويلة صغّرت الرسم، ففقاعةٌ بثلاثة أسطر تُمرَّر وبطاقاتٌ بخطّ أصغر، على أيّ شاشة طولية */
+#lesson.dense #bubble { font-size: 17px; line-height: 1.5; padding: 6px 10px 6px 64px; min-height: 58px; height: calc(1.5em * 3 + 12px); box-sizing: border-box; overflow: hidden; margin-bottom: 0; align-items: flex-start; }
+#lesson.dense #say { display: block; width: 100%; max-height: calc(1.5em * 3); overflow-y: auto; overscroll-behavior: contain; }
+#lesson.dense .choices { gap: 6px; padding: 0 8px 8px; }
+#lesson.dense .choices.cards .card { min-height: 56px; font-size: 16px; line-height: 1.45; padding: 4px 8px; }
+#lesson.dense .choices.nums .num { min-height: 56px; } #lesson.dense .choices.icons .pick { min-height: 56px; font-size: 15px; line-height: 1.35; padding: 4px 6px; }
 /* أقصر الشاشات (iPhone SE، 568): البطاقات وأزرار الرموز أقلّ ارتفاعاً فيبقى للمسرح ما يُرى فيه الرسم (بوابة S1-U4: مسرح التعليل 84 بكسلاً تحت ثلاث بطاقات)؛ والهدف 56 كما هو */
 @media (max-height: 600px) {
   .choices.cards .card { font-size: 16px; line-height: 1.45; padding: 4px 8px; }

@@ -112,7 +112,7 @@ ITEM.c9NameIt = cpItem({ H: 262, tLine: 'gen.c9.together.name', hint: 'gen.c9.hi
 function c9RotFig(g, o) { const M = o.M || [150, 160], u = o.u || 18, a0 = o.a0 ?? 10, a1 = a0 + (o.cw ? -o.th : o.th), A = angP(M, a0, o.r * u), B = angP(M, a1, o.r * u);
   for (const [P, col] of [[A, C9.org], [B, C9.img]]) geoLine(g, M[0], M[1], P[0], P[1], { color: col, w: 2.6, dash: '6 4' });
   pfDot(g, M); pfLab(g, M[0] - 12, M[1] + 18, 'م', { fs: 15 });
-  for (const [P, col, t, a] of [[A, C9.org, 'أ', a0], [B, C9.img, 'أ′', a1]]) { el('circle', { cx: P[0], cy: P[1], r: 6, fill: col, stroke: '#fff', 'stroke-width': 2 }, g); const L = angP(M, a, o.r * u + 18); pfLab(g, L[0], L[1] + 5, t, { fs: 15, col }); }
+  for (const [P, col, t, a] of [[A, C9.org, 'أ', a0], [B, C9.img, 'أ’', a1]]) { el('circle', { cx: P[0], cy: P[1], r: 6, fill: col, stroke: '#fff', 'stroke-width': 2 }, g); const L = angP(M, a, o.r * u + 18); pfLab(g, L[0], L[1] + 5, t, { fs: 15, col }); }
   return { M, A, B, a0, a1, u }; }
 /* منقلة نصف دائرية مركزها م وصفرها على م أ، بعلامات كل عشر وأعداد كل ثلاثين */
 function c9Prot(g, M, a0, cw, R = 64) { const s = cw ? -1 : 1, P = el('g', { 'pointer-events': 'none' }, g);
@@ -195,7 +195,7 @@ SCENES.c9ProtShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('
   const R1 = angP(M, 10, 170); geoLine(g, M[0], M[1], R1[0], R1[1], { color: C9.org, w: 2.6 }); SFX.tick(); await c9Say(L, 0);
   const pr = c9Prot(g, M, 10, false, 70); await c9Say(L, 1); const R2 = angP(M, 60, 170); geoLine(g, M[0], M[1], R2[0], R2[1], { color: C9.img, w: 2.6 }); SFX.tick(); await c9Say(L, 2); pr.remove();
   arArc(g, M, 10, 60, { r: 34, col: C9.arc, deg: 50, dl: 18, fs: 14, fill: true }); el('path', { d: angArc(M, 5 * u, 2, 70), fill: 'none', stroke: C9.arc, 'stroke-width': 2.6 }, g);
-  el('circle', { cx: A2[0], cy: A2[1], r: 6, fill: C9.img, stroke: '#fff', 'stroke-width': 2 }, g); pfLab(g, A2[0] - 14, A2[1] - 6, 'أ′', { fs: 15, col: C9.img }); preTicks(g, M, A, 1, C9.ok); preTicks(g, M, A2, 1, C9.ok); SFX.tick(); await c9Say(L, 3);
+  el('circle', { cx: A2[0], cy: A2[1], r: 6, fill: C9.img, stroke: '#fff', 'stroke-width': 2 }, g); pfLab(g, A2[0] - 14, A2[1] - 6, 'أ’', { fs: 15, col: C9.img }); preTicks(g, M, A, 1, C9.ok); preTicks(g, M, A2, 1, C9.ok); SFX.tick(); await c9Say(L, 3);
   for (const l of L.slice(4)) await S(l); };
 SCENES.c9TwoMirrorShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 4, ny: 4, top: 30 }), p = [3, 1];
   c9Mark(svg, Pl, 'refV'); c4Dot(svg, Pl, ...p, { pair: true, col: C9.org }); c4Dot(svg, Pl, -3, 1, { pair: true, col: '#8a9aa8' }); SFX.tick(); await c9Say(L, 0);
