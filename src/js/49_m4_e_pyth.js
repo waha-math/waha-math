@@ -26,7 +26,7 @@ ITEM.pySq = cpItem({ H: 262, tLine: 'gen.py.together.sq', hint: 'gen.py.hint.sq'
   make: s => { const want = s.a * s.a + s.b * s.b; /*T*/if (TESTHOOK && (want > 100 || (s.a + s.b) ** 2 > 100 && false)) testBug('pySq: المربع أكبر من مئة');/*/T*/ return { want, nums: [want, s.a + s.b, (s.a + s.b) ** 2 <= 100 ? (s.a + s.b) ** 2 : want + 1], tag: 'py-sq' }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), a = item.a, b = item.b, u = Math.min(30, 320 / (a + 2 * b), 212 / (2 * a + b)), W = (a + 2 * b) * u, C = [180 - W / 2 + (a + b) * u, 18 + (212 - (2 * a + b) * u) / 2 + (a + b) * u];
     const Q = pySquares(g, C, a, b, u); preLab(g, Q.mC[0], Q.mC[1] + 6, '؟', { col: PY.q, fs: 20 });
-    if (tries >= 2) { preLab(helpG(svg), Q.mA[0], Q.mA[1] + 6, MS(String(item.a * item.a)), { col: PY.a, fs: 16 }); preLab(helpG(svg), Q.mB[0], Q.mB[1] + 6, MS(String(item.b * item.b)), { col: PY.b, fs: 16 }); }
+    if (tries >= 2) { const m = helpG(svg); hlRing(m, Q.mA, Math.max(14, item.a * u * .42), H2C[0]); hlRing(m, Q.mB, Math.max(14, item.b * u * .42), H2C[1]); preLab(m, Q.mA[0], Q.mA[1] + 6, MS(String(item.a * item.a)), { col: PY.a, fs: 16 }); preLab(m, Q.mB[0], Q.mB[1] + 6, MS(String(item.b * item.b)), { col: PY.b, fs: 16 }); if (tries === 2) ciRule(m, 180, 246, labelText('pyRuleSq'), PY.hl, 15); }   /* المستوى الثاني رسمٌ: مربّعا الضلعين بمساحتيهما، والبطاقة معه (لا تُنسخ) */
     if (tries >= 3) ciEq(helpG(svg), 180, 246, `${item.a * item.a} + ${item.b * item.b} = ؟`, PY.hl, 17); return { Q }; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 246, labelText('pyRuleSq'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
@@ -36,19 +36,20 @@ ITEM.pySq = cpItem({ H: 262, tLine: 'gen.py.together.sq', hint: 'gen.py.hint.sq'
 function pyScene(g, ctx, hyp, a, want, o = {}) { const u = ctx === 'tri' ? Math.min(o.u || 34, 168 / Math.max(want, 1), 220 / Math.max(a, 1)) : Math.min(o.u || 14, 210 / Math.max(hyp, 1), 160 / Math.max(want, 1), 250 / Math.max(a, 1)), labs = {};   /* الارتفاع والعرض داخل الإطار */
   if (ctx === 'perp') { const y = 196, N = [150, y - want * u], Qf = [150, y], R = [150 + a * u, y]; geoLine(g, 24, y, 336, y, { color: PY.road, w: 5 }); geoLine(g, N[0], N[1], Qf[0], Qf[1], { color: PY.a, w: 3.4, dash: '7 5' }); geoLine(g, N[0], N[1], R[0], R[1], { color: PY.c, w: 4 });
     preRight(g, Qf, N, R, 12); [N, Qf, R].forEach(P => pfDot(g, P)); pfLab(g, N[0] - 14, N[1] + 6, 'ن'); pfLab(g, Qf[0] - 10, y + 20, 'ق'); pfLab(g, R[0] + 10, y + 20, 'ر');
-    labs.hyp = preLab(g, (N[0] + R[0]) / 2 + 16, (N[1] + R[1]) / 2 - 6, MS(String(hyp)), { col: PY.c, fs: 16, anchor: 'start' }); labs.a = preLab(g, (Qf[0] + R[0]) / 2, y + 22, MS(String(a)), { fs: 16 }); labs.q = preLab(g, N[0] - 12, (N[1] + y) / 2 + 6, '؟', { col: PY.q, fs: 18, anchor: 'end' }); return labs; }
+    labs.hyp = preLab(g, (N[0] + R[0]) / 2 + 16, (N[1] + R[1]) / 2 - 6, MS(String(hyp)), { col: PY.c, fs: 16, anchor: 'start' }); labs.a = preLab(g, (Qf[0] + R[0]) / 2, y + 22, MS(String(a)), { fs: 16 }); labs.q = preLab(g, N[0] - 12, (N[1] + y) / 2 + 6, '؟', { col: PY.q, fs: 18, anchor: 'end' }); labs.pts = { h: [N, R], k: [Qf, R], C: Qf }; return labs; }
   if (ctx === 'ladder') { const y = 200, W = 300, B = [W - a * u, y], T = [W, y - want * u]; el('rect', { x: W, y: 24, width: 20, height: y - 24, fill: PY.wall, 'pointer-events': 'none' }, g); geoLine(g, 30, y, W + 20, y, { color: PY.road, w: 5 });
     geoLine(g, B[0], B[1], T[0], T[1], { color: PY.c, w: 7 }); for (let i = 1; i < 8; i++) { const P = [B[0] + (T[0] - B[0]) * i / 8, B[1] + (T[1] - B[1]) * i / 8]; geoLine(g, P[0] - 7, P[1] - 3, P[0] + 7, P[1] + 3, { color: PY.c, w: 3 }); }
-    preRight(g, [W, y], B, T, 12); labs.hyp = preLab(g, (B[0] + T[0]) / 2 - 18, (B[1] + T[1]) / 2, ciTxt(hyp, 'm'), { col: PY.c, fs: 15, dir: 'rtl', anchor: 'start' }); labs.a = preLab(g, (B[0] + W) / 2, y + 22, ciTxt(a, 'm'), { fs: 15, dir: 'rtl' }); labs.q = preLab(g, W + 28, (y + T[1]) / 2, '؟', { col: PY.q, fs: 18, anchor: 'start' }); return labs; }
+    preRight(g, [W, y], B, T, 12); labs.hyp = preLab(g, (B[0] + T[0]) / 2 - 18, (B[1] + T[1]) / 2, ciTxt(hyp, 'm'), { col: PY.c, fs: 15, dir: 'rtl', anchor: 'start' }); labs.a = preLab(g, (B[0] + W) / 2, y + 22, ciTxt(a, 'm'), { fs: 15, dir: 'rtl' }); labs.q = preLab(g, W + 28, (y + T[1]) / 2, '؟', { col: PY.q, fs: 18, anchor: 'start' }); labs.pts = { h: [B, T], k: [B, [W, y]], C: [W, y] }; return labs; }
   const C = [250, 196], T = pyTri(g, C, a, want, u); labs.a = preLab(g, (T.A[0] + C[0]) / 2, C[1] + 22, MS(String(a)), { fs: 16 }); labs.q = preLab(g, C[0] + 14, (T.B[1] + C[1]) / 2 + 6, '؟', { col: PY.q, fs: 18, anchor: 'start' });
-  labs.hyp = preLab(g, (T.A[0] + T.B[0]) / 2 - 12, (T.A[1] + T.B[1]) / 2 - 8, MS(String(hyp)), { col: PY.c, fs: 16, anchor: 'end' }); return labs; }
+  labs.hyp = preLab(g, (T.A[0] + T.B[0]) / 2 - 12, (T.A[1] + T.B[1]) / 2 - 8, MS(String(hyp)), { col: PY.c, fs: 16, anchor: 'end' }); labs.pts = { h: [T.A, T.B], k: [T.A, C], C }; return labs; }
 const pyHx = it => it.ctx === 'perp' ? 250 : 150;   /* سطر العون فوق الشكل: في العمود يسار النقطة ن مشغول، فيُزاح يميناً */
 ITEM.pyLeg = cpItem({ H: 250, tLine: 'gen.py.together.leg', hint: 'gen.py.hint.leg', rLine: 'gen.py.reveal.leg', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const w2 = s.hyp * s.hyp - s.a * s.a, want = Math.round(Math.sqrt(w2)); /*T*/if (TESTHOOK && want * want !== w2) testBug('pyLeg: الضلع ليس عدداً صحيحاً');/*/T*/
     return { want, w2, nums: [want, s.hyp - s.a, w2 <= 100 ? w2 : s.hyp + s.a].filter((v, i, X) => X.indexOf(v) === i).concat([want + 1]).slice(0, 3), tag: 'py-leg-' + (s.ctx || 'tri') }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), L = pyScene(g, item.ctx || 'tri', item.hyp, item.a, item.want);
     if (tries >= 3) ciEq(helpG(svg), pyHx(item), 34, `${item.hyp} × ${item.hyp} − ${item.a} × ${item.a} = ${item.w2}`, PY.hl, 16); return { L }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), pyHx(item), 34, labelText('pyRuleLeg'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), P = ctx.L && ctx.L.pts; if (P) { hlSeg(m, P.h[0], P.h[1], H2C[2]); hlSeg(m, P.k[0], P.k[1], H2C[0]); hlRing(m, P.C, 18); }   /* المستوى الثاني رسمٌ: الوتر (الأطول، مقابل القائمة) والضلع المعلوم */
+    ciRule(m, pyHx(item), 34, labelText('pyRuleLeg'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.L && ctx.L.q) { ctx.L.q.textContent = MS(String(item.want)); ctx.L.q.setAttribute('fill', PY.ok); } },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.hyp - it.a ? 'pySub' : k === it.w2 ? 'pyNoRoot' : 'pyOff' });
@@ -56,19 +57,21 @@ ITEM.pyLeg = cpItem({ H: 250, tLine: 'gen.py.together.leg', hint: 'gen.py.hint.l
 /* ================= ③ الوتر بجذر تقريبي (C407): a، b؛ الجواب بمنزلة عشرية واحدة ================= */
 ITEM.pyApprox = cpItem({ H: 236, tLine: 'gen.py.together.approx', hint: 'gen.py.hint.approx', rLine: 'gen.py.reveal.approx', rSay: it => S('gen.py.v.' + pyKey(it.r), { append: true }), praise: 'praiseThink',
   make: s => { const r = +pyRt(s.a, s.b).toFixed(1), cands = [r, +(r - .1).toFixed(1), +(r + .1).toFixed(1)]; return { r, cands, want: pyKey(r), tag: 'py-approx' }; },   /* ثلاثة أعداد عشرية متجاورة: أيّها مربعه أقرب إلى مربع الوتر؟ فلا يُعرف الجواب بشكله (المراجع A لبوابة M4-U3/U4، 3) */
-  draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(60, 150 / item.b, 200 / item.a), C = [250, 196], T = pyTri(g, C, item.a, item.b, u);
+  draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(60, 150 / item.b, 200 / item.a), C = [250, 196], T = pyTri(g, C, item.a, item.b, u); item._T = T;
     preLab(g, (T.A[0] + C[0]) / 2, C[1] + 22, MS(String(item.a)), { fs: 16 }); preLab(g, C[0] + 14, (T.B[1] + C[1]) / 2 + 6, MS(String(item.b)), { fs: 16, anchor: 'start' }); preLab(g, (T.A[0] + T.B[0]) / 2 - 12, (T.A[1] + T.B[1]) / 2 - 8, '؟', { col: PY.q, fs: 18, anchor: 'end' });
     if (tries >= 3) ciEq(helpG(svg), 130, 40, `${item.a * item.a} + ${item.b * item.b} = ${item.a * item.a + item.b * item.b}`, PY.hl, 16); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 130, 40, labelText('pyRuleApprox'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), T = item._T; if (T) { hlSeg(m, T.A, T.C, H2C[0]); hlSeg(m, T.C, T.B, H2C[1]); hlRing(m, T.C, 18); }   /* المستوى الثاني رسمٌ: الضلعان القائمان */
+    ciRule(m, 130, 40, labelText('pyRuleApprox'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.cands.map(v => [pyKey(v), pyTxt(v), '<i></i>', 'gen.py.v.' + pyKey(v)])), item.want),
   errOf: () => 'pyOff' });
 
 /* ================= ④ هل المثلث قائم؟ (C407 العكس): s ثلاثة أطوال ================= */
 ITEM.pyIsRight = cpItem({ H: 236, tLine: 'gen.py.together.isRight', hint: 'gen.py.hint.isRight', rLine: it => 'gen.py.reveal.isRight.' + it.want, praise: 'praiseThink',
   make: s => { const [a, b, c] = [...s.s].sort((x, y) => x - y); return { want: a * a + b * b === c * c ? 'yes' : 'no', sq: [a * a, b * b, c * c], tag: 'py-isright' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = [...item.s].sort((x, y) => x - y), u = Math.min(22, 230 / c); cgTri(g, [c, a, b], { cx: 180, y: 180, u, rot: item.rot || 0 });
+  draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = [...item.s].sort((x, y) => x - y), u = Math.min(22, 230 / c), P = cgTri(g, [c, a, b], { cx: 180, y: 180, u, rot: item.rot || 0 }); item._P = P;
     if (tries >= 3) ciEq(helpG(svg), 180, 36, `${item.sq[0]} + ${item.sq[1]} ؟ ${item.sq[2]}`, PY.hl, 18); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 36, labelText('pyRuleConv'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), P = item._P; if (P) { hlSeg(m, P[0], P[1], H2C[2]); hlRing(m, P[2], 18); }   /* المستوى الثاني رسمٌ: الأطول، والزاوية المقابلة له: أهي قائمة؟ */
+    ciRule(m, 180, 36, labelText('pyRuleConv'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => k === 'no' ? 'pyConvNo' : Math.abs(it.sq[0] + it.sq[1] - it.sq[2]) <= 6 ? 'pyNear' : 'pyConvYes' });
 

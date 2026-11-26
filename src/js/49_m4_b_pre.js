@@ -20,8 +20,17 @@ const preTri = (g, T, col, fill) => el('polygon', { points: polyStr(T), fill, st
 function preRight(g, C, A, B, s = 13) { const u = p => { const d = Math.hypot(p[0] - C[0], p[1] - C[1]); return [(p[0] - C[0]) / d * s, (p[1] - C[1]) / d * s]; }, a = u(A), b = u(B);
   el('path', { d: `M${C[0] + a[0]} ${C[1] + a[1]} L${C[0] + a[0] + b[0]} ${C[1] + a[1] + b[1]} L${C[0] + b[0]} ${C[1] + b[1]}`, fill: 'none', stroke: PRE.ink, 'stroke-width': 1.8, opacity: .7, 'pointer-events': 'none' }, g); }
 
+/* ---------- رسوم المستوى الثاني في M4-U3/U4 (D286 (3)؛ المراجعان لبوابة M4-U3/U4): الأضلاع ملوّنة بترتيب أطوالها فيُقارن المتناظر بالمتناظر،
+   وما يُعطى ملوّن وما يُسأل عنه بحلقة؛ لا يُكتب الجواب ---------- */
+const H2C = ['#e07b39', '#2f9d6b', '#7a4fb0'];   /* الأقصر، فالأوسط، فالأطول */
+function hlSeg(m, P, Q, col, o = {}) { el('line', { x1: P[0], y1: P[1], x2: Q[0], y2: Q[1], stroke: col, 'stroke-width': o.w || 9, 'stroke-linecap': 'round', opacity: o.op || .4, 'pointer-events': 'none' }, m); }
+function hlRing(m, V, r = 20, col = PRE.hl) { el('circle', { cx: V[0], cy: V[1], r, fill: 'none', stroke: col, 'stroke-width': 3, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }, m); }
+function rankSides(m, P, s) { const V = [...new Set(s)].sort((x, y) => x - y), c = v => H2C[V.length === 1 ? 1 : V.length === 2 ? [0, 2][V.indexOf(v)] : V.indexOf(v)];
+  [[0, 1, s[0]], [1, 2, s[1]], [2, 0, s[2]]].forEach(([i, j, v]) => hlSeg(m, P[i], P[j], c(v))); }
 /* ================= ① هل المثلثان متطابقان؟ (C405): case sas | sss | asa (نعم) · aaa | ssa (لا يكفي) =================
    العلامات المتشابهة قياسات متساوية: الشرطات للأضلاع والأقواس للزوايا */
+/* العلامات في كل حالة: [أضلاع [i، j]]، [زوايا k] على [P، Q، R] */
+const PRE_CASE_MK = { sas: [[[0, 1], [0, 2]], [0]], sss: [[[0, 1], [0, 2], [1, 2]], []], asa: [[[0, 1]], [0, 1]], aaa: [[], [0, 1, 2]], rhs: [[[0, 1], [1, 2]], [0]], ssa: [[[0, 1], [1, 2]], [0]] };
 const PRE_CASE_OK = { sas: 'yes', sss: 'yes', asa: 'yes', aaa: 'no', ssa: 'no', rhs: 'yes' };
 const PRE_CASE_RHS = [[[44, 192], [166, 192], [44, 84]], [[60, 196], [150, 196], [60, 80]], [[40, 190], [170, 190], [40, 110]], [[52, 186], [146, 186], [52, 92]], [[50, 192], [160, 192], [50, 92]], [[46, 194], [168, 194], [46, 118]], [[56, 188], [136, 188], [56, 78]]];   /* قائمة عند الرأس الأول (M4-U4، الوتر وضلع قائم) */
 const PRE_CASE_V = [[[44, 192], [160, 192], [76, 86]], [[40, 188], [156, 192], [128, 84]], [[50, 176], [164, 196], [66, 90]], [[46, 190], [150, 180], [112, 80]], [[40, 172], [170, 192], [92, 94]], [[42, 190], [168, 182], [60, 96]], [[48, 180], [158, 196], [140, 92]]];   /* صور المثلث (v): مسألة جديدة بشكل آخر */
@@ -46,7 +55,9 @@ function preCaseTris(svg, cs, v = 0) { const g = el('g', { 'pointer-events': 'no
 ITEM.cgCase = cpItem({ H: 236, tLine: 'gen.pre.together.case', hint: 'gen.pre.hint.case', rLine: it => 'gen.pre.reveal.case.' + it.want, praise: 'praiseThink',
   make: s => ({ want: PRE_CASE_OK[s.cs], tag: 'pre-case-' + s.cs }),
   draw(svg, item, tries) { const D = preCaseTris(svg, item.cs, item.v || 0); if (tries >= 3) ciRule(helpG(svg), 180, 30, labelText('preRuleCase'), PRE.hl, 15); return D; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleCase'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), [S2, A2] = PRE_CASE_MK[item.cs] || [[], []];   /* المستوى الثاني رسمٌ: الأضلاع المعلَّمة ملوّنة والزوايا المعلَّمة بحلقة: أين الزاوية من الضلعين؟ */
+    for (const T of [ctx.A, ctx.B]) if (T) { S2.forEach(([i, j]) => hlSeg(m, T[i], T[j], H2C[0])); A2.forEach(k => hlRing(m, T[k], 17)); }
+    ciRule(m, 180, 30, labelText('preRuleCase'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.want === 'yes' ? 'preCaseNo' : it.cs === 'aaa' ? 'preCaseAaa' : 'preCaseSsa' });
 
@@ -58,13 +69,15 @@ function preSideLabs(g, T, labs, cols) { const { A, B, C } = T, h = [(A[0] + B[0
 ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hint.sim', rLine: 'gen.pre.reveal.sim', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const want = s.s[s.ask] * s.k, add = [0, 1, 2].filter(i => i !== s.ask).map(i => s.s[s.ask] + s.s[i] * (s.k - 1)).filter(v => Number.isInteger(v) && v > 0), nums = [...new Set([want, ...add])];   /* الجمع بدل الضرب: يُزاد على المجهول ما زاده ضلعٌ آخر */
     for (let d = 1; nums.length < 3; d++) if (!nums.includes(want + d)) nums.push(want + d); return { want, add, nums: nums.slice(0, 3), tag: 'pre-sim' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = item.s, right = a * a + b * b === c * c; let labs;
+  draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = item.s, right = a * a + b * b === c * c; let labs, T2 = [];
     if (right) { const u = Math.min(15, 150 / (b * Math.max(1, item.k)), 238 / (a * (1 + item.k))), sm = preRightTri(g, [304, 204], a, b, u), bg = preRightTri(g, [304 - a * u - 40, 204], a * item.k, b * item.k, u, { col: PRE.b, fill: PRE.fillB });   /* المثلثان متجاوران داخل الإطار مهما كبر المعامل */
+      T2 = [{ P: [sm.A, sm.C, sm.B], s: [a, b, c] }, { P: [bg.A, bg.C, bg.B], s: [a, b, c].map(v => v * item.k) }];
       preSideLabs(g, sm, item.s.map(v => MS(String(v))), [PRE.ink, PRE.ink, PRE.ink]); labs = preSideLabs(g, bg, item.s.map((v, i) => i === item.ask ? '؟' : MS(String(v * item.k))), item.s.map((v, i) => i === item.ask ? PRE.q : PRE.ink)); }
     else { const mx = Math.max(...item.s) * Math.max(1, item.k), u = Math.min(13, 150 / mx), big = item.k >= 1;   /* مثلث عامّ بأطوال أضلاعه (M4-U3)؛ الأصل يمين والمكبَّر أو المصغَّر يسار */
-      cgTri(g, item.s, { cx: 266, y: 196, u }); labs = cgTri(g, item.s.map(v => v * item.k), { cx: 96, y: 196, u, col: PRE.b, fill: PRE.fillB, ask: item.ask }).labs; }
-    if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.s[0] * item.k} ÷ ${item.s[0]} = ${item.k}`, PRE.hl, 17); return { q: labs[item.ask] }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 120, 34, labelText('preRuleSim'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
+      const P1 = cgTri(g, item.s, { cx: 266, y: 196, u }), P2 = cgTri(g, item.s.map(v => v * item.k), { cx: 96, y: 196, u, col: PRE.b, fill: PRE.fillB, ask: item.ask }); labs = P2.labs; T2 = [{ P: P1, s: item.s }, { P: P2, s: item.s.map(v => v * item.k) }]; }
+    if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.s[0] * item.k} ÷ ${item.s[0]} = ${item.k}`, PRE.hl, 17); return { q: labs[item.ask], T2 }; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); for (const T of ctx.T2 || []) rankSides(m, T.P, T.s);   /* المستوى الثاني رسمٌ: المتناظر بلونٍ واحد */
+    ciRule(m, 120, 34, labelText('preRuleSim'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) { ctx.q.textContent = MS(String(item.want)); ctx.q.setAttribute('fill', PRE.ok); } },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => it.add.includes(k) ? 'preSimAdd' : 'preSimOff' });
@@ -75,8 +88,9 @@ ITEM.pyHyp = cpItem({ H: 250, tLine: 'gen.pre.together.py', hint: 'gen.pre.hint.
     return { want, nums: [want, s.a + s.b, s.a * s.a + s.b * s.b <= 100 ? s.a * s.a + s.b * s.b : want + 2], tag: 'pre-py' }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(36, 150 / Math.max(item.a, item.b * 1.1)), T = preRightTri(g, [262, 206], item.a, item.b, u);
     const labs = preSideLabs(g, T, [MS(String(item.a)), MS(String(item.b)), '؟'], [PRE.ink, PRE.ink, PRE.q]);
-    if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: labs[2] }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 120, 34, labelText('preRulePy'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
+    if (tries >= 3) ciEq(helpG(svg), 110, 34, `${item.a} × ${item.a} + ${item.b} × ${item.b} = ؟`, PRE.hl, 16); return { q: labs[2], T }; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), T = ctx.T; if (T) { hlSeg(m, T.A, T.C, H2C[0]); hlSeg(m, T.C, T.B, H2C[1]); hlRing(m, T.C, 18); }   /* المستوى الثاني رسمٌ: الضلعان القائمان */
+    ciRule(m, 120, 34, labelText('preRulePy'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) { ctx.q.textContent = MS(String(item.want)); ctx.q.setAttribute('fill', PRE.ok); } },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.a + it.b ? 'pyAdd' : k === it.a * it.a + it.b * it.b ? 'pyNoRoot' : 'pyOff' });
