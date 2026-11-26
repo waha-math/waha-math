@@ -145,7 +145,12 @@ SCENES.quadProof = async c => { const L = c.lines, svg = m3Stage(262), pfs = c.p
 SCENES.cgPerpShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), [a, b, cc, d] = c.dims || [3, 7, 4, 2], u = 20, Lp = [180 - (a + b) * u / 2, 112], M = [Lp[0] + a * u, 112], R = [Lp[0] + (a + b) * u, 112], T = [M[0], 112 - cc * u], B = [M[0], 112 + d * u];
   el('polygon', { points: polyStr([Lp, T, R]), fill: CG.fa, stroke: CG.ink, 'stroke-width': 3 }, g); el('polygon', { points: polyStr([Lp, R, B]), fill: CG.fb, stroke: CG.ink, 'stroke-width': 3 }, g);
   geoLine(g, T[0], T[1], B[0], B[1], { color: CG.b, w: 3, dash: '7 4' }); geoLine(g, Lp[0], Lp[1], R[0], R[1], { color: CG.a, w: 3 }); await cgSay(L, 0);
-  ciEq(g, 180, 226, `${a + b} × ${cc + d} ÷ 2 = ${(a + b) * (cc + d) / 2}`, CG.ok, 18); SFX.tick(); for (const l of L.slice(1)) await S(l); };
+  ciEq(g, 180, 226, `${a + b} × ${cc + d} ÷ 2 = ${(a + b) * (cc + d) / 2}`, CG.ok, 18); SFX.tick(); await cgSay(L, 1);
+  if (L[2]) { g.innerHTML = ''; const P = [[108, 62], [252, 62], [252, 170], [108, 170]];   /* والمستطيل ٦ × ٨: قطراه عشرة لا يتعامدان، فنصف حاصل ضربهما ٥٠ ومساحته ٤٨ (المراجع A لبوابة M4-U3/U4، 10) */
+    el('polygon', { points: polyStr(P), fill: CG.fc, stroke: CG.ink, 'stroke-width': 3.2 }, g); geoLine(g, P[0][0], P[0][1], P[2][0], P[2][1], { color: CG.a, w: 3, dash: '7 4' }); geoLine(g, P[1][0], P[1][1], P[3][0], P[3][1], { color: CG.b, w: 3, dash: '7 4' });
+    preLab(g, 180, 188, MS('8'), { fs: 15 }); preLab(g, 266, 121, MS('6'), { fs: 15, anchor: 'start' }); preLab(g, 150, 100, MS('10'), { fs: 14, col: CG.a });
+    ciEq(g, 180, 214, '10 × 10 ÷ 2 = 50', CG.q, 17); ciEq(g, 180, 238, '6 × 8 = 48', CG.ok, 17); SFX.tick(); await cgSay(L, 2); }
+  for (const l of L.slice(3)) await S(l); };
 /* د5: البطاقات الثلاث للأقطار والعائلة (الشمول) */
 SCENES.quadFamily = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), N = [['para', 180, 44], ['rect', 96, 118], ['rhom', 264, 118], ['square', 180, 192]];
   for (const [k, x, y] of N) { el('rect', { x: x - 62, y: y - 22, width: 124, height: 38, rx: 10, fill: CG.card, stroke: CG.edge, 'stroke-width': 2 }, g); preLab(g, x, y + 4, labelText('qdName.' + k), { dir: 'rtl', fs: 15 }); }
