@@ -161,6 +161,8 @@ COVERB = """() => { const s = document.querySelector('#stage svg'); if (!s) retu
   return out; }"""
 SQUEEZE = """() => { const s = document.querySelector('#stage svg'); if (!s) return null; const r = s.getBoundingClientRect(), vb = s.viewBox.baseVal; if (!vb || !vb.width || !r.width) return null;
   const live = [...s.querySelectorAll('[role=button]')].some(g => (g.onclick || getComputedStyle(g).cursor === 'grab') && !g.closest('[hidden]') && +getComputedStyle(g).opacity >= .5);
+  /* وصفوف «كم؟» لا تتراكم تحت المسرح (الدرس 140): صفّا أعدادٍ ظاهران معاً ضغطٌ وإن بقي المقياس فوق الحدّ (المسرح يتّسع بعرضه فيُخفي الضغط) */
+  const rows = [...document.querySelectorAll('#stage .choices.nums')].filter(b => b.getClientRects().length).length; if (rows > 1) return [rows, 'rows'];
   const k = s.getScreenCTM().a, kw = r.width / vb.width; return k / kw < (live ? .75 : .6) ? [Math.round(100 * k / kw), Math.round(r.width), Math.round(r.height), (document.querySelector('#say') || {}).textContent.length, live ? 'targets' : 'view'] : null; }"""
 CARDS = """() => { const c = [...document.querySelectorAll('.choices.cards .card')]; if (!c.length) return null;   /* بطاقتا فوضى: كلتاهما مخفية النص، ومتماثلتان بالنظر (D254 (1)) */
   if (!c.every(b => b.classList.contains('hidden-text'))) return 'card text visible'; return [...new Set(c.map(b => b.innerHTML.replace(/<b class="cn">.*?<\/b>/, '')))].length > 1 ? 'cards differ' : null; }"""

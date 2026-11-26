@@ -268,7 +268,7 @@ ITEM.isoAngle = { ...numItem,
 /* ================= ⑦ «أقنعني بسببين» (D244): ثلاث بطاقات، اثنتان صحيحتان؛ يلمس الطفل اثنتين ثم «تمّ» ================= */
 ITEM.twoReasons = {
   make(spec) { return { ...spec, want: 'ab', tag: 'two-reasons' }; },
-  async ask(item, mode, tries) { newStage(24, null); const ids = item.opts.map(o => o.id);   /* بلا رسم: ثلاث بطاقات وزرّ «تمّ» تحتاج المسرح كلّه */ await S(tries >= 3 ? 'gen.as.together.two' : item.q);   /* opts: [صحيح، صحيح، مشتّت] */
+  async ask(item, mode, tries) { newStage(24, null).dataset.nodraw = 1; const ids = item.opts.map(o => o.id);   /* بلا رسم: ثلاث بطاقات وزرّ «تمّ» تحتاج المسرح كلّه */ await S(tries >= 3 ? 'gen.as.together.two' : item.q);   /* opts: [صحيح، صحيح، مشتّت] */
     const box = document.createElement('div'); box.className = 'choices cards'; $('#stage').appendChild(box); const on = new Set(), order = shuffle([0, 1, 2]);
     const btns = order.map(i => { const b = document.createElement('button'); b.className = 'pick card'; b.innerHTML = `<span>${esc(T(ids[i]))}</span>`; b.setAttribute('aria-pressed', 'false'); b.dataset.k = 'abc'[i]; /*T*/if (TESTHOOK) b.dataset.ok = i < 2;/*/T*/
       b.onclick = () => { if (on.has(i)) on.delete(i); else on.add(i); b.classList.toggle('sel', on.has(i)); b.setAttribute('aria-pressed', on.has(i)); SFX.tick(); upd(); }; box.appendChild(b); return b; });

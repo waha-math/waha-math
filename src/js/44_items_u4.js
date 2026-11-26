@@ -159,7 +159,7 @@ ITEM.orderBy = {
     let answered = false; const TG = T.map(t => ({ g: t.o.g, t }));
     T.forEach((t, i) => { const g = t.o.g; g.style.cursor = 'pointer'; g.setAttribute('role', 'button'); g.setAttribute('tabindex', 0); g.setAttribute('aria-label', plain(G(t.label))); hitPad(g, 56); g.dataset.order = 1; g.__route = (x, y) => tapRoute(TG, x, y, TG[i]).g;
       g.dataset.keys = 1; g.addEventListener('click', e => { if (answered || T.some(x => x.dragAt && Date.now() - x.dragAt < 400)) return; const r = e && e.clientX ? tapRoute(TG, e.clientX, e.clientY, TG[i]) : TG[i]; hush(); tap(r.t.k); }); g.addEventListener('keydown', e => { if (!answered && actKey(e)) tap(t.k); }); });
-    AUTO({ kind: 'order', ok: () => { seq.splice(pre); want.slice(pre).forEach(k => seq.push(k)); redraw(); d.b.click(); }, wrong: () => { seq.splice(pre); [...want.slice(pre)].reverse().forEach(k => seq.push(k)); redraw(); d.b.click(); } });
+    AUTO({ kind: 'order', ok: () => { seq.splice(pre); want.slice(pre).forEach(k => seq.push(k)); redraw(); d.b.style.visibility = 'visible'; d.b.click(); }, wrong: () => { seq.splice(pre); [...want.slice(pre)].reverse().forEach(k => seq.push(k)); redraw(); d.b.style.visibility = 'visible'; d.b.click(); } });   /* «تمّ» ظاهرٌ بعد الترتيب كله كما في اللمس، فيأخذ التركيز بالمفتاح */
     const ans = await gate(new Promise(res => d.b.onclick = () => { if (seq.length < T.length) return; AUTO_CLEAR(); hush(); d.bar.remove(); res(seq.join(',')); }));
     answered = true; if (dz) dz.off(); untarget(T.map(t => t.o.g));
     item._st = T.map(t => t.o.end ? { x0: t.o.x0, end: t.o.end() } : {}); return { ans, ctx: { svg, T, marks } }; },

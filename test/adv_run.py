@@ -474,7 +474,7 @@ async def content_cases(b):
   check('M-02', not errs, 'لا أخطاء في الصفحة (نصوص المادة)', errs[:3]); await ctx.close()
 
 # ---------- X-03: الهاتف بالعرض ----------
-VIS = """() => { const svg = document.querySelector('#stage svg'), st = document.querySelector('#stage'); if (!svg) return null; const r = svg.getBoundingClientRect(), c = st.getBoundingClientRect();
+VIS = """() => { const svg = document.querySelector('#stage svg'), st = document.querySelector('#stage'); if (!svg) return null; const r = svg.getBoundingClientRect(), c = st.getBoundingClientRect(), nod = svg.dataset.nodraw === '1';   /* بندٌ بلا رسم («أقنعني بسببين»: مسرحٌ فارغ والبطاقات تأخذ المكان) لا رسم فيه يُرى */
   const top = Math.max(r.top, c.top, 0), bot = Math.min(r.bottom, c.bottom, innerHeight);
   const out = b => b.width && (b.top >= innerHeight - 4 || b.bottom <= 4 || b.bottom > innerHeight + 2 || b.left < -2 || b.right > innerWidth + 2);
   const lv = [...svg.querySelectorAll('[role=button]')].filter(g => (g.onclick || g.__route || g.__down) && getComputedStyle(g).visibility !== 'hidden').map(g => g.getBoundingClientRect());   // وما خرج من نافذة القطار مخفيٌّ عمداً
@@ -486,7 +486,7 @@ VIS = """() => { const svg = document.querySelector('#stage svg'), st = document
   /* وما يُسحب وهو في طبقةٍ من المسرح (الدمية داخل الصندوق): رأسه المرسوم له، لا لحلقةٍ فوقه (N-01) */
   const nest = [...svg.querySelectorAll('[data-thing][role=button]')].filter(g => g.parentNode !== svg && getComputedStyle(g).visibility !== 'hidden').filter(g => { const d = drawnBox(g); if (!d) return false;
     const e = document.elementFromPoint((d.l + d.r) / 2, d.t + .15 * (d.b - d.t)); return !(e && (e === g || g.contains(e))); }).length;
-  return { visH: Math.max(0, Math.round(bot - top)), offLive: live.length, offPick: picks.length, offSvg, nest, sayW: Math.round(sy.width),
+  return { visH: nod ? 999 : Math.max(0, Math.round(bot - top)), offLive: live.length, offPick: picks.length, offSvg, nest, sayW: Math.round(sy.width),
     rpOut: !!out(rp) || rp.width < 50, rpHit: hit(sy, rp) || hit(wh, rp) }; }"""
 # مسبار تعارض اللمس من auto_run نفسه (D255: مركز كل هدف وحوافّه المرسومة تذهب إليه هو)، فيُقاس بالعرض كما يُقاس بالطول
 TAPS = re.search(r'^TAPS = """(.*?)"""', open(os.path.join(HERE, 'auto_run.py'), encoding='utf-8').read(), re.S | re.M).group(1)
