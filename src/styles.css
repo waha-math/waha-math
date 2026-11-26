@@ -172,7 +172,8 @@ svg [tabindex]:focus:not(:focus-visible) { outline: none; }   /* المتصفح 
 .choices.cards .card.reading { box-shadow: 0 0 0 5px var(--compass), 0 4px 0 var(--line); transform: scale(1.03); }   /* البطاقة التي تُقرأ الآن، أوضح (D271) */
 .choices.cards .card.hidden-text .q { display: inline-flex; color: var(--ink); opacity: .75; }   /* رمز سماع واحد لكل البطاقات المخفية: لا لون فوضى ولا علامة تميّزها (D236) */
 .choices.cards .sent { font-size: 28px; font-weight: 800; letter-spacing: .04em; unicode-bidi: isolate-override; }
-.choices.nums { grid-template-columns: repeat(3, 1fr); }
+.choices.nums { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.choices.nums.long .num b { font-size: 22px; } .choices.nums.long .num span { font-size: 14px; overflow-wrap: anywhere; } .choices.nums .num { min-width: 0; }
 .choices.steppers { grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }   /* عدّاد بزرّين (مهمة البيت، S2-U0) */
 .choices.steppers.many { grid-auto-flow: row; grid-template-columns: 1fr 1fr; } .steppers.many .stp { grid-template-columns: 1fr 1fr; grid-template-areas: 'v v' 'a b'; gap: 4px; } .steppers.many .stp > .stpb:first-child { grid-area: a; } .steppers.many .stp > .stpv { grid-area: v; } .steppers.many .stp > .stpb:last-child { grid-area: b; } .steppers.many .stpb { min-height: 52px; } .steppers.many .stpv b { font-size: 26px; }   /* كل عدّاد: قيمته فوق زرّيه، فيتّسع اثنان في الصف على أضيق شاشة */   /* أكثر من عدّادين (مضمار S2-U6): صفّان من اثنين، فلا يخرج عدّاد من الشاشة */
 .steppers .stp { display: grid; grid-template-columns: 64px 1fr 64px; align-items: center; gap: 6px; direction: ltr; }

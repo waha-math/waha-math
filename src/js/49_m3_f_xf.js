@@ -20,10 +20,31 @@ function xfPoly(parent, Pl, pts, o = {}) { const Q = pts.map(p => Pl.P(...p)), g
   if (Q.length > 2) el('polygon', { points: polyStr(Q), fill: o.fill || XF.orgF, stroke: o.col || XF.org, 'stroke-width': 3, 'stroke-linejoin': 'round', 'stroke-dasharray': o.dash || null, opacity: o.op ?? 1 }, g);
   else if (Q.length === 2) geoLine(g, Q[0][0], Q[0][1], Q[1][0], Q[1][1], { color: o.col || XF.org, w: 3 });
   const cen = [Q.reduce((a, q) => a + q[0], 0) / Q.length, Q.reduce((a, q) => a + q[1], 0) / Q.length];
-  if (o.names !== false) pts.forEach((p, i) => { const q = Q[i], d = [q[0] - cen[0], q[1] - cen[1]], L = Math.hypot(...d) || 1, t = el('text', { x: q[0] + d[0] / L * 13, y: q[1] + d[1] / L * 13 + 5, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: o.col || XF.org, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, g); t.textContent = o.label ? o.label(i) : xfName(i, o.img); });
+  const own = parent.ownerSVGElement || parent, ct = own.querySelector ? own.querySelector('[data-ctr]') : null, cc = ct && ct.getAttribute('data-ctr').split(',').map(Number), ci = cc ? Q.findIndex(q => Math.hypot(cc[0] - q[0], cc[1] - q[1]) < 3) : -1;
+  /* مركز الدوران رأسٌ من الشكل: يُسمّى «م» وحده (المرجع S3-U6 د3 (ج): المثلث م أ ب)، فيُبدأ «أ» من الرأس التالي (المراجع B لبوابة S3-U6/U7، 11) */
+  if (o.names !== false) pts.forEach((p, i) => { const q = Q[i], d = [q[0] - cen[0], q[1] - cen[1]], L = Math.hypot(...d) || 1;
+    if (i === ci && !o.label) { if (!o.img) { ct.setAttribute('x', q[0] + d[0] / L * 13); ct.setAttribute('y', q[1] + d[1] / L * 13 + 5); } return; }
+    let lx = q[0] + d[0] / L * 13, ly = q[1] + d[1] / L * 13 + 5; if (Pl.ax && ly > Pl.y0 + 6) ly = q[1] - 8; if (Pl.ax && lx < Pl.x0 - 4) lx = q[0] + 12;   /* لا على أعداد المحورين (فحص التراكب) */
+    const j = ci >= 0 && i > ci && !o.label ? i - 1 : i, t = el('text', { x: lx, y: ly, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: o.col || XF.org, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, g); t.textContent = o.label ? o.label(i) : xfName(j, o.img); });
   pts.forEach(p => { const q = Pl.P(...p); el('circle', { cx: q[0], cy: q[1], r: 4.2, fill: o.col || XF.org }, g); });
+  if (ct && ci < 0 && !o.img && o.names !== false) labAvoid(ct, [[0, 0], [22, 0], [0, -26], [22, -26], [-6, -30], [26, -14]]);   /* «م» لا على اسم رأسٍ قريب */
   return { g, Q }; }
 /* المستوى الثاني (المراجع B: فعلٌ على المسرح): رأسٌ واحد يُنقل مرسوماً، والباقي للطفل؛ وحلقة على رأسٍ ونظيره */
+/* النقطة الواحدة (المراجع B لبوابة S3-U6/U7، 2 و3): صورتها هي الجواب كله، فالمستوى الثاني نصف الطريق — الأفقي من الانسحاب، والعمود إلى الخطّ في جهة الأصل،
+   ونصف القطر وقوس المقدار صغيراً عند المركز — والحلّ المشترك (full) الطريق كلّه بلا الطرف؛ ولا حلقة على الصورة في الحالين */
+function xfHalf(svg, Pl, xf, p, full) { const m = helpG(svg), q = xfApply(xf, p), A = Pl.P(...p), B = Pl.P(...q), L = (a, b, o) => geoLine(m, a[0], a[1], b[0], b[1], o);
+  if (xf.k === 'tr') { const dx = q[0] - p[0], dy = q[1] - p[1], C = Pl.P(q[0], p[1]);
+    if (full) { if (dx) L(A, C, { color: css('--compass'), w: 3 }); if (dy) L(C, B, { color: THINK_INK, w: 3, dash: '6 4' }); }
+    else if (dx) L(A, C, { color: css('--compass'), w: 3 }); else L(A, Pl.P(p[0], p[1] + dy / 2), { color: THINK_INK, w: 3 }); }
+  else if (xf.k === 'ref') { const F = xf.axis === 'v' ? Pl.P(xf.at, p[1]) : Pl.P(p[0], xf.at); L(A, F, { color: THINK_INK, w: 2.6, dash: '5 4' });
+    const u = xf.axis === 'v' ? [Math.sign(A[0] - F[0]) * 8, 0] : [0, Math.sign(A[1] - F[1]) * 8], v = xf.axis === 'v' ? [0, -8] : [8, 0];
+    el('path', { d: `M${F[0] + u[0]} ${F[1] + u[1]} L${F[0] + u[0] + v[0]} ${F[1] + u[1] + v[1]} L${F[0] + v[0]} ${F[1] + v[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2 }, m);
+    if (full) L(F, B, { color: THINK_INK, w: 2.6, dash: '5 4' }); }
+  else { const C = Pl.P(...xf.c); L(C, A, { color: THINK_INK, w: 2.4, dash: '5 4' }); if (full) L(C, B, { color: THINK_INK, w: 2.4, dash: '5 4' });
+    else { const dA = Math.hypot(A[0] - C[0], A[1] - C[1]), r = Math.min(dA * .75, Math.max(dA * .5, Pl.c * 1.35)),   /* أبعد من قوس علامة الدوران */ a0 = Math.atan2(A[1] - C[1], A[0] - C[0]), sw = (xf.cw ? 1 : -1) * xf.q * Math.PI / 2, n = 12,
+        pts = Array.from({ length: n + 1 }, (_, i) => [C[0] + r * Math.cos(a0 + sw * i / n), C[1] + r * Math.sin(a0 + sw * i / n)]);
+      el('polyline', { points: polyStr(pts), fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, m); const e = pts[n], e2 = pts[n - 1]; geoArrow(m, e[0], e[1], Math.atan2(e[1] - e2[1], e[0] - e2[0]) * 180 / Math.PI, THINK_INK, 7); } }
+  return m; }
 function xfGuide(svg, Pl, xf, p) { const m = helpG(svg), q = xfApply(xf, p), A = Pl.P(...p), B = Pl.P(...q);
   if (xf.k === 'tr') { const C = Pl.P(q[0], p[1]); geoLine(m, A[0], A[1], C[0], C[1], { color: css('--compass'), w: 3 }); geoLine(m, C[0], C[1], B[0], B[1], { color: THINK_INK, w: 3 }); }
   else if (xf.k === 'ref') { geoLine(m, A[0], A[1], B[0], B[1], { color: THINK_INK, w: 2.4, dash: '5 4' }); el('circle', { cx: (A[0] + B[0]) / 2, cy: (A[1] + B[1]) / 2, r: 4.5, fill: THINK_INK }, m); }
@@ -33,21 +54,21 @@ function xfRing(m, Pl, pts, dash) { for (const p of pts) { const P = Pl.P(...p);
 /* مؤشّر التحويل على المستوى: خط الانعكاس، أو بطاقة الانسحاب، أو المركز بقوس الدوران */
 function xfMark(svg, Pl, xf) { const g = el('g', { 'pointer-events': 'none' }, svg);
   if (xf.k === 'ref') { const [a, b] = xf.axis === 'v' ? [Pl.P(xf.at, 0), Pl.P(xf.at, Pl.M)] : [Pl.P(0, xf.at), Pl.P(Pl.N, xf.at)]; geoLine(g, a[0], a[1] + (xf.axis === 'v' ? 6 : 0), b[0], b[1] - (xf.axis === 'v' ? 6 : 0), { color: XF.line, w: 3.4, dash: '9 5' }); }
-  else if (xf.k === 'tr') { const t = el('text', { x: 350, y: 24, 'text-anchor': 'start', 'font-size': 15, 'font-weight': 800, fill: XF.line, direction: 'rtl', stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }, g); t.textContent = xfTrText(xf.dx, xf.dy); }
+  else if (xf.k === 'tr') { const t = el('text', { x: 334, y: (Pl.top ?? 16) + 21, 'text-anchor': 'start', 'font-size': 15, 'font-weight': 800, fill: XF.line, direction: 'rtl', stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }, g); t.textContent = xfTrText(xf.dx, xf.dy); }
   else { const C = Pl.P(...xf.c), r = Pl.c * .9, a0 = -20, a1 = a0 - (xf.cw ? -1 : 1) * 90 * xf.q, pt = a => [C[0] + r * Math.cos(a * Math.PI / 180), C[1] + r * Math.sin(a * Math.PI / 180)];
     const big = xf.q === 3 ? 1 : 0, sw = xf.cw ? 1 : 0, p0 = pt(a0), p1 = pt(a1);
     if (xf.q === 2) { const pm = pt((a0 + a1) / 2); el('path', { d: `M${p0[0]} ${p0[1]} A${r} ${r} 0 0 ${sw} ${pm[0]} ${pm[1]} A${r} ${r} 0 0 ${sw} ${p1[0]} ${p1[1]}`, fill: 'none', stroke: XF.line, 'stroke-width': 2.6 }, g); }
     else el('path', { d: `M${p0[0]} ${p0[1]} A${r} ${r} 0 ${big} ${sw} ${p1[0]} ${p1[1]}`, fill: 'none', stroke: XF.line, 'stroke-width': 2.6 }, g);
     const tang = a1 + (xf.cw ? 90 : -90); geoArrow(g, p1[0], p1[1], tang, XF.line, 7);
-    el('circle', { cx: C[0], cy: C[1], r: 5.5, fill: XF.ctr, stroke: '#fff', 'stroke-width': 2 }, g); htLab(g, [C[0] - 11, C[1] + 15], labelText('xfCenter'), XF.ctr, 14);
-    const t = el('text', { x: 350, y: 24, 'text-anchor': 'start', 'font-size': 14, 'font-weight': 800, fill: XF.line, direction: 'rtl', stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }, g); t.textContent = labelText('xf.rot.' + xf.q) + (xf.q === 2 ? '' : ' ' + labelText(xf.cw ? 'xf.cw' : 'xf.ccw')); }
+    el('circle', { cx: C[0], cy: C[1], r: 5.5, fill: XF.ctr, stroke: '#fff', 'stroke-width': 2 }, g); htLab(g, [C[0] - 11, C[1] + 15], labelText('xfCenter'), XF.ctr, 14).setAttribute('data-ctr', C.map(Math.round).join(','));
+    const t = el('text', { x: 334, y: (Pl.top ?? 16) + 21, 'text-anchor': 'start', 'font-size': 14, 'font-weight': 800, fill: XF.line, direction: 'rtl', stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }, g); t.textContent = labelText('xf.rot.' + xf.q) + (xf.q === 2 ? '' : ' ' + labelText(xf.cw ? 'xf.cw' : 'xf.ccw')); }
   return g; }
 /* نصّ الانسحاب: «3 يميناً و2 لأعلى» (الأفقي أولاً)، ومثله مسموعاً gen.xf.tr.DX.DY */
 function xfTrText(dx, dy) { const p = []; if (dx) p.push(`${Math.abs(dx)} ${labelText(dx > 0 ? 'xfRight' : 'xfLeft')}`); if (dy) p.push(`${Math.abs(dy)} ${labelText(dy > 0 ? 'xfUp' : 'xfDown')}`); return p.join('، ' + labelText('a2And')); }
 const xfTrLine = (dx, dy) => 'gen.xf.tr.' + dx + '.' + dy;
 /* سؤال التحويل مسموعاً */
 async function xfSay(item, tries) { const xf = item.xf;
-  if (tries >= 3) { await S('gen.xf.together.draw'); return; }
+  if (tries >= 3) { await S(item.pts && item.pts.length === 1 ? 'gen.xf.together.draw1' : 'gen.xf.together.draw'); return; }
   if (item.q) { await S(item.q); return; }
   if (xf.k === 'ref') await S(`gen.xf.q.ref.${xf.axis}.${xf.at}`);
   else if (xf.k === 'tr') { await S('gen.xf.q.tr', { noGap: true }); await S(xfTrLine(xf.dx, xf.dy), { append: true }); }
@@ -57,32 +78,36 @@ async function xfSay(item, tries) { const xf = item.xf;
 ITEM.xfDraw = {
   make(spec) { const want = spec.pts.map(p => xfApply(spec.xf, p)), n = spec.n || 10, m = spec.m || 8;
     /*T*/if (TESTHOOK && want.concat(spec.pts).some(([x, y]) => x < 0 || y < 0 || x > n || y > m || x % 1 || y % 1)) testBug('xfDraw: الصورة خارج الربع أو خارج الشبكة');/*/T*/
+    /*T*/if (TESTHOOK && xfSame(xfWrongImg({ ...spec, img: want }), want)) testBug('xfDraw: الصورة الخاطئة المؤتمتة هي الصورة الصحيحة مجموعةً');/*/T*/
     return { ...spec, want: xfKey(want), img: want, tag: 'xf-' + spec.xf.k + (spec.pts.length === 1 ? '-pt' : '') }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m, top: 40 }), placed = [], lay = el('g', { 'pointer-events': 'none' }, svg); let prev = null, lastQ = null;
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m }), placed = [], lay = el('g', { 'pointer-events': 'none' }, svg); let prev = null, lastQ = null;
     xfMark(svg, Pl, item.xf); xfPoly(svg, Pl, item.pts);
     const redraw = () => { lay.innerHTML = ''; if (placed.length > 1) xfPoly(lay, Pl, placed, { col: XF.img, fill: placed.length === item.pts.length ? XF.imgF : 'none', img: true }); else if (placed.length) xfPoly(lay, Pl, placed, { col: XF.img, img: true });
       /*T*/window.__axPlaced = placed.length;/*/T*/ };
     const preview = q => { if (prev) prev.remove(); prev = null; if (!q || placed.length >= item.pts.length) return; const p = Pl.snap(q), P = Pl.P(...p); prev = el('circle', { cx: P[0], cy: P[1], r: 7, fill: 'none', stroke: XF.img, 'stroke-width': 2.5, 'stroke-dasharray': '3 3', 'pointer-events': 'none' }, svg); };
-    const tapAt = q => { const p = Pl.snap(q), L = placed[placed.length - 1]; if (L && L[0] === p[0] && L[1] === p[1]) placed.pop(); else if (placed.length < item.pts.length) placed.push(p); SFX.tick(); redraw(); };
-    if (tries >= 3) { placed.push(...item.img.slice(0, item.img.length - 1).map(p => [...p])); redraw(); }
+    let tAt = 0; const tapAt = q => { const p = Pl.snap(q), L = placed[placed.length - 1], now = performance.now(); if (L && L[0] === p[0] && L[1] === p[1]) { if (now - tAt < 400) return; placed.pop(); } else if (placed.length < item.pts.length) { placed.push(p); tAt = now; } SFX.tick(); redraw(); };   /* لمستان سريعتان على النقطة نفسها: الثانية لا تمحو الأولى (المراجع B لبوابة S3-U6/U7، 15) */
+    if (tries >= 3) { if (item.pts.length === 1) xfHalf(svg, Pl, item.xf, item.pts[0], true); else { placed.push(...item.img.slice(0, item.img.length - 1).map(p => [...p])); redraw(); } }
     await xfSay(item, tries);
     const input = fingerInput(svg, { map: e => { const q = svgPoint(svg, e); return [q.x, q.y]; }, down(q) { if (q[1] > Pl.y0 + 22 || q[1] < Pl.y0 - Pl.M * Pl.c - 20) return false; lastQ = q; preview(q); }, move(q) { lastQ = q; preview(q); }, up(cancel) { preview(null); if (!cancel && lastQ) tapAt(lastQ); lastQ = null; } });
     /*T*/window.__axWant = item.img; window.__axAt = (x, y) => { const m = svg.getScreenCTM(), [px, py] = Pl.P(x, y); return { x: m.a * px + m.e, y: m.d * py + m.f }; }; window.__axPlaced = placed.length;/*/T*/
     const kg = el('g', { role: 'grid', 'aria-label': labelText('coPlane') }, svg); for (let y = Pl.M; y >= 0; y--) { const row = el('g', { role: 'row' }, kg); for (let x = 0; x <= Pl.N; x++) { const [px, py] = Pl.P(x, y), b = el('g', { role: 'gridcell', tabindex: 0, 'aria-label': `${labelText('coRight')} ${x}، ${labelText('coUp')} ${y}` }, row); el('circle', { cx: px, cy: py, r: 8, fill: 'transparent', 'pointer-events': 'none' }, b); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); tapAt([px, py]); } }; } }
     AUTO({ kind: 'axPts', ok: () => { placed.length = 0; placed.push(...item.img.map(p => [...p])); redraw(); rulDoneBtn().click(); }, wrong: () => { placed.length = 0; placed.push(...xfWrongImg(item).map(p => [...p])); redraw(); rulDoneBtn().click(); } });
-    await rulDone(() => { input.off(); kg.remove(); preview(null); }); return { ans: xfKey(placed), ctx: { svg, Pl } }; },
+    await rulDone(() => { input.off(); kg.remove(); preview(null); }); if (placed.length > 1 && xfSame(placed, item.img)) { placed.splice(0, placed.length, ...item.img.map(p => [...p])); redraw(); }   /* بترتيبٍ آخر: الصورة نفسها، فتُسمّى رؤوسها بنظائرها */
+    return { ans: xfKey(placed), ctx: { svg, Pl } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const a = k ? k.split(' ').map(s => s.split(',').map(Number)) : [];
     if (a.length < item.pts.length) return { ok: false, err: 'xfShort' }; return { ok: false, err: xfErr(item, a) }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { xfGuide(r.ctx.svg, r.ctx.Pl, item.xf, item.pts[0]); await sleep(FAST ? 10 : 250); } await S('gen.xf.hint.' + item.xf.k); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { (item.pts.length === 1 ? xfHalf : xfGuide)(r.ctx.svg, r.ctx.Pl, item.xf, item.pts[0]); await sleep(FAST ? 10 : 250); } await S('gen.xf.hint.' + item.xf.k); }, async together() {},
   async reveal(item, r) { if (r && r.ctx) xfPoly(r.ctx.svg, r.ctx.Pl, item.img, { col: XF.ok, fill: 'none', dash: '7 5', img: true }); await S('gen.xf.reveal.' + item.xf.k); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 /* تشخيص الصورة الخاطئة: النسخ بالاتجاه نفسه (انعكاس)، وقلب الإحداثيين (انسحاب)، والمقدار أو الاتجاه (دوران)، وتحريك رأس دون غيره */
-const xfSame = (a, b) => a.length === b.length && a.every((p, i) => p[0] === b[i][0] && p[1] === b[i][1]);
-const xfShift = (a, b) => { const d = [a[0][0] - b[0][0], a[0][1] - b[0][1]]; return a.every((p, i) => p[0] - b[i][0] === d[0] && p[1] - b[i][1] === d[1]); };
+/* الصورة مجموعةُ نقاط لا ترتيبُ لمس: المثلث نفسه بأيّ ترتيبٍ وُضعت رؤوسه (المراجع B لبوابة S3-U6/U7، 5) */
+const xfSet = a => a.map(p => p.join(',')).sort().join(' ');
+const xfSame = (a, b) => a.length === b.length && xfSet(a) === xfSet(b);
+const xfShift = (a, b) => a.length === b.length && a.some(q => xfSame(a, b.map(p => [p[0] + q[0] - b[0][0], p[1] + q[1] - b[0][1]])));
 function xfErr(item, a) { const xf = item.xf, P = item.pts;
-  if (xf.k === 'ref') return xfShift(a, P) ? 'refCopy' : a.some((p, i) => xf.axis === 'v' ? Math.abs(p[0] - xf.at) !== Math.abs(P[i][0] - xf.at) : Math.abs(p[1] - xf.at) !== Math.abs(P[i][1] - xf.at)) ? 'refDist' : 'xfOff';
+  if (xf.k === 'ref') { const ds = A => A.map(p => Math.abs((xf.axis === 'v' ? p[0] : p[1]) - xf.at)).sort((u, v) => u - v).join(); return xfShift(a, P) ? 'refCopy' : ds(a) !== ds(P) ? 'refDist' : 'xfOff'; }
   if (xf.k === 'tr') return xfSame(a, P.map(p => [p[0] + xf.dy, p[1] + xf.dx])) ? 'trSwap' : !xfShift(a, P) ? 'trTurn' : 'xfOff';
   for (const q of [1, 2, 3]) if (q !== xf.q && xfSame(a, P.map(p => xfApply({ ...xf, q }, p)))) return xf.q + q === 4 ? 'rotDir' : 'rotAmount';
   if (xfSame(a, P.map(p => xfApply({ ...xf, cw: !xf.cw }, p)))) return 'rotDir';
@@ -209,7 +234,7 @@ function xfTween(poly, Pl, a, spec, ms = FAST ? 20 : 1400) { const n = 24, xf = 
     if (xf.k === 'tr') return [x + xf.dx * t, y + xf.dy * t];
     if (xf.k === 'ref') return xf.axis === 'v' ? [xf.at + (x - xf.at) * (1 - 2 * t), y] : [x, xf.at + (y - xf.at) * (1 - 2 * t)];
     const q = (xf.cw ? -1 : 1) * xf.q * t * Math.PI / 2, u = x - xf.c[0], v = y - xf.c[1]; return [xf.c[0] + u * Math.cos(q) - v * Math.sin(q), xf.c[1] + u * Math.sin(q) + v * Math.cos(q)]; };
-  let k = 0; const step = () => { if (!poly.isConnected || k > n) return; poly.setAttribute('points', polyStr(a.map(p => Pl.P(...at(k / n, p))))); k++; setTimeout(step, ms / n); }; setTimeout(step, FAST ? 0 : 300); }
+  (async () => { const fl = FLOW; await sleep(300); for (let k = 0; k <= n; k++) { if (!poly.isConnected || fl !== FLOW) return; poly.setAttribute('points', polyStr(a.map(p => Pl.P(...at(k / n, p))))); await sleep(ms / n); } })().catch(() => {}); }   /* بـ sleep: تقف بالإيقاف وتنقطع بالخروج (المراجع B لبوابة S3-U6/U7، 16) */
 /* ================= ⑥ هل الشكلان متطابقان؟ (C314): ask yn | move («قاضي التطابق»: وبأيّ حركة؟) ================= */
 ITEM.congJudge = {
   make(spec) { const want = spec.ask === 'move' ? (spec.mv === 'scale' ? 'no' : spec.mv) : spec.mv === 'scale' ? 'no' : 'yes'; return { ...spec, want, tag: 'cong-' + (spec.ask || 'yn') }; },
@@ -236,9 +261,9 @@ function xfCongStmt(parent, cx, y, o = {}) { const g = el('g', { 'pointer-events
   return g; }
 ITEM.congPart = {
   make(spec) { return { ...spec, want: spec.side, tag: 'cong-part' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: 12, m: 8, axes: false }), a = item.pts, b = a.map(p => xfApply(item.xf, p)), N2 = ['d', 'h', 'w'];
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: 12, m: 8, axes: false, top: 40 }), a = item.pts, b = a.map(p => xfApply(item.xf, p)), N2 = ['d', 'h', 'w'];   /* العبارة فوق الورقة الداخلية لا على حافة الإطار (المراجع B) */
     xfPoly(svg, Pl, a); xfPoly(svg, Pl, b, { col: XF.img, fill: XF.imgF, label: i => LTR[N2[i]] });
-    xfCongStmt(svg, 180, 20);
+    xfCongStmt(svg, 180, 34);
     const sideTxt = (k, two) => { const [i, j] = CG_SIDES[k], n = two ? N2 : XF_NM; return LTR[n[i]] + ' ' + LTR[n[j]]; };
     if (tries >= 3) { const m = helpG(svg); a.forEach((p, i) => { const P = Pl.P(...p), Q = Pl.P(...b[i]); geoLine(m, P[0], P[1], Q[0], Q[1], { color: THINK_INK, w: 1.6, dash: '4 4' }); }); await S('gen.xf.together.part'); } else { await S('gen.xf.q.part.' + item.side); }
     const k = await choosePick(shuffle(Object.keys(CG_SIDES).map(s => [s, sideTxt(s, true), '<i></i>', 'gen.xf.side2.' + s])), item.want); void sideTxt; return { ans: k, ctx: { svg, Pl } }; },
@@ -250,15 +275,34 @@ ITEM.congPart = {
 };
 /* ================= ⑧ هل تحدّد المعطيات مثلثاً واحداً؟ (C314 د، تجريبياً): case sas | sss | ss | aaa | asa ================= */
 const TD_ONE = { sas: true, sss: true, asa: true, ss: false, aaa: false };
+/* رسم المعطيات بالأدوات (المراجع B لبوابة S3-U6/U7، 6): المستوى الثاني بناءٌ بالمسطرة والفرجار والمنقلة يبقى ويترك الحكم — قوسٌ واحد للضلع الحرّ،
+   أو قوسان أو شعاعان يلتقيان، أو قاعدةٌ بلا طول في الزوايا وحدها؛ والحلّ المشترك مثلثا طالبين بالمعطيات نفسها جنباً إلى جنب، والحكم للطفل */
+function tdTri(m, A, u, c, s = 1) { const B = [A[0] + 5 * u * s, A[1]], P = (d, r) => [A[0] + r * u * s * Math.cos(d * Math.PI / 180), A[1] - r * u * s * Math.sin(d * Math.PI / 180)];
+  const C = c === 'sss' ? P(36.87, 4) : c === 'sas' ? P(60, 4) : c === 'ss' ? P(50, 4) : c === 'ss2' ? P(112, 4) : P(50, 5 * Math.sin(60 * Math.PI / 180) / Math.sin(70 * Math.PI / 180));
+  el('polygon', { points: polyStr([A, B, C]), fill: XF.orgF, stroke: XF.org, 'stroke-width': 2.6, 'stroke-linejoin': 'round' }, m); return { A, B, C }; }
+function tdDraw(svg, item, full) { const m = helpG(svg), c = item.case, u = 21, Lb = (p, s, col = THINK_INK) => htLab(m, p, s, col, 12), dash = { color: THINK_INK, w: 2.2, dash: '5 4' };
+  if (full) {   /* طالبان: مثلثان بالمعطيات نفسها */
+    if (c === 'aaa') { tdTri(m, [44, 214], u, 'aaa', .62); tdTri(m, [170, 214], u, 'aaa', 1.1); }
+    else { tdTri(m, [40, 214], u, c); tdTri(m, [196, 214], u, c === 'ss' ? 'ss2' : c); }
+    return m; }
+  const A = [124, 210], B = [A[0] + 5 * u, A[1]];   /* طول القاعدة تحتها داخل الإطار */ geoLine(m, A[0], A[1], B[0], B[1], { color: XF.org, w: 3 }); Lb([(A[0] + B[0]) / 2, A[1] + 15], c === 'aaa' ? '؟' : MS('5'), XF.org);
+  const ray = (V, deg, len) => { const E = [V[0] + len * Math.cos(deg * Math.PI / 180), V[1] - len * Math.sin(deg * Math.PI / 180)]; geoLine(m, V[0], V[1], E[0], E[1], dash); return E; };
+  const arc = (V, r, a0, a1) => el('path', { d: arcPath(V, r, a0, a1), fill: 'none', stroke: THINK_INK, 'stroke-width': 2.2, 'stroke-dasharray': '5 4' }, m);
+  if (c === 'ss') arc(A, 4 * u, 12, 168);   /* الضلع الثاني يدور حول طرفه: أين رأسه؟ */
+  else if (c === 'sss') { arc(A, 4 * u, 20, 75); arc(B, 3 * u, 105, 160); }
+  else if (c === 'sas') { ray(A, 60, 5.2 * u); arc(A, 4 * u, 40, 80); degText(m, A[0] + 30, A[1] - 8, 60, { size: 13, color: THINK_INK }); }
+  else if (c === 'asa' || c === 'aaa') { ray(A, 50, 5.2 * u); ray(B, 120, 5.2 * u); degText(m, A[0] + 32, A[1] - 7, 50, { size: 13, color: THINK_INK }); degText(m, B[0] - 30, B[1] - 7, 60, { size: 13, color: THINK_INK }); }
+  return m; }
 ITEM.triDet = {
   make(spec) { return { ...spec, want: TD_ONE[spec.case] ? 'one' : 'many', tag: 'tri-det' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(200), g = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: 24, y: 30, width: 312, height: 120, rx: 16, fill: '#fff', stroke: XF.org, 'stroke-width': 2.5 }, g);
-    const lines = labelText('xfTD.' + item.case + (item.v ? '.' + item.v : '')).split('|'); lines.forEach((s, i) => { const t = el('text', { x: 180, y: 78 + i * 32 - (lines.length - 1) * 16, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: CO.ink, direction: 'rtl' }, g); t.textContent = s; });
+  async ask(item, mode, tries) { const svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: 24, y: 20, width: 312, height: 84, rx: 16, fill: '#fff', stroke: XF.org, 'stroke-width': 2.5 }, g);   /* البطاقة أعلى، وتحتها مساحة الرسم */
+    const lines = labelText('xfTD.' + item.case + (item.v ? '.' + item.v : '')).split('|'); lines.forEach((s, i) => { const t = el('text', { x: 180, y: 68 + i * 30 - (lines.length - 1) * 15, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: CO.ink, direction: 'rtl' }, g); t.textContent = s; });
+    if (tries >= 3) tdDraw(svg, item, true);
     await S(tries >= 3 ? 'gen.xf.together.det' : item.q || 'gen.xf.q.det', { noGap: true }); await S('gen.xf.td.' + item.case + (item.v ? '.' + item.v : ''), { append: true });
     const k = await choosePick([['one', labelText('xfTD.one'), '<i></i>', 'gen.xf.td.one'], ['many', labelText('xfTD.many'), '<i></i>', 'gen.xf.td.many']], item.want, { cls: 'cards' }); return { ans: k, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.case === 'aaa' ? 'detAngles' : item.case === 'ss' ? 'detTwoSides' : 'detFixed' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.case === 'aaa' ? 'gen.xf.hint.detA' : 'gen.xf.hint.det'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { tdDraw(r.ctx.svg, item, false); await sleep(FAST ? 10 : 250); } await S(item.case === 'aaa' ? 'gen.xf.hint.detA' : 'gen.xf.hint.det'); }, async together() {},
   async reveal(item) { await S('gen.xf.td.' + item.want); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -308,8 +352,8 @@ SCENES.rsShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('
 SCENES.congHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { n: 12, m: 8, axes: false }), P = [[1, 1], [4, 1], [2, 3]]; xfPoly(svg, Pl, P, { names: false }); const big = P.map(([x, y]) => [5 + (x - 1) * 2, 1 + (y - 1) * 2]); xfPoly(svg, Pl, big, { col: XF.img, fill: XF.imgF, names: false }); const fz = chaosAt(svg, 318, 40, .4); chaosGiggle(fz);
   await S(L[0]); const m = helpG(svg), Q = P.map(p => Pl.P(p[0] + 4, p[1])); el('polygon', { points: polyStr(Q), fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '6 4' }, m); SFX.soft(); for (const l of L.slice(1)) await S(l); };
 /* الاكتشاف (د5): الانطباق بحركة، والأجزاء المتناظرة بالترتيب */
-SCENES.congShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { n: 12, m: 8, axes: false }), P = [[1, 1], [5, 1], [2, 4]], X = { k: 'ref', axis: 'v', at: 6 }, B = P.map(p => xfApply(X, p)), N2 = ['d', 'h', 'w'];
-  xfPoly(svg, Pl, P); xfPoly(svg, Pl, B, { col: XF.img, fill: XF.imgF, label: i => LTR[N2[i]] }); xfMark(svg, Pl, X); await S(L[0]); const st = xfCongStmt(svg, 180, 20); anim(st, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+SCENES.congShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { n: 12, m: 8, axes: false, top: 40 }), P = [[1, 1], [5, 1], [2, 4]], X = { k: 'ref', axis: 'v', at: 6 }, B = P.map(p => xfApply(X, p)), N2 = ['d', 'h', 'w'];
+  xfPoly(svg, Pl, P); xfPoly(svg, Pl, B, { col: XF.img, fill: XF.imgF, label: i => LTR[N2[i]] }); xfMark(svg, Pl, X); await S(L[0]); const st = xfCongStmt(svg, 180, 34); anim(st, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
   const m = helpG(svg); P.forEach((p, i) => { const a = Pl.P(...p), b = Pl.P(...B[i]); geoLine(m, a[0], a[1], b[0], b[1], { color: THINK_INK, w: 1.6, dash: '4 4' }); }); SFX.tick(); for (const l of L.slice(1)) await S(l); };
 /* المشروع (د5): بلاطة القصر — المثلث م (4 ، 4) أ (8 ، 4) ب (8 ، 6) يدور ثلاث مرات ربع دورة حول م */
 SCENES.tileShow2 = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { n: 8, m: 8 }), P = [[4, 4], [8, 4], [8, 6]], cols = ['#d8e8f6', '#fbe3d1', '#d8f0e0', '#efe0f5'];

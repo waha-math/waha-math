@@ -176,7 +176,8 @@ ITEM.compassDraw = {
     const draw = () => { tool.innerHTML = ''; cpCompassAt(tool, [R.X(0), 154], [R.X(v), 154]); const t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: CPC.arc, direction: 'rtl' }, tool); t.textContent = NEUTRAL_ANS ? '' : `${labelText('cpOpen')} ${v} ${labelText('rulCm')}`; /*T*/window.__cdV = v; window.__cdWant = item.want;/*/T*/ if (reg) reg(); };
     let reg = null; draw();
     const btns = svgSteppers(svg, [[44, 232], [316, 232]], d => { v = Math.max(1, Math.min(10, v + d)); SFX.tick(); draw(); }, { key: 'cd', labels: ['cpClose', 'cpOpenMore'] });
-    if (tries >= 3) { const m = helpG(svg); if (item.d) hintCard(svg, 180, 30, `${item.d} ÷ 2 = ؟`);   /* القطر مقسوماً بلا علامة الفتحة على المسطرة: آخر خطوة للطفل (B-6) */ }
+    if (tries >= 3) { const m = helpG(svg); if (item.d) hintCard(svg, 180, 30, `${item.d} ÷ 2 = ؟`);   /* القطر مقسوماً بلا علامة الفتحة على المسطرة: آخر خطوة للطفل (B-6) */
+      else { const x = R.X(item.r); el('path', { d: `M${x} 168 l-7 12 h14 Z`, fill: THINK_INK }, m); el('circle', { cx: x, cy: 156, r: 9, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.4, 'stroke-dasharray': '3 3' }, m); } }   /* نصف القطر: علامة عدده على المسطرة، وفتح الفرجار إليها للطفل (المراجع B لبوابة S3-U6/U7، 6) */
     await S(tries >= 3 ? 'gen.cp.together.cd' : item.q, { noGap: true }); await sayLen(item.r || item.d, 'cm');
     const t = item.want, tap = b => b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     const fin = rulDone(() => { reg = null; btns.forEach(b => { b.onclick = null; b.onkeydown = null; b.removeAttribute('role'); }); });

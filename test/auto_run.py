@@ -36,7 +36,9 @@ SMALL = """() => { const out = []; for (const e of document.querySelectorAll('bu
   if (getComputedStyle(e).visibility === 'hidden' || +getComputedStyle(e).opacity < .5) continue;   
   if (e instanceof SVGElement && getComputedStyle(e).cursor !== 'grab' && !e.onclick) continue;   /* عنصر SVG لم يصر هدفاً بعد (لا فعل له الآن) */   /* ما يختفي بعد الجواب (حركة خروج) ليس هدفاً */
   const need = (e.closest('#panel') || e.closest('.voice-note') || e.id === 'adultBtn') ? 44 : getComputedStyle(e).cursor === 'grab' ? 64 : 56; const m = Math.min(r.width, r.height);
-  if (m < need - 0.5) out.push([e.id || (e.getAttribute('class') || e.tagName), Math.round(r.width), Math.round(r.height), need, (e.getAttribute('aria-label') || e.dataset.k || e.dataset.tool || e.dataset.step || '').slice(0, 30)]); } return out; }"""
+  if (m < need - 0.5) out.push([e.id || (e.getAttribute('class') || e.tagName), Math.round(r.width), Math.round(r.height), need, (e.getAttribute('aria-label') || e.dataset.k || e.dataset.tool || e.dataset.step || '').slice(0, 30)]);
+  /* وهدفٌ يخرج عن عرض الشاشة يُعدّ صغيراً بما يُرى منه (المراجع B لبوابة S3-U4/U5، 11 (د): أزرار الأعداد الكبيرة على iPhone SE) */
+  else if (e.closest('#stage') && (r.right > innerWidth + 1 || r.left < -1)) out.push([e.id || (e.getAttribute('class') || e.tagName), Math.round(Math.min(r.right, innerWidth) - Math.max(r.left, 0)), Math.round(r.height), need, 'خارج الشاشة: ' + (e.getAttribute('aria-label') || e.dataset.k || '').slice(0, 24)]); } return out; }"""
 NEAR = """() => { const svg = document.querySelector('#stage svg'); if (!svg) return [];
   const drawn = g => { let r = null; for (const c of g.querySelectorAll('circle,ellipse,rect,polygon,path,line,polyline,text')) { if (c.matches('rect.hit')) continue; const f = c.getAttribute('fill'), s = c.getAttribute('stroke'); if ((f === 'transparent' || f === 'none') && (!s || s === 'none') && c.tagName !== 'text') continue; const b = c.getBoundingClientRect(); if (!b.width && !b.height) continue; r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) } : { l: b.left, t: b.top, r: b.right, b: b.bottom }; } return r; };
   const T = [...svg.querySelectorAll('*')].filter(e => e.onclick && !e.closest('[hidden]') && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity >= .5).map(e => { const r = drawn(e); return r && { e, x: (r.l + r.r) / 2, y: (r.t + r.b) / 2, w: r.r - r.l, h: r.b - r.t }; }).filter(t => t && Math.max(t.w, t.h) < 40);   /* أهداف نقطية فقط (نقطة، رأس، موضع صغير): المناطق المتلاصقة (قطاعات، بلاطات) كلٌّ منها هدف واسع؛ واختيار النقطة بالرفع (axPressPick، data-press) خارجه لأنه يُري الاختيار قبل الرفع */
@@ -121,6 +123,14 @@ CLIPT = """() => { const s = document.querySelector('#stage svg'); if (!s) retur
     return b.left < R.left - 2 || b.right > R.right + 2 || b.top < R.top - .35 * fs || b.bottom > R.bottom + .25 * fs; }).map(([t, b]) => t.textContent.trim().slice(0, 24))
     /* وحلقة الجواب (okRing) داخل المسرح كلها (الفحص المستقل D2 لبوابة S1-U4 (10)) */
     .concat([...s.querySelectorAll('[data-ring]')].filter(g => { const b = g.getBoundingClientRect(); return b.width && (b.left < R.left - 1 || b.right > R.right + 1 || b.top < R.top - 1 || b.bottom > R.bottom + 1); }).map(() => 'حلقة الجواب')); }"""
+# ولا يتراكب نصّان على المسرح، ولا يخرج نصٌّ عن الإطار الورقي (x 20..340) في م3 وم4 (المراجع B لبوابة S3-U4/U5، 11): صندوق الحروف لا صندوق السطر،
+# فخطّ النسخ سطره أطول كثيراً من حروفه؛ والنسختان المتطابقتان في موضعٍ واحد (ظلٌّ) ليستا تراكباً
+TEXTOV = """() => { const s = document.querySelector('#stage svg'); if (!s) return []; const vis = e => !e.closest('[hidden]') && !e.closest('[clip-path]') && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > .05 && !e.closest('[opacity="0"]');
+  const T = [...s.querySelectorAll('text')].filter(t => t.textContent.trim() && vis(t)).map(t => { const r = t.getBoundingClientRect(), cy = (r.top + r.bottom) / 2, hh = r.height * .3; return { t: t.textContent.trim().slice(0, 24), b: { left: r.left, right: r.right, width: r.width, top: cy - hh, bottom: cy + hh, height: 2 * hh } }; }).filter(x => x.b.width); const out = [];
+  for (let i = 0; i < T.length; i++) for (let j = i + 1; j < T.length; j++) { const a = T[i].b, b = T[j].b; if (T[i].t === T[j].t && Math.abs(a.left - b.left) < 3 && Math.abs(a.top - b.top) < 3) continue; const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+    if (w > 2 && h > 3 && w * h > .15 * Math.min(a.width * a.height, b.width * b.height)) out.push(T[i].t + ' ⟂ ' + T[j].t); }
+  const fr = s.querySelector('rect[x="20"][y="14"][rx="14"]'); if (fr) { const F = fr.getBoundingClientRect(); for (const x of T) { const b = x.b; if (b.left < F.left - 2 || b.right > F.right + 2 || b.top < F.top - 2 || b.bottom > F.bottom + 2) out.push('خارج الإطار: ' + x.t); } }
+  return out; }"""
 # ولا يغطّي هدفٌ شارةَ عدٍّ تحته (الفحص المستقل D2 لبوابة S1-U4 (8): بطاقة الاختيار الوسطى على أسفل البرج وشارته «١» في فوضى S1-U2 د5): هدفٌ مرسوم بعد
 # الشارة ولا يحويها يغطّي ربعها أو أكثر
 COVERB = """() => { const s = document.querySelector('#stage svg'); if (!s) return []; const vis = e => !e.closest('[hidden]') && +getComputedStyle(e).opacity >= .5 && getComputedStyle(e).visibility !== 'hidden';
@@ -174,7 +184,7 @@ async def main():
     ONLY_SET = {x for x in ONLY if not x.startswith('ws:')}
     tw_seen = {}; prev_twin = False
     if ONLY: await pg.evaluate("() => { PROG.unlockAll = true; saveProg(); showHome(); }"); await pg.wait_for_timeout(300)
-    matd = {}; matq = [0]; small = {}; nearT = {}; noname = {}; empty = {}; squeeze = {}; clipt = {}; coverb = {}; keyless = {}; knon = [0]; kasync = [0]; krace = [0]; kpress = [0]; kspace = [0]; kpan = [0]; taps = {}; leaks = []; failed_rev = {}; redo_seen = set(); replay_q = None; crashes = 0; seen_types = set(); deep = {}; failed_test = {}; shots = set(); report = []; lessons = 0
+    matd = {}; matq = [0]; small = {}; nearT = {}; noname = {}; empty = {}; squeeze = {}; clipt = {}; textov = {}; coverb = {}; keyless = {}; knon = [0]; kasync = [0]; krace = [0]; kdrv = [0]; kpress = [0]; kspace = [0]; kpan = [0]; taps = {}; leaks = []; failed_rev = {}; redo_seen = set(); replay_q = None; crashes = 0; seen_types = set(); deep = {}; failed_test = {}; shots = set(); report = []; lessons = 0
     opt_seen = set(); visits = 0   # MAXL يعدّ الدروس وحدها (لا المراجعة ولا الورشة)، وسقف الزيارات كلها 200 حارس من حلقة
     VCAP = int(os.environ.get('VCAP', '400'))   # سقف الزيارات: failreview يعيد كل درس ويمرّ بالمراجعات، و38 درساً تتجاوز 200 (Gate، 19 نوفمبر)
     while lessons < MAXL and visits < VCAP:
@@ -219,6 +229,8 @@ async def main():
           for x in await pg.evaluate(NEAR): nearT.setdefault((sc, a['kind'], x[0], x[1]), x[2])
           for x in await pg.evaluate(EMPTY): empty.setdefault((sc, a['kind'], x), 0)
           for x in await pg.evaluate(CLIPT): clipt.setdefault((sc, a['kind'], x), 0)
+          if sc.startswith(('m3.', 'm4.')):
+            for x in await pg.evaluate(TEXTOV): textov.setdefault((sc, a['kind'], x), 0)
           for x in await pg.evaluate(COVERB): coverb.setdefault((sc, a['kind'], x), 0)
           for x in await pg.evaluate(KEYLESS): keyless.setdefault((sc, a['kind'], x), 0)   # لوحة المفاتيح لكل هدف في الوحدات كلها (مواصفة المحرّك 8؛ كان للوحدة الرابعة ثم صار عامّاً بـ kbdStage)
           if a['kind'] == 'num':
@@ -292,11 +304,14 @@ async def main():
               elif same is None:
                 wr = await pg.evaluate("(n) => LOG.attempts.slice(n).filter(x => x.ok === false).map(x => x.scene + ':' + (x.tag || ''))", na)
                 if wr and asy and await pg.evaluate("() => window.__race === true"): krace[0] += 1   # سبق الحلُّ المتتابع المفتاح: لا حكم على المفتاح
-                elif wr: keyless.setdefault((sc, a['kind'], key + ' لمس غير الحلّ: ' + ','.join(wr)[:60]), 0)
+                elif wr and await pg.evaluate("(n) => window.__drvWrongAt === n", na): kdrv[0] += 1   # خطوةٌ سابقة من البند نفسه أجابها السائق خطأً عمداً (المراجع B لبوابة S3-U4/U5، 11: «آلة التحويل» خطوتان)
+                elif wr:
+                  keyless.setdefault((sc, a['kind'], key + ' لمس غير الحلّ: ' + ','.join(wr)[:60]), 0)
+                  print('   keyless detail:', sc, a, await pg.evaluate("(n) => JSON.stringify([LOG.attempts.slice(n - 1), window.__auto && window.__auto.kind, window.__item && window.__item.t, window.__itemMode])", na), flush=True)
           elif ko == -1: keyless.setdefault((sc, a['kind'], 'لا يأخذ التركيز'), 0); await pg.evaluate(KEYGO)
           elif ko == 0: pass                              # حلّه الآلي شُغّل (ولمساته الموقوفة أُعيدت)
           elif how == 'bag': await pg.evaluate("""(p) => { const b = [...document.querySelectorAll('.choices .pick')]; (b.find(x => x.dataset.k === p) || b[0]).click(); }""", PATH)
-          else: await pg.evaluate("(h) => { const a = window.__auto; if (a) (h === 'wrong' && a.wrong ? a.wrong : a.ok)(); }", how)
+          else: await pg.evaluate("(h) => { const a = window.__auto; if (h === 'wrong') window.__drvWrongAt = LOG.attempts.length; if (a) (h === 'wrong' && a.wrong ? a.wrong : a.ok)(); }", how)   # الخطأ المتعمَّد في خطوةٍ من بندٍ متعدّد الخطوات يُسجَّل بعد مفتاح الخطوة التالية: ليس من المفتاح
           acts.append((sc, a['kind'], how)); idle = 0
           if TRACE: print('  >', tid, sc, a['kind'], a['n'], how, ko, flush=True)
           await pg.wait_for_timeout(40); continue
@@ -342,12 +357,14 @@ async def main():
     print('empty drags:', len(empty)); [print(' ', *k) for k in list(empty)[:20]]
     print('squeezed stages:', len(squeeze)); [print(' ', *k, v) for k, v in list(squeeze.items())[:30]]
     print('clipped texts:', len(clipt)); [print(' ', *k) for k in list(clipt)[:20]]
+    textov3 = {k: v for k, v in textov.items() if k[0].startswith('m3.')}   # م3 تُفحص؛ وم4 تُطبع للعلم حتى تُراجَع
+    print('text overlaps/out of frame:', len(textov3), '(m4: %d)' % (len(textov) - len(textov3))); [print(' ', *k) for k in list(textov)[:20]]
     print('covered badges:', len(coverb)); [print(' ', *k) for k in list(coverb)[:20]]
     print('near targets:', len(nearT)); [print(' ', *k, v) for k, v in list(nearT.items())[:30]]
     if lessons and not kpress[0]: keyless.setdefault(('-', 'tap', 'لم يُضغط Enter حقيقي على أي هدف'), 0)   # فلا ينجح العدّاد فارغاً
     if lessons and kpress[0] > 1 and not kspace[0]: keyless.setdefault(('-', 'tap', 'لم تُضغط المسافة على أي هدف'), 0)
     if lessons and kpress[0] and not knon[0]: keyless.setdefault(('-', 'tap', 'لم يُضغط مفتاحٌ غير مفتاح الفعل على أي هدف'), 0)
-    print('keyless targets:', len(keyless), '(مفتاح حقيقي على %d هدفاً، منها %d بالمسافة، وعلى زرّي الشريط %d مرة، ومفتاحٌ غير مفتاح الفعل %d مرة، وهدفٌ حلُّه متتابع بمفتاح الفعل وحده %d مرة، سبقه حلُّه فيها %d)' % (kpress[0], kspace[0], kpan[0], knon[0], kasync[0], krace[0])); [print(' ', *k) for k in list(keyless)[:60]]
+    print('keyless targets:', len(keyless), '(مفتاح حقيقي على %d هدفاً، منها %d بالمسافة، وعلى زرّي الشريط %d مرة، ومفتاحٌ غير مفتاح الفعل %d مرة، وهدفٌ حلُّه متتابع بمفتاح الفعل وحده %d مرة، سبقه حلُّه فيها %d، وبعد خطوةٍ أجابها السائق خطأً %d)' % (kpress[0], kspace[0], kpan[0], knon[0], kasync[0], krace[0], kdrv[0])); [print(' ', *k) for k in list(keyless)[:60]]
     if PATH == 'mat' and lessons > 3 and not matq[0]: matd.setdefault(('-', '-', 'لم يُرَ سؤال عددي بعد «معي»'), 0)
     print('mat distractors:', len(matd), '(أسئلة عددية بعد «معي»: %d)' % matq[0]); [print('  «معي»:', *k) for k in list(matd)[:20]]
     print('blocked lessons:', len(blocked)); [print(' ', *r) for r in blocked[:20]]
@@ -356,6 +373,6 @@ async def main():
     # STRICT=1 (لفحص الفحوص، الدرس 98): يخرج بـ 1 إن كان في العدّادات شيء، كما تحكم خلاصة المجموعة
     # والعدّادان الجديدان والتوائم المفقودة كما في الخلاصة (طفرة «تسمية الشيء تحت المسرح» نجت لأن STRICT لم يعدّ النصوص المقصوصة)
     # وأخطاء التقييم في نمط «ok» (كل جواب صحيح فيه): خطأٌ هنا لمسةٌ ذهبت إلى غير هدفها (الفحص المستقل D2 لبوابة S1-U4 (4))
-    return int(bool(errs or errlog or small or empty or squeeze or blocked or taps or noname or leaks or fontfb or miss or clipt or coverb or keyless or missing or matd or (bad and MODE == 'ok')))
+    return int(bool(errs or errlog or small or empty or squeeze or blocked or taps or noname or leaks or fontfb or miss or clipt or coverb or keyless or missing or matd or textov3 or (bad and MODE == 'ok')))
 rc = asyncio.run(main())
 if os.environ.get('STRICT') == '1': sys.exit(rc or 0)

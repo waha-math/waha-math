@@ -75,7 +75,7 @@ ITEM.voUnit = cpItem({ H: 230, tLine: 'gen.vo.together.unit', hint: 'gen.vo.hint
 /* ================= ⑤ أيّ الأبعاد تعطي هذا الحجم؟ (C326 عكساً، المشروع): v؛ opts ثلاثة أبعاد (الأول الصحيح) ================= */
 ITEM.voDims = cpItem({ H: 200, tLine: 'gen.vo.together.dims', hint: 'gen.vo.hint.dims', rLine: 'gen.vo.reveal.dims', praise: 'praiseThink',
   make: s => ({ want: s.opts[0].join('x'), tag: 'vo-dims' }),
-  draw(svg, item, tries) { soBox(svg, 3, 2, 2, { s: 30, cy: 96 }); htLab(svg, [180, 178], voTxt(item.v, item.u + '3'), VO.ok, 20); if (tries >= 3) ciRule(helpG(svg), 180, 26, labelText('voRule'), VO.hl, 14); return {}; },
+  draw(svg, item, tries) { soBox(svg, 3, 2, 2, { s: 30, cy: 96 }); htLab(svg, [180, 166], voTxt(item.v, item.u + '3'), VO.ok, 20);   /* فوق حافة الإطار (المراجع B) */ if (tries >= 3) ciRule(helpG(svg), 180, 26, labelText('voRule'), VO.hl, 14); return {}; },
   h2: async (item, ctx) => { ciEq(helpG(ctx.svg), 180, 30, `؟ × ؟ × ؟ = ${item.v}`, VO.hl, 17); await sleep(FAST ? 10 : 250); },   /* ضربٌ لا جمع */
   pick: item => choosePick(shuffle(item.opts.map(o => [o.join('x'), o.map(x => MS(String(x))).join(' × '), '<i></i>', 'gen.vo.dims.' + o.join('x')])), item.want),
   errOf: (it, k) => { const o = k.split('x').map(Number); return o[0] + o[1] + o[2] === it.v ? 'voSum' : 'voDimsOff'; } });

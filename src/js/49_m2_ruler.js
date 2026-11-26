@@ -21,7 +21,7 @@ function rulerAt(parent, o) { const { x, y, pxcm, from = 0, to, mm = pxcm >= 50,
     mark(v, col = RUL.hl) { const t = ticks[Math.round(v * 10)]; if (t) { t.setAttribute('stroke', col); t.setAttribute('stroke-width', 3.2); t.setAttribute('y2', y + 20); } const l = labels[v]; if (l) l.setAttribute('fill', col); },
     move(dx) { g.setAttribute('transform', `translate(${dx} 0)`); } }; }
 /* عدسة على موضع v: مقطع من المسطرة مكبّراً (pxcm = 110) في إطار فوقها، فتُرى المليمترات (العدسة للنظر لا للمس) */
-function rulerLens(svg, R, v, o = {}) { const w = 250, h = 96, cx = Math.max(w / 2 + 6, Math.min(354 - w / 2, o.cx ?? R.X(v))), y0 = o.y ?? R.y - h - 78, k = 110, c0 = Math.floor(v) - (v - Math.floor(v) < .25 ? .6 : .35), id = 'rlens' + (++SYM_ID), g = el('g', { 'pointer-events': 'none', 'data-lens': 1 }, svg);
+function rulerLens(svg, R, v, o = {}) { const w = 250, h = 96, cx = Math.max(w / 2 + (o.lo ?? 6), Math.min((o.hi ?? 354) - w / 2, o.cx ?? R.X(v))),   /* lo/hi حدّا الإطار حين يكون */ y0 = o.y ?? R.y - h - 78, k = 110, c0 = Math.floor(v) - (v - Math.floor(v) < .25 ? .6 : .35), id = 'rlens' + (++SYM_ID), g = el('g', { 'pointer-events': 'none', 'data-lens': 1 }, svg);
   el('rect', { x: cx - w / 2, y: y0, width: w, height: h, rx: 16, fill: '#fffdf6', stroke: css('--compass'), 'stroke-width': 3 }, g);
   el('clipPath', { id }, g).appendChild(el('rect', { x: cx - w / 2 + 3, y: y0 + 3, width: w - 6, height: h - 6, rx: 13 }));
   const f0 = Math.floor(c0), zf = Math.max(R.from, f0), zt = Math.min(R.to, f0 + 4);   /* العدسة لا تُري تدريجات قبل أول المسطرة ولا بعد آخرها */

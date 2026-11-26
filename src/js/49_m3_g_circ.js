@@ -33,7 +33,7 @@ function ciCircle(parent, C, R, o = {}) { const g = el('g', { 'pointer-events': 
   return g; }
 /* السطر العلوي: ما أُعطي (نصف القطر 5 سم / القطر 8 سم / المحيط 15.7 سم / المساحة 12.56 سم²) */
 const CI_GIVEN = { r: 'cpPart.radius', d: 'cpPart.diameter', C: 'ciPerim', A: 'ciArea' };
-function ciTop(svg, k, v, u, y = 30) { const t = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: k === 'r' ? CI.r : k === 'd' ? CI.d : CI.ink, direction: 'rtl', 'pointer-events': 'none' }, svg); t.textContent = `${labelText(CI_GIVEN[k])}: ${ciTxt(v, k === 'A' ? u + '2' : u)}`; return t; }
+function ciTop(svg, k, v, u, y = 40) {   /* تحت حافة الإطار لا عليها (المراجع B لبوابة S3-U6/U7، 12) */ const t = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: k === 'r' ? CI.r : k === 'd' ? CI.d : CI.ink, direction: 'rtl', 'pointer-events': 'none' }, svg); t.textContent = `${labelText(CI_GIVEN[k])}: ${ciTxt(v, k === 'A' ? u + '2' : u)}`; return t; }
 /* الحساب كاملاً لكل سؤال (الكشف)، وبعلامة استفهام (الحلّ المشترك) */
 function ciCalcStr(item, q) { const r = item.fig === 'r' ? item.v : item.fig === 'd' ? item.v / 2 : null, d = item.fig === 'd' ? item.v : r != null ? 2 * r : null, w = ciR(item.want),
     eq = exact => q ? '؟' : ciR(exact) === w ? String(w) : `${ciR(exact)} ≈ ${w}`;   /* المحيط بمنزلة واحدة (التعديل 2): «25.12 ≈ 25.1» */
@@ -54,9 +54,11 @@ function ciGarden(parent, C, R) { const g = el('g', { 'pointer-events': 'none' }
 
 /* ================= ① احسب: المحيط | المساحة | نصف المساحة | القطر من المحيط | نصف القطر من المساحة (C306، C307) =================
    fig r | d | C | A وقيمته v، وu cm | m؛ garden: حديقة بسياج (مهندس الحدائق والمشروع)؛ ch من المولّد */
+/* لا خياران بنصٍّ واحد بعد التقريب (المراجع B لبوابة S3-U6/U7، 10) */
+const ciChk = (s, t) => { /*T*/if (TESTHOOK && new Set(s.ch.map(([v]) => String(ciR(v)))).size !== s.ch.length) testBug(t + ': خياران متطابقان');/*/T*/ return s; };
 ITEM.circCalc = cpItem({ H: 262, tLine: 'gen.ci.together.calc', hint: 'gen.ci.hint.calc',
   rLine: 'gen.ci.reveal.calc', rSay: it => S(ciLine(it.want, ciUnitOf(it.ask, it.u)), { append: true }), praise: 'praiseThink',
-  make: s => ({ want: ciR(s.ch[0][0]), tag: 'circ-' + s.ask + '-' + s.fig }),
+  make: s => (ciChk(s, 'circCalc'), { want: ciR(s.ch[0][0]), tag: 'circ-' + s.ask + '-' + s.fig }),
   draw(svg, item, tries) { const C = [180, 128], R = 70;
     if (item.garden) ciGarden(svg, C, R - 8); else ciCircle(svg, C, R, { disc: ['area', 'half', 'rad'].includes(item.ask) || item.fig === 'A', ring: item.fig === 'C' || item.ask === 'perim', seg: item.fig === 'r' || item.ask === 'rad' ? 'r' : item.fig === 'd' || item.ask === 'dia' ? 'd' : null });
     if (item.garden) { const Q = angP(C, 20, R - 8); geoLine(svg, C[0], C[1], Q[0], Q[1], { color: CI.r, w: 4 }); }
@@ -74,26 +76,28 @@ ITEM.circCalc.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok
 
 /* ================= ② «ساعي الخيط»: يُلفّ الخيط حول العلبة ثم يُفرد على المسطرة (C306) =================
    d القطر (سم)؛ ask perim: كم طول الخيط؟ (يتوقّع الطفل ثم يُفرد الخيط فيُقاس) | ratio: len طول الخيط المقيس، كم ناتج المحيط ÷ القطر؟ */
-async function ciUnroll(svg, C, R, len, o = {}) { const y = o.y || 184, x0 = 26, k = o.k || Math.min(11, 300 / len), g = el('g', { 'pointer-events': 'none' }, svg), rul = rulerAt(g, { x: x0, y: y + 6, pxcm: k, from: 0, to: Math.ceil(len), mm: false });
-  for (const [v, t] of Object.entries(rul.labels)) if (+v % (k < 16 ? 5 : 1)) t.remove(); else t.textContent = MS(v);   /* أرقام كل خمسة على المسطرة الضيّقة */ const p = el('path', { d: '', fill: 'none', stroke: CI.str, 'stroke-width': 5, 'stroke-linecap': 'round' }, g), N = FAST ? 3 : 24;
+async function ciUnroll(svg, C, R, len, o = {}) { const y = o.y || 186, x0 = 36, k = o.k || Math.min(11, 290 / len),   /* المسطرة داخل الإطار */ g = el('g', { 'pointer-events': 'none' }, svg), rul = rulerAt(g, { x: x0, y: y + 6, pxcm: k, from: 0, to: Math.ceil(len), mm: false });
+  for (const [v, t] of Object.entries(rul.labels)) if (+v % (k < 16 ? 5 : 1)) t.remove();   /* أرقام كل خمسة على المسطرة الضيّقة، غربيةً كسائر المساطر (D279 (2)؛ المراجع B لبوابة S3-U6/U7، 9) */ const p = el('path', { d: '', fill: 'none', stroke: CI.str, 'stroke-width': 5, 'stroke-linecap': 'round' }, g), N = FAST ? 3 : 24;
   for (let i = 1; i <= N; i++) { const t = i / N, a = 360 * (1 - t), ring = a > 1 ? arcPath(C, R, 270, 270 + a) : '', L = len * k * t; p.setAttribute('d', `${ring ? ring + ' ' : ''}M${x0} ${y} H${x0 + L}`); if (i < N) await sleep(FAST ? 5 : 45); }
-  p.setAttribute('d', `M${x0} ${y} H${x0 + len * k}`); el('circle', { cx: x0 + len * k, cy: y, r: 5, fill: CI.str }, g); htLab(g, [Math.min(330, x0 + len * k), y - 18], ciTxt(len, 'cm'), CI.str, 15); SFX.tick(); return g; }
+  p.setAttribute('d', `M${x0} ${y} H${x0 + len * k}`); el('circle', { cx: x0 + len * k, cy: y, r: 5, fill: CI.str }, g); labFit(htLab(g, [x0 + len * k, y - 18], ciTxt(len, 'cm'), CI.str, 15)); SFX.tick(); return g; }
+async function ciStringOut(item, r) { if (item.ask === 'ratio' || !r || !r.ctx || !r.ctx.svg || !r.ctx.svg.isConnected || r.ctx.out) return; r.ctx.out = 1; const svg = r.ctx.svg;
+  svg.querySelectorAll('circle[stroke="' + CI.str + '"]').forEach(n => n.remove()); await ciUnroll(svg, r.ctx.C, r.ctx.R + 4, Math.round(31.4 * item.d) / 10, {}); }   /* بمنزلة واحدة */
 ITEM.circString = {
-  make(spec) { return { ...spec, want: ciR(spec.ch[0][0]), tag: 'circ-string-' + (spec.ask || 'perim') }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), C = [180, 102], R = Math.min(70, item.d * 7); el('circle', { cx: C[0], cy: C[1], r: R, fill: CI.can, stroke: CI.canEdge, 'stroke-width': 3, 'pointer-events': 'none' }, svg);
+  make(spec) { ciChk(spec, 'circString'); return { ...spec, want: ciR(spec.ch[0][0]), tag: 'circ-string-' + (spec.ask || 'perim') }; },
+  async ask(item, mode, tries) { const svg = m3Stage(262), C = [180, 112], R = Math.min(64, item.d * 7); el('circle', { cx: C[0], cy: C[1], r: R, fill: CI.can, stroke: CI.canEdge, 'stroke-width': 3, 'pointer-events': 'none' }, svg);
     el('circle', { cx: C[0], cy: C[1], r: R - 7, fill: 'none', stroke: CI.canEdge, 'stroke-width': 1.5, opacity: .6, 'pointer-events': 'none' }, svg); geoLine(svg, C[0] - R, C[1], C[0] + R, C[1], { color: CI.d, w: 3.4 });
     htLab(svg, [C[0], C[1] - 14], ciTxt(item.d, 'cm'), CI.d, 15);
-    if (item.ask === 'ratio') { await ciUnroll(svg, C, R + 4, item.len, { k: Math.min(10, 300 / item.len) }); }
+    if (item.ask === 'ratio') { await ciUnroll(svg, C, R + 4, item.len, { k: Math.min(10, 290 / item.len) }); }
     else el('circle', { cx: C[0], cy: C[1], r: R + 4, fill: 'none', stroke: CI.str, 'stroke-width': 4, 'pointer-events': 'none' }, svg);
-    if (tries >= 3) { const m = helpG(svg); if (item.ask === 'ratio') ciEq(m, 180, 30, `${item.len} ÷ ${item.d} = ؟`, CI.think, 17); else ciEq(m, 180, 30, `3.14 × ${item.d} = ؟`, CI.think, 17); }
+    if (tries >= 3) { const m = helpG(svg); if (item.ask === 'ratio') ciEq(m, 180, 36, `${item.len} ÷ ${item.d} = ؟`, CI.think, 17); else ciEq(m, 180, 36, `3.14 × ${item.d} = ؟`, CI.think, 17); }
     await S(tries >= 3 ? 'gen.ci.together.' + (item.ask === 'ratio' ? 'ratio' : 'string') : item.q || 'gen.ci.q.' + (item.ask === 'ratio' ? 'ratio' : 'string'), { noGap: true }); await S(ciLine(item.d, 'cm'), { append: true });
     const u = item.ask === 'ratio' ? 'n' : 'cm', k = await choosePick(shuffle(item.ch.map(([v]) => [String(ciR(v)), ciTxt(v, u), '<i></i>', ciLine(v, u)])), String(item.want));
-    if (item.ask !== 'ratio') { svg.querySelectorAll('circle[stroke="' + CI.str + '"]').forEach(n => n.remove()); await ciUnroll(svg, C, R + 4, Math.round(31.4 * item.d) / 10, {}); }   /* الخيط يُقاس بمنزلة واحدة */   /* بعد التوقّع: يُفرد الخيط فيُقاس (القياس يؤكّد) */
-    return { ans: k, ctx: { svg } }; },
+    return { ans: k, ctx: { svg, C, R } }; },
   judge(item, k) { return k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(ciR(v)) === k) || [])[1] || 'ciOff' }; },
-  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) ciRule(helpG(r.ctx.svg), 180, 30, labelText(item.ask === 'ratio' ? 'ciRule.ratio' : 'ciRule.perim')); await S(item.ask === 'ratio' ? 'gen.ci.hint.ratio' : 'gen.ci.hint.string'); }, async together() {},
-  async reveal(item, r) { if (r && r.ctx && r.ctx.svg) { ciClearHelp(r.ctx.svg); } if (r && r.ctx && r.ctx.svg) ciEq(helpG(r.ctx.svg), 180, 30, item.ask === 'ratio' ? `${item.len} ÷ ${item.d} ≈ ${item.want}` : `3.14 × ${item.d} = ${item.want}`, CI.ok, 17); await S('gen.ci.reveal.calc', { noGap: true }); await S(ciLine(item.want, item.ask === 'ratio' ? 'n' : 'cm'), { append: true }); },
+  /* الخيط يُفرد بعد الحكم لا قبله: القياس يؤكّد الصواب، أو يأتي مع الكشف؛ فلا تُحلّ المحاولة الثانية بالذاكرة (المراجع B لبوابة S3-U6/U7، 8) */
+  async onOk(item, r) { SFX.good(); await ciStringOut(item, r); }, onWrong() { SFX.soft(); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) ciRule(helpG(r.ctx.svg), 180, 36, labelText(item.ask === 'ratio' ? 'ciRule.ratio' : 'ciRule.perim')); await S(item.ask === 'ratio' ? 'gen.ci.hint.ratio' : 'gen.ci.hint.string'); }, async together() {},
+  async reveal(item, r) { if (r && r.ctx && r.ctx.svg) { ciClearHelp(r.ctx.svg); await ciStringOut(item, r); } if (r && r.ctx && r.ctx.svg) ciEq(helpG(r.ctx.svg), 180, 36, item.ask === 'ratio' ? `${item.len} ÷ ${item.d} ≈ ${item.want}` : `3.14 × ${item.d} = ${item.want}`, CI.ok, 17); await S('gen.ci.reveal.calc', { noGap: true }); await S(ciLine(item.want, item.ask === 'ratio' ? 'n' : 'cm'), { append: true }); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
 
@@ -104,10 +108,10 @@ function ciGridDisc(svg, r, o = {}) { const n = 2 * r + 2, G = htGrid(svg, n, n,
 function ciBounds(svg, D, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), [cx, cy] = D.C, R = D.R;
   el('rect', { x: cx - R, y: cy - R, width: 2 * R, height: 2 * R, fill: 'none', stroke: CI.d, 'stroke-width': 3, 'stroke-dasharray': '8 5' }, g);
   el('polygon', { points: polyStr([[cx, cy - R], [cx + R, cy], [cx, cy + R], [cx - R, cy]]), fill: 'none', stroke: CI.fence, 'stroke-width': 3, 'stroke-dasharray': '8 5' }, g);
-  if (o.labs) { htLab(g, [cx + R + 4, cy - R - 10], MS(String(4 * o.r * o.r)), CI.d, 15); htLab(g, [cx, cy + 6], MS(String(2 * o.r * o.r)), CI.fence, 15); } return g; }
+  if (o.labs) { labFit(htLab(g, [cx + R + 18, cy - R + 8], MS(String(4 * o.r * o.r)), CI.d, 15));   /* بجانب ركن المربع لا فوق الإطار (المراجع B) */ htLab(g, [cx, cy + 6], MS(String(2 * o.r * o.r)), CI.fence, 15); } return g; }
 ITEM.discGrid = cpItem({ H: 262, tLine: 'gen.ci.together.grid', hint: 'gen.ci.hint.grid', rLine: 'gen.ci.reveal.calc', rSay: it => S(ciLine(it.want, 'n'), { append: true }), praise: 'praiseMeasure',
-  make: s => ({ want: ciR(s.ch[0][0]), tag: 'disc-grid' }),
-  draw(svg, item, tries) { const D = ciGridDisc(svg, item.r, { H: 180, top: 12 }); ciBounds(svg, D, { labs: true, r: item.r }); if (tries >= 3) ciEq(helpG(svg), 180, 226, `3.14 × ${item.r} × ${item.r} = ؟`, CI.think, 16); return { D }; },
+  make: s => (ciChk(s, 'discGrid'), { want: ciR(s.ch[0][0]), tag: 'disc-grid' }),
+  draw(svg, item, tries) { const D = ciGridDisc(svg, item.r, { H: 176, top: 24 }); ciBounds(svg, D, { labs: true, r: item.r }); if (tries >= 3) ciEq(helpG(svg), 180, 226, `3.14 × ${item.r} × ${item.r} = ؟`, CI.think, 16); return { D }; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 224, labelText('ciRule.area'), CI.think, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.svg) { ciClearHelp(ctx.svg); ciEq(helpG(ctx.svg), 180, 226, `3.14 × ${item.r} × ${item.r} = ${item.want}`, CI.ok, 16); } },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(ciR(v)), ciTxt(v, 'n'), '<i></i>', ciLine(v, 'n')])), String(item.want)),
@@ -117,11 +121,11 @@ ITEM.discGrid.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok
 /* ================= ④ ضاعفنا نصف القطر: كم مرة تتضاعف المساحة؟ (C307 (ج)): r الصغير، k الضعف (2 أو 3) ================= */
 ITEM.circScale = cpItem({ H: 250, tLine: 'gen.ci.together.scale', hint: 'gen.ci.hint.scale', rLine: it => 'gen.ci.times.' + it.want, praise: 'praiseThink',
   make: s => ({ want: (s.k || 2) * (s.k || 2), tag: 'circ-scale' }),
-  draw(svg, item, tries) { const k = item.k || 2, s = Math.min(18, 96 / (item.r * k)), A = [96, 132], B = [244, 132];
+  draw(svg, item, tries) { const k = item.k || 2, s = Math.min(18, 88 / (item.r * k)), A = [96, 132], B = [238, 132];   /* الكبيرة داخل الإطار */
     ciCircle(svg, A, item.r * s, { disc: true, seg: 'r', lab: ciTxt(item.r, 'cm') }); ciCircle(svg, B, item.r * k * s, { disc: true, seg: 'r', lab: ciTxt(item.r * k, 'cm') });
     if (tries >= 3) { const m = helpG(svg); el('rect', { x: B[0] - item.r * k * s, y: B[1] - item.r * k * s, width: 2 * item.r * k * s, height: 2 * item.r * k * s, fill: 'none', stroke: CI.think, 'stroke-width': 2.4, 'stroke-dasharray': '6 4' }, m); for (let i = 1; i < k; i++) { const x = B[0] - item.r * k * s + i * 2 * item.r * s, y = B[1] - item.r * k * s + i * 2 * item.r * s; geoLine(m, x, B[1] - item.r * k * s, x, B[1] + item.r * k * s, { color: CI.think, w: 1.6, dash: '4 3' }); geoLine(m, B[0] - item.r * k * s, y, B[0] + item.r * k * s, y, { color: CI.think, w: 1.6, dash: '4 3' }); } }
     return {}; },
-  h2: async (item, ctx) => { const k = item.k || 2, s = Math.min(18, 96 / (item.r * k)), B = [244, 132], R = item.r * k * s, m = helpG(ctx.svg); el('rect', { x: B[0] - R, y: B[1] - R, width: 2 * R, height: 2 * R, fill: 'none', stroke: CI.think, 'stroke-width': 2.4, 'stroke-dasharray': '6 4' }, m); geoLine(m, B[0] - R + 2 * item.r * s, B[1] - R, B[0] - R + 2 * item.r * s, B[1] + R, { color: CI.think, w: 1.6, dash: '4 3' }); await sleep(FAST ? 10 : 250); },   /* المربع حول الكبير وخطٌّ واحد بلا عدد: كم مربعاً كمربع الصغير؟ */
+  h2: async (item, ctx) => { const k = item.k || 2, s = Math.min(18, 88 / (item.r * k)), B = [238, 132], R = item.r * k * s, m = helpG(ctx.svg); el('rect', { x: B[0] - R, y: B[1] - R, width: 2 * R, height: 2 * R, fill: 'none', stroke: CI.think, 'stroke-width': 2.4, 'stroke-dasharray': '6 4' }, m); geoLine(m, B[0] - R + 2 * item.r * s, B[1] - R, B[0] - R + 2 * item.r * s, B[1] + R, { color: CI.think, w: 1.6, dash: '4 3' }); await sleep(FAST ? 10 : 250); },   /* المربع حول الكبير وخطٌّ واحد بلا عدد: كم مربعاً كمربع الصغير؟ */
   pick: item => { const k = item.k || 2, opts = [k * k, k, k === 2 ? 8 : 2 * k]; return choosePick(shuffle(opts.map(n => [String(n), labelText('ciTimes.' + n), '<i></i>', 'gen.ci.times.' + n])), String(k * k)); },   /* كنصف القطر (k)، وضعفه أو مكعّبه */
   errOf: (it, k) => +k === (it.k || 2) ? 'scaleTwo' : 'scaleOff' });
 ITEM.circScale.judge = (item, k) => +k === item.want ? { ok: true } : { ok: false, err: +k === (item.k || 2) ? 'scaleTwo' : 'scaleOff' };

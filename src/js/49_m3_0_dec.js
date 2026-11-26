@@ -26,7 +26,7 @@ ITEM.decRuler = {
     const want = [b / 10, 'dcm'], near = [(b + (r === 9 ? -1 : 1)) / 10, 'dcm'], zero = [c + r / 100, 'dcm'];   /* المشتّتان: «5.08» (الملّيمترات أجزاء من مئة)، وتدريجة مجاورة */
     return { ...spec, c, r, want: lenKey(want), ch: [want, zero, near], errs: { [lenKey(zero)]: 'decZero', [lenKey(near)]: 'decTick' }, tag: 'dec-ruler' }; },
   async ask(item, mode, tries) { const svg = decStage(250), to = item.c + 2, R = rulerAt(svg, { x: 36, y: 176, pxcm: 288 / to, from: 0, to, mm: true });   /* آخر عددٍ داخل الإطار */ rulThingAt(svg, item.thing || 'pencil', R.X(0), R.X(item.b / 10), 174, item.color);
-    const Ln = rulerLens(svg, R, item.b / 10, { y: 34, thing: item.thing || 'pencil', color: item.color }); let aid = null;
+    const Ln = rulerLens(svg, R, item.b / 10, { y: 34, thing: item.thing || 'pencil', color: item.color, lo: 24, hi: 336 });   /* داخل الورقة */ let aid = null;
     if (tries >= 3) { aid = helpG(svg); const t = el('text', { x: 180, y: 160, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: THINK_INK, direction: 'rtl' }, aid); t.textContent = cmmTxt(item.b); await S('gen.dec.together.ruler'); }
     else await S(item.q || 'gen.dec.q.ruler');
     const k = await choosePick(shuffle(lenOpts(item.ch)), item.want); return { ans: k, ctx: { svg, R, Ln, aid } }; },
@@ -131,7 +131,7 @@ ITEM.decCalc = {
 /* ================= المشاهد ================= */
 /* الإشعال (د1): قلم ينتهي عند 5 سم 8 ملم، وفوضى تكتب «5.08 سم» */
 SCENES.decHook = async c => { const L = c.lines, b = c.mm || 58, svg = decStage(250), R = rulerAt(svg, { x: 30, y: 176, pxcm: 300 / 7, from: 0, to: 7, mm: true }); rulThingAt(svg, 'pencil', R.X(0), R.X(b / 10), 174);
-  rulerLens(svg, R, b / 10, { y: 34, thing: 'pencil' }); await S(L[0]);
+  rulerLens(svg, R, b / 10, { y: 34, thing: 'pencil', lo: 24, hi: 336 }); await S(L[0]);
   const card = lenCard(svg, 180, 152, [Math.floor(b / 10) + (b % 10) / 100, 'dcm'], { w: 150, h: 40, fs: 22, stroke: RUL.chaos }); card.querySelector('text').setAttribute('fill', RUL.chaos); SFX.tick();
   await S(L[1]); await axPredictYN('no', 'gen.dec.pr.hook'); for (const l of L.slice(2)) await S(l); };
 /* الاكتشاف (د1): المسافة بين 7 و8 عشرة أجزاء، وكل جزء عُشر؛ ثم خط الأعشار وموضع 7.4؛ ثم تصحيح فوضى */

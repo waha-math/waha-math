@@ -13,54 +13,73 @@ const coPair = (x, y) => coRtl(x, y) ? `\u2067(${x} ، ${y})\u2069` : `\u202D(${
 const coKey = v => String(v).replace('.', '_');
 const coLine = (x, y) => 'gen.co.p.' + coKey(x) + '.' + coKey(y);
 /* المستوى الإحداثي: n تدريج المحور الأفقي، وm الرأسي؛ الأصل أسفل اليسار، والمحوران ذهبيان بسهمين واسميهما «س» و«ص» */
-function coPlane(svg, o = {}) { const N = o.n || 10, Mx = o.m || 8, H = o.H || 262, c = Math.min(26, 286 / (N + .9), (H - 62) / (Mx + .9)), x0 = Math.round((360 - N * c) / 2) + 10, y0 = (o.top ?? 18) + Mx * c + 8, g = el('g', { 'pointer-events': 'none', 'data-plane': 1 }, svg);
-  el('rect', { x: x0 - 30, y: y0 - Mx * c - 18, width: N * c + 54, height: Mx * c + 46, rx: 10, fill: '#fffdf6', stroke: CO.grid, 'stroke-width': 2 }, g);
+function coPlane(svg, o = {}) { const N = o.n || 10, Mx = o.m || 8, H = o.H || 262, ax = o.axes !== false, top = o.top ?? 16, pad = o.pad ?? (ax ? 30 : 14), foot = ax ? (o.nums === false ? 12 : 24) : 14, bot = o.bottom ?? (H - 14),
+    c = Math.min(26, 254 / N, (bot - top - pad - foot) / Mx), x0 = Math.round(179 - N * c / 2), y0 = top + pad + Mx * c, g = el('g', { 'pointer-events': 'none', 'data-plane': 1 }, svg);   /* داخل الإطار الورقي (المراجع B لبوابة S3-U4/U5، 4 و5) */
+  el('rect', { x: x0 - 30, y: top, width: N * c + 62, height: pad + Mx * c + foot, rx: 10, fill: '#fffdf6', stroke: CO.grid, 'stroke-width': 2 }, g);
   for (let i = 0; i <= N; i++) geoLine(g, x0 + i * c, y0, x0 + i * c, y0 - Mx * c, { color: CO.grid, w: 1.2 }); for (let j = 0; j <= Mx; j++) geoLine(g, x0, y0 - j * c, x0 + N * c, y0 - j * c, { color: CO.grid, w: 1.2 });
-  if (o.axes !== false) { geoLine(g, x0, y0, x0 + N * c + 12, y0, { color: CO.ax, w: 3.4 }); geoArrow(g, x0 + N * c + 14, y0, 0, CO.ax, 8); geoLine(g, x0, y0, x0, y0 - Mx * c - 10, { color: CO.ax, w: 3.4 }); geoArrow(g, x0, y0 - Mx * c - 12, -90, CO.ax, 8);
+  if (ax) { geoLine(g, x0, y0, x0 + N * c + 12, y0, { color: CO.ax, w: 3.4 }); geoArrow(g, x0 + N * c + 14, y0, 0, CO.ax, 8); geoLine(g, x0, y0, x0, y0 - Mx * c - 10, { color: CO.ax, w: 3.4 }); geoArrow(g, x0, y0 - Mx * c - 12, -90, CO.ax, 8);
     const T = (x, y, s, fs = 12, col = CO.ink) => { const t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 700, fill: col }, g); t.textContent = s; return t; };
-    if (o.nums !== false) { for (let i = 0; i <= N; i++) T(x0 + i * c, y0 + 16, String(i)); for (let j = 1; j <= Mx; j++) T(x0 - 12, y0 - j * c + 4, String(j)); }
-    T(x0 + N * c + 14, y0 + 20, labelText('coX'), 14, CO.ax); T(x0 - 14, y0 - Mx * c - 6, labelText('coY'), 14, CO.ax); }
+    if (o.nums !== false) { const fs = c < 20 ? 13 : 14; for (let i = 0; i <= N; i++) T(x0 + i * c, y0 + 17, String(i), fs); for (let j = 1; j <= Mx; j++) T(x0 - 13, y0 - j * c + 5, String(j), fs); }   /* أعداد المحورين بحجمٍ يُقرأ (المراجع B لبوابة S3-U6/U7، 13) */
+    T(x0 + N * c + 24, y0 + 5, labelText('coX'), 14, CO.ax); T(x0 + 14, y0 - Mx * c - 10, labelText('coY'), 14, CO.ax); }   /* «س» بعد رأس السهم، و«ص» يمين رأسه: لا على «٨» ولا خارج الورقة (المراجع B لبوابة S3-U4/U5، 5) */
   const P = (x, y) => [x0 + x * c, y0 - y * c];
-  return { g, P, c, x0, y0, N, M: Mx, snap(q, half) { const s = half ? 2 : 1, f = v => Math.round(v * s) / s; return [Math.max(0, Math.min(N, f((q[0] - x0) / c))), Math.max(0, Math.min(Mx, f((y0 - q[1]) / c)))]; } }; }
+  return { g, P, c, x0, y0, N, M: Mx, top, pad, ax, box: [x0 - 30, top, x0 + N * c + 32, y0 + foot], snap(q, half) { const s = half ? 2 : 1, f = v => Math.round(v * s) / s; return [Math.max(0, Math.min(N, f((q[0] - x0) / c))), Math.max(0, Math.min(Mx, f((y0 - q[1]) / c)))]; } }; }
 /* نصّ الزوج على المسرح: من اليمين (rtl بلا تجاوز) مع المشرقية، ومن اليسار بتجاوز الاتجاه مع الغربية (D280) */
 function coPairText(parent, px, py, x, y, anchor = 'middle', fs = 14, col = CO.ink) { const rtl = coRtl(x, y), an = rtl ? ({ start: 'end', end: 'start' }[anchor] || anchor) : anchor;   /* بـ rtl تتبادل البداية والنهاية، فيبقى الزوج في جهته من النقطة */
   const t = el('text', { x: px, y: py, 'text-anchor': an, 'font-size': fs, 'font-weight': 800, fill: col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: rtl ? 'rtl' : 'ltr', ...(rtl ? {} : { 'unicode-bidi': 'bidi-override' }), 'pointer-events': 'none' }, parent); t.textContent = `(${x} ، ${y})`; return t; }
-/* نقطة باسمها وزوجها (pair) إن طُلب؛ at: side (يميناً، ويساراً عند الحافة) أو up (فوقها) أو away (بعيداً عن مركز الشكل from) */
-function coDot(parent, Pl, x, y, o = {}) { const [px, py] = Pl.P(x, y), g = el('g', { 'pointer-events': 'none' }, parent), left = x > Pl.N - 2.5;
+/* نقطة باسمها وزوجها (pair) إن طُلب؛ at: side (يميناً، ويساراً عند الحافة) أو up (فوقها) أو away (بعيداً عن مركز الشكل from).
+   التسمية في أوّل موضعٍ خالٍ: داخل المستوى، لا على أعداد المحورين، ولا على تسميةٍ مرسومة (data-colab)، والصفّ الأعلى تحت نقطته (المراجع B لبوابة S3-U4/U5، 2 و4 و8) */
+function coLabBox(svg, Pl, px, py, w, h, prefs) { const own = svg.ownerSVGElement || svg, B = Pl.box || [20, 14, 340, 248], live = [...own.querySelectorAll('[data-colab]')].map(n => n.getAttribute('data-colab').split(',').map(Number));
+  const bad = (x1, y1, x2, y2) => x1 < Math.max(B[0] + 2, 22) || x2 > Math.min(B[2] - 2, 338) || y1 < B[1] + 2 || y2 > B[3] - 2
+    || (Pl.ax && x1 < Pl.x0 - 3 && y2 > Pl.y0 - Pl.M * Pl.c - 10) || (Pl.ax && y2 > Pl.y0 + 3 && x2 > Pl.x0 - 8)
+    || (Pl.ax && y1 < Pl.y0 + 2 && y2 > Pl.y0 - 2 && x2 > Pl.x0 - 2) || (Pl.ax && x1 < Pl.x0 + 2 && x2 > Pl.x0 - 2 && y2 > Pl.y0 - Pl.M * Pl.c - 12)   /* لا تعبر التسميةُ خطَّ محور */
+    || live.some(([a, b, cc, d]) => x1 < cc && x2 > a && y1 < d && y2 > b);
+  const C = { ru: [px + 9, py - 9 - h], lu: [px - 9 - w, py - 9 - h], rd: [px + 9, py + 7], ld: [px - 9 - w, py + 7], u: [px - w / 2, py - 11 - h], d: [px - w / 2, py + 9], r: [px + 10, py - h / 2], l: [px - 10 - w, py - h / 2] };
+  for (const k of [...prefs, 'ru', 'lu', 'rd', 'ld', 'u', 'd', 'r', 'l']) { const [x1, y1] = C[k]; if (!bad(x1, y1, x1 + w, y1 + h)) return [x1, y1]; }
+  return C[prefs[0]]; }
+function coDot(parent, Pl, x, y, o = {}) { const [px, py] = Pl.P(x, y), g = el('g', { 'pointer-events': 'none' }, parent), left = x > Pl.N - 2.5, topRow = y >= Pl.M - .01;
   if (o.art === 'treasure') { el('path', { d: `M${px - 8} ${py - 8} L${px + 8} ${py + 8} M${px + 8} ${py - 8} L${px - 8} ${py + 8}`, stroke: CO.bad, 'stroke-width': 4, 'stroke-linecap': 'round' }, g); }
   else if (o.art === 'island') { el('ellipse', { cx: px, cy: py + 2, rx: 13, ry: 7, fill: '#e9d9a6', stroke: '#b9a26a', 'stroke-width': 1.5 }, g); el('path', { d: `M${px} ${py + 1} L${px + 1} ${py - 14} M${px + 1} ${py - 14} Q${px + 9} ${py - 18} ${px + 12} ${py - 12} M${px + 1} ${py - 14} Q${px - 7} ${py - 19} ${px - 11} ${py - 12}`, fill: 'none', stroke: '#4c8a3a', 'stroke-width': 2.4, 'stroke-linecap': 'round' }, g); el('circle', { cx: px, cy: py, r: 3.5, fill: CO.ink }, g); }
   else el('circle', { cx: px, cy: py, r: o.r || 6.5, fill: o.col || CO.pt, stroke: '#fff', 'stroke-width': 2 }, g);
-  const fs = o.fs || 15, lab = (s, X, Y, anchor) => { const t = el('text', { x: X, y: Y, 'text-anchor': anchor, 'font-size': fs, 'font-weight': 800, fill: o.col || CO.ink, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, g); t.textContent = s; return t; };
-  const pw = fs * 3.2;   /* عرض الزوج تقريباً */
-  if (o.at === 'away' && o.from) { const d = [px - o.from[0], py - o.from[1]], L = Math.hypot(...d) || 1, u = [d[0] / L, d[1] / L], a = u[0] > .35 ? 'start' : u[0] < -.35 ? 'end' : 'middle';
-    if (o.pair) coPairText(g, px + u[0] * 10, py + u[1] * 14 + 5, x, y, a, fs); return g; }
-  if (o.at === 'up') { if (o.pair) coPairText(g, px - (o.name ? 7 : 0), py - 11, x, y, 'middle', fs); if (o.name) lab(LTR[o.name], px + (o.pair ? pw / 2 + 2 : 0), py - 11, 'middle'); return g; }
-  if (o.name) lab(LTR[o.name], left ? px - 10 : px + 10, py - 10, left ? 'end' : 'start');
-  if (o.pair) coPairText(g, left ? px - (o.name ? 24 : 10) : px + (o.name ? 24 : 10), py - 10, x, y, left ? 'end' : 'start', fs);
+  if (!o.name && !o.pair) return g;
+  const fs = o.fs || 15, ps = o.pair ? `(${x} ، ${y})` : '', pw = o.pair ? ps.length * fs * .5 + 4 : 0, nw = o.name ? fs * .8 + (o.pair ? 4 : 0) : 0, w = pw + nw, h = fs + 2;
+  let prefs = left ? ['lu', 'ru'] : ['ru', 'lu'];
+  if (o.at === 'up') prefs = ['u', 'd', ...prefs]; if (o.at === 'down') prefs = ['d', 'rd', 'ld', ...prefs]; if (o.at === 'away' && o.from) { const dx = px - o.from[0], dy = py - o.from[1]; prefs = [dy < 0 ? (dx < 0 ? 'lu' : 'ru') : (dx < 0 ? 'ld' : 'rd'), dy < 0 ? 'u' : 'd', dx < 0 ? 'l' : 'r']; }
+  if (topRow) prefs = prefs.map(k => ({ ru: 'rd', lu: 'ld', u: 'd' }[k] || k));
+  const [bx, by] = coLabBox(parent, Pl, px, py, w, h, prefs), base = by + h - 3;
+  if (o.name) { const t = el('text', { x: bx + w - nw / 2 + (o.pair ? 2 : 0), y: base, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: o.col || CO.ink, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, g); t.textContent = LTR[o.name]; }
+  if (o.pair) coPairText(g, bx + pw / 2, base, x, y, 'middle', fs);
+  g.setAttribute('data-colab', [bx, by, bx + w, by + h].map(v => Math.round(v)).join(','));
   return g; }
 /* السير من الأصل: قفزات يميناً ثم إلى الأعلى (الحلّ المشترك والكشف) */
 async function coWalk(svg, Pl, x, y, o = {}) { const m = helpG(svg); let last = Pl.P(0, 0);
-  for (let i = 1; i <= Math.ceil(x); i++) { const nx = Math.min(i, x), q = Pl.P(nx, 0); el('path', { d: `M${last[0]} ${last[1]} Q${(last[0] + q[0]) / 2} ${last[1] - 14} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--compass'), 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
+  for (let i = 1; i <= Math.ceil(x) - (o.short && !(y > 0) ? 1 : 0); i++) { const nx = Math.min(i, x), q = Pl.P(nx, 0); el('path', { d: `M${last[0]} ${last[1]} Q${(last[0] + q[0]) / 2} ${last[1] - 14} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--compass'), 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
   if (o.upTo === 'x') return m;
-  for (let j = 1; j <= Math.ceil(y); j++) { const ny = Math.min(j, y), q = Pl.P(x, ny); el('path', { d: `M${last[0]} ${last[1]} Q${last[0] + 14} ${(last[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
+  for (let j = 1; j <= Math.ceil(y) - (o.short ? 1 : 0); j++) { const ny = Math.min(j, y), q = Pl.P(x, ny); el('path', { d: `M${last[0]} ${last[1]} Q${last[0] + 14} ${(last[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
   return m; }
 /* بطاقة الهدف فوق المستوى: الحرف والزوج */
-function coCard(svg, x, y, name, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || (name ? 126 : 106), col = o.col || CO.pt; el('rect', { x: 352 - w, y: 4, width: w, height: 30, rx: 10, fill: '#fff', stroke: col, 'stroke-width': 2 }, g);
-  coPairText(g, 352 - w / 2 - (name ? 9 : 0), 25, x, y, 'middle', 17, col);   /* الزوج وحده نصٌّ باتجاه خطّه (D280)، والحرف نصٌّ آخر */
-  if (name) { const a = el('text', { x: 342, y: 25, 'text-anchor': 'start', 'font-size': 17, 'font-weight': 800, fill: col, direction: 'rtl' }, g); a.textContent = LTR[name]; } return g; }
+function coCard(svg, x, y, name, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || (name ? 122 : 102), col = o.col || CO.pt, R = 334, Y = o.y ?? 19; el('rect', { x: R - w, y: Y, width: w, height: 27, rx: 10, fill: '#fff', stroke: col, 'stroke-width': 2 }, g);   /* داخل الورقة (المراجع B لبوابة S3-U4/U5، 4) */
+  coPairText(g, R - w / 2 - (name ? 9 : 0), Y + 20, x, y, 'middle', 17, col);   /* الزوج وحده نصٌّ باتجاه خطّه (D280)، والحرف نصٌّ آخر */
+  if (name) { const a = el('text', { x: R - 8, y: Y + 20, 'text-anchor': 'start', 'font-size': 17, 'font-weight': 800, fill: col, direction: 'rtl' }, g); a.textContent = LTR[name]; } return g; }
 
 /* ================= ① عيّن النقطة (C311): x، y، name، half (أنصاف الوحدة، د2)، given نقاط مرسومة [[x، y، حرف]]، poly أضلاع متقطّعة بينها، art treasure ================= */
+/* منتصف الواصل بين a وb: الواصل منقّطاً (lineOnly)، أو معه قفزاتٌ متساوية من الطرفين تقف قبل المنتصف بقفزة */
+function coMidHops(svg, Pl, a, b, lineOnly) { const m = helpG(svg), A = Pl.P(a[0], a[1]), B = Pl.P(b[0], b[1]); geoLine(m, A[0], A[1], B[0], B[1], { color: THINK_INK, w: 2.4, dash: '6 5' });
+  if (lineOnly) return m; const dx = b[0] - a[0], dy = b[1] - a[1], gcd = (u, v) => v ? gcd(v, u % v) : Math.abs(u), g = gcd(Math.abs(dx), Math.abs(dy)) || 1, s = [dx / g, dy / g], n = Math.floor(g / 2) - (g % 2 ? 0 : 1);
+  for (const [o, d] of [[a, 1], [b, -1]]) for (let i = 0; i < n; i++) { const p = Pl.P(o[0] + d * s[0] * i, o[1] + d * s[1] * i), q = Pl.P(o[0] + d * s[0] * (i + 1), o[1] + d * s[1] * (i + 1)), nx = -(q[1] - p[1]), ny = q[0] - p[0], L = Math.hypot(nx, ny) || 1;
+    el('path', { d: `M${p[0]} ${p[1]} Q${(p[0] + q[0]) / 2 + nx / L * 12} ${(p[1] + q[1]) / 2 + ny / L * 12} ${q[0]} ${q[1]}`, fill: 'none', stroke: d > 0 ? css('--compass') : THINK_INK, 'stroke-width': 2.6 }, m); }
+  return m; }
 ITEM.coordPlace = {
   make(spec) { /*T*/if (TESTHOOK && (!Number.isInteger(spec.x * 2) || !Number.isInteger(spec.y * 2) || (!spec.half && (spec.x % 1 || spec.y % 1)))) testBug('coordPlace: إحداثي غير صالح');/*/T*/ return { ...spec, tag: 'coord-place' + (spec.half ? '-half' : '') + (spec.given ? '-vertex' : '') }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m }); let cur = null, dot = null, walk = null, done = false;
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m, pad: 34 }); let cur = null, dot = null, walk = null, done = false, guide = null;
     if (item.poly) { const Q = item.poly.map(p => Pl.P(...p)); el('polyline', { points: polyStr(Q), fill: 'none', stroke: CO.path, 'stroke-width': 3, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, svg); }
     for (const [gx, gy, gk] of item.given || []) coDot(svg, Pl, gx, gy, { name: gk, pair: true, col: CO.pt2, fs: 13 });
     if (!item.given && !item.hideCard) coCard(svg, item.x, item.y, item.name);
-    if (tries >= 3) walk = await coWalk(svg, Pl, item.x, item.y, { upTo: 'x' });   /* الحلّ المشترك: قفزات اليمين مرسومة، والصعود للطفل */
-    const askQ = async () => { await S(tries >= 3 ? 'gen.co.together.place' : item.q || 'gen.co.q.place', { noGap: true }); if (!item.given && !item.noPair) await S(coLine(item.x, item.y), { append: true }); };
+    if (tries >= 3) walk = item.mid ? coMidHops(svg, Pl, item.given[0], item.given[1]) : await coWalk(svg, Pl, item.x, item.y, { short: true });   /* الحلّ المشترك: القفزات إلا آخرها، والأخيرة للطفل (المراجع B لبوابة S3-U4/U5، 3)؛ والمنتصف: قفزاتٌ متساوية من الطرفين تقف قبله */
+    const askQ = async () => { await S(tries >= 3 ? 'gen.co.together.place' : item.q || 'gen.co.q.place', { noGap: true }); if (done) return; if (!item.given && !item.noPair) await S(coLine(item.x, item.y), { append: true }); };   /* لا يُلحَق الزوج بعد الجواب (المراجع B، 9) */
     askQ(); REPLAY_HOOK = () => askQ(); REPLAY_HOOK.live = () => !done && svg.isConnected;
     const set = (x, y) => { cur = [x, y]; if (dot) dot.remove(); dot = coDot(svg, Pl, x, y, { name: item.given ? null : item.name, art: item.art, col: CO.pt }); /*T*/window.__gridPt = cur;/*/T*/ };
-    const input = fingerInput(svg, { map: e => { const q = svgPoint(svg, e); return [q.x, q.y]; }, down(q) { if (q[1] > Pl.y0 + 22 || q[1] < Pl.y0 - Pl.M * Pl.c - 20) return false; set(...Pl.snap(q, item.half)); SFX.tick(); }, move(q) { set(...Pl.snap(q, item.half)); }, up() {} });
+    const guides = on => { if (guide) guide.remove(); guide = null; if (!on || !cur) return; const [px, py] = Pl.P(...cur); guide = el('g', { 'pointer-events': 'none' }, svg); geoLine(guide, px, py, px, Pl.y0, { color: css('--compass'), w: 2, dash: '4 4' }); geoLine(guide, px, py, Pl.x0, py, { color: THINK_INK, w: 2, dash: '4 4' }); el('circle', { cx: px, cy: py, r: 13, fill: 'none', stroke: CO.pt, 'stroke-width': 2.4 }, guide); };   /* أثناء السحب: إلى أيّ عددين على المحورين؟ (المراجع B، 10) */
+    const input = fingerInput(svg, { map: e => { const q = svgPoint(svg, e); return [q.x, q.y]; }, down(q) { if (q[1] > Pl.y0 + 22 || q[1] < Pl.y0 - Pl.M * Pl.c - 20) return false; set(...Pl.snap(q, item.half)); guides(true); SFX.tick(); }, move(q) { set(...Pl.snap(q, item.half)); guides(true); }, up() { guides(false); } });
     /*T*/window.__gridPtAt = (x, y) => { const m = svg.getScreenCTM(), [px, py] = Pl.P(x, y); return { x: m.a * px + m.e, y: m.d * py + m.f }; }; window.__gridPtWant = [item.x, item.y];/*/T*/
     /* بلوحة المفاتيح: كل تقاطع خانةٌ تُركَّز، ومفتاح الفعل يضع النقطة عندها (كما في S2-U1) */
     const kg = el('g', { role: 'grid', 'aria-label': labelText('coPlane') }, svg), st = item.half ? .5 : 1;
@@ -70,9 +89,9 @@ ITEM.coordPlace = {
   judge(item, a) { if (a[0] === item.x && a[1] === item.y) return { ok: true }; if (item.mid) return { ok: false, err: 'rotMid' }; return { ok: false, err: a[0] === item.y && a[1] === item.x ? 'coordSwap' : (a[0] === item.x - 1 && a[1] === item.y - 1) || (a[0] === item.x + 1 && a[1] === item.y + 1) ? 'coordFromOne' : item.half && (a[0] === Math.floor(item.x) || a[0] === Math.ceil(item.x) || a[1] === Math.floor(item.y) || a[1] === Math.ceil(item.y)) && (item.x % 1 || item.y % 1) ? 'coordHalf' : item.given ? 'coordVertex' : 'coordOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   /* المستوى الثاني يبقى حتى يجيب (D240؛ المراجع A لبوابة S3-U4/U5، 8): القفزات من الأصل، أو خطّا الشبكة المارّان بالرأسين المعلومين */
-  async hint2(item, r) { if (item.mid) { await S('gen.xf.hint.mid'); return; }
+  async hint2(item, r) { if (item.mid) { if (r && r.ctx && r.ctx.svg) coMidHops(r.ctx.svg, r.ctx.Pl, item.given[0], item.given[1], true); await S('gen.xf.hint.mid'); return; }   /* الواصل منقّطاً بلا علامة منتصفه (المراجع B لبوابة S3-U6/U7، 6) */
     if (item.given) { const m = helpG(r.ctx.svg), Pl = r.ctx.Pl; for (const [gx, gy] of item.given) { const P = Pl.P(gx, gy); geoLine(m, Pl.x0, P[1], Pl.x0 + Pl.N * Pl.c, P[1], { color: THINK_INK, w: 1.6, dash: '5 4' }); geoLine(m, P[0], Pl.y0, P[0], Pl.y0 - Pl.M * Pl.c, { color: THINK_INK, w: 1.6, dash: '5 4' }); } await S('gen.co.hint.vertex'); return; }
-    await coWalk(r.ctx.svg, r.ctx.Pl, item.x, item.y, { ms: 230 }); await S('gen.co.hint.place'); }, async together() {},
+    await coWalk(r.ctx.svg, r.ctx.Pl, item.x, item.y, { ms: 230, upTo: 'x', short: !(item.y > 0) }); await S('gen.co.hint.place'); }   /* والنقطة على المحور الأفقي: قفزات اليمين إلا آخرها، فلا يُرسم الجواب */, async together() {},   /* المستوى الثاني: قفزات اليمين وحدها، فالصعود للطفل (المراجع B، 3) */
   async reveal(item, r) { if (r.ctx.walk) r.ctx.walk.remove(); if (!item.given) await coWalk(r.ctx.svg, r.ctx.Pl, item.x, item.y, { ms: 140 }); r.ctx.set(item.x, item.y); await S('gen.co.reveal.place', { noGap: true }); await S(coLine(item.x, item.y), { append: true }); },
   praise: () => 'praisePlace', twin(item) { return item.twin || null; },
 };
@@ -97,7 +116,7 @@ ITEM.coordRead = {
 const CO_WHERE = (x, y) => x === 0 && y === 0 ? 'origin' : y === 0 ? 'h' : x === 0 ? 'v' : 'in';
 ITEM.coordWhere = {
   make(spec) { return { ...spec, want: CO_WHERE(spec.x, spec.y), tag: 'coord-where' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, {}); coCard(svg, item.x, item.y, null); if (tries >= 3) { const m = await coWalk(svg, Pl, item.x, item.y); void m; await S('gen.co.together.where'); } else { await S(item.q || 'gen.co.q.where', { noGap: true }); await S(coLine(item.x, item.y), { append: true }); }
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { pad: 34 }); coCard(svg, item.x, item.y, null); if (tries >= 3) { const m = await coWalk(svg, Pl, item.x, item.y); void m; await S('gen.co.together.where'); } else { await S(item.q || 'gen.co.q.where', { noGap: true }); await S(coLine(item.x, item.y), { append: true }); }
     const k = await choosePick(['h', 'v', 'origin', 'in'].map(w => [w, labelText('coW.' + w), '<i></i>', 'gen.co.w.' + w]), item.want); return { ans: k, ctx: { svg, Pl } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: (k === 'h' && item.want === 'v') || (k === 'v' && item.want === 'h') ? 'coordAxisSwap' : 'coordWhereOff' }; },
   onOk(item, r) { SFX.good(); coDot(r.ctx.svg, r.ctx.Pl, item.x, item.y, { pair: true }); }, onWrong() { SFX.soft(); },
@@ -144,20 +163,21 @@ ITEM.coordAlign = {
 /* ================= ⑥ «رسّام الإحداثيات» (C337، اللعبة): pts رؤوس بالترتيب؛ يلمس الطفل كل رأس فيُوصَل بما قبله، ولمسة على آخر رأس تمحوه، ثم «تمّ» ================= */
 ITEM.coordDraw = {
   make(spec) { return { ...spec, want: spec.pts.map(p => p.join(',')).join(' '), tag: 'coord-draw' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m, top: item.pts.length > 4 ? 46 : 40 }), placed = [], lay = el('g', { 'pointer-events': 'none' }, svg); let done = false;
-    const list = el('g', { 'pointer-events': 'none' }, svg), NM = ['a', 'b', 'j', 'd', 'h', 'w'], per = item.pts.length > 4 ? Math.ceil(item.pts.length / 2) : item.pts.length, W = Math.min(84, 344 / per);   /* القائمة من اليمين بالترتيب، كل رأس بحرفه؛ وفوق أربعة رؤوس صفّان (المراجع A لبوابة S3-U4/U5، 22) */
-    item.pts.forEach((p, i) => { const x = 352 - (i % per) * W, yy = 18 + Math.floor(i / per) * 17, a = el('text', { x, y: yy, 'text-anchor': 'start', 'font-size': 13, 'font-weight': 800, fill: CO.pt2, direction: 'rtl' }, list); a.textContent = LTR[NM[i]]; coPairText(list, x - 12, yy, p[0], p[1], 'end', 12, CO.pt); });
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m, pad: item.pts.length > 4 ? 50 : 32 }), placed = [], lay = el('g', { 'pointer-events': 'none' }, svg); let done = false;
+    const list = el('g', { 'pointer-events': 'none' }, svg), NM = ['a', 'b', 'j', 'd', 'h', 'w'], per = item.pts.length > 4 ? Math.ceil(item.pts.length / 2) : item.pts.length, W = Math.min(76, 248 / per);   /* القائمة من اليمين بالترتيب، كل رأس بحرفه؛ وفوق أربعة رؤوس صفّان (المراجع A لبوابة S3-U4/U5، 22) */
+    item.pts.forEach((p, i) => { const x = 332 - (i % per) * W, yy = Pl.top + 20 + Math.floor(i / per) * 19, a = el('text', { x, y: yy, 'text-anchor': 'start', 'font-size': 13, 'font-weight': 800, fill: CO.pt2, direction: 'rtl' }, list); a.textContent = LTR[NM[i]]; coPairText(list, x - 12, yy, p[0], p[1], 'end', 12, CO.pt); });
     const redraw = () => { lay.innerHTML = ''; const Q = placed.map(p => Pl.P(...p)); if (Q.length > 1) el('polyline', { points: polyStr(Q), fill: 'none', stroke: CO.pt, 'stroke-width': 3 }, lay);
       if (placed.length === item.pts.length && placed.length > 2) { geoLine(lay, Q[Q.length - 1][0], Q[Q.length - 1][1], Q[0][0], Q[0][1], { color: CO.pt, w: 3 }); el('polygon', { points: polyStr(Q), fill: CO.fill, opacity: .6 }, lay); }
       placed.forEach((p, i) => coDot(lay, Pl, ...p, { r: 5.5, name: NM[i], fs: 13 })); /*T*/window.__axPlaced = placed.length;/*/T*/ };
-    let lastQ = null; const tapAt = q => { const p = Pl.snap(q); const L = placed[placed.length - 1]; if (L && L[0] === p[0] && L[1] === p[1]) placed.pop(); else if (placed.length < item.pts.length) placed.push(p); SFX.tick(); redraw(); };
+    let lastQ = null, prev = null; const preview = q => { if (prev) prev.remove(); prev = null; if (!q || placed.length >= item.pts.length) return; const P = Pl.P(...Pl.snap(q)); prev = el('circle', { cx: P[0], cy: P[1], r: 9, fill: 'none', stroke: CO.pt, 'stroke-width': 2.6, 'stroke-dasharray': '3 3', 'pointer-events': 'none' }, svg); };   /* أين يقع الرأس قبل رفع الإصبع (المراجع B، 10) */
+    const tapAt = q => { const p = Pl.snap(q); const L = placed[placed.length - 1]; if (L && L[0] === p[0] && L[1] === p[1]) placed.pop(); else if (placed.length < item.pts.length) placed.push(p); SFX.tick(); redraw(); };
     if (tries >= 3) { placed.push(...item.pts.slice(0, item.pts.length - 1)); redraw(); }   /* الحلّ المشترك: الرؤوس إلا الأخير */
     await S(tries >= 3 ? 'gen.co.together.draw' : item.q || 'gen.co.q.draw');
-    const input = fingerInput(svg, { map: e => { const q = svgPoint(svg, e); return [q.x, q.y]; }, down(q) { if (q[1] > Pl.y0 + 22 || q[1] < Pl.y0 - Pl.M * Pl.c - 20) return false; lastQ = q; }, move(q) { lastQ = q; }, up(cancel) { if (!cancel && lastQ) tapAt(lastQ); lastQ = null; } });   /* يُعيَّن الرأس عند رفع الإصبع */
+    const input = fingerInput(svg, { map: e => { const q = svgPoint(svg, e); return [q.x, q.y]; }, down(q) { if (q[1] > Pl.y0 + 22 || q[1] < Pl.y0 - Pl.M * Pl.c - 20) return false; lastQ = q; preview(q); }, move(q) { lastQ = q; preview(q); }, up(cancel) { preview(null); if (!cancel && lastQ) tapAt(lastQ); lastQ = null; } });   /* يُعيَّن الرأس عند رفع الإصبع */
     /*T*/window.__axWant = item.pts; window.__axAt = (x, y) => { const m = svg.getScreenCTM(), [px, py] = Pl.P(x, y); return { x: m.a * px + m.e, y: m.d * py + m.f }; }; window.__axPlaced = placed.length;/*/T*/
     const kg = el('g', { role: 'grid', 'aria-label': labelText('coPlane') }, svg); for (let y = Pl.M; y >= 0; y--) { const row = el('g', { role: 'row' }, kg); for (let x = 0; x <= Pl.N; x++) { const [px, py] = Pl.P(x, y), b = el('g', { role: 'gridcell', tabindex: 0, 'aria-label': `${labelText('coRight')} ${x}، ${labelText('coUp')} ${y}` }, row); el('circle', { cx: px, cy: py, r: 8, fill: 'transparent', 'pointer-events': 'none' }, b); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); tapAt([px, py]); } }; } }
     AUTO({ kind: 'axPts', ok: () => { placed.length = 0; placed.push(...item.pts.map(p => [...p])); redraw(); rulDoneBtn().click(); }, wrong: () => { placed.length = 0; placed.push(...item.pts.map(p => [p[1], p[0]])); redraw(); rulDoneBtn().click(); } });
-    await rulDone(() => { done = true; input.off(); kg.remove(); }); void done; return { ans: placed.map(p => p.join(',')).join(' '), ctx: { svg, Pl } }; },
+    await rulDone(() => { done = true; input.off(); kg.remove(); preview(null); }); void done; return { ans: placed.map(p => p.join(',')).join(' '), ctx: { svg, Pl } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const a = k ? k.split(' ').map(s => s.split(',').map(Number)) : [];
     if (a.length < item.pts.length) return { ok: false, err: 'coordDrawShort' }; const i = item.pts.findIndex((p, j) => p[0] !== a[j][0] || p[1] !== a[j][1]), p = item.pts[i], b = a[i];
     return { ok: false, err: b[0] === p[1] && b[1] === p[0] ? 'coordSwap' : item.pts.some(q => q[0] === b[0] && q[1] === b[1]) ? 'coordDrawOrder' : 'coordOff' }; },
@@ -176,9 +196,9 @@ ITEM.coordShape = { ...numItem,
     /* المشتّتات أخطاء حقيقية (المراجع A لبوابة S3-U4/U5، 16): المساحة بدل المحيط، ونصف المحيط، وضلعٌ منسيّ؛ وفي المساحة: المحيط، وعدّ نقاط الشبكة لا المربعات، ونسيان النصف في المثلث */
     const errs = spec.ask === 'perim' ? [A, w + h, P - Math.min(w, h)] : spec.ask === 'side' ? [Math.max(...xs), Math.max(...xs) + Math.min(...xs), w + 1] : tri ? [w * h, (w + 1) * (h + 1) / 2, w + h] : [P, (w + 1) * (h + 1), A / 2];
     return { ...spec, want, nums: rulNear(want, ...errs.filter(v => v > 0 && v !== want && v <= 100 && Number.isInteger(v))), A, P, w, h, tag: 'coord-shape-' + (spec.ask || 'area') }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m }), Q = item.pts.map(p => Pl.P(...p)); el('polygon', { points: polyStr(Q), fill: CO.fill, stroke: CO.ink, 'stroke-width': 3, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, svg);
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m, pad: 46 }), Q = item.pts.map(p => Pl.P(...p)); el('polygon', { points: polyStr(Q), fill: CO.fill, stroke: CO.ink, 'stroke-width': 3, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, svg);
     const cen = [Q.reduce((a, q) => a + q[0], 0) / Q.length, Q.reduce((a, q) => a + q[1], 0) / Q.length]; item.pts.forEach(p => coDot(svg, Pl, ...p, { pair: !item.noPairs, fs: 12, r: 5, at: 'away', from: cen }));
-    if (tries >= 3) { hintCard(svg, 180, 16, item.ask === 'perim' ? labelText('coHintPerim') : item.pts.length === 3 ? `${item.w} × ${item.h} ÷ 2 = ؟` : labelText('coHintArea')); await S('gen.co.together.shape'); } else await S(item.q || 'gen.co.q.shape.' + (item.ask || 'area'));
+    if (tries >= 3) { hintCard(svg, 180, Pl.top + 20, item.ask === 'perim' ? labelText('coHintPerim') : item.pts.length === 3 ? `${item.w} × ${item.h} ÷ 2 = ؟` : labelText('coHintArea')); await S('gen.co.together.shape'); } else await S(item.q || 'gen.co.q.shape.' + (item.ask || 'area'));
     const np = numberPick(shuffle(item.nums), item.want, { west: true }); return { ans: await np.p, ctx: { svg, Pl } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.ask === 'perim' ? (k === item.A ? 'perimInside' : k === item.w + item.h ? 'perimHalf' : 'perimOff') : item.ask === 'side' ? (k === item.w + 1 ? 'coordDistLines' : 'coordDistOff') : item.pts.length === 3 && k === item.w * item.h ? 'triNoHalf' : k === item.P ? 'perimInside' : k === (item.w + 1) * (item.h + 1) ? 'coordDistLines' : 'a2AreaOff' }; },
   async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { const m = helpG(r.ctx.svg), Pl = r.ctx.Pl, xs = item.pts.map(p => p[0]), ys = item.pts.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
@@ -211,11 +231,11 @@ SCENES.readShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPla
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); for (const [x, y, col] of [[0, 0, CO.bad], [6, 0, CO.pt], [0, 5, CO.pt2]]) { coDot(g, Pl, x, y, { pair: true, col }); SFX.tick(); await sleep(FAST ? 2 : 350); } await S(L[2]);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const H = Pl.P(2.5, 3); geoLine(g, H[0], H[1], H[0], Pl.y0, { color: css('--compass'), w: 2.4, dash: '5 4' }); coDot(g, Pl, 2.5, 3, { pair: true }); SFX.tick(); for (const l of L.slice(3)) await S(l); };
 /* الإشعال (د3): فوضى تجمع 2 + 7 = 9، والقفزات على الشبكة 5 */
-SCENES.distHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, {}), fz = chaosAt(svg, 318, 40, .4); chaosGiggle(fz); coDot(svg, Pl, 2, 3, { name: 'a', pair: true }); coDot(svg, Pl, 7, 3, { name: 'b', pair: true });
-  const t = a2Formula(svg, '2 + 7 = 9', CO.bad, 252); await S(L[0]); const m = helpG(svg); for (let v = 2; v < 7; v++) { const p = Pl.P(v, 3), q = Pl.P(v + 1, 3); el('path', { d: `M${p[0]} ${p[1]} Q${(p[0] + q[0]) / 2} ${p[1] - 16} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.8 }, m); badge(m, (p[0] + q[0]) / 2, p[1] - 22, v - 1, THINK_INK); SFX.tick(); await sleep(FAST ? 2 : 300); }
+SCENES.distHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { bottom: 220 }),   /* المعادلة تحت أعداد المحور داخل الإطار (فحص التراكب) */ fz = chaosAt(svg, 318, 40, .4); chaosGiggle(fz); coDot(svg, Pl, 2, 3, { name: 'a', pair: true, at: 'down' }); coDot(svg, Pl, 7, 3, { name: 'b', pair: true, at: 'down' });   /* تحت النقطتين: القفزات وأرقامها فوقهما */
+  const t = a2Formula(svg, '2 + 7 = 9', CO.bad, 240); await S(L[0]); const m = helpG(svg); for (let v = 2; v < 7; v++) { const p = Pl.P(v, 3), q = Pl.P(v + 1, 3); el('path', { d: `M${p[0]} ${p[1]} Q${(p[0] + q[0]) / 2} ${p[1] - 16} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.8 }, m); badge(m, (p[0] + q[0]) / 2, p[1] - 22, v - 1, THINK_INK); SFX.tick(); await sleep(FAST ? 2 : 300); }
   t.textContent = '7 − 2 = 5'; t.setAttribute('fill', CO.ok); for (const l of L.slice(1)) await S(l); };
 /* الاكتشاف (د3): الأفقي بالفرق، والرأسي بالفرق، والنقطة على المحور، والمائلتان بالمسطرة */
-SCENES.coDistShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, {}); let g = el('g', { 'pointer-events': 'none' }, svg); const t = a2Formula(svg, '', CO.ok, 252);
+SCENES.coDistShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { bottom: 220 }); let g = el('g', { 'pointer-events': 'none' }, svg); const t = a2Formula(svg, '', CO.ok, 240);
   const seg = (a, b, col) => { const A = Pl.P(...a), B = Pl.P(...b); geoLine(g, A[0], A[1], B[0], B[1], { color: col, w: 4 }); coDot(g, Pl, ...a, { pair: true, fs: 13 }); coDot(g, Pl, ...b, { pair: true, fs: 13 }); };
   seg([2, 3], [7, 3], CO.pt); t.textContent = '7 − 2 = 5'; await S(L[0]); seg([4, 1], [4, 6], CO.pt2); t.textContent = '6 − 1 = 5'; SFX.tick(); await S(L[1]);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); seg([0, 3], [7, 3], CO.pt); t.textContent = '7 − 0 = 7'; await S(L[2]);
@@ -227,7 +247,7 @@ SCENES.vertexHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coP
   const Q = V.map(p => Pl.P(...p)); el('polyline', { points: polyStr(Q), fill: 'none', stroke: CO.ink, 'stroke-width': 3, 'pointer-events': 'none' }, svg); coDot(svg, Pl, 1, 5, { col: CO.bad, pair: true, fs: 13, at: 'up' }); const D5 = Pl.P(1, 5); geoLine(svg, Q[2][0], Q[2][1], D5[0], D5[1], { color: CO.bad, w: 2.4, dash: '6 4' }); await S(L[0]);
   const D4 = Pl.P(1, 4); el('polygon', { points: polyStr([...Q, D4]), fill: CO.fill, opacity: .7, stroke: CO.ok, 'stroke-width': 3, 'pointer-events': 'none' }, svg); coDot(svg, Pl, 1, 4, { name: 'd', pair: true, col: CO.ok, fs: 13 }); SFX.good(); for (const l of L.slice(1)) await S(l); };
 /* الاكتشاف (د4): مستطيل من رؤوسه (4 و3، محيط 14 ومساحة 12)، والمربع ورأسه الرابع، ومثلث قاعدته أفقية (10)، وشكل L (21 و22) */
-SCENES.shapeShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, {}); let g = el('g', { 'pointer-events': 'none' }, svg); const t = a2Formula(svg, '', CO.ok, 252);
+SCENES.shapeShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { bottom: 220 }); let g = el('g', { 'pointer-events': 'none' }, svg); const t = a2Formula(svg, '', CO.ok, 240);
   const poly = (pts, names) => { const Q = pts.map(p => Pl.P(...p)); el('polygon', { points: polyStr(Q), fill: CO.fill, stroke: CO.ink, 'stroke-width': 3, 'stroke-linejoin': 'round' }, g); pts.forEach((p, i) => coDot(g, Pl, ...p, { name: names ? names[i] : null, pair: true, fs: 12, r: 5 })); return Q; };
   poly([[2, 1], [6, 1], [6, 4], [2, 4]], ['a', 'b', 'j', 'd']); t.textContent = '2 × (4 + 3) = 14 · 4 × 3 = 12'; await S(L[0]);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); poly([[2, 2], [6, 2], [6, 6], [2, 6]]); t.textContent = ''; await S(L[1]);

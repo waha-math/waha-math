@@ -311,7 +311,9 @@
      "t": "coordPlace",
      "x": 3.5,
      "y": 1,
-     "half": true
+     "half": true,
+     "n": 8,
+     "m": 6
     }
    }
   ],
@@ -456,7 +458,9 @@
     "item": {
      "t": "coordPlace",
      "x": 6,
-     "y": 3
+     "y": 3,
+     "n": 8,
+     "m": 6
     }
    },
    {
@@ -475,7 +479,9 @@
      "t": "coordPlace",
      "x": 4.5,
      "y": 2,
-     "half": true
+     "half": true,
+     "n": 8,
+     "m": 6
     }
    },
    {

@@ -74,7 +74,7 @@ function reasonPic(svg, P) { const g = el('g', {}, svg);
   else if (P.kind === 'axgrid') { const Gd = axGrid(g, P.ax || 'v', P.a ?? 5, { c: 24, cols: 10, rows: 6, x0: 60, y0: 176 }); axFigAt(g, Gd, P.pts, P.segs); if (P.img) axFigAt(g, Gd, P.img, P.segs, { color: AXC.img }); }
   else if (P.kind === 'rose') { roseAt(g, [180, 128], 80); if (P.face) faceArrow(g, [180, 128], P.face); }
   else if (P.kind === 'clocks') { rayFrame(g); [[262, 118], [98, 118]].forEach((C, i) => { el('circle', { cx: C[0], cy: C[1], r: 66, fill: '#fffdf6', stroke: css('--line'), 'stroke-width': 3 }, g); angHandAt(g, C, 54).set(90); if (i) el('path', { d: angArc(C, 30, 0, 0, true), fill: 'none', stroke: ANG.arc, 'stroke-width': 4 }, g); }); }
-  else if (P.kind === 'copts') { const Pl = coPlane(g, { n: P.n || 8, m: P.m || 8, H: 226, top: 8 }); P.pts.forEach(([x, y], i) => coDot(g, Pl, x, y, { pair: true, name: P.names ? P.names[i] : undefined })); }   /* M3-U5: نقاطٌ على المستوى الإحداثي بأزواجها */
+  else if (P.kind === 'copts') { const Pl = coPlane(g, { n: P.n || 8, m: P.m || 8, H: 226, top: 2, pad: 22, bottom: 224 }); P.pts.forEach(([x, y], i) => coDot(g, Pl, x, y, { pair: true, name: P.names ? P.names[i] : undefined })); }   /* M3-U5: نقاطٌ على المستوى الإحداثي بأزواجها */
   else if (P.kind === 'twopts') { rayFrame(g); const PT = RAYPTS[P.pts]; for (const k of Object.keys(PT)) ptAt(g, PT[k][0], PT[k][1], k, { r: 7, lab: [0, -16] }); }   /* نقطتان بلا خط: السؤال عن المستقيمات المارّة بهما لا يُرى جوابه */
   else if (P.kind === 'segfig') segFigAt(g, P.fig, { ticks: P.ticks });
   else if (P.kind === 'roads') roads3At(g, P.st, P.v || 0);

@@ -69,8 +69,13 @@ HELP2 = {'decPointer', 'decConv', 'decOrder', 'decCalc', 'decCmp', 'decRuler', '
          # S3-U4..U9: المستوى الثاني مرسوم (مراجعات البوابات؛ D240)
          'trapArea', 'trapParts', 'diagArea', 'diagFit', 'kiteTune', 'comp2', 'compCut', 'comp2Perim', 'a2Conv', 'a2Machine', 'a2Cmp', 'a2Tiles',
          'coordPlace', 'coordRead', 'coordWhere', 'coordDist', 'coordAlign', 'coordDraw', 'coordShape',
-         'xfDraw', 'xfWhich', 'refLine', 'trVector', 'rotSym', 'congJudge', 'congPart', 'circPart', 'soKind', 'soOpp', 'soNetYN', 'soNetPick', 'soNetMatch', 'soView', 'voUnit', 'voDims', 'voSmart'}
+         'xfDraw', 'xfWhich', 'refLine', 'trVector', 'rotSym', 'congJudge', 'congPart', 'circPart', 'soKind', 'soOpp', 'soNetYN', 'soNetPick', 'soNetMatch', 'soView', 'voUnit', 'voDims', 'voSmart',
+         'triDet', 'circScale', 'circCalc', 'discGrid', 'circString'}   # المراجع B لبوابة S3-U6/U7، 6
 H2 = "() => !!document.querySelector('#stage [data-help], #stage .pick.tried')"
+# ولا يرسم المستوى الثاني الجوابَ في بنود النقطة الواحدة: لا حلقة مساعدة على موضع الجواب (المراجع B لبوابة S3-U6/U7، 2 و18)؛ والحلّ المشترك فيها مرسوم (3)
+ONANS = """() => { const W = window.__axWant || (window.__gridPtWant ? [window.__gridPtWant] : null), at = window.__axWant ? window.__axAt : window.__gridPtAt; if (!W || W.length !== 1 || !at) return null;
+  const p = at(W[0][0], W[0][1]); return [...document.querySelectorAll('#stage [data-help] circle')].some(c => { const r = c.getBoundingClientRect(); return Math.hypot((r.left + r.right) / 2 - p.x, (r.top + r.bottom) / 2 - p.y) < 4; }); }"""
+ONE_TOG = "() => window.__axWant && window.__axWant.length === 1 ? !!document.querySelector('#stage [data-help]') : null"
 async def main():
   async with async_playwright() as p:
     b = await p.chromium.launch(); ctx = await b.new_context(**p.devices['Pixel 5']); pg = await ctx.new_page(); errs = []
@@ -80,9 +85,9 @@ async def main():
       localStorage.setItem('hp_settings:k1', JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:k1', JSON.stringify({ schema: 3, unlockAll: true })); }""")
     await pg.reload(); await pg.wait_for_timeout(500)
     items = await pg.evaluate(LIST, ONLY); per = {}; n_run = 0; drawn = {}; onright = {}; lvl2 = {}
-    lrsaid = []; unders = []; laps = []; orders = []; counted = []; covers = []
+    lrsaid = []; unders = []; laps = []; orders = []; counted = []; covers = []; onans = []; onetog = []
     for lid, key, typ, n, rowhelp, side, ans, ask in items:
-      e0 = len(errs); await pg.evaluate(START, n); last = -1; fourth = None; third = None; res = None
+      e0 = len(errs); await pg.evaluate(START, n); last = -1; fourth = None; third = None; res = None; tag0 = '%s %s (%s)' % (lid, key, typ)
       for _ in range(1500):
         st = await pg.evaluate(STATE)
         if len(errs) > e0: break
@@ -90,7 +95,8 @@ async def main():
         a = st['auto']
         if a and a['n'] != last:
           last = a['n']
-          if not st['twin'] and st['fails'] == 2 and third is None: await pg.wait_for_timeout(40); third = await pg.evaluate(H2)
+          if not st['twin'] and st['fails'] == 2 and third is None: await pg.wait_for_timeout(40); third = await pg.evaluate(H2); oa = typ in ('xfDraw', 'coordPlace', 'enDraw') and await pg.evaluate(ONANS); (onans.append(tag0) if oa else None)
+          if not st['twin'] and st['fails'] == 3 and fourth is None: ot = (await pg.evaluate(ONE_TOG)) if typ == 'xfDraw' else None; (onetog.append(tag0) if ot is False else None)
           if not st['twin'] and st['fails'] == 3 and fourth is None: fourth = await pg.evaluate(GONE)   # انتظار المحاولة الرابعة: ما رُسم منذ الحكم الثالث
           h = 'wrong' if not st['twin'] and a['wrong'] and st['fails'] < 3 else 'ok'
           await pg.evaluate("(h) => { const a = window.__auto; if (a) (h === 'wrong' && a.wrong ? a.wrong : a.ok)(); }", h); continue
@@ -119,6 +125,8 @@ async def main():
     for typ, L in sorted(drawn.items()):
       miss = [t for h, t in L if not h]
       check(not miss, '%s: في المحاولة الرابعة حلٌّ مشترك مرسوم (data-help) في كل بنوده (%d%s)' % (typ, len(L), '' if not miss else '؛ بلا حلّ: ' + ', '.join(miss[:3])))
+    check(not onans, 'المستوى الثاني لا يرسم حلقةً على جواب النقطة الواحدة (%s)' % ', '.join(onans[:4]))
+    check(not onetog, 'الحلّ المشترك في «ارسم الصورة» بنقطة واحدة مرسوم (%s)' % ', '.join(onetog[:4]))
     for typ, L in sorted(lvl2.items()):
       miss = [t for h, t in L if not h]
       check(not miss, '%s: المستوى الثاني باقٍ على مسرح المحاولة الثالثة (%d%s)' % (typ, len(L), '' if not miss else '؛ بلا شيء: ' + ', '.join(miss[:3])))

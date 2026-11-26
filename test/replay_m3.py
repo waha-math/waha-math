@@ -96,11 +96,45 @@ async def reason_exit(p):
   after = await pg.evaluate("() => window.__clips")
   check(not after and not errs, 'التعليل: لا سبب يُقال بعد الخروج والخريطة ظاهرة (%s %s)' % (after[:3], errs[:1])); await b.close()
 
+# السؤال بجزأين على REPLAY_HOOK (coordPlace: الجملة ثم الزوج): «أعد الجملة» يعيدهما معاً، والجواب قبل الزوج لا يُلحقه بعده (المراجع B لبوابة S3-U4/U5، 9 و11)
+async def hook_two_part(p, lid, typ, label):
+  b, pg, errs = await boot(p, fast=False)
+  spec = await pg.evaluate(FIND, [lid, typ]); check(bool(spec), '%s: بندٌ في %s' % (label, lid))
+  if not spec: await b.close(); return
+  spec = dict(spec); spec.pop('given', None); spec.pop('noPair', None)
+  await pg.evaluate(START, [lid, spec, 'test'])
+  try: await pg.wait_for_function("() => !!window.__auto && !speechBusy()", timeout=30000, polling=50)
+  except Exception: pass
+  pair = 'gen.co.p.%s.%s' % (str(spec['x']).replace('.', '_'), str(spec['y']).replace('.', '_'))
+  try: await pg.wait_for_function("(p) => (window.__clips || []).some(c => c.includes(p)) && !speechBusy()", arg=pair, timeout=15000, polling=50)
+  except Exception: pass
+  said = await pg.evaluate("() => (window.__clips || []).slice()")
+  check(any(pair in c for c in said), '%s: قيل الزوج بعد الجملة (%s)' % (label, said[-2:]))
+  await pg.evaluate("() => { window.__clips = []; }"); await pg.click('#replay')
+  try: await pg.wait_for_function("() => (window.__clips || []).length >= 2 && !speechBusy()", timeout=30000, polling=50)
+  except Exception: pass
+  got = await pg.evaluate("() => window.__clips")
+  check(len(got) >= 2 and pair in got[-1] and pair not in got[0], '%s: «أعد الجملة» يعيد الجملة ثم الزوج (%s)' % (label, got[:3]))
+  await b.close()
+  # الجواب أثناء الجملة: لا يُقال الزوج بعده
+  b, pg, errs2 = await boot(p, fast=False)
+  await pg.evaluate(START, [lid, spec, 'test'])
+  try: await pg.wait_for_function("() => !!window.__auto && (window.__clips || []).length >= 1", timeout=30000, polling=30)
+  except Exception: pass
+  await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")
+  try: await pg.wait_for_function("() => window.__res !== null", timeout=30000, polling=50)
+  except Exception: pass
+  await pg.wait_for_timeout(500); said = await pg.evaluate("() => (window.__clips || []).slice()")
+  i = next((k for k, c in enumerate(said) if pair in c), -1)
+  check(i == -1, '%s: الجواب قبل الزوج لا يُلحقه بعده (%s)' % (label, said[:4]))
+  check(not errs and not errs2, '%s: لا خطأ %s' % (label, (errs + errs2)[:2])); await b.close()
+
 async def main():
   async with async_playwright() as p:
     await continuation(p, 'm3.u0.d3', 'decConv', 'التحويل')
     await continuation(p, 'm3.u0.d1', 'decPointer', 'المؤشّر')
     await continuation(p, 'm3.u1.d3', 'claimJudge', 'ممكن أم مستحيل')
+    await hook_two_part(p, 'm3.u5.d1', 'coordPlace', 'عيّن النقطة')
     await two_reasons(p)
     await reason_exit(p)
   print('FAILS:', len(FAILS)); sys.exit(1 if FAILS else 0)

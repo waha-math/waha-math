@@ -40,7 +40,7 @@ function measWatch(st) { if (MEAS_MO || !st || typeof MutationObserver === 'unde
   MEAS_MO.observe(st, { childList: true, subtree: true, characterData: true }); }
 function newStage(H = 300, bg = {}, aria) { const st = $('#stage'); measWatch(st); st.innerHTML = ''; const LS = $('#lesson'); if (LS) LS.classList.remove('dense'); STAGE_T = performance.now(); HIST = []; BACK_I = null; if (typeof updateSkip === 'function') updateSkip(); if (PEND_INTRO) Promise.resolve().then(flushIntro);   /* المقدّمة بعد رسم المشهد (D270) */ const svg = el('svg', { viewBox: `0 0 360 ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': aria || (CUR ? plain(CUR.title || '') : '') }); st.appendChild(svg);
   setTimeout(() => { if (svg.isConnected && typeof angDeclutter === 'function' && svg.querySelector('[data-alab]')) angDeclutter(svg); }, 0);   /* تسميات الزوايا المتراكبة تُبعد على منصّفاتها بعد الرسم (المراجع B لبوابة S3-U0/U1، 3) */
-  if (HELP_CARRY && HELP_CARRY.length) { const keep = HELP_CARRY; setTimeout(() => { if (svg.isConnected && !svg.querySelector('[data-help]')) for (const n of keep) svg.appendChild(n.cloneNode(true)); }, 0); }   /* المستوى الثاني يبقى على مسرح المحاولة التالية، إلا إن رسم البندُ مساعدته بنفسه (D240) */
+  if (HELP_CARRY && HELP_CARRY.flow === FLOW && HELP_CARRY.nodes.length) { const keep = HELP_CARRY.nodes, fl = FLOW; setTimeout(() => { if (fl === FLOW && svg.isConnected && !svg.querySelector('[data-help]')) for (const n of keep) svg.appendChild(n.cloneNode(true)); }, 0); }   /* المستوى الثاني يبقى على مسرح المحاولة التالية، إلا إن رسم البندُ مساعدته بنفسه (D240) */
   try { if (STAGE_RO) STAGE_RO.disconnect(); STAGE_RO = new ResizeObserver(() => refreshPads(svg)); STAGE_RO.observe(svg); } catch (e) {}
   /* وحين تظهر الخيارات تحت المسرح أو تزول يصغر أو يكبر قبل أن يُبلغ ResizeObserver: يُعاد الحساب فوراً، فلا تبقى منطقة لمس دون حدّها لحظةً
      (الفحصان المستقلان C وD: زرّ تحريك الطريق 55 بكسلاً، وقطعة الورشة 61، على iPhone SE) */
@@ -195,7 +195,7 @@ const tallyText = n => '•'.repeat(n);
 const teenDigits = () => { const S = LESSON_SEQ(), d = S.indexOf('m1.u4.d5'); if (d < 0) return false; if (CUR && S.includes(CUR.id)) return S.indexOf(CUR.id) >= d; return !!(PROG['m1.u4.d5'] || {}).done; };
 function numberPick(nums, ok, opt = {}) {
   /*T*/if (TESTHOOK && new Set(nums).size < 3) testBug('numberPick بأقلّ من ثلاثة خيارات: ' + nums.join(','));/*/T*/   /* (الفحص المستقل J2 (5): ترشيحٌ بعد nearNums أنقصها في موضع ندائه، فالحارس يراها في كل موضع) */
-  const box = document.createElement('div'); box.className = 'choices nums'; (opt.host || $('#stage')).appendChild(box);
+  const box = document.createElement('div'); box.className = 'choices nums' + (nums.some(n => String(MS(n)).length > 4) ? ' long' : ''); (opt.host || $('#stage')).appendChild(box);   /* العدد الطويل بخطٍّ أصغر يلتفّ، فلا يخرج زرٌّ عن 320 بكسلاً (المراجع B لبوابة S3-U4/U5، 1) */
   const showDigits = opt.digits ?? digitsKnown(), teens = teenDigits(), W = opt.word || numw;   /* word: كلمة العدد مع تمييزه (الدرجات في S2-U3: «تسعون درجة») */
   const btns = nums.map(n => { const b = document.createElement('button'); b.className = 'pick num'; b.dataset.k = n;
     b.innerHTML = (opt.west ? `<b dir="ltr">${MS(n)}</b>` : showDigits && (n <= 10 || teens) ? `<b>${DG(n)}</b>` : '') + `<span>${esc(T(W(n)))}</span>`; b.setAttribute('aria-label', plain(T(W(n))));
@@ -227,3 +227,14 @@ function nearNums(n, max = 10, lo = 0) { const ok = v => v >= lo && v <= max && 
 /* زرّ «تمّ» على المسرح للمهام المفتوحة (الإخراج والبناء) */
 function doneBtn(onClick) { const b = document.createElement('button'); b.className = 'pick done'; b.innerHTML = ICON.check + `<span>${esc(G(labelText('done')))}</span>`; b.setAttribute('aria-label', plain(labelText('done')));
   const bar = document.createElement('div'); bar.className = 'choices donebar'; bar.appendChild(b); $('#stage').appendChild(bar); b.onclick = onClick; return { bar, b }; }
+/* الشبكات بلوحة المفاتيح (role=grid): خانةٌ واحدة في ترتيب Tab والأسهم تنقل التركيز بين الخانات (roving tabindex)، فلا تمرّ Tab على مئة خانة،
+   وrole=grid يفي بما يَعِد به قارئَ الشاشة (المراجع B لبوابتي S3-U4/U5، 12 وS3-U6/U7، 14). تُهيَّأ كل شبكةٍ تُضاف إلى المسرح، والبدء من خانة الأصل (أوّل الصفّ الأخير) */
+function gridRoveInit(kg) { if (kg.__rove) return; const rows = [...kg.querySelectorAll('[role=row]')].map(r => [...r.querySelectorAll('[role=gridcell]')]).filter(r => r.length); if (!rows.length) return; kg.__rove = rows;
+  const start = rows[rows.length - 1][0]; rows.flat().forEach(c => c.setAttribute('tabindex', c === start ? 0 : -1));
+  kg.addEventListener('focusin', e => { const c = e.target.closest && e.target.closest('[role=gridcell]'); if (c) rows.flat().forEach(x => x.setAttribute('tabindex', x === c ? 0 : -1)); }); }
+document.addEventListener('keydown', e => { const c = e.target && e.target.closest && e.target.closest('[role=gridcell]'), kg = c && c.closest('[role=grid]'), rows = kg && kg.__rove; if (!rows) return;
+  const d = e.key === 'ArrowUp' ? [-1, 0] : e.key === 'ArrowDown' ? [1, 0] : e.key === 'ArrowRight' ? [0, 1] : e.key === 'ArrowLeft' ? [0, -1] : e.key === 'Home' ? [0, -1e9] : e.key === 'End' ? [0, 1e9] : null; if (!d) return;
+  let ri = rows.findIndex(r => r.includes(c)), ci = rows[ri].indexOf(c); ri += d[0]; ci += d[1];
+  ri = Math.max(0, Math.min(rows.length - 1, ri)); ci = Math.max(0, Math.min(rows[ri].length - 1, ci)); e.preventDefault(); rows[ri][ci].focus(); });
+{ const st = document.getElementById('stage'); if (st) new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && n.namespaceURI === 'http://www.w3.org/2000/svg')
+  (n.getAttribute('role') === 'grid' ? [n] : [...n.querySelectorAll('[role=grid]')]).forEach(gridRoveInit); }).observe(st, { childList: true, subtree: true }); }

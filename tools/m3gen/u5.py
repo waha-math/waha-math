@@ -15,7 +15,9 @@ def _o(d,**o):
     for k,v in o.items():
         if v is not None: d[k]=v
     return d
-def pl(x,y,name=None,half=None,art=None,q=None,n=None,m=None,hide=None): return _o({"t":"coordPlace","x":x,"y":y},name=name,half=half,art=art,q=q,n=n,m=m,hideCard=hide,noPair=hide)
+def pl(x,y,name=None,half=None,art=None,q=None,n=None,m=None,hide=None):
+    if half and n is None and x<=7 and y<=5: n,m=8,6   # أنصاف الوحدة على مستوى 8 × 6: التقاطع أوسع للإصبع (المراجع B لبوابة S3-U4/U5، 10)
+    return _o({"t":"coordPlace","x":x,"y":y},name=name,half=half,art=art,q=q,n=n,m=m,hideCard=hide,noPair=hide)
 def vx(given,x,y,q,n=None,m=None):   # الرأس المجهول: ثلاثة رؤوس مرسومة بأضلاعها المتقطّعة
     return _o({"t":"coordPlace","x":x,"y":y,"given":[[a,b,k] for (a,b),k in zip(given,'abj')],"poly":[list(p) for p in given],"q":q},n=n,m=m)
 def rd(x,y,name=None,art=None,q=None): return _o({"t":"coordRead","x":x,"y":y},name=name,art=art,q=q)
@@ -342,7 +344,7 @@ d5={"id":"m3.u5.d5","title":"بَوَّابَةُ حَيِّ الإِحْدَا�
   "normal":[tw(pl(7,2),rd(1,3)), tw(wh(0,3),ds((2,1),(2,5))), tw(sh([(1,1),(6,1),(6,3),(1,3)]),pl(3.5,1,half=True))],
   "challenge":[tw(al((4,5),(9,2)),ds((1,7),(10,7))), tw(vx([(2,3),(5,3),(5,6)],2,6,'pr.square'),sh([(2,2),(8,2),(5,6)])), tw(dr([(1,1),(7,1),(4,5)],q='gm.draw'),sh([(1,1),(5,1),(5,2),(3,2),(3,5),(1,5)],'perim'))]},
  "test":{"remedial":"ts.rem","stoneLine":"ts.stone","winLines":["ts.win1","ts.win2"],"items":[   # كما في المرجع (12): 3 تعيين وقراءة، 2 ترتيب ومحوران، 2 مسافة، 2 رأس مجهول، 1 مساحة أو محيط، 1 خطأ، 1 مفتوح
-   T5(1,1,pl(6,3)), T5(2,1,rd(2,5)), T5(3,2,pl(4.5,2,half=True)),
+   T5(1,1,pl(6,3,n=8,m=6)), T5(2,1,rd(2,5)), T5(3,2,pl(4.5,2,half=True)),
    T5(4,2,rd(3,1)), T5(5,2,wh(7,0)),
    T5(6,3,ds((3,5),(11,5),n=12)), T5(7,3,ds((8,3),(8,9),m=9)),
    T5(8,4,vx([(6,5),(1,5),(1,2)],6,2,'pr.rect')), T5(9,4,vx([(7,5),(3,5),(3,1)],7,1,'pr.square')),

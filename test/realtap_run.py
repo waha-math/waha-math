@@ -68,7 +68,7 @@ CENTER_OF = """(sel) => { const e = document.querySelector(sel); if (!e) return 
     r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) } : { l: b.left, t: b.top, r: b.right, b: b.bottom }; }
   if (!r) { const b = e.getBoundingClientRect(); r = { l: b.left, t: b.top, r: b.right, b: b.bottom }; } return [(r.l + r.r) / 2, (r.t + r.b) / 2]; }"""
 
-HTMLK = ('pick', 'card', 'num'); STEPK = {'dqBal': '__dqS', 'dqPerp': '__dqTh', 'htFoot': '__htAt', 'htTune': '__htH'}
+HTMLK = ('pick', 'card', 'num'); STEPK = {'dqBal': '__dqS', 'dqPerp': '__dqTh', 'htFoot': '__htAt', 'htTune': '__htH', 'kiteTune': '__a2R'}   # وطائرة المعيّن (المراجع B لبوابة S3-U4/U5، 11)
 PICK_OK = """() => { const b = [...document.querySelectorAll('#stage .choices .pick')].filter(x => !x.disabled && x.offsetParent && !x.classList.contains('done')); const e = b.find(x => x.dataset.ok === 'true') || b[0]; if (!e) return null;
   e.scrollIntoView({ block: 'nearest' }); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"""
 STEP_BTN = "(i) => { const e = document.querySelectorAll('#stage .choices.icons .pick')[i]; if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
@@ -306,7 +306,9 @@ async def run(p, dev):
           await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
           if k == 'axPts':
             want = await pg.evaluate('() => window.__axWant')
-            for r, u in want: q = await pg.evaluate('([r, u]) => window.__axAt(r, u)', [r, u]); await tap(q['x'], q['y']); await pg.wait_for_timeout(120)
+            for i, (r, u) in enumerate(want):   # لمسةٌ مزاحة 0.4 خطوة عن التقاطع (لا في مركزه تماماً): الإلصاق بأقرب تقاطع (المراجع B لبوابة S3-U6/U7، 18)
+              q = await pg.evaluate('([r, u]) => window.__axAt(r, u)', [r, u]); q1 = await pg.evaluate('([r, u]) => window.__axAt(r + 1, u)', [r, u]); stp = abs(q1['x'] - q['x']) * .4; sg = 1 if i % 2 else -1
+              await tap(q['x'] + sg * stp, q['y'] - sg * stp); await pg.wait_for_timeout(120)
             placed_n = await pg.evaluate('() => window.__axPlaced')   # النقاط كلها موضوعة قبل «تمّ» (والبند يُسلَّم بها؛ مراجعة B لبوابة U4/U5، 9)
             xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(150)
             moved = (await pg.evaluate(STATE))['n'] != st['n']   # في السرعة يبدأ البند التالي قبل الفحص فيُصفَّر العدّاد: يُحكم حينئذ بآخر محاولة في السجل

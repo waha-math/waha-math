@@ -172,11 +172,15 @@
     "x": 2.5,
     "y": 3,
     "half": true,
+    "n": 8,
+    "m": 6,
     "twin": {
      "t": "coordPlace",
      "x": 4,
      "y": 1.5,
-     "half": true
+     "half": true,
+     "n": 8,
+     "m": 6
     }
    }
   ],
@@ -302,7 +306,9 @@
      "t": "coordPlace",
      "x": 3.5,
      "y": 2,
-     "half": true
+     "half": true,
+     "n": 8,
+     "m": 6
     },
     {
      "t": "coordWhere",
@@ -322,7 +328,9 @@
      "t": "coordPlace",
      "x": 5.5,
      "y": 3,
-     "half": true
+     "half": true,
+     "n": 8,
+     "m": 6
     },
     {
      "t": "coordWhere",
@@ -376,6 +384,8 @@
    "x": 1.5,
    "y": 4,
    "half": true,
+   "n": 8,
+   "m": 6,
    "c": "C311"
   },
   {

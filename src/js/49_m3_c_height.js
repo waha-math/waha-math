@@ -9,6 +9,14 @@ const HT = { grid: '#d9e4ea', ink: '#33454c', fill: '#eef4f8', h: '#e07b39', sid
 function htGrid(parent, cols, rows, o = {}) { const c = o.c || Math.min(26, 300 / cols, (o.H || 170) / rows), x0 = 180 - cols * c / 2, y0 = (o.top ?? 24) + rows * c, g = el('g', { 'pointer-events': 'none', 'data-grid': 1 }, parent);
   for (let i = 0; i <= cols; i++) geoLine(g, x0 + i * c, y0 - rows * c, x0 + i * c, y0, { color: HT.grid, w: 1 }); for (let j = 0; j <= rows; j++) geoLine(g, x0, y0 - j * c, x0 + cols * c, y0 - j * c, { color: HT.grid, w: 1 });
   return { g, c, x0, y0, cols, rows, P: p => [x0 + p[0] * c, y0 - p[1] * c] }; }
+/* نصٌّ يبقى داخل الإطار الورقي (x من 20 إلى 340): يُزاح أفقياً بقدر ما خرج (المراجع B لبوابة S3-U4/U5، 11) */
+const labFit = (t, lo = 23, hi = 337) => { const b = t && t.getBBox ? t.getBBox() : null; if (b && b.width) { const sh = b.x < lo ? lo - b.x : b.x + b.width > hi ? hi - b.x - b.width : 0; if (sh) t.setAttribute('x', +t.getAttribute('x') + sh); } return t; };
+/* نصٌّ لا يقع على نصٍّ آخر على المسرح: يُجرَّب في مواضع قريبة حتى يخلو (فحص التراكب) */
+const labAvoid = (t, offs = [[0, 0], [-20, 0], [20, 0], [0, 10], [0, -10], [-20, 8], [20, 8], [0, 18]]) => { const own = t && t.ownerSVGElement; if (!own || !t.getBBox) return t;
+  const x0 = +t.getAttribute('x'), y0 = +t.getAttribute('y'), others = [...own.querySelectorAll('text')].filter(o => o !== t && o.textContent.trim()).map(o => { try { return o.getBBox(); } catch (e) { return null; } }).filter(b => b && b.width);
+  const hit = b => others.some(o => b.x < o.x + o.width - 1 && b.x + b.width > o.x + 1 && b.y + b.height * .2 < o.y + o.height * .8 && b.y + b.height * .8 > o.y + o.height * .2);
+  for (const [dx, dy] of offs) { t.setAttribute('x', x0 + dx); t.setAttribute('y', y0 + dy); if (!hit(t.getBBox())) return t; }
+  t.setAttribute('x', x0); t.setAttribute('y', y0); return t; };
 const htLab = (parent, p, txt, col = HT.ink, fs = 15) => { const t = el('text', { x: p[0], y: p[1] + 5, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl', 'pointer-events': 'none' }, parent); t.textContent = txt; return t; };
 const htCm = (v, u) => `${v} ${U_(u || 'cm')}`;
 /* علامة الزاوية القائمة عند F بين الاتجاهين a وb (بالدرجات) */
@@ -141,7 +149,7 @@ ITEM.missingDim = { ...htNumItem,
 
 /* ================= ⑥ «مهندس المساحات» (C335، اللعبة): قاعدة ثابتة، ويُضبط الارتفاع بزرّين حتى تطابق المساحة المطلوبة ================= */
 /* المستوى الثاني: مساحة الشكل الآن مقروءةً فوقه، تتغيّر مع كل ضبط، فيقارنها الطفل بالمطلوبة (D240) */
-function htAreaNow(parent, item, h) { const m = helpG(parent), A = item.fig === 'tri' ? item.b * h / 2 : item.b * h, t = el('text', { x: 180, y: 26, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: THINK_INK, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, m);
+function htAreaNow(parent, item, h, Y = 26) { const m = helpG(parent), A = item.fig === 'tri' ? item.b * h / 2 : item.b * h, t = el('text', { x: 180, y: Y, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: THINK_INK, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, m);
   t.textContent = `${labelText('htNow')} ${decFmt(A)} ${labelText((item.u || 'cm') === 'm' ? 'arM2' : 'arCm2')}`; return m; }
 ITEM.areaTune = {
   make(spec) { const want = (spec.fig === 'tri' ? 2 : 1) * spec.A / spec.b; /*T*/if (TESTHOOK && (!Number.isInteger(want) || want > 6)) testBug('areaTune: ارتفاع غير صالح');/*/T*/ return { ...spec, want, tag: 'area-tune' }; },

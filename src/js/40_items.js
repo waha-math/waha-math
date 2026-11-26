@@ -55,7 +55,7 @@ async function runItem0(spec, mode, ctx) {
     if (mode === 'mastery') { await S('gen.ms.noted'); return { firstTry: false, ok: false, item }; }
     if (mode === 'review') { await T.reveal(item, r); const why = T.reason && T.reason(item); if (why) await S(why); return { firstTry: false, ok: false, item }; }
     if (tries === 1) { await S(errQ(j.err, item)); await sleep(300); continue; }                       // المستوى 1: سؤال
-    if (tries === 2) { await S(bank('look') || 'gen.hint2.01'); await T.hint2(item, r, j.err); { const sv = $('#stage svg'); HELP_CARRY = sv ? [...sv.querySelectorAll('[data-help]')].filter(n => !n.parentNode.closest('[data-help]')).map(n => n.cloneNode(true)) : null; } await sleep(300); continue; }   // المستوى 2: حركة الأداة
+    if (tries === 2) { await S(bank('look') || 'gen.hint2.01'); await T.hint2(item, r, j.err); { const sv = $('#stage svg'); HELP_CARRY = sv ? { flow: FLOW, nodes: [...sv.querySelectorAll('[data-help]')].filter(n => !n.parentNode.closest('[data-help]')).map(n => n.cloneNode(true)) } : null; }   /* مربوطٌ بالمسار: لا يُنسخ إلى درسٍ آخر بعد الخروج (المراجع B لبوابة S3-U6/U7، 4) */ await sleep(300); continue; }   // المستوى 2: حركة الأداة
     if (tries === 3) { HELP_CARRY = null; together = true; await T.together(item, r, j.err); continue; }                  // المستوى 3: حلّ مشترك، والخطوة الأخيرة للطفل
     await T.reveal(item, r); { const why = T.reason && T.reason(item); if (why) await S(why); }
     /* توأم واحد للبند: لا توأم للتوأم، فلا تتسلسل البنود على طفل يخطئ (الفحص المستقل B) */

@@ -199,6 +199,15 @@ EYE = r"""async () => { const out = {}; for (const [t, lid, n] of [['frameGlance
   hush(); FLOW++; return out; }"""
 # ولوحة المفاتيح لكل هدف على المسرح في الوحدات كلها (مواصفة المحرّك 8؛ kbdStage ومستمع Enter العامّ في 30_tools.js): Tab يبلغ الهدف،
 # وEnter عليه يلمسه وإن لم يكن له مفتاح خاص به (وجه المخروط في S1-U2، وبلاطة الطريق في S1-U3: كانا بلا مفتاح، عدّاد keyless targets)
+# «ارسم الصورة» بترتيبٍ آخر يُحكم صحيحاً، والأسهم تنقل التركيز بين خانات الشبكة وTab يقف عند خانة واحدة (المراجع B لبوابة S3-U6/U7، 5 و14 و18)
+XF_ORD = r"""() => { hush(); FLOW++; let it = null; for (const id of Object.keys(LDATA).filter(k => k.startsWith('m3.u6.'))) { const L = LDATA[id], all = [...((L.test && L.test.items) || []).map(q => q.item), ...((L.practice || {}).normal || [])]; it = all.find(x => x && x.t === 'xfDraw' && x.pts.length >= 3); if (it) { CUR = L; break; } }
+  if (!it) return null; show('lesson'); window.__auto = null; window.__ordRes = null; const I = ITEM.xfDraw, item = I.make(JSON.parse(JSON.stringify(it)));
+  I.ask(item, 'practice', 0).then(r => { window.__ordRes = { ok: I.judge(item, r.ans).ok, ans: r.ans, want: item.want }; }, e => { window.__ordRes = { err: String(e) }; }); return item.img; }"""
+XF_CELL = r"""([x, y]) => { const kg = document.querySelector('#stage svg [role=grid]'), R = kg && kg.__rove; if (!R) return false; const c = R[R.length - 1 - y][x]; c.focus(); return document.activeElement === c; }"""
+XF_AT = r"""() => { const kg = document.querySelector('#stage svg [role=grid]'), R = kg && kg.__rove, a = document.activeElement; if (!R) return null; for (let i = 0; i < R.length; i++) { const j = R[i].indexOf(a); if (j >= 0) return [j, R.length - 1 - i, R.flat().filter(c => c.getAttribute('tabindex') === '0').length]; } return null; }"""
+# المستوى الثاني المنقول (HELP_CARRY) يبقى في المسار نفسه ولا يُنسخ إلى درسٍ آخر بعد الخروج (المراجع B لبوابة S3-U6/U7، 4)
+HC_LEAK = r"""async () => { hush(); FLOW++; show('lesson'); const g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.setAttribute('data-help', '1'); HELP_CARRY = { flow: FLOW, nodes: [g] };
+  const s1 = newStage(200); await new Promise(r => setTimeout(r, 60)); const kept = !!s1.querySelector('[data-help]'); FLOW++; const s2 = newStage(200); await new Promise(r => setTimeout(r, 60)); const leaked = !!s2.querySelector('[data-help]'); HELP_CARRY = null; return [kept, leaked]; }"""
 KBD_START = r"""([lid, px]) => { hush(); FLOW++; const L = LDATA[lid]; CUR = L; show('lesson'); window.__auto = null; window.__clips = [];
   const it = (new Function('L', 'return L.' + px))(L); const I = ITEM[it.t]; I.ask(I.make(JSON.parse(JSON.stringify(it))), 'practice', 0).catch(() => {}); return true; }"""
 KBD_FOCUS = r"""(sel) => { const e = document.querySelector(sel); if (!e) return [false, null]; e.focus(); window.__clips = []; return [document.activeElement === e, e.getAttribute('tabindex')]; }"""
@@ -569,6 +578,16 @@ async def main():
         if await pg.evaluate(KBD_TAB): tab = True; break
       fo = await pg.evaluate(KBD_FOCUS, sel); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(900); af = await pg.evaluate(KBD_AFTER, sel)
       kb.append((lid, tab, fo[0], ok(af)))
+    hc = await pg.evaluate(HC_LEAK); cbase(hc == [True, False], 'المستوى الثاني المنقول يبقى في المسار ولا يتسرّب إلى درسٍ آخر (%s)' % hc)
+    img = await pg.evaluate(XF_ORD); await pg.wait_for_timeout(900)
+    if img:
+      ok0 = await pg.evaluate(XF_CELL, [0, 0]); await pg.keyboard.press('ArrowRight'); await pg.keyboard.press('ArrowRight'); await pg.keyboard.press('ArrowUp'); at = await pg.evaluate(XF_AT)
+      cbase(ok0 and at and at[:2] == [2, 1] and at[2] == 1, 'شبكة «ارسم الصورة» بالأسهم: يمين يمين أعلى من الأصل إلى (2، 1)، وخانةٌ واحدة في ترتيب Tab (%s)' % at)
+      for q in reversed(img): await pg.evaluate(XF_CELL, q); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(120)
+      await pg.evaluate("() => { const b = document.querySelector('#stage .pick.done'); if (b) b.click(); }"); await pg.wait_for_timeout(600); orr = await pg.evaluate("() => window.__ordRes")
+      cbase(bool(orr) and orr.get('ok'), '«ارسم الصورة»: الصورة الصحيحة بترتيبٍ معكوس تُحكم صحيحاً (%s)' % orr)
+    else: cbase(False, '«ارسم الصورة»: لا بند متعدّد الرؤوس في m3.u6')
+    await pg.evaluate("() => { hush(); FLOW++; }")
     await pg.evaluate(KBD_START, ['m1.u2.d4', 'flow[5].items[1]']); await pg.wait_for_timeout(1500); t0 = await pg.evaluate(KBTOG, -1)
     await pg.keyboard.press('Space'); await pg.wait_for_timeout(500); t1 = await pg.evaluate(KBTOG, 0)
     await pg.keyboard.press('Enter'); await pg.wait_for_timeout(500); t2 = await pg.evaluate(KBTOG, 0)

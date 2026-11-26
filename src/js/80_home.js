@@ -222,7 +222,7 @@ function voiceNote() { const n = $('#voiceNote'); if (!n) return; const st = voi
     $('#vnHide').onclick = () => { store.set('hp_voice_note', 'off'); n.hidden = true; }; }
   n.hidden = false; }
 function showHome() {
-  show('home'); CUR = null; FLOW++; disarmIdle(); gateEnd(); SCENE_NOW = 'home'; /*T*/window.__scene = 'home';/*/T*/
+  show('home'); CUR = null; FLOW++; HELP_CARRY = null; disarmIdle(); gateEnd(); SCENE_NOW = 'home'; /*T*/window.__scene = 'home';/*/T*/
   $('#helloName').textContent = PROFILE && PROFILE.name ? G(labelText('hello')).replace('{name}', PROFILE.name) : '';
   const me = $('#meBtn'); me.innerHTML = ''; me.appendChild(avatarNode(PROFILE)); $('#galBtn').innerHTML = ICON.gallery; renderDigits(); renderMute(); renderGear();
   $('#oasisBanner').innerHTML = oasisBanner(); voiceNote();

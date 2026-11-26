@@ -78,7 +78,7 @@ async function enTileShow(g, Pl, shape, x, y, a, b, k, cnt) { const T = enTiles(
   for (const t of T) { t.setAttribute('opacity', 1); n++; if (cnt) cnt.textContent = MS(String(n)); SFX.tick(); await sleep(FAST ? 2 : 260); } return T; }
 /* شبكة التكبير: الأصلي يميناً والمكبَّر يساراً (يُقرأ من اليمين) */
 const enBare = Pl => { const r = Pl.g.querySelector('rect'); if (r) { r.setAttribute('fill', 'none'); r.setAttribute('stroke', 'none'); } return Pl; };   /* إطار المسرح يكفي: لا إطارٌ ثانٍ للشبكة */
-const enPlane = (svg, H = 250, n = 12, m = 7) => enBare(coPlane(svg, { axes: false, n, m, H, top: 14 }));
+const enPlane = (svg, H = 250, n = 12, m = 7, top = 14) => enBare(coPlane(svg, { axes: false, n, m, H, top }));
 const enBadge = (svg, k, x = 180, y = 30) => { const g = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: x - 34, y: y - 18, width: 68, height: 34, rx: 12, fill: '#fff6d8', stroke: RA.hl, 'stroke-width': 2.4 }, g); ciEq(g, x, y + 7, `× ${k}`, RA.hl, 20); return g; };
 
 /* ③ ما البعدان الجديدان؟ (C327): shape a b k، opts [[w h خطأ]…] (الأول الصحيح) */
@@ -108,8 +108,8 @@ ITEM.enArea = cpItem({ H: 250, tLine: 'gen.en.together.area', hint: 'gen.en.hint
 /* ⑤ «عدسة المكبّر»: كبّر المستطيل من ركنه بلمسة الركن المقابل (C327، إنتاج): a b k */
 ITEM.enDraw = {
   make(spec) { /*T*/if (TESTHOOK && (spec.a * spec.k > 10 || spec.b * spec.k > 8)) testBug('enDraw: المكبَّر خارج الشبكة');/*/T*/ return { ...spec, tag: 'en-draw' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = enBare(coPlane(svg, { axes: false, n: 10, m: 8, H: 262, top: 20 })), W = [item.a * item.k, item.b * item.k]; let cur = null, prev = null, done = false;
-    enShape(svg, Pl, 'rect', 0, 0, item.a, item.b, { dims: true }); enBadge(svg, item.k, 296, 228); const host = el('g', { 'pointer-events': 'none' }, svg);
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = enBare(coPlane(svg, { axes: false, n: 10, m: 8, H: 262, top: 20, bottom: 234 })), W = [item.a * item.k, item.b * item.k]; let cur = null, prev = null, done = false;
+    enShape(svg, Pl, 'rect', 0, 0, item.a, item.b, { dims: true }); enBadge(svg, item.k, ...Pl.P(8.9, 7.45));   /* المعامل في الركن الأعلى (المكبَّر لا يتجاوز 6 صفوف)، وأطوال الضلع داخل الإطار (المراجع B) */ const host = el('g', { 'pointer-events': 'none' }, svg);
     if (tries >= 3) enShape(helpG(svg), Pl, 'rect', 0, 0, W[0], .02, { fill: RA.hl, stroke: RA.hl, w: 4, right: false });   /* الحلّ المشترك: الضلع السفلي المكبَّر مرسوم، والارتفاع للطفل */
     const askQ = async () => { await S(tries >= 3 ? 'gen.en.together.draw' : item.q); }; askQ(); REPLAY_HOOK = () => askQ(); REPLAY_HOOK.live = () => !done && svg.isConnected;
     const set = (x, y) => { cur = [x, y]; host.innerHTML = ''; if (x > 0 && y > 0) { enShape(host, Pl, 'rect', 0, 0, x, y, { fill: RA.big, op: .45, dash: '7 5', stroke: RA.hl, right: false }); const [X, Y] = Pl.P(x, y); el('circle', { cx: X, cy: Y, r: 8, fill: RA.hl, stroke: '#fff', 'stroke-width': 2 }, host); } /*T*/window.__gridPt = cur;/*/T*/ };
@@ -251,20 +251,20 @@ SCENES.raFracShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('
   await raSay(L, 0); geoLine(g, 30 + 190 / 3, 32, 30 + 190 / 3, 212, { color: RA.ok, w: 2.4, dash: '6 5' }); SFX.tick(); for (const l of L.slice(1)) await S(l); };
 
 /* د2 الإشعال: «ضاعفت الضلع فضاعفت المساحة!»: المثلث الصغير مربعان، والمكبَّر ثمانية (أربع نسخ) */
-SCENES.enHook = async c => { const L = c.lines, svg = m3Stage(250), Pl = enPlane(svg), g = el('g', { 'pointer-events': 'none' }, svg);
-  enShape(g, Pl, 'tri', 9, 1, 2, 2, { dims: true }); enShape(g, Pl, 'tri', 1, 1, 4, 4, { fill: RA.big, dims: true }); const t = htLab(g, [120, 26], `${MS('4')} ${labelText('enSqFew')}؟`, RA.bad, 18); await raSay(L, 0); t.remove();
-  const cnt = htLab(g, [130, 26], '', RA.ok, 22); await enTileShow(g, Pl, 'tri', 1, 1, 2, 2, 2, cnt); ciEq(g, 260, 26, '4 × 2 = 8', RA.ok, 18); await raSay(L, 1); for (const l of L.slice(2)) await S(l); };
+SCENES.enHook = async c => { const L = c.lines, svg = m3Stage(250), Pl = enPlane(svg, 250, 12, 7, 40), g = el('g', { 'pointer-events': 'none' }, svg);
+  enShape(g, Pl, 'tri', 9, 1, 2, 2, { dims: true }); enShape(g, Pl, 'tri', 1, 1, 4, 4, { fill: RA.big, dims: true }); const t = htLab(g, [120, 32], `${MS('4')} ${labelText('enSqFew')}؟`, RA.bad, 18); await raSay(L, 0); t.remove();
+  const cnt = htLab(g, [130, 32], '', RA.ok, 22); await enTileShow(g, Pl, 'tri', 1, 1, 2, 2, 2, cnt); ciEq(g, 260, 32, '4 × 2 = 8', RA.ok, 18); await raSay(L, 1); for (const l of L.slice(2)) await S(l); };
 /* د2 الاكتشاف (أ، ب): مربع ضلعه 2 يُكبَّر ×2: ضلعه 4، والزوايا قائمة، والمساحة 4 ثم 16 بالعدّ */
-SCENES.enSqShow = async c => { const L = c.lines, svg = m3Stage(250), Pl = enPlane(svg), g = el('g', { 'pointer-events': 'none' }, svg);
-  enShape(g, Pl, 'sq', 9, 1, 2, 2, { dims: true }); enBadge(g, 2, 300, 30); const big = el('g', {}, g); await sleep(FAST ? 2 : 300);
+SCENES.enSqShow = async c => { const L = c.lines, svg = m3Stage(250), Pl = enPlane(svg, 250, 12, 7, 40), g = el('g', { 'pointer-events': 'none' }, svg);
+  enShape(g, Pl, 'sq', 9, 1, 2, 2, { dims: true }); enBadge(g, 2, 300, 34); const big = el('g', {}, g); await sleep(FAST ? 2 : 300);
   enShape(big, Pl, 'sq', 1, 1, 4, 4, { fill: RA.big, dims: true }); for (const [x, y] of [[5, 1], [5, 5], [1, 5]]) { const [X, Y] = Pl.P(x, y), q = 8, sx = x === 5 ? -1 : 1, sy = y === 5 ? 1 : -1; el('path', { d: `M${X + sx * q} ${Y} L${X + sx * q} ${Y + sy * q} L${X} ${Y + sy * q}`, fill: 'none', stroke: RA.ink, 'stroke-width': 1.8 }, big); }
-  await raSay(L, 0); big.remove(); enShape(g, Pl, 'sq', 1, 1, 4, 4, { fill: '#fff', op: 1, dims: true }); const cnt = htLab(g, [60, 26], '', RA.ok, 22);
+  await raSay(L, 0); big.remove(); enShape(g, Pl, 'sq', 1, 1, 4, 4, { fill: '#fff', op: 1, dims: true }); const cnt = htLab(g, [60, 32], '', RA.ok, 22);
   enTiles(g, Pl, 'rect', 9, 1, 1, 1, 2).forEach(t => t.setAttribute('fill', RA.tile[2]));
   for (let n = 1, r = 0; r < 4; r++) for (let cc = 0; cc < 4; cc++, n++) { el('rect', { x: Pl.P(1 + cc, 2 + r)[0] + 2, y: Pl.P(1 + cc, 2 + r)[1] + 2, width: Pl.c - 4, height: Pl.c - 4, rx: 3, fill: RA.tile[(Math.floor(r / 2) + Math.floor(cc / 2)) % 2], opacity: .8 }, g); cnt.textContent = MS(String(n)); SFX.tick(); await sleep(FAST ? 1 : 110); }
   ciEq(g, 262, 92, '2 × 2 = 4', RA.ok, 15); ciEq(g, 124, 52, '4 × 4 = 16', RA.ok, 15); await raSay(L, 1); for (const l of L.slice(2)) await S(l); };
 /* د2 الاكتشاف (ج): مثلث ساقاه 1 و2 يُكبَّر ×3: تسع نسخ، والورق الشفّاف يطابق زواياه عند كل رأس */
-SCENES.enTriShow = async c => { const L = c.lines, svg = m3Stage(250), Pl = enPlane(svg), g = el('g', { 'pointer-events': 'none' }, svg);
-  enShape(g, Pl, 'tri', 9, 0, 1, 2, { dims: true }); enBadge(g, 3, 300, 30); enShape(g, Pl, 'tri', 1, 0, 3, 6, { fill: '#fff', op: 1, dims: true }); const cnt = htLab(g, [200, 70], '', RA.ok, 22);
+SCENES.enTriShow = async c => { const L = c.lines, svg = m3Stage(250), Pl = enPlane(svg, 250, 12, 7, 40), g = el('g', { 'pointer-events': 'none' }, svg);
+  enShape(g, Pl, 'tri', 9, 0, 1, 2, { dims: true }); enBadge(g, 3, 300, 34); enShape(g, Pl, 'tri', 1, 0, 3, 6, { fill: '#fff', op: 1, dims: true }); const cnt = htLab(g, [200, 70], '', RA.ok, 22);
   await enTileShow(g, Pl, 'tri', 1, 0, 1, 2, 3, cnt); ciEq(g, 220, 104, '3 × 3 = 9', RA.ok, 17); await raSay(L, 0);
   const tr = el('g', {}, g); enShape(tr, Pl, 'tri', 9, 0, 1, 2, { fill: '#fff', op: .5, dash: '6 4', stroke: RA.a, w: 2.4 });
   for (const [dx, dy] of [[-8, 0], [-6, 0], [-8, 4]]) { tr.setAttribute('transform', `translate(${dx * Pl.c} ${-dy * Pl.c})`); SFX.tick(); await sleep(FAST ? 2 : 650); }
