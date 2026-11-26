@@ -33,9 +33,9 @@ ITEM.pySq = cpItem({ H: 262, tLine: 'gen.py.together.sq', hint: 'gen.py.hint.sq'
   errOf: (it, k) => k === it.a + it.b ? 'pyAdd' : k === (it.a + it.b) ** 2 ? 'pySqSum' : 'pyOff' });
 
 /* ================= ② الضلع القائم (C407): hyp، a معلوم؛ ctx tri | perp (عمود من نقطة إلى طريق) | ladder (سلّم على جدار) ================= */
-function pyScene(g, ctx, hyp, a, want, o = {}) { const u = ctx === 'tri' ? Math.min(o.u || 34, 168 / Math.max(want, 1), 220 / Math.max(a, 1)) : Math.min(o.u || 14, 210 / Math.max(hyp, 1)), labs = {};
+function pyScene(g, ctx, hyp, a, want, o = {}) { const u = ctx === 'tri' ? Math.min(o.u || 34, 168 / Math.max(want, 1), 220 / Math.max(a, 1)) : Math.min(o.u || 14, 210 / Math.max(hyp, 1), 160 / Math.max(want, 1), 250 / Math.max(a, 1)), labs = {};   /* الارتفاع والعرض داخل الإطار */
   if (ctx === 'perp') { const y = 196, N = [150, y - want * u], Qf = [150, y], R = [150 + a * u, y]; geoLine(g, 24, y, 336, y, { color: PY.road, w: 5 }); geoLine(g, N[0], N[1], Qf[0], Qf[1], { color: PY.a, w: 3.4, dash: '7 5' }); geoLine(g, N[0], N[1], R[0], R[1], { color: PY.c, w: 4 });
-    preRight(g, Qf, N, R, 12); [N, Qf, R].forEach(P => pfDot(g, P)); pfLab(g, N[0] - 12, N[1] - 4, 'ن'); pfLab(g, Qf[0] - 10, y + 20, 'ق'); pfLab(g, R[0] + 10, y + 20, 'ر');
+    preRight(g, Qf, N, R, 12); [N, Qf, R].forEach(P => pfDot(g, P)); pfLab(g, N[0] - 14, N[1] + 6, 'ن'); pfLab(g, Qf[0] - 10, y + 20, 'ق'); pfLab(g, R[0] + 10, y + 20, 'ر');
     labs.hyp = preLab(g, (N[0] + R[0]) / 2 + 16, (N[1] + R[1]) / 2 - 6, MS(String(hyp)), { col: PY.c, fs: 16, anchor: 'start' }); labs.a = preLab(g, (Qf[0] + R[0]) / 2, y + 22, MS(String(a)), { fs: 16 }); labs.q = preLab(g, N[0] - 12, (N[1] + y) / 2 + 6, '؟', { col: PY.q, fs: 18, anchor: 'end' }); return labs; }
   if (ctx === 'ladder') { const y = 200, W = 300, B = [W - a * u, y], T = [W, y - want * u]; el('rect', { x: W, y: 24, width: 20, height: y - 24, fill: PY.wall, 'pointer-events': 'none' }, g); geoLine(g, 30, y, W + 20, y, { color: PY.road, w: 5 });
     geoLine(g, B[0], B[1], T[0], T[1], { color: PY.c, w: 7 }); for (let i = 1; i < 8; i++) { const P = [B[0] + (T[0] - B[0]) * i / 8, B[1] + (T[1] - B[1]) * i / 8]; geoLine(g, P[0] - 7, P[1] - 3, P[0] + 7, P[1] + 3, { color: PY.c, w: 3 }); }
@@ -66,7 +66,7 @@ ITEM.pyApprox = cpItem({ H: 236, tLine: 'gen.py.together.approx', hint: 'gen.py.
 /* ================= ④ هل المثلث قائم؟ (C407 العكس): s ثلاثة أطوال ================= */
 ITEM.pyIsRight = cpItem({ H: 236, tLine: 'gen.py.together.isRight', hint: 'gen.py.hint.isRight', rLine: it => 'gen.py.reveal.isRight.' + it.want, praise: 'praiseThink',
   make: s => { const [a, b, c] = [...s.s].sort((x, y) => x - y); return { want: a * a + b * b === c * c ? 'yes' : 'no', sq: [a * a, b * b, c * c], tag: 'py-isright' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = [...item.s].sort((x, y) => x - y), u = Math.min(22, 230 / c); cgTri(g, [c, a, b], { cx: 180, y: 190, u, rot: item.rot || 0 });
+  draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = [...item.s].sort((x, y) => x - y), u = Math.min(22, 230 / c); cgTri(g, [c, a, b], { cx: 180, y: 180, u, rot: item.rot || 0 });
     if (tries >= 3) ciEq(helpG(svg), 180, 36, `${item.sq[0]} + ${item.sq[1]} ؟ ${item.sq[2]}`, PY.hl, 18); return {}; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 36, labelText('pyRuleConv'), PY.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
@@ -76,14 +76,14 @@ ITEM.pyIsRight = cpItem({ H: 236, tLine: 'gen.py.together.isRight', hint: 'gen.p
 Object.assign(PF_PROOFS, { pyth: { rs: ['sas', 'areaSum', 'algebra'] }, pyConv: { rs: ['draw2', 'pyth', 'sss'] }, perpPf: { rs: ['pyth', 'pos', 'so2'], alt: ['1,0,2'] } });
 function pyFig(g, k, o = {}) { const y0 = o.y0 ?? 0, s = o.s || 1, T = (x, y) => [180 + (x - 180) * s, y0 + y * s];
   if (k === 'ladder') { pyScene(g, 'ladder', 5, 3, 4, { u: 26 }); return {}; }
-  if (k === 'pyth') { const a = 28, b = 56, z = 1.3 * s, S2 = (a + b) * z, O = [180 - S2 / 2, y0 + 8], P = (x, y) => [O[0] + x * z, O[1] + y * z];
+  if (k === 'pyth') { const a = 28, b = 56, z = 1.3 * s, S2 = (a + b) * z, O = [180 - S2 / 2, y0 + 32], P = (x, y) => [O[0] + x * z, O[1] + y * z];
     el('rect', { x: O[0], y: O[1], width: S2, height: S2, fill: 'none', stroke: PY.ink, 'stroke-width': 3, 'pointer-events': 'none' }, g);
     const Q = [P(a, 0), P(a + b, a), P(b, a + b), P(0, b)]; el('polygon', { points: polyStr(Q), fill: PY.fc, stroke: PY.c, 'stroke-width': 2.6, 'pointer-events': 'none' }, g);
     for (const tri of [[P(0, 0), P(a, 0), P(0, b)], [P(a + b, 0), P(a + b, a), P(a, 0)], [P(a + b, a + b), P(b, a + b), P(a + b, a)], [P(0, a + b), P(0, b), P(b, a + b)]]) el('polygon', { points: polyStr(tri), fill: PY.fa, stroke: PY.a, 'stroke-width': 2, 'pointer-events': 'none' }, g);
     pfLab(g, (P(0, 0)[0] + P(a, 0)[0]) / 2, O[1] - 4, 'أ', { fs: 14 }); pfLab(g, (P(a, 0)[0] + P(a + b, 0)[0]) / 2, O[1] - 4, 'ب', { fs: 14 }); pfLab(g, (Q[0][0] + Q[1][0]) / 2 - 6, (Q[0][1] + Q[1][1]) / 2 + 14, 'ج', { fs: 14, col: PY.c }); return { O }; }
   if (k === 'pyConv') { cgTri(g, [5, 3, 4], { cx: 268, y: y0 + 100 * s, u: 18 * s, labels: false }); const R = cgTriPts([5, 3, 4], { cx: 92, y: y0 + 100 * s, u: 18 * s });
-    el('polygon', { points: polyStr(R), fill: PY.fb, stroke: PY.b, 'stroke-width': 3, 'pointer-events': 'none' }, g); pfLab(g, 268, y0 + 20 * s, labelText('pyGiven'), { fs: 13 }); pfLab(g, 92, y0 + 20 * s, labelText('pyDrawn'), { fs: 13 }); return {}; }
-  const y = y0 + 96 * s, N = T(140, 18), Qf = [N[0], y], R = T(276, 96); geoLine(g, T(30, 0)[0], y, T(330, 0)[0], y, { color: PY.road, w: 4 }); geoLine(g, N[0], N[1], Qf[0], Qf[1], { color: PY.a, w: 3.4, dash: '7 5' }); geoLine(g, N[0], N[1], R[0], R[1], { color: PY.c, w: 3.6 });
+    el('polygon', { points: polyStr(R), fill: PY.fb, stroke: PY.b, 'stroke-width': 3, 'pointer-events': 'none' }, g); pfLab(g, 268, y0 + 30 * s + 6, labelText('pyGiven'), { fs: 13 }); pfLab(g, 92, y0 + 30 * s + 6, labelText('pyDrawn'), { fs: 13 }); return {}; }
+  const y = y0 + 96 * s, N = T(140, 30), Qf = [N[0], y], R = T(276, 96); geoLine(g, T(30, 0)[0], y, T(330, 0)[0], y, { color: PY.road, w: 4 }); geoLine(g, N[0], N[1], Qf[0], Qf[1], { color: PY.a, w: 3.4, dash: '7 5' }); geoLine(g, N[0], N[1], R[0], R[1], { color: PY.c, w: 3.6 });
   preRight(g, Qf, N, R, 11); [N, Qf, R].forEach(P => pfDot(g, P)); pfLab(g, N[0] - 12, N[1] + 2, 'ن', { fs: 15 }); pfLab(g, Qf[0] - 10, y + 18, 'ق', { fs: 15 }); pfLab(g, R[0] + 10, y + 18, 'ر', { fs: 15 }); return {}; }
 
 /* ================= المشاهد ================= */

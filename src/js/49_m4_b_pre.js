@@ -53,7 +53,7 @@ ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hi
   make: s => { const want = s.s[s.ask] * s.k, add = [0, 1, 2].filter(i => i !== s.ask).map(i => s.s[s.ask] + s.s[i] * (s.k - 1)).filter(v => Number.isInteger(v) && v > 0), nums = [...new Set([want, ...add])];   /* الجمع بدل الضرب: يُزاد على المجهول ما زاده ضلعٌ آخر */
     for (let d = 1; nums.length < 3; d++) if (!nums.includes(want + d)) nums.push(want + d); return { want, add, nums: nums.slice(0, 3), tag: 'pre-sim' }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = item.s, right = a * a + b * b === c * c; let labs;
-    if (right) { const u = Math.min(15, 150 / (b * Math.max(1, item.k))), sm = preRightTri(g, [304, 204], a, b, u), bg = preRightTri(g, [214, 204], a * item.k, b * item.k, u, { col: PRE.b, fill: PRE.fillB });
+    if (right) { const u = Math.min(15, 150 / (b * Math.max(1, item.k)), 238 / (a * (1 + item.k))), sm = preRightTri(g, [304, 204], a, b, u), bg = preRightTri(g, [304 - a * u - 40, 204], a * item.k, b * item.k, u, { col: PRE.b, fill: PRE.fillB });   /* المثلثان متجاوران داخل الإطار مهما كبر المعامل */
       preSideLabs(g, sm, item.s.map(v => MS(String(v))), [PRE.ink, PRE.ink, PRE.ink]); labs = preSideLabs(g, bg, item.s.map((v, i) => i === item.ask ? '؟' : MS(String(v * item.k))), item.s.map((v, i) => i === item.ask ? PRE.q : PRE.ink)); }
     else { const mx = Math.max(...item.s) * Math.max(1, item.k), u = Math.min(13, 150 / mx), big = item.k >= 1;   /* مثلث عامّ بأطوال أضلاعه (M4-U3)؛ الأصل يمين والمكبَّر أو المصغَّر يسار */
       cgTri(g, item.s, { cx: 266, y: 196, u }); labs = cgTri(g, item.s.map(v => v * item.k), { cx: 96, y: 196, u, col: PRE.b, fill: PRE.fillB, ask: item.ask }).labs; }

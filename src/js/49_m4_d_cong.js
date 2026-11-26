@@ -10,7 +10,8 @@ const CG = { a: '#2f7fc1', b: '#d9822b', c: '#7a4fb0', ink: '#24323a', fa: 'rgba
 function cgTriPts(s, o = {}) { const [a, b, c] = s, u = o.u || 12, x = (a * a + c * c - b * b) / (2 * a), h = Math.sqrt(Math.max(0, c * c - x * x)), P = [[-a / 2, 0], [a / 2, 0], [x - a / 2, -h]].map(([X, Y]) => [X * u * (o.flip ? -1 : 1), Y * u]);
   const ctr = [0, -h * u / 3], r = (o.rot || 0) * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r);
   return P.map(([X, Y]) => { const dx = X - ctr[0], dy = Y - ctr[1]; return [(o.cx ?? 180) + ctr[0] + dx * cs - dy * sn, (o.y ?? 180) + ctr[1] + dx * sn + dy * cs]; }); }
-function cgTri(g, s, o = {}) { const P = cgTriPts(s, o); el('polygon', { points: polyStr(P), fill: o.fill || CG.fa, stroke: o.col || CG.a, 'stroke-width': 3.2, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, g);
+function cgTri(g, s, o = {}) { const P = cgTriPts(s, o);   /* fit [x0، x1]: يُزاح المثلث أفقياً حتى يسعه (الرسم داخل الإطار؛ المنفرج يمتدّ رأسه خارج قاعدته) */
+  if (o.fit) { const xs = P.map(p => p[0]), lo = Math.min(...xs), hi = Math.max(...xs), d = lo < o.fit[0] ? o.fit[0] - lo : hi > o.fit[1] ? o.fit[1] - hi : 0; P.forEach(p => { p[0] += d; }); } el('polygon', { points: polyStr(P), fill: o.fill || CG.fa, stroke: o.col || CG.a, 'stroke-width': 3.2, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, g);
   const C = [(P[0][0] + P[1][0] + P[2][0]) / 3, (P[0][1] + P[1][1] + P[2][1]) / 3], sides = [[0, 1, s[0]], [1, 2, s[1]], [2, 0, s[2]]];
   P.labs = []; if (o.labels !== false) sides.forEach(([i, j, v], n) => { const M = [(P[i][0] + P[j][0]) / 2, (P[i][1] + P[j][1]) / 2], d = Math.hypot(M[0] - C[0], M[1] - C[1]) || 1, L = [M[0] + (M[0] - C[0]) / d * 13, M[1] + (M[1] - C[1]) / d * 13 + 5];
     const t = el('text', { x: L[0], y: L[1], 'text-anchor': 'middle', 'font-size': o.fs || 14, 'font-weight': 800, fill: o.labCol && o.labCol[n] || CG.ink, stroke: '#fff', 'stroke-width': 3.5, 'paint-order': 'stroke', 'pointer-events': 'none' }, g); t.textContent = o.ask === n ? '؟' : MS(String(v)); if (o.ask === n) t.setAttribute('fill', CG.q); P.labs.push(t); });
@@ -22,7 +23,7 @@ const cgRel = (a, b) => { const A = cgSorted(a), B = cgSorted(b), k = B[0] / A[0
 ITEM.cgSides = cpItem({ H: 236, tLine: 'gen.cg.together.sides', hint: 'gen.cg.hint.sides', rLine: it => 'gen.cg.reveal.sides.' + it.want, praise: 'praiseThink',
   make: s => ({ want: cgRel(s.a, s.b), tag: 'cg-sides' }),
   draw(svg, item, tries) { const g = el('g', {}, svg), mx = Math.max(...item.a, ...item.b), u = Math.min(14, 140 / mx);
-    cgTri(g, item.a, { cx: 268, y: 172, u }); cgTri(g, item.b, { cx: 92, y: 172, u, rot: item.rot || 0, flip: !!item.flip, col: CG.b, fill: CG.fb });
+    cgTri(g, item.a, { cx: 268, y: 172, u, fit: [198, 326] }); cgTri(g, item.b, { cx: 92, y: 172, u, rot: item.rot || 0, flip: !!item.flip, col: CG.b, fill: CG.fb, fit: [34, 162] });
     if (tries >= 3) { const A = cgSorted(item.a), B = cgSorted(item.b), m = helpG(svg); A.forEach((v, i) => ciEq(m, 180, 40 + i * 22, `${B[i]} ÷ ${v} = ${+(B[i] / v).toFixed(2)}`, CG.hl, 15)); } return {}; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('cgRuleSides'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(['cong', 'sim', 'none'].map(k => [k, labelText('cgK.' + k), '<i></i>', 'gen.cg.k.' + k]), item.want),
@@ -31,10 +32,10 @@ ITEM.cgSides = cpItem({ H: 236, tLine: 'gen.cg.together.sides', hint: 'gen.cg.hi
 /* ================= ② القطع المتطابقة (C405): orig أضلاع الأصل، cands [ثلاث ثلاثيات، الأولى المطابقة]، rots ================= */
 ITEM.cgPick = cpItem({ H: 262, tLine: 'gen.cg.together.pick', hint: 'gen.cg.hint.pick', rLine: 'gen.cg.reveal.pick', praise: 'praiseThink',
   make: s => { const order = shuffle([0, 1, 2]); /*T*/if (TESTHOOK && s.cands.filter(c => cgRel(s.orig, c) === 'cong').length !== 1) testBug('cgPick: ليست ثلاثية واحدة مطابقة');/*/T*/ return { order, want: String(order.indexOf(0)), tag: 'cg-pick' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), mx = Math.max(...item.cands.flat()), u = Math.min(10, 80 / mx), uo = Math.min(11, 62 / Math.max(...item.orig)), X = [292, 180, 68];
+  draw(svg, item, tries) { const g = el('g', {}, svg), mx = Math.max(...item.cands.flat()), u = Math.min(10, 80 / mx), uo = Math.min(11, 62 / Math.max(...item.orig)), X = [284, 180, 76];
     cgTri(g, item.orig, { cx: 196, y: 88, u: uo, col: CG.c, fill: CG.fc }); preLab(g, 318, 40, labelText('cgOrig'), { dir: 'rtl', fs: 15, anchor: 'start' });
-    item.order.forEach((ci, pos) => { el('rect', { x: X[pos] - 54, y: 104, width: 108, height: 126, rx: 12, fill: CG.card, stroke: CG.edge, 'stroke-width': 2, 'pointer-events': 'none' }, g);
-      preLab(g, X[pos], 124, labelText('pfSet.' + pos), { dir: 'rtl', fs: 13 }); cgTri(g, item.cands[ci], { cx: X[pos], y: 206, u, rot: (item.rots || [30, -20, 15])[pos], col: CG.a, fill: CG.fa, fs: 13 }); });
+    item.order.forEach((ci, pos) => { el('rect', { x: X[pos] - 50, y: 104, width: 100, height: 126, rx: 12, fill: CG.card, stroke: CG.edge, 'stroke-width': 2, 'pointer-events': 'none' }, g);
+      preLab(g, X[pos], 124, labelText('pfSet.' + pos), { dir: 'rtl', fs: 13 }); cgTri(g, item.cands[ci], { cx: X[pos], y: 206, u, rot: (item.rots || [30, -20, 15])[pos], col: CG.a, fill: CG.fa, fs: 13, fit: [X[pos] - 40, X[pos] + 40] }); });
     if (tries >= 3) ciRule(helpG(svg), 180, 244, labelText('cgRuleSss'), CG.hl, 15); return {}; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 244, labelText('cgRuleSss'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick([0, 1, 2].map(p => [String(p), labelText('pfSet.' + p), '<i></i>', 'gen.pf.set.' + p]), item.want),
@@ -93,7 +94,7 @@ function cgQuad(g, k, o = {}) { const y0 = o.y0 ?? 0, s = o.s || 1, P = CG_QUAD[
   if (k === 'paraDiag' || k === 'conv') { pfAng(g, A, B, M, { col: CG.a, r: 22 }); pfAng(g, C, D, M, { col: CG.a, r: 22 }); if (k === 'paraDiag') { pfAng(g, B, M, A, { col: CG.b, r: 20 }); pfAng(g, D, M, C, { col: CG.b, r: 20 }); } else { preTicks(g, A, M, 1); preTicks(g, M, C, 1); preTicks(g, B, M, 2); preTicks(g, M, D, 2); } }
   if (k === 'rectDiag') for (const [V, X, Y] of [[B, A, C], [C, B, D]]) preRight(g, V, X, Y, 12);
   if (k === 'rhombDiag') { preTicks(g, A, B, 1); preTicks(g, C, B, 1); preTicks(g, A, M, 2); preTicks(g, M, C, 2); preRight(g, M, C, D, 11); }
-  [['أ', A, [-14, 8]], ['ب', B, [14, 8]], ['ج', C, [14, -2]], ['د', D, [-14, -2]], ['م', M, [0, -10]]].forEach(([n, P, d]) => { if (n === 'م' && k === 'paraSide') return; pfLab(g, P[0] + d[0], P[1] + d[1], n, { fs: 15 }); pfDot(g, P); });
+  [['أ', A, [-14, 8]], ['ب', B, [14, 8]], ['ج', C, [14, -2]], ['د', D, [-14, -2]], ['م', M, [0, -10]]].forEach(([n, P, d]) => { if (n === 'م' && k === 'paraSide') return; pfLab(g, Math.min(330, Math.max(30, P[0] + d[0])), Math.max(30, P[1] + d[1]), n, { fs: 15 }); pfDot(g, P); });   /* الاسم داخل الورقة */
   return { A, B, C, D, M }; }
 
 /* ================= المشاهد ================= */
