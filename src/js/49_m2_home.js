@@ -135,8 +135,10 @@ const HOME_SAY = {
   tileSum: async (r, v) => S(v.n * v.ang === 360 ? 'gen.home.tile360' : 'gen.home.tileNot360'),
   sandAgain: async (r, v) => S(v.a + v.b + v.c === 180 ? 'gen.home.sandOk' : 'gen.home.sandNo'),   /* الثالثة محسوبةٌ قبل قياسها: المجموع 180 تماماً */
   /* م4 (D284 (6)): مهام البيت الرباعية؛ القيم المقيسة بتسامح، والمحسوبة بالضبط، والاختيار برقمه */
-  railSay: async (r, v) => S(Math.abs(v.c - v.a) <= 5 && Math.abs(v.s - (180 - v.a)) <= 5 ? 'gen.home.railOk' : 'gen.home.railFar'),
-  ruledAgain: async (r, v) => S(v.alt === v.a && v.co === 180 - v.a ? 'gen.home.ruledOk' : 'gen.home.ruledNo'),
+  /* M4-U1 (المراجع A لبوابة M4-U1/U2، 13): الفرق المقبول درجتان كما في المرجع */
+  tileSay: async (r, v) => S(Math.abs(v.a - v.b) <= 2 && Math.abs(v.a + v.c - 180) <= 2 ? 'gen.home.tileOk' : 'gen.home.tileFar'),
+  railAgain: async (r, v) => S(v.co !== 180 - v.a ? 'gen.home.railCalc' : Math.abs(v.m - v.co) <= 2 ? 'gen.home.railOk' : 'gen.home.railFar'),
+  roomSay: async (r, v) => S(v.dw > v.db + v.bw ? 'gen.home.roomOdd' : v.x === v.db + v.bw - v.dw ? 'gen.home.roomOk' : 'gen.home.roomCalc'),
   traySay: async (r, v) => S(v.sum === (v.n - 2) * 180 ? 'gen.home.trayOk' : 'gen.home.trayCalc'),
   sticksAgain: async (r, v) => { const L = [v.a, v.b, v.c].sort((x, y) => x - y), can = L[0] + L[1] > L[2], said = v.made === 0; return S(said !== can ? 'gen.home.stCheck' : can ? 'gen.home.stOk' : 'gen.home.stNot'); },
   framesSay: async (r, v) => { const [L1, W1] = [v.l1, v.w1].sort((x, y) => y - x), [L2, W2] = [v.l2, v.w2].sort((x, y) => y - x), r1 = L1 / L2, r2 = W1 / W2, sim = Math.abs(r1 - r2) <= .06 * Math.max(r1, r2);

@@ -77,44 +77,49 @@
    "scene": "homeNums",
    "unit": "m4.u2",
    "art": "shapes",
-   "ask": "gen.home.askTray",
+   "ask": "gen.home.askRoom",
    "fields": [
     {
-     "key": "n",
-     "q": "gen.home.trayN",
-     "min": 3,
-     "max": 12,
-     "val": 6,
-     "unit": "homeSides"
+     "key": "db",
+     "q": "gen.home.dDB",
+     "min": 20,
+     "max": 2000,
+     "val": 300,
+     "unit": "rulCm",
+     "step": 10
     },
     {
-     "key": "sum",
-     "q": "gen.home.traySum",
-     "min": 180,
-     "max": 1800,
-     "val": 720,
-     "unit": "cpDeg",
-     "step": 180
+     "key": "bw",
+     "q": "gen.home.dBW",
+     "min": 20,
+     "max": 2000,
+     "val": 250,
+     "unit": "rulCm",
+     "step": 10
     },
     {
-     "key": "ang",
-     "q": "gen.home.trayAng",
-     "min": 30,
-     "max": 175,
-     "val": 120,
-     "unit": "cpDeg",
-     "step": 5
+     "key": "dw",
+     "q": "gen.home.dDW",
+     "min": 20,
+     "max": 2000,
+     "val": 400,
+     "unit": "rulCm",
+     "step": 10
     },
     {
-     "key": "ph",
-     "q": "gen.home.trayPh",
-     "photo": "tray"
+     "key": "x",
+     "q": "gen.home.dX",
+     "min": 0,
+     "max": 2000,
+     "val": 150,
+     "unit": "rulCm",
+     "step": 10
     }
    ],
    "lines": [
     "gen.home.back.m4u2"
    ],
-   "say": "traySay"
+   "say": "roomSay"
   },
   {
    "s": "hook",

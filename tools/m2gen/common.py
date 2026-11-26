@@ -14,3 +14,10 @@ def dump(path, obj):
     json.dump(obj, open(path,'w'), ensure_ascii=False, indent=1); open(path,'a').write('\n')
 def merge_json(path, fn):
     d=json.load(open(path)); fn(d); json.dump(d, open(path,'w'), ensure_ascii=False, indent=1); open(path,'a').write('\n')
+
+# D279: أرقام التسميات غربية في المصدر، وlabelText يجعلها مشرقية لمن اختارها (المراجع A لبوابة M4-U1/U2، 1)
+def E2W(v):
+    import re as _re
+    if isinstance(v, str): return _re.sub('[٠-٩]', lambda m: str('٠١٢٣٤٥٦٧٨٩'.index(m.group(0))), v)
+    if isinstance(v, list): return [E2W(x) for x in v]
+    return v

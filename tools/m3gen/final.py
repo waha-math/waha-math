@@ -133,6 +133,6 @@ d4={"id":"m3.u11.d4","title":"البَوَّابَةُ: الشَّهَادَةُ
 dump(U+'/d4.json', d4)
 LB={"cert3Title":"{مُهَنْدِسٌ مُعْتَمَدٌ|مُهَنْدِسَةٌ مُعْتَمَدَةٌ}","cert3Sub":"شَهَادَةُ المَرْحَلَةِ الثَّالِثَةِ"}
 p=ROOT+'/content/strings/labels.json'; raw=open(p,encoding='utf8').read(); l=json.loads(raw)
-for k,v in LB.items(): l['ui'][k]=v
+for k,v in LB.items(): l['ui'][k]=E2W(v)
 open(p,'w',encoding='utf8').write(json.dumps(l,ensure_ascii=False,indent=1)+('\n' if raw.endswith('\n') else ''))
 print('ok')

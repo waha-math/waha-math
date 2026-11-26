@@ -477,7 +477,7 @@ for k,(lab,why) in CL.items(): G['gen.as.c.'+k]=lab+'؟'; G['gen.as.why.'+k]=why
 for k,v in G.items(): g['lines'][k]=v
 open(p,'w',encoding='utf8').write(json.dumps(g,ensure_ascii=False,indent=1)+'\n')
 p=ROOT+'/content/strings/labels.json'; raw=open(p,encoding='utf8').read(); l=json.loads(raw)
-for k,v in LB.items(): l['ui'][k]=v
+for k,v in LB.items(): l['ui'][k]=E2W(v)
 l['ui']['stage.m3']="المَرْحَلَةُ الثَّالِثَةُ: المُهَنْدِسُونَ"
 open(p,'w',encoding='utf8').write(json.dumps(l,ensure_ascii=False,indent=1)+('\n' if raw.endswith('\n') else ''))
 p=ROOT+'/content/errors.json'; raw=open(p,encoding='utf8').read(); e=json.loads(raw)

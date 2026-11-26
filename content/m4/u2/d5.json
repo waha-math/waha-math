@@ -76,34 +76,33 @@
    "again": [
     {
      "key": "a",
-     "q": "gen.home.ruledA",
+     "q": "gen.home.railA",
      "min": 10,
      "max": 170,
-     "val": 70,
-     "unit": "cpDeg",
-     "step": 5
-    },
-    {
-     "key": "alt",
-     "q": "gen.home.ruledAlt",
-     "min": 10,
-     "max": 170,
-     "val": 70,
+     "val": 60,
      "unit": "cpDeg",
      "step": 5
     },
     {
      "key": "co",
-     "q": "gen.home.ruledCo",
+     "q": "gen.home.railCo",
      "min": 10,
      "max": 170,
-     "val": 110,
+     "val": 120,
      "unit": "cpDeg",
      "step": 5
+    },
+    {
+     "key": "m",
+     "q": "gen.home.railM",
+     "min": 10,
+     "max": 170,
+     "val": 120,
+     "unit": "cpDeg"
     }
    ],
-   "askAgain": "gen.home.askRuled",
-   "sayAgain": "ruledAgain",
+   "askAgain": "gen.home.askRail",
+   "sayAgain": "railAgain",
    "quiet": true,
    "lines": []
   },
@@ -207,8 +206,7 @@
       "q": "gm.c4",
       "pic": {
        "kind": "pfpic",
-       "poly": 8,
-       "diag": 1
+       "poly": 8
       },
       "opts": [
        {
@@ -336,23 +334,30 @@
     "item": {
      "t": "prReason",
      "pf": "tri",
-     "step": 2,
+     "step": 1,
      "cands": [
-      "line",
+      "alt",
       "vert",
-      "measure"
+      "looks"
      ],
      "q": "gen.pf.q.reasonT",
-     "v": 2
+     "v": 4
     }
    },
    {
     "id": "t3",
     "of": "m4.u2.d1",
     "item": {
-     "t": "triMissing",
-     "a": 55,
-     "b": 90
+     "t": "prReason",
+     "pf": "tri",
+     "step": 2,
+     "cands": [
+      "line",
+      "alt",
+      "measure"
+     ],
+     "q": "gen.pf.q.reasonT",
+     "v": 4
     }
    },
    {
@@ -365,7 +370,7 @@
      "cands": [
       "line",
       "same",
-      "looks"
+      "measure"
      ],
      "q": "gen.pf.q.reasonT",
      "v": 1
@@ -404,11 +409,16 @@
     "id": "t7",
     "of": "m4.u2.d3",
     "item": {
-     "t": "ineqRange",
-     "a": 9,
-     "b": 13,
-     "ask": "min",
-     "q": "gen.pf.q.range.min"
+     "t": "prReason",
+     "pf": "ineq",
+     "step": 1,
+     "cands": [
+      "short",
+      "tri",
+      "looks"
+     ],
+     "q": "gen.pf.q.reasonT",
+     "v": 2
     }
    },
    {

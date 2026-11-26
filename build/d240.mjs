@@ -106,6 +106,18 @@ export const netFolds = n => { const key = c => c.join(','), cells = new Set(n.m
   while (st.length) { const [c, s] = st.pop(); for (const d in D) { const nc = [c[0] + D[d][0], c[1] + D[d][1]], k = key(nc); if (!cells.has(k) || seen.has(k)) continue; const ns = R[d](s); seen.set(k, ns.B); st.push([nc, ns]); } }
   return n.length === 6 && seen.size === 6 && new Set(seen.values()).size === 6; };
 const SO_DIMS = { box: [6, 3, 4], cube: [4, 4, 4] };   /* الصندوق الافتراضي في soSolid */
+/* M4-U1/U2 (المراجع A لبوابة M4-U1/U2، 2 و7): الزاويتان بالعلاقة بينهما وقياسيهما، فالمسألة المعكوسة بقيمتين متساويتين هي نفسها؛ وصور التعليل بمعناها لا بنصّ JSON */
+const AR_TV = (phi, n) => [2, 3, 6, 7].includes(n) ? phi : 180 - phi;
+export const arRel = (g, a) => { const s = [g, a].sort((x, y) => x - y).join(','), top = n => n <= 4;
+  if (Math.abs(g - a) === 4) return 'corr'; if (top(g) === top(a)) return ['1,4', '2,3', '5,8', '6,7'].includes(s) ? 'vert' : 'adj';
+  return { '3,6': 'altIn', '4,5': 'altIn', '1,8': 'altOut', '2,7': 'altOut', '3,5': 'coint', '4,6': 'coint' }[s] || 'far'; };
+const eqK = (pre, rel, a, b) => a === b ? `${pre}|${rel}|${a}` : `${pre}|${rel}|${a}|${b}`;
+export const artK = (phi, g, a) => eqK('art|' + phi, arRel(g, a), AR_TV(phi, g), AR_TV(phi, a));
+export const arvK = (th, g, a) => { const v = n => n % 2 ? th : 180 - th; return eqK('arv|' + th, (g + 1) % 4 + 1 === a ? 'opp' : 'adj', v(g), v(a)); };
+export const arpicK = P => P.tr != null ? `arpic|tr|${P.tr}|${P.tilt || 0}|${[...(P.mark || [])].sort().join(',')}|${P.vals ? 1 : 0}` : P.cross != null ? `arpic|cross|${P.cross}|${[...(P.mark || [])].sort().join(',')}|${P.vals ? 1 : 0}`
+  : P.adj ? `arpic|adj|${P.adj.join('|')}` : 'arpic|' + JSON.stringify(P);
+export const pfpicK = P => P.fig ? `pfpic|fig|${P.fig}|${P.v || 0}` : P.ineq ? `pfpic|ineq|${[...P.ineq].sort((x, y) => x - y).join(',')}` : P.poly ? `pfpic|poly|${P.poly}|${P.diag ? 1 : 0}`
+  : P.trap ? `pfpic|trap|${P.trap}|${P.axis ? 1 : 0}` : 'pfpic|' + JSON.stringify(P);
 export const factOf = it => { const t = it.t;
   if (t === 'split') return `part|${it.n}|${s2(it.k, it.n - it.k)}`;
   if (t === 'eqPair') return `part|${it.n}|${s2(...(it.parts || []))}`;
@@ -333,7 +345,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'polyReg') return `prg|${it.n}|${it.ask}`;
   if (t === 'isoTrap') return `itp|${it.a}|${it.ask}`;
   if (t === 'polyBuild') return `pbd|${it.sum}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'pfpic') return `pfpic|${JSON.stringify(it.pic)}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'pfpic') return pfpicK(it.pic);
   if (t === 'cgCase') return `cgc|${it.cs}|${it.v || 0}`;
   if (t === 'pySq') return `pys|${it.a}|${it.b}`;
   if (t === 'pyLeg') return `pyl|${it.hyp}|${it.a}|${it.ctx || 'tri'}`;
@@ -386,12 +398,12 @@ export const factOf = it => { const t = it.t;
   if (t === 'c9Comp') return `c9c|${it.p}|${JSON.stringify(it.seq)}|${it.ask ?? 'img'}`;
   if (t === 'arComp') return `arc|${it.a}|${it.kind}`;
   if (t === 'arPair') return `arp|${[it.a, it.b].sort((x, y) => x - y)}`;
-  if (t === 'arVert') return `arv|${it.th}|${it.given}|${it.ask}`;
-  if (t === 'arWhich') return `arw|${it.kind}|${it.th ?? it.phi}|${it.mark}|${it.rel}`;
-  if (t === 'arTrCalc') return `art|${it.phi}|${it.given}|${it.ask}`;
+  if (t === 'arVert') return arvK(it.th, it.given, it.ask);
+  if (t === 'arWhich') return `arw|${it.kind}|${it.mark}|${it.rel}|${(it.lab || []).join(',')}`;   /* الجواب رقمٌ بموضعه لا بقياسه: المسألة الموضعُ والعلاقة والترقيم (المراجع A لبوابة M4-U1/U2، 9) */
+  if (t === 'arTrCalc') return artK(it.phi, it.given, it.ask);
   if (t === 'arPar') return `arq|${it.phi}|${it.tilt}`;
   if (t === 'arTurn') return `aru|${it.mode}|${it.a ?? ''}|${it.want ?? ''}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'arpic') return `arpic|${JSON.stringify(it.pic)}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'arpic') return arpicK(it.pic);
   /* S3-U10: المسألة العددية لا عرضها (المراجع A لبوابة S3-U10، 5 و6 و16): جدول النسب وحكم التكافؤ زوجُ نسبتين بلا سياقٍ ولا ترتيب،
      والتكبير بالضلعين مرتّبين بلا الشكل (والرسم كالأبعاد)، ومساحة المكبَّر بعددها والمعامل، ورسم الطول بالمقياس تحويلٌ إلى الورق */
   if (t === 'raTable') { let i = 0, r = 0; it.cols.forEach((c, j) => c.forEach((x, q) => { if (x == null) { i = j; r = q; } })); const c0 = it.cols[0], f = c0[1 - r] ? it.cols[i][1 - r] / c0[1 - r] : 1, ci = it.cols[i].map((x, q) => x ?? c0[q] * f); return raqK(c0, ci); }
@@ -602,6 +614,9 @@ export function d240(lessons, code, MAKERS) {
   /* وما يعرضه المشهد بجوابه من مسائل عددية (الفحص المستقل الثالث): لكل مشهد عددي سطر هنا، ولخطوات المثال المحلول STEP_FACTS */
   /* عدّ الأشياء، وعدّ فراغات الإطار («كم يحتاج سبعة ليصير عشرة؟» والإطار أمامه)، ولمحته: أداءٌ يُرى في الصورة لا جوابٌ يُحفظ، فيُحسب بين التقييمات وحدها (الحقائق الخمس لأصدقاء العشرة تُعرض كلها في الاكتشاف، المواصفة د6) */
   const ASSESS_ONLY = /^(count|friend|fglance)\|/;
+  const arSubs = (...M) => { const out = []; for (let k = 1; k < 1 << M.length; k++) out.push(M.filter((_, i) => k >> i & 1).sort().join(',')); return out; };
+  const arPairs = (phi, M) => M.flatMap(g => M.filter(a => a !== g).map(a => artK(phi, g, a)));
+  const pfShown = k => [`pfc|${k}|0`, `pfr|${k}|0|0`, `pfr|${k}|0|1`, `pfr|${k}|0|2`, `pfpic|fig|${k}|0`];
   const SCENE_FACTS = {
     /* S2-U0 وS2-U1: ما يعرضه المشهد بجوابه على المسطرة والشبكة والطرق (الفحص المستقل لبوابة S2-U0/U1 (9)) */
     rulerWorked: s => { const a = s.a || 0, k = Array.isArray(s.thing) ? `rulseg|${s.b}` : a || s.brk ? `rul|${a}|${s.b}|${s.brk || 0}` : `rul0|${s.b}`; return [k, `rulpic|${a}|${s.b}|${s.brk || 0}`]; },
@@ -635,6 +650,21 @@ export function d240(lessons, code, MAKERS) {
     boundShow: () => ['dg|3', 'cc|area|r|3', 'cc|area|d|6'],
     ciDoubleShow: () => ['csc|2|2', 'cc|area|r|2', 'cc|area|r|4'],
     gardenShow: () => ['cc|perim|r|5', 'cc|area|r|5', 'cc|half|r|5', 'cc|perim|d|10', 'cc|area|d|10'],
+    /* M4-U1/U2 (المراجع A لبوابة M4-U1/U2، 2 و7): ما تعرضه المشاهد بأعداده وأرقامه وصوره؛ وصورة التعليل بأي جزءٍ من علاماتها */
+    arCompShow: () => ['arc|40|comp', 'arc|50|comp', 'arc|65|supp', 'arc|115|supp', 'arp|40,50', 'arp|65,115', 'arpic|adj|40|comp', 'arpic|adj|65|supp'],
+    arCrossShow: () => ['arw|cross|1|vert|', 'arw|cross|3|vert|', ...arSubs(1, 2, 3).map(m => `arpic|cross|50|${m}|0`)],
+    arVertShow: () => [...[1, 2, 3, 4].flatMap(g => [1, 2, 3, 4].filter(a => a !== g).map(a => arvK(50, g, a))), 'arw|cross|1|vert|', ...arSubs(1, 2, 3, 4).flatMap(m => [`arpic|cross|50|${m}|1`, `arpic|cross|50|${m}|0`])],
+    arCorrShow: () => [...arPairs(60, [2, 6]), 'arw|tr|2|corr|', 'arw|tr|6|corr|', ...arSubs(2, 6).flatMap(m => [`arpic|tr|60|0|${m}|1`, `arpic|tr|60|15|${m}|1`, `arpic|tr|60|0|${m}|0`])],
+    arAltShow: () => [...arPairs(60, [2, 3, 6]), ...arPairs(60, [4, 6]), 'arw|tr|3|altIn|', 'arw|tr|6|altIn|', 'arw|tr|4|coint|', 'arw|tr|6|coint|', ...[...arSubs(2, 3, 6), ...arSubs(4, 6)].flatMap(m => [`arpic|tr|60|0|${m}|1`, `arpic|tr|60|0|${m}|0`])],
+    arBridgeShow: c => c.table ? [...arPairs(70, [2, 3, 4, 7]), ...arSubs(2, 3, 4, 7).flatMap(m => [`arpic|tr|70|0|${m}|1`, `arpic|tr|70|0|${m}|0`])] : ['arpic|tr|70|0|2|1', 'arpic|tr|70|0|2|0'],
+    pfPicHook: c => c.pic ? [pfpicK(c.pic)] : [],
+    pfTriShow: () => pfShown('tri'), pfVertShow: () => pfShown('vert'), ineqProof: () => pfShown('ineq'),
+    pfAltShow: c => [...pfShown('alt'), ...(c.coint ? pfShown('coint') : [])],
+    ineqShow: c => (c.sets || [[2, 3, 8], [4, 5, 6]]).flatMap(s => [`iyn|${[...s].sort((x, y) => x - y)}`, pfpicK({ ineq: s })]),
+    polyShow: () => ['pfpic|poly|5|0'],
+    polyTable: () => [3, 4, 5, 6].flatMap(n => [`ptr|${n}`, `psm|${n}`, `pfpic|poly|${n}|1`]),
+    regExShow: () => ['prg|6|in', 'prg|6|ex', 'pfpic|poly|6|0'],
+    trapShow: () => ['itp|70|base', 'itp|70|top', 'pfpic|trap|70|1', 'pfpic|trap|70|0'],
     /* S3-U8..U10 (قبل مراجعة بوابتيها، D286 (4)) */
     soHook: () => ['soc|cube|faces|4,4,4'], soEdgesShow: () => ['soc|cube|edges|4,4,4', 'soc|cube|verts|4,4,4'],
     /* وجدول أويلر بأعداده (المراجع A لبوابة S3-U8/U9، 3) */
@@ -805,7 +835,7 @@ export function d240(lessons, code, MAKERS) {
       if (!v || typeof v !== 'object') return;
       if (v.solid || v.type || v.sheet) put(v, tasks, where);
       let T = tasks;
-      if (typeof v.t === 'string') { for (const k of HOBJ(v)) if (!hobj.has(k)) hobj.set(k, where); { const nk = NEARK(v); if (nk) near.push({ ...nk, where, f: fact(v), t: v.t }); } items.set(norm(v), where); const f = fact(v); if (f && !facts.has(f) && !(nameOK && ASSESS_ONLY.test(f))) setF(f, where); { const f2 = fact2Of(v); if (f2 && !facts.has(f2)) setF(f2, where); }   /* والترتيب في القطار ليس كالعدّ (الفحص المستقل A): «المس الخامسة» في التمرين ثم في المراجعة جوابه واحد؛ والمشهد الذي يعدّ القطار كله في الاكتشاف لا يسجّل مسائل */ T = [TASK[v.t] || 'cls']; for (const s of subjects(v)) { if (nameOK && s.name) names.set(s.name, where); if (s.sig) sigs[T[0]].set(s.sig, where); } }
+      if (typeof v.t === 'string') { for (const k of HOBJ(v)) if (!hobj.has(k)) hobj.set(k, where); { const nk = NEARK(v); if (nk) near.push({ ...nk, where, f: fact(v), t: v.t }); } items.set(norm(v), where); const f = fact(v); if (f && !facts.has(f) && !(nameOK && ASSESS_ONLY.test(f))) setF(f, where); { const f2 = fact2Of(v); if (f2 && !facts.has(f2)) setF(f2, where); } if (v.t === 'ineqPick') for (const s of v.sets || []) { const f3 = `iyn|${[...s].sort((x, y) => x - y)}`; if (!facts.has(f3)) setF(f3, where + ' (مجموعة في «القطع الذكية»)'); }   /* المراجع A لبوابة M4-U1/U2، 2 */   /* والترتيب في القطار ليس كالعدّ (الفحص المستقل A): «المس الخامسة» في التمرين ثم في المراجعة جوابه واحد؛ والمشهد الذي يعدّ القطار كله في الاكتشاف لا يسجّل مسائل */ T = [TASK[v.t] || 'cls']; for (const s of subjects(v)) { if (nameOK && s.name) names.set(s.name, where); if (s.sig) sigs[T[0]].set(s.sig, where); } }
       if (typeof v.scene === 'string') { T = SCENE_T[v.scene] || ['cls']; for (const [m, ts] of SCENE_DRAWS[v.scene] || []) put(m, [ts], where + ' (يرسمه المشهد)');
         const addF = f => { if (f && !facts.has(f) && !ASSESS_ONLY.test(f)) setF(f, where + ' (يعرضه المشهد)'); };
         if (SCENE_FACTS[v.scene]) SCENE_FACTS[v.scene](v).forEach(addF);

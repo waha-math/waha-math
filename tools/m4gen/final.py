@@ -139,7 +139,7 @@ d4={"id":"m4.u10.d4","title":"البَوَّابَةُ: الشَّهَادَةُ
 dump(U+'/d4.json', d4)
 LB={"cert4Title":"{مُخْتَرِعٌ مُعْتَمَدٌ|مُخْتَرِعَةٌ مُعْتَمَدَةٌ}","cert4Sub":"شَهَادَةُ المَرْحَلَةِ الرَّابِعَةِ"}
 p=ROOT+'/content/strings/labels.json'; raw=open(p,encoding='utf8').read(); l=json.loads(raw)
-for k,v in LB.items(): l['ui'][k]=v
+for k,v in LB.items(): l['ui'][k]=E2W(v)
 open(p,'w',encoding='utf8').write(json.dumps(l,ensure_ascii=False,indent=1)+('\n' if raw.endswith('\n') else ''))
 # أزواج الاختيار في بنود U9 (الصورة والمرشّحات كما في الكود) وزوجا الربع والمسافة
 POS={0:'صِفْرٌ',1:'وَاحِدٌ',2:'اثْنَانِ',3:'ثَلَاثَةٌ',4:'أَرْبَعَةٌ',5:'خَمْسَةٌ',6:'سِتَّةٌ'}; GEN={1:'وَاحِدٍ',2:'اثْنَيْنِ',3:'ثَلَاثَةٍ',4:'أَرْبَعَةٍ',5:'خَمْسَةٍ',6:'سِتَّةٍ'}

@@ -374,8 +374,10 @@ async def main():
     print('empty drags:', len(empty)); [print(' ', *k) for k in list(empty)[:20]]
     print('squeezed stages:', len(squeeze)); [print(' ', *k, v) for k, v in list(squeeze.items())[:30]]
     print('clipped texts:', len(clipt)); [print(' ', *k) for k in list(clipt)[:20]]
-    textov3 = {k: v for k, v in textov.items() if k[0].startswith('m3.')}   # م3 تُفحص؛ وم4 تُطبع للعلم حتى تُراجَع
+    TXSTRICT = ('m3.', 'm4.u1.', 'm4.u2.')   # م3 وما أُغلقت بوابته من م4 تُفحص (M4-U1/U2)، والباقي من م4 يُطبع للعلم حتى تُراجَع بوابته
+    textov3 = {k: v for k, v in textov.items() if k[0].startswith(TXSTRICT)}
     print('text overlaps/out of frame:', len(textov3), '(m4: %d)' % (len(textov) - len(textov3))); [print(' ', *k) for k in list(textov)[:20]]
+    json.dump({'textov': [list(k) for k in textov], 'clipt': [list(k) for k in clipt], 'small': [list(map(str, v)) for v in small.values()]}, open(os.path.join(OUT, 'findings.json'), 'w'), ensure_ascii=False, indent=0)   # القائمة كاملة للتحليل
     print('covered badges:', len(coverb)); [print(' ', *k) for k in list(coverb)[:20]]
     print('near targets:', len(nearT)); [print(' ', *k, v) for k, v in list(nearT.items())[:30]]
     if lessons and not kpress[0]: keyless.setdefault(('-', 'tap', 'لم يُضغط Enter حقيقي على أي هدف'), 0)   # فلا ينجح العدّاد فارغاً

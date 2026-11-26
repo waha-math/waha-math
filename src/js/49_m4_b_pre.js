@@ -53,7 +53,7 @@ ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hi
   make: s => { const want = s.s[s.ask] * s.k, add = [0, 1, 2].filter(i => i !== s.ask).map(i => s.s[s.ask] + s.s[i] * (s.k - 1)).filter(v => Number.isInteger(v) && v > 0), nums = [...new Set([want, ...add])];   /* الجمع بدل الضرب: يُزاد على المجهول ما زاده ضلعٌ آخر */
     for (let d = 1; nums.length < 3; d++) if (!nums.includes(want + d)) nums.push(want + d); return { want, add, nums: nums.slice(0, 3), tag: 'pre-sim' }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), [a, b, c] = item.s, right = a * a + b * b === c * c; let labs;
-    if (right) { const u = Math.min(15, 150 / (b * Math.max(1, item.k))), sm = preRightTri(g, [318, 204], a, b, u), bg = preRightTri(g, [214, 204], a * item.k, b * item.k, u, { col: PRE.b, fill: PRE.fillB });
+    if (right) { const u = Math.min(15, 150 / (b * Math.max(1, item.k))), sm = preRightTri(g, [304, 204], a, b, u), bg = preRightTri(g, [214, 204], a * item.k, b * item.k, u, { col: PRE.b, fill: PRE.fillB });
       preSideLabs(g, sm, item.s.map(v => MS(String(v))), [PRE.ink, PRE.ink, PRE.ink]); labs = preSideLabs(g, bg, item.s.map((v, i) => i === item.ask ? '؟' : MS(String(v * item.k))), item.s.map((v, i) => i === item.ask ? PRE.q : PRE.ink)); }
     else { const mx = Math.max(...item.s) * Math.max(1, item.k), u = Math.min(13, 150 / mx), big = item.k >= 1;   /* مثلث عامّ بأطوال أضلاعه (M4-U3)؛ الأصل يمين والمكبَّر أو المصغَّر يسار */
       cgTri(g, item.s, { cx: 266, y: 196, u }); labs = cgTri(g, item.s.map(v => v * item.k), { cx: 96, y: 196, u, col: PRE.b, fill: PRE.fillB, ask: item.ask }).labs; }
@@ -116,10 +116,10 @@ function preCyl(svg, item) { const g = el('g', { 'pointer-events': 'none' }, svg
   preLab(g, cx + rx / 2, top - ry - 7, ciTxt(item.r, item.u), { col: CI.r, fs: 15, dir: 'rtl' });
   geoLine(g, cx - rx - 22, top, cx - rx - 22, bot, { color: PRE.ink, w: 2.4 }); geoArrow(g, cx - rx - 22, top, -90, PRE.ink, 7); geoArrow(g, cx - rx - 22, bot, 90, PRE.ink, 7);
   preLab(g, cx - rx - 30, (top + bot) / 2 + 6, ciTxt(item.h, item.u), { fs: 15, anchor: 'start', dir: 'rtl' });   /* في النصّ العربي «البداية» يمينه: يمتدّ يساراً عن السهم */
-  ciPi(g, 58, 232, .34, PRE.ink); preLab(g, 72, 238, '= ' + MS('3.14'), { fs: 15, anchor: 'start' }); return g; }
+  ciPi(g, 58, 218, .34, PRE.ink); preLab(g, 72, 224, '= ' + MS('3.14'), { fs: 15, anchor: 'start' }); return g; }
 ITEM.cylVol = cpItem({ H: 250, tLine: 'gen.pre.together.cyl', hint: 'gen.pre.hint.cyl', rLine: 'gen.ci.reveal.calc', rSay: it => S(voLine(it.want, it.u + '3'), { append: true }), praise: 'praiseThink',
   make: s => ({ want: s.ch[0][0], tag: 'pre-cyl' }),
-  draw(svg, item, tries) { preCyl(svg, item); if (tries >= 3) ciEq(helpG(svg), 270, 238, `3.14 × ${item.r} × ${item.r} × ${item.h}`, PRE.hl, 15); return {}; },
+  draw(svg, item, tries) { preCyl(svg, item); if (tries >= 3) ciEq(helpG(svg), 270, 222, `3.14 × ${item.r} × ${item.r} × ${item.h}`, PRE.hl, 15); return {}; },
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText('preRuleCyl'), PRE.hl, 13); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), voTxt(v, item.u + '3'), '<i></i>', voLine(v, item.u + '3')])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'cylOff' });

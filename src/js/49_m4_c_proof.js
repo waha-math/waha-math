@@ -23,8 +23,8 @@ function pfAng(g, V, P, Q, o = {}) { let a1 = pfDir(V, P), a2 = pfDir(V, Q); if 
 const pfDot = (g, P) => el('circle', { cx: P[0], cy: P[1], r: 4.5, fill: ANG.v, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, g);
 
 /* ---------- الأشكال (ارتفاعها نحو 110 من y0)، ولكل برهان صور (v): حروف أخرى وشكل آخر، فبند التقييم مسألةٌ جديدة لا صورةُ ما رُئي (D240) ---------- */
-const PF_TRI = [{ L: ['أ', 'ب', 'ج'], P: [[170, 30], [84, 112], [290, 112]] }, { L: ['د', 'هـ', 'و'], P: [[250, 30], [60, 112], [300, 112]] }, { L: ['ل', 'م', 'ن'], P: [[110, 30], [70, 112], [296, 112]] }, { L: ['س', 'ص', 'ع'], P: [[206, 30], [46, 112], [272, 112]] }];
-const PF_MK = { vert: [[40, [0, 1, 2]], [65, [1, 2, 3]]], alt: [[3, 7, 6], [4, 8, 5]], coint: [[3, 7, 5], [4, 8, 6]] }, PF_INEQ = [{ L: ['أ', 'ب', 'ج'], P: [[70, 104], [196, 26], [300, 104]] }, { L: ['د', 'هـ', 'و'], P: [[60, 100], [120, 30], [304, 100]] }], PF_POLY = [5, 6, 7];
+const PF_TRI = [{ L: ['أ', 'ب', 'ج'], P: [[170, 38], [84, 112], [290, 112]] }, { L: ['د', 'هـ', 'و'], P: [[250, 38], [60, 112], [300, 112]] }, { L: ['ل', 'م', 'ن'], P: [[110, 38], [70, 112], [296, 112]] }, { L: ['س', 'ص', 'ع'], P: [[206, 38], [46, 112], [272, 112]] }, { L: ['ف', 'ق', 'ر'], P: [[136, 38], [62, 112], [300, 112]] }];   /* الرأس الأعلى 38 لا 30: حرفه داخل الإطار (المراجعان لبوابة M4-U1/U2) */
+const PF_MK = { vert: [[40, [0, 1, 2]], [65, [1, 2, 3]], [110, [2, 3, 0]]], alt: [[3, 7, 6], [4, 8, 5], [2, 6, 7]], coint: [[3, 7, 5], [4, 8, 6]] }, PF_INEQ = [{ L: ['أ', 'ب', 'ج'], P: [[70, 104], [196, 38], [300, 104]] }, { L: ['د', 'هـ', 'و'], P: [[60, 100], [120, 40], [304, 100]] }, { L: ['س', 'ص', 'ع'], P: [[56, 106], [238, 44], [300, 106]] }]   /* صورة ثالثة للمتقابلتين وللتبادل وللمتباينة (المراجع A لبوابة M4-U1/U2، 2) */, PF_POLY = [5, 6, 7];
 const pfKey = (k, v, n) => `pf.${k}${v ? '.v' + v : ''}.${n + 1}`;
 function pfFig(g, k, o = {}) { if (['paraSide', 'paraDiag', 'rectDiag', 'rhombDiag', 'conv'].includes(k)) return cgQuad(g, k, { y0: o.y0, s: o.s });   /* براهين الرباعيات (M4-U3) */
   if (['pyth', 'pyConv', 'perpPf'].includes(k)) return pyFig(g, k, o);   /* براهين فيثاغورس (M4-U4) */
@@ -35,7 +35,7 @@ function pfFig(g, k, o = {}) { if (['paraSide', 'paraDiag', 'rectDiag', 'rhombDi
     if (o.par !== false) { geoLine(g, T(40, 30)[0], A[1], T(320, 30)[0], A[1], { color: PF.par, w: 3.4, dash: o.parDash ? '7 5' : null }); }
     el('polygon', { points: polyStr([A, B, C]), fill: 'rgba(122,79,176,.08)', stroke: PF.ink, 'stroke-width': 3.4, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, g);
     pfAng(g, B, A, C, { col: PF.a, r: 24 }); pfAng(g, C, A, B, { col: PF.b, r: 24 });
-    if (o.par !== false) { pfAng(g, A, [A[0] - 60, A[1]], B, { col: PF.a, r: 22, lab: '١', dl: 12 }); pfAng(g, A, C, [A[0] + 60, A[1]], { col: PF.b, r: 22, lab: '٢', dl: 12 }); }
+    if (o.par !== false) { pfAng(g, A, [A[0] - 60, A[1]], B, { col: PF.a, r: 22, lab: arNum(1), dl: 12 }); pfAng(g, A, C, [A[0] + 60, A[1]], { col: PF.b, r: 22, lab: arNum(2), dl: 12 }); }
     pfAng(g, A, B, C, { col: PF.c, r: 16 });
     pfLab(g, A[0], A[1] - 9, nA); pfLab(g, B[0] - 12, B[1] + 14, nB); pfLab(g, C[0] + 12, C[1] + 14, nC); [A, B, C].forEach(P => pfDot(g, P)); return { A, B, C }; }
   if (k === 'vert') { const [th, mk] = PF_MK.vert[v], V = T(180, 62), X = arCross(g, V, th, { L: 96 * s });
@@ -59,47 +59,47 @@ function polyFig(g, n, o = {}) { const P = o.pts || polyPts(n, o.cx ?? 180, o.cy
 
 /* ---------- نصّ خطوة: عبارة ثم «لأن…» بخطّ أصغر ---------- */
 function pfStep(g, y, k, n, o = {}) { const rs = PF_PROOFS[k].rs[n], t = el('text', { x: o.x ?? 324, y, 'text-anchor': 'start', 'font-size': o.fs || 15, 'font-weight': 800, fill: o.col || PF.ink, direction: 'rtl', 'pointer-events': 'none' }, g);
-  t.textContent = labelText(pfKey(k, o.v, n)); if (o.reason === false) return t;
+  t.textContent = MX(labelText(pfKey(k, o.v, n))); if (o.reason === false) return t;   /* الخطوة العددية الخالصة بالغربية من اليسار (D280 (2)، المراجع A لبوابة M4-U1/U2، 1) */
   const r = o.two ? el('text', { x: o.x ?? 324, y: y + (o.fs || 15) + 5, 'text-anchor': 'start', direction: 'rtl', 'pointer-events': 'none' }, g) : el('tspan', {}, t);   /* two: السبب سطرٌ ثانٍ تحت العبارة */
   r.setAttribute('font-size', (o.fs || 15) - 2); r.setAttribute('font-weight', 700); r.setAttribute('fill', o.ask ? PF.q : o.rcol || '#5b6b75');
   r.textContent = (o.two ? '' : '  ') + labelText('pfBecause') + ' ' + (o.ask ? '؟' : labelText('pf.rs.' + rs)); return t; }
 
 /* ================= ① سلسلة السبب (C408): pf؛ ثلاث بطاقات خطوات تُرتَّب باللمس ================= */
-const PF_CY = i => 92 + i * 45;
+const PF_CY = i => 112 + i * 60;   /* البطاقات تحت الشكل كله، لا على رأسيه (المراجع B لبوابة M4-U1/U2) */
 ITEM.prChain = {
   make(spec) { const P = PF_PROOFS[spec.pf], order = shuffle([0, 1, 2]); const ok = ['0,1,2', ...(P.alt || [])].map(s => s.split(',').map(i => order.indexOf(+i)).join(','));
     return { ...spec, order, okSet: ok, want: ok[0], tag: 'pf-chain-' + spec.pf }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFig(g, item.pf, { y0: 2, s: PF_PROOFS[item.pf].rs.includes('sas') || PF_PROOFS[item.pf].rs.includes('asa') || PF_PROOFS[item.pf].rs.includes('sss') ? .64 : .7, v });
+  async ask(item, mode, tries) { const svg = m3Stage(318), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFig(g, item.pf, { y0: 14, s: PF_PROOFS[item.pf].rs.includes('sas') || PF_PROOFS[item.pf].rs.includes('asa') || PF_PROOFS[item.pf].rs.includes('sss') ? .64 : .7, v });
     const cards = item.order.map((n, i) => { const c = el('g', { role: 'button', tabindex: 0, style: 'cursor:pointer' }, svg), y = PF_CY(i);
-      el('rect', { x: 20, y, width: 320, height: 40, rx: 9, fill: PF.card, stroke: PF.edge, 'stroke-width': 2 }, c); pfStep(c, y + 17, item.pf, n, { x: 330, fs: 13, two: true, v }); c.setAttribute('aria-label', plain(labelText(pfKey(item.pf, v, n)) + ' ' + labelText('pfBecause') + ' ' + labelText('pf.rs.' + PF_PROOFS[item.pf].rs[n]))); return c; });
-    if (tries >= 3) { const m = helpG(svg); badge(m, 32, PF_CY(item.order.indexOf(0)) + 20, 1, THINK_INK); await S('gen.pf.together.chain'); }
+      el('rect', { x: 20, y, width: 320, height: 56, rx: 9, fill: PF.card, stroke: PF.edge, 'stroke-width': 2 }, c); pfStep(c, y + 24, item.pf, n, { x: 330, fs: 13, two: true, v });   /* 56: هدف لمسٍ كافٍ */ c.setAttribute('aria-label', plain(labelText(pfKey(item.pf, v, n)) + ' ' + labelText('pfBecause') + ' ' + labelText('pf.rs.' + PF_PROOFS[item.pf].rs[n]))); return c; });
+    if (tries >= 3) { const m = helpG(svg); badge(m, 38, PF_CY(item.order.indexOf(0)) + 28, 1, THINK_INK); await S('gen.pf.together.chain'); }
     else await S(item.q || 'gen.pf.q.chain');
-    const picked = await orderTap(svg, cards, item.want, i => [32, PF_CY(i) + 20]); return { ans: picked.join(','), ctx: { svg, cards } }; },
+    const picked = await orderTap(svg, cards, item.want, i => [38, PF_CY(i) + 28]); return { ans: picked.join(','), ctx: { svg, cards } }; },
   judge(item, k) { if (item.okSet.includes(k)) return { ok: true }; const first = +k.split(',')[0]; return { ok: false, err: item.order[first] === 2 ? 'pfJump' : 'pfOrder' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 76, labelText('pfRuleChain')); await S('gen.pf.hint.chain'); }, async together() {},
-  async reveal(item, r) { const m = helpG(r.ctx.svg); item.want.split(',').forEach((i, n) => badge(m, 32, PF_CY(+i) + 20, n + 1, PF.ok)); await S('gen.pf.reveal.chain'); },
+  async reveal(item, r) { const m = helpG(r.ctx.svg); item.want.split(',').forEach((i, n) => badge(m, 38, PF_CY(+i) + 28, n + 1, PF.ok)); await S('gen.pf.reveal.chain'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; } };
 
 /* ================= ② أغلق البرهان (C408، C402، C411): pf، step (0..2)، cands [أسباب، الأول الصحيح] بطاقاتٍ مسموعة ================= */
 const PF_ERR = { measure: 'pfMeasure', looks: 'pfLooks', circ: 'pfCircular' };
 ITEM.prReason = {
   make(spec) { /*T*/if (TESTHOOK && spec.cands[0] !== PF_PROOFS[spec.pf].rs[spec.step]) testBug('prReason: السبب الأول ليس سبب الخطوة');/*/T*/ return { ...spec, want: spec.cands[0], tag: 'pf-reason-' + spec.pf }; },
-  async ask(item, mode, tries) { const svg = newStage(212, { oasis: false, ground: 0 }), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFig(g, item.pf, { y0: 2, s: .74, v });
-    for (let n = 0; n < 3; n++) pfStep(g, 116 + n * 30, item.pf, n, { fs: 14, v, reason: n === item.step ? true : false, ask: n === item.step, col: n === item.step ? PF.ink : '#5b6b75' });
-    el('rect', { x: 14, y: 116 + item.step * 30 - 19, width: 332, height: 27, rx: 8, fill: 'rgba(192,57,43,.07)', stroke: PF.q, 'stroke-width': 1.6, 'pointer-events': 'none' }, svg);
+  async ask(item, mode, tries) { const svg = newStage(236, { oasis: false, ground: 0 }), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFig(g, item.pf, { y0: 6, s: .72, v });
+    for (let n = 0; n < 3; n++) pfStep(g, 128 + n * 30, item.pf, n, { fs: 14, v, reason: n === item.step ? true : false, ask: n === item.step, col: n === item.step ? PF.ink : '#5b6b75' });
+    el('rect', { x: 14, y: 128 + item.step * 30 - 19, width: 332, height: 27, rx: 8, fill: 'rgba(192,57,43,.07)', stroke: PF.q, 'stroke-width': 1.6, 'pointer-events': 'none' }, svg);
     if (tries >= 3) { await S('gen.pf.together.reason'); } else await S(item.q || 'gen.pf.q.reason');
     const cp = cardPick(item.cands.map((o, i) => ({ id: 'gen.pf.rs.' + o, k: o, ok: i === 0 })), { intro: item.q || 'gen.pf.q.reason' }); const c = await cp.p; cp.done(); return { ans: c.k, ctx: { svg, cp, c } }; },
   judge(item, k) { return k === item.cands[0] ? { ok: true } : { ok: false, err: PF_ERR[k] || 'pfWrongRule' }; },
   onOk(item, r) { SFX.good(); r.ctx.cp.btns.find(b => b.dataset.k === r.ctx.c.k).classList.add('ok'); }, onWrong(item, r) { SFX.soft(); r.ctx.cp.btns.find(b => b.dataset.k === r.ctx.c.k).classList.add('no'); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 100, labelText('pfRuleReason')); await S('gen.pf.hint.reason'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 216, labelText('pfRuleReason')); await S('gen.pf.hint.reason'); }, async together() {},
   async reveal(item, r) { const b = r.ctx.cp.btns.find(x => x.dataset.k === item.cands[0]); if (b) b.classList.add('ok'); await S('gen.pf.rs.' + item.cands[0]); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; } };
 
 /* ================= ③ هل تصنع الأعواد مثلثاً؟ (C402): s [ثلاثة أطوال] ================= */
 const ineqOk = s => { const [a, b, c] = [...s].sort((x, y) => x - y); return a + b > c; };
 /* أعواد الطرفين على الأكبر: قوسان من طرفيه بطولي الآخرين؛ يلتقيان أم لا (meet: يُرسم المثلث) */
-function ineqSticks(g, s, o = {}) { const [a, b, c] = [...s].sort((x, y) => x - y), u = Math.min(o.u || 26, 280 / c), y = o.y ?? 186, L = [180 - c * u / 2, y], Rr = [180 + c * u / 2, y];
+function ineqSticks(g, s, o = {}) { const [a, b, c] = [...s].sort((x, y) => x - y), y = o.y ?? 186, u = Math.min(o.u || 26, 280 / c, (y - 40) / b),   /* والعودان القائمان داخل الإطار */ L = [180 - c * u / 2, y], Rr = [180 + c * u / 2, y];
   geoLine(g, L[0], y, Rr[0], y, { color: PF.par, w: 5 }); pfLab(g, 180, y + 22, MS(String(c)), { fs: 15 });
   const ok = a + b > c, xA = ok ? (c * c + b * b - a * a) / (2 * c) : null;   /* من الطرف الأيمن: b، ومن الأيسر: a */
   if (ok && o.meet) { const h = Math.sqrt(Math.max(0, b * b - xA * xA)), P = [Rr[0] - xA * u, y - h * u]; geoLine(g, Rr[0], y, P[0], P[1], { color: PF.a, w: 5 }); geoLine(g, L[0], y, P[0], P[1], { color: PF.b, w: 5 });
@@ -133,7 +133,7 @@ ITEM.ineqRange = cpItem({ H: 236, tLine: 'gen.pf.together.range', hint: 'gen.pf.
 /* ================= ⑤ القطع الذكية (C402): sets [ثلاث ثلاثيات، واحدة فقط تصنع مثلثاً] ================= */
 ITEM.ineqPick = cpItem({ H: 220, tLine: 'gen.pf.together.pick', hint: 'gen.pf.hint.ineq', rLine: 'gen.pf.reveal.pick', praise: 'praiseThink',
   make: s => { const ok = s.sets.filter(ineqOk); /*T*/if (TESTHOOK && ok.length !== 1) testBug('ineqPick: ليست ثلاثية واحدة تصنع مثلثاً');/*/T*/ return { want: s.sets.findIndex(ineqOk) + '', tag: 'ineq-pick' }; },
-  draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg), X = [292, 180, 68]; item.sets.forEach((st, i) => { const u = 9, sorted = [...st].sort((x, y) => x - y);
+  draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg), X = [288, 180, 72]; item.sets.forEach((st, i) => { const u = Math.min(9, 92 / Math.max(...st)), sorted = [...st].sort((x, y) => x - y);
       el('rect', { x: X[i] - 52, y: 36, width: 104, height: 150, rx: 12, fill: PF.card, stroke: PF.edge, 'stroke-width': 2 }, g); pfLab(g, X[i], 62, labelText('pfSet.' + i), { fs: 15 });
       sorted.forEach((v, j) => { const y = 96 + j * 30; geoLine(g, X[i] - v * u / 2, y, X[i] + v * u / 2, y, { color: [PF.b, PF.a, PF.par][j], w: 6 }); pfLab(g, X[i], y + 18, MS(String(v)), { fs: 13 }); });
       if (tries >= 3) { const [a, b, c] = sorted; ciEq(helpG(svg), X[i], 204, `${a} + ${b} ؟ ${c}`, PF.hl, 14); } }); return {}; },
@@ -166,7 +166,7 @@ ITEM.polyReg = cpItem({ H: 236, tLine: 'gen.pf.together.polyReg', hint: 'gen.pf.
     if (item.ask === 'in') pfAng(g, A, prev, next, { col: PF.q, r: 22, lab: '؟', dl: 14, fs: 16 });
     else { const E = [A[0] + (A[0] - prev[0]) * .55, A[1] + (A[1] - prev[1]) * .55]; geoLine(g, A[0], A[1], E[0], E[1], { color: PF.ink, w: 3, dash: '6 4' }); pfAng(g, A, E, next, { col: PF.q, r: 22, lab: '؟', dl: 14, fs: 16 }); }
     pfLab(svg, 330, 34, labelText('pfReg') + ' ' + MS(String(n)), { fs: 15, anchor: 'start' });
-    if (tries >= 3) ciEq(helpG(svg), 180, 226, item.ask === 'in' ? `${(n - 2) * 180} ÷ ${n} = ؟` : `360 ÷ ${n} = ؟`, PF.hl, 17); return {}; },
+    if (tries >= 3) ciEq(helpG(svg), 180, 226, item.ask === 'in' ? `${(n - 2) * 180} ÷ ${n} = ؟` : `180 − ${item.inn} = ؟`, PF.hl, 17); return {}; },   /* الخارجة تكملة الداخلية، بلا مصطلحٍ جديد (المراجع A لبوابة M4-U1/U2، 28) */
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 226, labelText(item.ask === 'in' ? 'pfRuleRegIn' : 'pfRuleRegEx'), PF.hl, 13); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
   errOf: (it, k) => it.ask === 'in' ? (k === it.ex ? 'polyExIn' : 'polyTotal') : (k === it.inn ? 'polyExIn' : 'polyRegOff') });
@@ -192,7 +192,7 @@ ITEM.isoTrap = cpItem({ H: 236, tLine: 'gen.pf.together.trap', hint: 'gen.pf.hin
 /* ================= ⑩ بنّاء المضلعات (C411): sum (مجموع مطلوب)؛ زرّان يغيّران عدد الأضلاع، والمثلثات تُرسم بلا مجموع ================= */
 ITEM.polyBuild = {
   make(spec) { const want = spec.sum / 180 + 2; /*T*/if (TESTHOOK && (want % 1 || want < 3 || want > 10)) testBug('polyBuild: المجموع لا يصنع مضلعاً بين 3 و10 أضلاع');/*/T*/ return { ...spec, want, tag: 'poly-build' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), host = el('g', {}, svg); let n = item.start || 4, reg = null; const lo = 3, hi = 10;
+  async ask(item, mode, tries) { const svg = m3Stage(278), host = el('g', {}, svg); let n = item.start || 4, reg = null; const lo = 3, hi = 10;
     const draw = () => { host.innerHTML = ''; polyFig(host, n, { cy: 128, r: 82, diag: true }); pfLab(host, 330, 30, labelText('pfSides') + ' ' + MS(String(n)), { fs: 15, anchor: 'start' }); pfLab(host, 30, 30, labelText('pfTris') + ' ' + MS(String(n - 2)), { fs: 15, anchor: 'end' });
       /*T*/window.__cdV = n; window.__cdWant = item.want;/*/T*/ if (reg) reg(); };
     draw(); if (tries >= 3) ciRule(helpG(svg), 180, 224, labelText('pfRuleSum'), PF.hl, 13);
@@ -225,7 +225,7 @@ function pfReasonPic(g, P) { const sc = el('g', {}, g);
   else if (P.c7) c7Pic(sc, P.c7);   /* M4-U7 */
   else if (P.c8) c8Pic(sc, P.c8);   /* M4-U8 */
   else if (P.c9) c9Pic(sc, P.c9);   /* M4-U9 */
-  else if (P.tri3) [[66, 0], [180, 1], [294, 2]].forEach(([x, i]) => { const S3 = [[[x - 48, 140], [x + 48, 140], [x - 10, 70]], [[x - 50, 140], [x + 44, 140], [x + 26, 86]], [[x - 40, 140], [x + 50, 140], [x - 30, 60]]][i];
+  else if (P.tri3) [[70, 0], [180, 1], [284, 2]].forEach(([x, i]) => { const S3 = [[[x - 48, 140], [x + 48, 140], [x - 10, 70]], [[x - 50, 140], [x + 44, 140], [x + 26, 86]], [[x - 40, 140], [x + 50, 140], [x - 30, 60]]][i];
       el('polygon', { points: polyStr(S3), fill: 'rgba(122,79,176,.08)', stroke: PF.ink, 'stroke-width': 3, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, sc); pfLab(sc, x, 166, MS('180'), { fs: 15, col: PF.a }); });
   if (P.f) ciEq(g, 180, 200, P.f, P.bad ? SO.bad : SO.ink, 18); }
 
@@ -240,9 +240,9 @@ SCENES.pfHook = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', 
   const q = pfLab(g, 180, 216, labelText('pfAnyTri'), { fs: 17, col: PF.q }); SFX.tick(); for (const l of L.slice(1)) await S(l); };
 /* د1 الاكتشاف: المستقيم الموازي عند الرأس، وزاويتا التبادل، والمستقيم 180، ثم الخطوات الثلاث بأسبابها */
 SCENES.pfTriShow = async c => { const L = c.lines, svg = m3Stage(262); let g = el('g', { 'pointer-events': 'none' }, svg);
-  pfFig(g, 'tri', { y0: 4, s: .85, par: false }); await pfSay(L, 0);
-  g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); pfFig(g, 'tri', { y0: 4, s: .85, parDash: true }); SFX.tick(); await pfSay(L, 1);
-  await pfWrite(g, 'tri', L, 2); for (const l of L.slice(5)) await S(l); };
+  pfFig(g, 'tri', { y0: 10, s: .8, par: false }); await pfSay(L, 0);
+  g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); pfFig(g, 'tri', { y0: 10, s: .8, parDash: true }); SFX.tick(); await pfSay(L, 1);
+  await pfWrite(g, 'tri', L, 2, 136); for (const l of L.slice(5)) await S(l); };
 /* د2: المتقابلتان بالرأس بالمكمّلة المشتركة */
 SCENES.pfVertShow = async c => { const L = c.lines, svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg); pfFig(g, 'vert', { y0: 0, s: .88 }); await pfSay(L, 0); await pfWrite(g, 'vert', L, 1); for (const l of L.slice(4)) await S(l); };
 /* د2: زاويتا التبادل من مسلّمة التناظر والمتقابلة بالرأس، والمتحالفتان */
@@ -254,14 +254,13 @@ SCENES.ineqShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el
   for (const [i, s] of (c.sets || [[2, 3, 8], [4, 5, 6]]).entries()) { g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); ineqSticks(g, s, { arcs: true, meet: true, u: 26 }); SFX.tick(); await pfSay(L, i); }
   if (c.rule) ciRule(g, 180, 34, labelText('pfRuleIneq'), PF.ok, 13); for (const l of L.slice((c.sets || [0, 0]).length)) await S(l); };
 /* د3 الاكتشاف (ب): الطريق عبر ب أطول من القطعة أ ج */
-SCENES.ineqProof = async c => { const L = c.lines, svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg); pfFig(g, 'ineq', { y0: 2, s: .9 }); await pfSay(L, 0); await pfWrite(g, 'ineq', L, 1); for (const l of L.slice(4)) await S(l); };
+SCENES.ineqProof = async c => { const L = c.lines, svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg); pfFig(g, 'ineq', { y0: 8, s: .9 }); await pfSay(L, 0); await pfWrite(g, 'ineq', L, 1); for (const l of L.slice(4)) await S(l); };
 /* د4 الإشعال والاكتشاف: «الخماسي 360!»، ثم التقسيم من رأس واحد، وجدول ن − 2 */
 SCENES.polyShow = async c => { const L = c.lines, svg = m3Stage(262); let g = el('g', { 'pointer-events': 'none' }, svg);
-  polyFig(g, 5, { cy: 112, r: 84 }); await pfSay(L, 0); g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); polyFig(g, 5, { cy: 112, r: 84, diag: true }); SFX.tick(); await pfSay(L, 1);
-  ciEq(g, 180, 226, '3 × 180 = 540', PF.ok, 18); await pfSay(L, 2); for (const l of L.slice(3)) await S(l); };
-SCENES.polyTable = async c => { const L = c.lines, svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg), X = [272, 196, 120, 46];
+  polyFig(g, 5, { cy: 112, r: 84 }); await pfSay(L, 0); for (const l of L.slice(1)) await S(l); };   /* الإشعال يقف عند السؤال: التقسيم وعدد المثلثات بعد التوقّع (المراجع A لبوابة M4-U1/U2، 14) */
+SCENES.polyTable = async c => { const L = c.lines, svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg), X = [258, 192, 126, 62];   /* داخل الإطار، وعمود التسميات يمينها */
   [3, 4, 5, 6].forEach((n, i) => { const sg = el('g', {}, g); polyFig(sg, n, { cx: X[i], cy: 74, r: 34, diag: true }); pfLab(g, X[i], 136, MS(String(n)), { fs: 15 }); pfLab(g, X[i], 166, MS(String(n - 2)), { fs: 15, col: PF.c }); degText(g, X[i], 198, (n - 2) * 180, { size: 15, color: PF.ok }); });
-  pfLab(g, 352, 136, labelText('pfRowSides'), { fs: 12, anchor: 'start' }); pfLab(g, 352, 166, labelText('pfRowTris'), { fs: 12, anchor: 'start' });
+  pfLab(g, 334, 136, labelText('pfRowSides'), { fs: 12, anchor: 'start' }); pfLab(g, 334, 166, labelText('pfRowTris'), { fs: 12, anchor: 'start' });
   await pfSay(L, 0); ciRule(g, 180, 232, labelText('pfRuleSum'), PF.ok, 13); for (const l of L.slice(1)) await S(l); };
 /* د4 (ب): المنتظم والخارجية، و(ج) شبه المنحرف متساوي الساقين بمحوره */
 SCENES.regExShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), { P } = polyFig(g, 6, { cy: 120, r: 80 }), A = P[1], E = [A[0] + (A[0] - P[0][0]) * .6, A[1] + (A[1] - P[0][1]) * .6];

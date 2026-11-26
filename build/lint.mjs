@@ -104,6 +104,9 @@ export function lint(content, js) {
     for (const m of String(t).matchAll(/[أنيت]َلْمَسُ?\S*/g)) errors.push(`«${m[0]}» في ${where}: مضارع «لَمَسَ» يَلْمِسُ ويَلْمُسُ («يَلْمَسُ» لا تعرفه المعاجم)`);
     const mine = errors.splice(n0); errors.push(...new Set(mine)); };   /* والكلمة في الصيغتين تُذكر مرة */
   for (const [k, v] of Object.entries((content.labels && content.labels.ui) || {})) { kafCheck(v, 'التسمية ' + k); waslCheck(v, 'التسمية ' + k); }
+  /* D279: أرقام التسميات غربية في المصدر، وlabelText يجعلها مشرقية لمن اختارها (MS يحوّل الغربي وحده)؛ إلا زرّ «أرقامي» (المراجع A لبوابة M4-U1/U2، 1) */
+  for (const [k, v] of Object.entries((content.labels && content.labels.ui) || {})) if (k !== 'myDigits' && /[٠-٩]/.test(JSON.stringify(v))) errors.push(`التسمية ${k}: رقم مشرقي مكتوب («${String(v).slice(0, 40)}»)، فلا يتبع «أرقامي» (D279)`);
+  for (const u of content.units) for (const l of u.lessons) for (const [k, v] of Object.entries(l.labels || {})) if (/[٠-٩]/.test(JSON.stringify(v))) errors.push(`${l.id}: التسمية ${k}: رقم مشرقي مكتوب، فلا يتبع «أرقامي» (D279)`);
   for (const u of content.units) for (const l of u.lessons) for (const [k, v] of Object.entries(l.labels || {})) { kafCheck(v, `${l.id}: التسمية ${k}`); waslCheck(v, `${l.id}: التسمية ${k}`); }
   /* وعناوين الدروس والوحدات تُرى مشكولة (كان مفتاح «أوجه» من عنوان درسٍ لا يفحصه شيء) */
   for (const u of content.units) { if (u.title) { kafCheck(u.title, `${u.id}: العنوان`); waslCheck(u.title, `${u.id}: العنوان`); } for (const l of u.lessons) if (l.title) { kafCheck(l.title, `${l.id}: العنوان`); waslCheck(l.title, `${l.id}: العنوان`); } }

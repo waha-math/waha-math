@@ -600,7 +600,7 @@ p=ROOT+'/content/strings/gen.json'; g=json.load(open(p,encoding='utf8'))
 for k,v in G.items(): g['lines'][k]=v
 open(p,'w',encoding='utf8').write(json.dumps(g,ensure_ascii=False,indent=1)+'\n')
 p=ROOT+'/content/strings/labels.json'; raw=open(p,encoding='utf8').read(); l=json.loads(raw)
-for k,v in LB.items(): l['ui'][k]=v
+for k,v in LB.items(): l['ui'][k]=E2W(v)
 open(p,'w',encoding='utf8').write(json.dumps(l,ensure_ascii=False,indent=1)+('\n' if raw.endswith('\n') else ''))
 p=ROOT+'/content/errors.json'; raw=open(p,encoding='utf8').read(); e=json.loads(raw)
 for k,(lab,qs) in E.items(): e[k]={"label":lab,"q":{f"gen.err.{k}.0{i+1}":q for i,q in enumerate(qs)}}
