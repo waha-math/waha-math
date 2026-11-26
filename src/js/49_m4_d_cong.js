@@ -10,11 +10,12 @@ const CG = { a: '#2f7fc1', b: '#d9822b', c: '#7a4fb0', ink: '#24323a', fa: 'rgba
 function cgTriPts(s, o = {}) { const [a, b, c] = s, u = o.u || 12, x = (a * a + c * c - b * b) / (2 * a), h = Math.sqrt(Math.max(0, c * c - x * x)), P = [[-a / 2, 0], [a / 2, 0], [x - a / 2, -h]].map(([X, Y]) => [X * u * (o.flip ? -1 : 1), Y * u]);
   const ctr = [0, -h * u / 3], r = (o.rot || 0) * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r);
   return P.map(([X, Y]) => { const dx = X - ctr[0], dy = Y - ctr[1]; return [(o.cx ?? 180) + ctr[0] + dx * cs - dy * sn, (o.y ?? 180) + ctr[1] + dx * sn + dy * cs]; }); }
+const cgNotScale = (g, x, y) => { const t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: '#6b7a84', direction: 'rtl', 'pointer-events': 'none' }, g); t.textContent = labelText('arNotScale'); return t; };
 function cgTri(g, s, o = {}) { const P = cgTriPts(s, o);   /* fit [x0، x1]: يُزاح المثلث أفقياً حتى يسعه (الرسم داخل الإطار؛ المنفرج يمتدّ رأسه خارج قاعدته) */
   if (o.fit) { const xs = P.map(p => p[0]), lo = Math.min(...xs), hi = Math.max(...xs), d = lo < o.fit[0] ? o.fit[0] - lo : hi > o.fit[1] ? o.fit[1] - hi : 0; P.forEach(p => { p[0] += d; }); } el('polygon', { points: polyStr(P), fill: o.fill || CG.fa, stroke: o.col || CG.a, 'stroke-width': 3.2, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, g);
   const C = [(P[0][0] + P[1][0] + P[2][0]) / 3, (P[0][1] + P[1][1] + P[2][1]) / 3], sides = [[0, 1, s[0]], [1, 2, s[1]], [2, 0, s[2]]];
   P.labs = []; if (o.labels !== false) sides.forEach(([i, j, v], n) => { const M = [(P[i][0] + P[j][0]) / 2, (P[i][1] + P[j][1]) / 2], d = Math.hypot(M[0] - C[0], M[1] - C[1]) || 1, L = [M[0] + (M[0] - C[0]) / d * 13, M[1] + (M[1] - C[1]) / d * 13 + 5];
-    const t = el('text', { x: L[0], y: L[1], 'text-anchor': 'middle', 'font-size': o.fs || 14, 'font-weight': 800, fill: o.labCol && o.labCol[n] || CG.ink, stroke: '#fff', 'stroke-width': 3.5, 'paint-order': 'stroke', 'pointer-events': 'none' }, g); t.textContent = o.ask === n ? '؟' : MS(String(v)); if (o.ask === n) t.setAttribute('fill', CG.q); P.labs.push(t); });
+    const t = el('text', { x: L[0], y: L[1], 'text-anchor': 'middle', 'font-size': o.fs || 14, 'font-weight': 800, fill: o.labCol && o.labCol[n] || CG.ink, stroke: '#fff', 'stroke-width': 3.5, 'paint-order': 'stroke', 'pointer-events': 'none' }, g); t.textContent = o.ask === n ? '؟' : MS(String(o.vals ? o.vals[n] : v)); if (o.ask === n) t.setAttribute('fill', CG.q); P.labs.push(t); });
   return P; }
 const cgSorted = s => [...s].sort((x, y) => x - y);
 const cgRel = (a, b) => { const A = cgSorted(a), B = cgSorted(b), k = B[0] / A[0]; return A.every((v, i) => v === B[i]) ? 'cong' : A.every((v, i) => Math.abs(B[i] - v * k) < 1e-9) ? 'sim' : 'none'; };
@@ -22,8 +23,8 @@ const cgRel = (a, b) => { const A = cgSorted(a), B = cgSorted(b), k = B[0] / A[0
 /* ================= ① مثلثان بأطوال أضلاعهما: متطابقان أم متشابهان فقط أم لا هذا ولا ذاك؟ (C405، C406): a، b، rot ================= */
 ITEM.cgSides = cpItem({ H: 236, tLine: 'gen.cg.together.sides', hint: 'gen.cg.hint.sides', rLine: it => 'gen.cg.reveal.sides.' + it.want, praise: 'praiseThink',
   make: s => ({ want: cgRel(s.a, s.b), tag: 'cg-sides' }),
-  draw(svg, item, tries) { const g = el('g', {}, svg), mx = Math.max(...item.a, ...item.b), u = Math.min(14, 140 / mx);
-    const Pa = cgTri(g, item.a, { cx: 268, y: 172, u, fit: [198, 326] }), Pb = cgTri(g, item.b, { cx: 92, y: 172, u, rot: item.rot || 0, flip: !!item.flip, col: CG.b, fill: CG.fb, fit: [34, 162] });
+  draw(svg, item, tries) { const g = el('g', {}, svg), ua = Math.min(14, 118 / Math.max(...item.a)), ub = Math.min(14, 118 / Math.max(...item.b));   /* كلٌّ بمقياسه، فلا يُحكَم بالحجم بل بالأعداد (D254؛ المراجع A لبوابة M4-U3/U4، 20) */
+    const Pa = cgTri(g, item.a, { cx: 268, y: 172, u: ua, fit: [198, 326] }), Pb = cgTri(g, item.b, { cx: 92, y: 172, u: ub, rot: item.rot || 0, flip: !!item.flip, col: CG.b, fill: CG.fb, fit: [34, 162] }); cgNotScale(g, 180, 226);
     if (tries >= 3) { const A = cgSorted(item.a), B = cgSorted(item.b), m = helpG(svg); A.forEach((v, i) => ciEq(m, 180, 40 + i * 22, `${B[i]} ÷ ${v} = ${+(B[i] / v).toFixed(2)}`, CG.hl, 15)); } return { Pa, Pb }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pa) { rankSides(m, ctx.Pa, item.a); rankSides(m, ctx.Pb, item.b); }   /* المستوى الثاني رسمٌ: الأقصر مع الأقصر… */
     ciRule(m, 180, 30, labelText('cgRuleSides'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
@@ -146,8 +147,12 @@ SCENES.sssBuild = async c => { const L = c.lines, svg = m3Stage(262), g = el('g'
   ciRule(g, 180, 30, labelText('cgRuleSss'), CG.ok, 15); for (const l of L.slice(2)) await S(l); };
 /* د2: الزاوية المحصورة وغير المحصورة، ثم ASA */
 SCENES.cgSasShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg);
-  const one = cs => { g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); preCaseTris(g, cs); };
-  one('sas'); await cgSay(L, 0); one('ssa'); SFX.tick(); await cgSay(L, 1); one('asa'); SFX.tick(); await cgSay(L, 2); one('sas'); ciRule(g, 180, 30, labelText('cgRulePost'), CG.ok, 15); for (const l of L.slice(3)) await S(l); };
+  const one = cs => { g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); return preCaseTris(g, cs); };
+  one('sas'); await cgSay(L, 0); one('ssa'); SFX.tick(); await cgSay(L, 1); one('asa'); SFX.tick(); await cgSay(L, 2);
+  /* برهان ASA من المسلّمة مرئياً (المرجع U3 د2؛ المراجع A لبوابة M4-U3/U4، 23): لو اختلف الضلع لكانت نقطةٌ أخرى س على الضلع، فبالمسلّمة تساوي زاويتُها الزاويةَ الثانية، فتنطبق س على الرأس */
+  const T = one('asa'), [P, Q, R] = T.B, X = [P[0] + (R[0] - P[0]) * .66, P[1] + (R[1] - P[1]) * .66]; ciRule(g, 180, 30, labelText('cgRulePost'), CG.ok, 15);
+  geoLine(g, Q[0], Q[1], X[0], X[1], { color: CG.q, w: 2.6, dash: '6 4' }); el('circle', { cx: X[0], cy: X[1], r: 5, fill: '#fff', stroke: CG.q, 'stroke-width': 2.4 }, g); pfLab(g, X[0] - 12, X[1] - 6, 'س', { col: CG.q, fs: 16 });
+  for (const l of L.slice(3)) await S(l); };
 /* د3: التكبير بمعامل والتطابق بمعامل 1، والضلع المجهول */
 SCENES.simShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), a = c.a || [4, 6, 8], k = c.k || 1.5;
   cgTri(g, a, { cx: 266, y: 190, u: 12 }); await cgSay(L, 0); cgTri(g, a.map(v => v * k), { cx: 100, y: 190, u: 12, col: CG.b, fill: CG.fb }); SFX.tick();

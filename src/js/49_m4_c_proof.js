@@ -31,7 +31,8 @@ const pfKey = (k, v, n) => `pf.${k}${v ? '.v' + v : ''}.${n + 1}`;
 const PF_GENERIC = ['paraSide', 'paraDiag', 'rectDiag', 'rhombDiag', 'conv', 'pyth', 'pyConv', 'perpPf', 'chordPf', 'inscPf', 'bisPf', 'pbPf', 'bisCon', 'perpCon'];
 const PF_LMAP = { 1: { 'أ': 'س', 'ب': 'ص', 'ج': 'ع', 'د': 'ل', 'م': 'ك', 'ن': 'ط', 'ر': 'ح', 'ق': 'ف', 'و': 'ز' },
   2: { 'أ': 'ل', 'ب': 'ك', 'ج': 'ط', 'د': 'ي', 'م': 'ف', 'ن': 'س', 'ر': 'ع', 'ق': 'ص', 'و': 'ح' },
-  3: { 'أ': 'ف', 'ب': 'ح', 'ج': 'ك', 'د': 'ط', 'م': 'س', 'ن': 'ل', 'ر': 'ص', 'ق': 'ع', 'و': 'ي' } };
+  3: { 'أ': 'ف', 'ب': 'ح', 'ج': 'ك', 'د': 'ط', 'م': 'س', 'ن': 'ل', 'ر': 'ص', 'ق': 'ع', 'و': 'ي' },
+  4: { 'أ': 'ع', 'ب': 'ل', 'ج': 'س', 'د': 'ح', 'م': 'ص', 'ن': 'ك', 'ر': 'ف', 'ق': 'ط', 'و': 'ه' } };   /* الرابع لسؤال الاختبار t9 في U4 (المراجع A لبوابة M4-U3/U4، 18) */
 const pfLetters = (s, v) => { const M = PF_LMAP[v]; return M ? String(s).replace(/(^|[^\u0621-\u064A\u064B-\u0652]|وَ)([أبجدمنرقو])(?![\u0621-\u064A\u064B-\u0652])/g, (m, p, c) => p + (M[c] || c)) : s; };
 function pfText(k, v, n) { const key = pfKey(k, v, n), D = CUR ? LDATA[CUR.id] : null; if (!v || (D && D.labels && D.labels[key]) || LABELS.ui[key] || !PF_GENERIC.includes(k)) return labelText(key); return pfLetters(labelText(pfKey(k, 0, n)), v); }
 function pfFig(g, k, o = {}) { if (o.v && PF_LMAP[o.v] && PF_GENERIC.includes(k)) { const h = el('g', {}, g), r = pfFig0(h, k, { ...o, v: 0 }), w = document.createTreeWalker(h, NodeFilter.SHOW_TEXT), L = []; while (w.nextNode()) L.push(w.currentNode); L.forEach(t => { t.data = pfLetters(t.data, o.v); }); return r; }
@@ -259,6 +260,7 @@ function pfReasonPic(g, P) { const sc = el('g', {}, g);
   else if (P.trap) { const Q = isoTrapAt(sc, P.trap, { y1: 50, y2: 150, axis: !!P.axis }); pfAng(sc, Q.B1, Q.B2, Q.T1, { col: PF.a, r: 24, deg: P.trap, dl: 18, fs: 14 }); }
   else if (P.cg) { cgTri(sc, P.cg[0], { cx: 268, y: 160, u: P.u || 13 }); cgTri(sc, P.cg[1], { cx: 92, y: 160, u: P.u || 13, col: CG.b, fill: CG.fb, rot: P.rot || 0 }); }   /* M4-U3 */
   else if (P.cs) preCaseTris(sc, P.cs, P.v || 0);
+  else if (P.tri1) cgTri(sc, P.tri1, { cx: 180, y: 168, u: P.u || Math.min(13, 230 / Math.max(...P.tri1)), rot: P.rot || 0, fs: 15 });   /* مثلثٌ بأضلاعه الثلاثة: حكمٌ وتعليل (المراجع A لبوابة M4-U3/U4، 17) */
   else if (P.sim) { const mx = Math.max(...P.sim.a, ...P.sim.b), u = Math.min(22, 120 / mx); simShape(sc, P.sim.fig, P.sim.a, { cx: 262, y: 160, u, col: CG.a, fill: CG.fa }); simShape(sc, P.sim.fig, P.sim.b, { cx: 96, y: 160, u, col: CG.b, fill: CG.fb }); }
   else if (P.trapD) { const Q = isoTrapAt(sc, P.trapD, { y1: 50, y2: 150 }); geoLine(sc, Q.B1[0], Q.B1[1], Q.T2[0], Q.T2[1], { color: CG.c, w: 2.6 }); geoLine(sc, Q.B2[0], Q.B2[1], Q.T1[0], Q.T1[1], { color: CG.c, w: 2.6 }); }
   else if (P.qd) pfFig(sc, P.qd, { y0: 30, s: 1, v: P.v });
