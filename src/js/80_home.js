@@ -255,6 +255,9 @@ function showHome() {
   const soon = document.createElement('div'); soon.className = 'soon'; soon.setAttribute('role', 'note');
   soon.innerHTML = `<svg viewBox="0 0 72 40" aria-hidden="true">${[14, 36, 58].map(x => `<circle cx="${x}" cy="20" r="6" fill="${css('--muted')}" opacity=".5"/>`).join('')}</svg><span>${esc(G(labelText('soonTrips')))}</span>`;
   path.appendChild(soon);
+  /* عنوان اللافتة الفرعي مرحلةُ الطفل الآن (كان «المرحلة الأولى: البذور» ثابتاً في المراحل كلها): مرحلة الدرس التالي، أو آخر وحدة مفتوحة */
+  { const nb = path.querySelector('.stop.now[data-lesson]'), oi = UNITS.map((u, i) => unitOpen(i)).lastIndexOf(true), cu = nb ? UNITS.find(u => u.lessons.includes(nb.dataset.lesson)) : UNITS[Math.max(0, oi)];
+    const m = stageOf(cu.id), sp = $('#home .banner p'); if (sp) sp.textContent = m === 'm1' ? 'المَرْحَلَةُ الأُولَى: البُذُورُ' : G(UNITS.find(u => stageOf(u.id) === m).sub || ''); }
   const nowBtn = path.querySelector('.stop.now'); if (nowBtn && !FAST) setTimeout(() => { try { nowBtn.scrollIntoView({ block: 'nearest', behavior: RM ? 'auto' : 'smooth' }); } catch (e) {} }, 300);
 }
 function wsStop(U, uOpen) { const open = uOpen && wsOpen(U); const solved = wsSolved(U.id), total = WS[U.id].puzzles.length;
