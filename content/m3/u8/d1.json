@@ -78,6 +78,43 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u7",
+   "art": "lid",
+   "ask": "gen.home.askWheel",
+   "fields": [
+    {
+     "key": "d",
+     "q": "gen.home.wheelD",
+     "min": 10,
+     "max": 100,
+     "val": 60,
+     "unit": "rulCm"
+    },
+    {
+     "key": "c",
+     "q": "gen.home.wheelC",
+     "min": 30,
+     "max": 320,
+     "val": 190,
+     "unit": "rulCm"
+    },
+    {
+     "key": "m",
+     "q": "gen.home.wheelM",
+     "min": 30,
+     "max": 320,
+     "val": 190,
+     "unit": "rulCm"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m3u7"
+   ],
+   "say": "wheelSay"
+  },
+  {
+   "s": "hook",
    "scene": "soHook",
    "lines": [
     "hk.01",
@@ -97,6 +134,10 @@
    "lines": [
     "fs.01",
     "fs.02"
+   ],
+   "predBefore": [
+    "no",
+    "gen.pr.m3u8d1.0"
    ]
   },
   {
@@ -106,6 +147,14 @@
     "eg.01",
     "eg.02",
     "eg.03"
+   ],
+   "predBefore": [
+    12,
+    "gen.pr.m3u8d1.1",
+    [
+     8,
+     6
+    ]
    ]
   },
   {

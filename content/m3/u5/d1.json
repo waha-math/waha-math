@@ -77,6 +77,52 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u4",
+   "art": "tile",
+   "ask": "gen.home.askRoom",
+   "fields": [
+    {
+     "key": "s",
+     "q": "gen.home.roomS",
+     "min": 10,
+     "max": 100,
+     "val": 30,
+     "unit": "rulCm",
+     "step": 5
+    },
+    {
+     "key": "r",
+     "q": "gen.home.roomR",
+     "min": 1,
+     "max": 40,
+     "val": 10,
+     "unit": "homeTiles"
+    },
+    {
+     "key": "c",
+     "q": "gen.home.roomC",
+     "min": 1,
+     "max": 40,
+     "val": 10,
+     "unit": "homeTiles"
+    },
+    {
+     "key": "am",
+     "q": "gen.home.roomAm",
+     "min": 1,
+     "max": 80,
+     "val": 12,
+     "unit": "arM2"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m3u4"
+   ],
+   "say": "tileRoom"
+  },
+  {
+   "s": "hook",
    "scene": "coordHook",
    "lines": [
     "hk.01",
@@ -99,6 +145,10 @@
     "ax.02",
     "ax.03",
     "ax.04"
+   ],
+   "predBefore": [
+    "no",
+    "gen.pr.m3u5d1.0"
    ]
   },
   {

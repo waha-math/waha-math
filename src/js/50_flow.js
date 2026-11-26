@@ -114,7 +114,8 @@ async function runLesson(id, opt = {}) {
 }
 async function runStage(L, st) {
   if (st.mat) await SCENES.material(st.mat);                              // مسار «معي»: الأشياء الحقيقية قبل الشاشة (D238)
-  if (st.scene) { const f = SCENES[st.scene]; if (!f) throw new Error('مشهد غير معروف: ' + st.scene); await f(st, L); return; }
+  if (st.predBefore) { newStage(230, { oasis: false, ground: 0 }); await predictAsk(st.predBefore); }   /* predBefore: توقّعٌ قبل أن يبدأ المشهد، حين يرسم المشهد نتيجته مع أول جملة (D284 (3)) */
+  if (st.scene) { const f = SCENES[st.scene]; if (!f) throw new Error('مشهد غير معروف: ' + st.scene); PRED_AFTER = st.predAfter && st.s !== 'game' ? { ...st.predAfter } : null; try { await f(st, L); } finally { PRED_AFTER = null; } return; }   /* predAfter: توقّعٌ بعد جملة (D284 (3)) */
   if (st.s === 'practice') return practiceStage(L, st);
   if (st.s === 'chaos') return chaosStage(L.chaos);
   if (st.s === 'mastery') return masteryStage(L);

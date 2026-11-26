@@ -99,6 +99,10 @@
     "rf.03",
     "rf.04",
     "rf.05"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m3u4d2.0"
    ]
   },
   {

@@ -95,6 +95,21 @@ const HOME_SAY = {
     await S('gen.home.decDiff'); },
   ropeAgain: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }); homeArt(svg, 'tape'); const t = el('text', { x: 180, y: 190, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg);
     t.textContent = `${mcTxt(v.rm, v.rc)} = ${((v.rm * 100 + v.rc) / 100).toFixed(2)} ${labelText('lenM')}`; await S('gen.home.ropeSay'); },
+  /* S3-U4 إلى S3-U9 (tools/homemap.py، D284 (6)) */
+  tileRoom: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }), a1 = Math.round(v.r * v.c * v.s * v.s / 1000) / 10, T = (y, t, col) => { const e = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); e.textContent = t; };
+    T(70, `${v.r} × ${v.c} × ${v.s} × ${v.s} = ${v.r * v.c * v.s * v.s} ${labelText('arCm2')}`, LENC.ink); T(118, `≈ ${decFmt(a1)} ${labelText('arM2')}`, DEC.ok); T(170, `${v.am} ${labelText('arM2')}`, DEC.frac);
+    await S(Math.abs(a1 - v.am) <= Math.max(1, v.am * .1) ? 'gen.home.roomClose' : 'gen.home.roomFar'); },
+  rugArea: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }), A = v.l * v.w, T = (y, t, col) => { const e = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); e.textContent = t; };
+    T(90, `${v.l} × ${v.w} = ${A} ${labelText('arCm2')}`, LENC.ink); T(150, `= ${decFmt(Math.round(A / 100) / 100)} ${labelText('arM2')}`, DEC.ok); await S('gen.home.rugSay'); },
+  treasureAgain: async (r, v) => S(v.found === 0 ? 'gen.home.trFound' : 'gen.home.trNot'),
+  fanSay: async (r, v) => S(Math.abs(360 / v.n - v.ang) <= 5 ? 'gen.home.fanOk' : 'gen.home.fanNo'),
+  mirrorAgain: async (r, v) => S(v.hand === 1 ? 'gen.home.mirOk' : 'gen.home.mirNo'),
+  wheelSay: async (r, v) => S(Math.abs(v.c - 3.14 * v.d) > 3 ? 'gen.home.wheelCalc' : Math.abs(v.m - v.c) <= 10 ? 'gen.home.wheelOk' : 'gen.home.wheelFar'),
+  plateAgain: async (r, v) => S(Math.abs(v.c - 3.14 * v.d) <= 2 ? 'gen.home.plateOk' : 'gen.home.plateNo'),
+  boxSay: async (r, v) => S(Math.abs(v.sa - 2 * (v.a * v.b + v.b * v.c + v.a * v.c)) <= 10 ? 'gen.home.boxOk' : 'gen.home.boxNo'),
+  viewsAgain: async () => S('gen.home.viewsSay'),
+  volSay: async (r, v) => { const r1 = v.v1 / v.v2, r2 = v.k1 / v.k2; return S(Math.abs(r1 - r2) <= .3 * r1 ? 'gen.home.volClose' : 'gen.home.volFar'); },
+  estAgain: async (r, v) => S(Math.abs(v.est - v.calc) <= .25 * v.calc ? 'gen.home.estClose' : 'gen.home.estFar'),
   /* S3-U2: فحص النجّار على الباب (فرقٌ حتى 1 سم مقبول في الكبير)، وبعد أسبوع باب الثلاجة أو إطار صورة؛ S3-U3: مساحة العلّاقة ومثلث الشريحة */
   doorSay: async (r, v) => S((Math.abs(v.d1 - v.d2) <= 1) === (v.v === 0) ? 'gen.home.doorOk' : 'gen.home.doorNo'),
   frameDiag: async (r, v) => S(Math.abs(v.f1 - v.f2) <= 1 ? 'gen.home.frameRect' : 'gen.home.frameLean'),

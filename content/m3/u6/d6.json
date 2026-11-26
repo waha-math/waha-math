@@ -66,6 +66,32 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u5",
+   "art": "corner",
+   "again": [
+    {
+     "key": "found",
+     "q": "gen.home.trQ",
+     "pick": [
+      [
+       "yes",
+       "gen.home.trYes"
+      ],
+      [
+       "no",
+       "gen.home.trNo"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askTr",
+   "sayAgain": "treasureAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 6,
    "lines": [

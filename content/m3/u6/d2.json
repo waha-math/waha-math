@@ -95,6 +95,10 @@
     "tr.02",
     "tr.03",
     "tr.04"
+   ],
+   "predBefore": [
+    "no",
+    "gen.pr.m3u6d2.0"
    ]
   },
   {

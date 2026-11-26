@@ -65,6 +65,36 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u4",
+   "art": "tile",
+   "again": [
+    {
+     "key": "l",
+     "q": "gen.home.rugL",
+     "min": 20,
+     "max": 400,
+     "val": 150,
+     "unit": "rulCm",
+     "step": 5
+    },
+    {
+     "key": "w",
+     "q": "gen.home.rugW",
+     "min": 20,
+     "max": 400,
+     "val": 100,
+     "unit": "rulCm",
+     "step": 5
+    }
+   ],
+   "askAgain": "gen.home.askRug",
+   "sayAgain": "rugArea",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 5,
    "lines": [

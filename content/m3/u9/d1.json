@@ -71,6 +71,57 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u8",
+   "art": "shapes",
+   "ask": "gen.home.askBox",
+   "fields": [
+    {
+     "key": "a",
+     "q": "gen.home.boxA",
+     "min": 1,
+     "max": 40,
+     "val": 10,
+     "unit": "rulCm"
+    },
+    {
+     "key": "b",
+     "q": "gen.home.boxB",
+     "min": 1,
+     "max": 40,
+     "val": 6,
+     "unit": "rulCm"
+    },
+    {
+     "key": "c",
+     "q": "gen.home.boxC",
+     "min": 1,
+     "max": 40,
+     "val": 6,
+     "unit": "rulCm"
+    },
+    {
+     "key": "sa",
+     "q": "gen.home.boxSa",
+     "min": 10,
+     "max": 2000,
+     "val": 300,
+     "unit": "arCm2",
+     "step": 2
+    },
+    {
+     "key": "ph",
+     "q": "gen.home.boxPh",
+     "photo": "boxnet"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m3u8"
+   ],
+   "say": "boxSay"
+  },
+  {
+   "s": "hook",
    "scene": "voHook",
    "lines": [
     "hk.01",
@@ -98,6 +149,10 @@
    "lines": [
     "va.01",
     "va.02"
+   ],
+   "predBefore": [
+    "no",
+    "gen.pr.m3u9d1.0"
    ]
   },
   {

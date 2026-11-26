@@ -61,6 +61,36 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u9",
+   "art": "shapes",
+   "again": [
+    {
+     "key": "est",
+     "q": "gen.home.estE",
+     "min": 100,
+     "max": 20000,
+     "val": 2000,
+     "unit": "voCm3",
+     "step": 100
+    },
+    {
+     "key": "calc",
+     "q": "gen.home.estC",
+     "min": 100,
+     "max": 20000,
+     "val": 2000,
+     "unit": "voCm3",
+     "step": 100
+    }
+   ],
+   "askAgain": "gen.home.askEst",
+   "sayAgain": "estAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 10,
    "lines": [

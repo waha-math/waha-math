@@ -131,6 +131,10 @@
    "lines": [
     "cs.01",
     "cs.02"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m3u4d3.0"
    ]
   },
   {
@@ -141,6 +145,10 @@
     "cs.03",
     "cs.04",
     "cs.05"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m3u4d3.1"
    ]
   },
   {

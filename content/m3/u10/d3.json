@@ -77,6 +77,36 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u9",
+   "art": "shapes",
+   "again": [
+    {
+     "key": "est",
+     "q": "gen.home.estE",
+     "min": 100,
+     "max": 20000,
+     "val": 2000,
+     "unit": "voCm3",
+     "step": 100
+    },
+    {
+     "key": "calc",
+     "q": "gen.home.estC",
+     "min": 100,
+     "max": 20000,
+     "val": 2000,
+     "unit": "voCm3",
+     "step": 100
+    }
+   ],
+   "askAgain": "gen.home.askEst",
+   "sayAgain": "estAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "scHook",
    "lines": [
     "hk.01",
@@ -96,6 +126,14 @@
    "lines": [
     "sc.01",
     "sc.02"
+   ],
+   "predBefore": [
+    2,
+    "gen.pr.m3u10d3.0",
+    [
+     3,
+     18
+    ]
    ]
   },
   {
@@ -104,6 +142,14 @@
    "lines": [
     "up.01",
     "up.02"
+   ],
+   "predBefore": [
+    15,
+    "gen.pr.m3u10d3.1",
+    [
+     8,
+     5
+    ]
    ]
   },
   {

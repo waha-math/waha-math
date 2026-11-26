@@ -113,6 +113,10 @@
     "vw.02",
     "vw.03",
     "vw.04"
+   ],
+   "predBefore": [
+    "no",
+    "gen.pr.m3u8d5.0"
    ]
   },
   {
@@ -122,6 +126,10 @@
     "gf.01",
     "gf.02",
     "gf.03"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m3u8d5.1"
    ]
   },
   {

@@ -70,6 +70,34 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u7",
+   "art": "lid",
+   "again": [
+    {
+     "key": "d",
+     "q": "gen.home.plateD",
+     "min": 5,
+     "max": 40,
+     "val": 20,
+     "unit": "rulCm"
+    },
+    {
+     "key": "c",
+     "q": "gen.home.plateC",
+     "min": 15,
+     "max": 130,
+     "val": 63,
+     "unit": "rulCm"
+    }
+   ],
+   "askAgain": "gen.home.askPlate",
+   "sayAgain": "plateAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "netHook",
    "lines": [
     "hk.01",
@@ -91,6 +119,10 @@
     "nt.02",
     "nt.03",
     "nt.04"
+   ],
+   "predBefore": [
+    "no",
+    "gen.pr.m3u8d3.0"
    ]
   },
   {

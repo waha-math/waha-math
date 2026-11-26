@@ -61,6 +61,32 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u8",
+   "art": "shapes",
+   "again": [
+    {
+     "key": "g",
+     "q": "gen.home.viewsQ",
+     "pick": [
+      [
+       "yes",
+       "gen.home.viewsYes"
+      ],
+      [
+       "no",
+       "gen.home.viewsNo"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askViews",
+   "sayAgain": "viewsAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 9,
    "lines": [

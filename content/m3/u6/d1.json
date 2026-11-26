@@ -75,6 +75,31 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u5",
+   "art": "corner",
+   "ask": "gen.home.askMap",
+   "fields": [
+    {
+     "key": "n",
+     "q": "gen.home.mapN",
+     "min": 0,
+     "max": 6,
+     "val": 3,
+     "unit": "homeOf6"
+    },
+    {
+     "key": "ph",
+     "q": "gen.home.mapPh",
+     "photo": "roommap"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m3u5"
+   ]
+  },
+  {
+   "s": "hook",
    "scene": "mirrorHook",
    "lines": [
     "hk.01",
@@ -96,6 +121,14 @@
     "rf.02",
     "rf.03",
     "rf.04"
+   ],
+   "predBefore": [
+    3,
+    "gen.pr.m3u6d1.0",
+    [
+     6,
+     1
+    ]
    ]
   },
   {

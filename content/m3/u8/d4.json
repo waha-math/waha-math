@@ -89,6 +89,10 @@
     "sa.01",
     "sa.02",
     "sa.03"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m3u8d4.0"
    ]
   },
   {

@@ -64,6 +64,32 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u6",
+   "art": "shapes",
+   "again": [
+    {
+     "key": "hand",
+     "q": "gen.home.mirQ",
+     "pick": [
+      [
+       "r",
+       "gen.home.mirR"
+      ],
+      [
+       "l",
+       "gen.home.mirL"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askMir",
+   "sayAgain": "mirrorAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 7,
    "lines": [

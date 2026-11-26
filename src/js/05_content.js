@@ -28,7 +28,14 @@ const OBJ_KEY = {}; for (const [k, v] of Object.entries(LABELS.obj || {})) OBJ_K
 const objClip = s => { const k = s && s.label && OBJ_KEY[s.label]; return k && GL['gen.obj.' + k] ? 'gen.obj.' + k : null; };
 const hasLine = (id, L) => { try { lineOf(id, L); return true; } catch (e) { return false; } };
 /* S('hook.01') يقول جملة الدرس الجاري؛ S(['a','b']) يقولها بالتتابع */
-async function S(id, opt) { if (Array.isArray(id)) { for (const x of id) await S(x, opt); return; } if (!id) return; return say(...lineOf(id), opt); }
+/* توقّعٌ بعد جملةٍ من مشهد (D244، D284 (3)): step.predAfter = { معرّف الجملة: [الجواب، جملة السؤال، الخيارات العددية؟] }، يُسأل بعد أن تُقال الجملة وقبل أن يُرسم ما بعدها.
+   الجواب «yes» أو «no» سؤالُ نعم أو لا، والعدد سؤالٌ عدديّ (بالخيارات إن أُعطيت) */
+let PRED_AFTER = null;
+async function S(id, opt) { if (Array.isArray(id)) { for (const x of id) await S(x, opt); return; } if (!id) return; const r = await say(...lineOf(id), opt);
+  const p = PRED_AFTER && typeof id === 'string' && PRED_AFTER[id]; if (p) { delete PRED_AFTER[id]; await predictAsk(p); } return r; }
+async function predictAsk([want, q, opts]) { if (want === 'yes' || want === 'no') return axPredictYN(want, q);
+  if (!opts) return axPredictNum(want, q);
+  say(...lineOf(q), { free: true }); const np = numberPick(shuffle([want, ...opts]), want); const a = await np.p; hush(); np.box.remove(); logAttempt({ scene: 'explore', tag: 'axPredict', ok: a === want }); return a; }
 const T = id => G(lineOf(id)[2]);                       // النص المعروض لجملة (للأزرار والبطاقات)
 
 /* بنوك التنويع (M6): لا تتكرّر الصيغة نفسها مرتين متتاليتين */

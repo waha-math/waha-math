@@ -73,6 +73,53 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u9",
+   "art": "shapes",
+   "ask": "gen.home.askVol",
+   "fields": [
+    {
+     "key": "v1",
+     "q": "gen.home.volV1",
+     "min": 100,
+     "max": 20000,
+     "val": 6000,
+     "unit": "voCm3",
+     "step": 100
+    },
+    {
+     "key": "v2",
+     "q": "gen.home.volV2",
+     "min": 100,
+     "max": 20000,
+     "val": 2000,
+     "unit": "voCm3",
+     "step": 100
+    },
+    {
+     "key": "k1",
+     "q": "gen.home.volK1",
+     "min": 1,
+     "max": 60,
+     "val": 10,
+     "unit": "homeCups"
+    },
+    {
+     "key": "k2",
+     "q": "gen.home.volK2",
+     "min": 1,
+     "max": 60,
+     "val": 4,
+     "unit": "homeCups"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m3u9"
+   ],
+   "say": "volSay"
+  },
+  {
+   "s": "hook",
    "scene": "raHook",
    "lines": [
     "hk.01",
@@ -93,6 +140,10 @@
     "rs.01",
     "rs.02",
     "rs.03"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m3u10d1.0"
    ]
   },
   {
@@ -101,6 +152,14 @@
    "lines": [
     "tb.01",
     "tb.02"
+   ],
+   "predBefore": [
+    9,
+    "gen.pr.m3u10d1.1",
+    [
+     6,
+     5
+    ]
    ]
   },
   {
@@ -109,6 +168,10 @@
    "lines": [
     "fr.01",
     "fr.02"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m3u10d1.2"
    ]
   },
   {

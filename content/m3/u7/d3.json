@@ -79,6 +79,32 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u6",
+   "art": "shapes",
+   "again": [
+    {
+     "key": "hand",
+     "q": "gen.home.mirQ",
+     "pick": [
+      [
+       "r",
+       "gen.home.mirR"
+      ],
+      [
+       "l",
+       "gen.home.mirL"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askMir",
+   "sayAgain": "mirrorAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "areaHook",
    "lines": [
     "hk.01",
@@ -101,6 +127,10 @@
     "ds.03",
     "ds.04",
     "ds.05"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m3u7d3.0"
    ]
   },
   {
@@ -110,6 +140,10 @@
     "bd.01",
     "bd.02",
     "bd.03"
+   ],
+   "predBefore": [
+    "yes",
+    "gen.pr.m3u7d3.1"
    ]
   },
   {

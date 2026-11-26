@@ -75,6 +75,32 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u5",
+   "art": "corner",
+   "again": [
+    {
+     "key": "found",
+     "q": "gen.home.trQ",
+     "pick": [
+      [
+       "yes",
+       "gen.home.trYes"
+      ],
+      [
+       "no",
+       "gen.home.trNo"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askTr",
+   "sayAgain": "treasureAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "rotHook",
    "lines": [
     "hk.01",
@@ -96,6 +122,10 @@
     "ro.02",
     "ro.03",
     "ro.04"
+   ],
+   "predBefore": [
+    "no",
+    "gen.pr.m3u6d3.0"
    ]
   },
   {

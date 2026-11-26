@@ -85,6 +85,41 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u6",
+   "art": "shapes",
+   "ask": "gen.home.askFan",
+   "fields": [
+    {
+     "key": "n",
+     "q": "gen.home.fanN",
+     "min": 2,
+     "max": 8,
+     "val": 3,
+     "unit": "homeBlades"
+    },
+    {
+     "key": "ang",
+     "q": "gen.home.fanAng",
+     "min": 30,
+     "max": 180,
+     "val": 120,
+     "unit": "cpDeg",
+     "step": 5
+    },
+    {
+     "key": "ph",
+     "q": "gen.home.fanPh",
+     "photo": "fan"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m3u6"
+   ],
+   "say": "fanSay"
+  },
+  {
+   "s": "hook",
    "scene": "circHook",
    "lines": [
     "hk.01",
@@ -106,6 +141,14 @@
     "cs.02",
     "cs.03",
     "cs.04"
+   ],
+   "predBefore": [
+    6,
+    "gen.pr.m3u7d1.0",
+    [
+     3,
+     9
+    ]
    ]
   },
   {

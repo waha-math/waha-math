@@ -76,6 +76,36 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u4",
+   "art": "tile",
+   "again": [
+    {
+     "key": "l",
+     "q": "gen.home.rugL",
+     "min": 20,
+     "max": 400,
+     "val": 150,
+     "unit": "rulCm",
+     "step": 5
+    },
+    {
+     "key": "w",
+     "q": "gen.home.rugW",
+     "min": 20,
+     "max": 400,
+     "val": 100,
+     "unit": "rulCm",
+     "step": 5
+    }
+   ],
+   "askAgain": "gen.home.askRug",
+   "sayAgain": "rugArea",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "distHook",
    "lines": [
     "hk.01",
@@ -97,6 +127,14 @@
     "ds.02",
     "ds.03",
     "ds.04"
+   ],
+   "predBefore": [
+    5,
+    "gen.pr.m3u5d3.0",
+    [
+     7,
+     6
+    ]
    ]
   },
   {
