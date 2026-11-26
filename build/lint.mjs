@@ -1120,6 +1120,11 @@ export function lint(content, js) {
         if (v.t === 'yesno' && !v.solve) errors.push(`${L.id}: yesno «${v.q}» بمساعدة بلا جملة حلّ (solve): محاولته الرابعة كالأولى`);
         if (v.t === 'place' && v.ref === 'queue') { const c = LINES.get(v.q.startsWith('gen.') ? v.q : L.id + '.' + v.q); const t = c ? bare(c.text) : '';
           for (const [w, k] of [['آخر', 'last'], ['أول', 'first']]) if (t.includes(w + ' الطابور') && v.word !== k) errors.push(`${L.id}: «${v.q}» يسمّي «${w} الطابور» وكلمة حلّه ${v.word || 'من الفراغ'}: word '${k}'`); } } } }
+  // مهمة البيت (homeNums): كل قيمةٍ يكتبها الطفل في مدى ما يقبله التخزين (01_store.js: 0..99999)، وإلا مُحيت بالإصلاح
+  { const walkH = (v, where) => { if (Array.isArray(v)) return v.forEach(x => walkH(x, where)); if (!v || typeof v !== 'object') return;
+      if (v.scene === 'homeNums') for (const f of [...(v.fields || []), ...(v.again || [])]) if (f && typeof f.max === 'number' && (f.max > 99999 || f.min < 0)) errors.push(`${where}: حقل مهمة البيت «${f.key}» مداه ${f.min}..${f.max} خارج ما يقبله التخزين (0..99999)`);
+      for (const x of Object.values(v)) walkH(x, where); };
+    for (const L of Object.values(lessons)) walkH(L.flow, L.id); }
   // 4ج) في بند التعليل لا يكون الصحيح أطول الأسباب بفرق ظاهر (الفحص المستقل الثالث، ن3): طوله بلا تشكيل ≤ 1.2 × أطول المشتّتين؛
   //     وكذلك بطاقتا «أيّ أمر نفّذ الروبوت؟» و«أيّ وصف يناسب الطريق؟» (S1-U3): نصّهما ظاهر كأسباب التعليل، فلا يدلّ الطول على الصحيحة
   const bare = t => String(t || '').replace(/\{([^|{}]*)\|[^{}]*\}/g, '$1').replace(/[\u064B-\u0652\u0670]/g, '').replace(/\s+/g, ' ').trim().length;
