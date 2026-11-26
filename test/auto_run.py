@@ -125,11 +125,20 @@ CLIPT = """() => { const s = document.querySelector('#stage svg'); if (!s) retur
     .concat([...s.querySelectorAll('[data-ring]')].filter(g => { const b = g.getBoundingClientRect(); return b.width && (b.left < R.left - 1 || b.right > R.right + 1 || b.top < R.top - 1 || b.bottom > R.bottom + 1); }).map(() => 'حلقة الجواب')); }"""
 # ولا يتراكب نصّان على المسرح، ولا يخرج نصٌّ عن الإطار الورقي (x 20..340) في م3 وم4 (المراجع B لبوابة S3-U4/U5، 11): صندوق الحروف لا صندوق السطر،
 # فخطّ النسخ سطره أطول كثيراً من حروفه؛ والنسختان المتطابقتان في موضعٍ واحد (ظلٌّ) ليستا تراكباً
+def fail_test_wrong(ft, les, tn):
+    s = ft.setdefault(les, set()); k = tuple(tn) if tn else None
+    if k is not None and k in s: return True          # خطوةٌ أخرى من البند الخاطئ نفسه
+    if len(s) < 3: s.add(k if k is not None else len(s)); return True
+    return False
 TEXTOV = """() => { const s = document.querySelector('#stage svg'); if (!s) return []; const vis = e => !e.closest('[hidden]') && !e.closest('[clip-path]') && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > .05 && !e.closest('[opacity="0"]');
   const T = [...s.querySelectorAll('text')].filter(t => t.textContent.trim() && vis(t)).map(t => { const r = t.getBoundingClientRect(), cy = (r.top + r.bottom) / 2, hh = r.height * .3; return { t: t.textContent.trim().slice(0, 24), b: { left: r.left, right: r.right, width: r.width, top: cy - hh, bottom: cy + hh, height: 2 * hh } }; }).filter(x => x.b.width); const out = [];
   for (let i = 0; i < T.length; i++) for (let j = i + 1; j < T.length; j++) { const a = T[i].b, b = T[j].b; if (T[i].t === T[j].t && Math.abs(a.left - b.left) < 3 && Math.abs(a.top - b.top) < 3) continue; const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
     if (w > 2 && h > 3 && w * h > .15 * Math.min(a.width * a.height, b.width * b.height)) out.push(T[i].t + ' ⟂ ' + T[j].t); }
-  const fr = s.querySelector('rect[x="20"][y="14"][rx="14"]'); if (fr) { const F = fr.getBoundingClientRect(); for (const x of T) { const b = x.b; if (b.left < F.left - 2 || b.right > F.right + 2 || b.top < F.top - 2 || b.bottom > F.bottom + 2) out.push('خارج الإطار: ' + x.t); } }
+  const fr = s.querySelector('rect[x="20"][y="14"][rx="14"]'); if (fr) { const F = fr.getBoundingClientRect(); for (const x of T) { const b = x.b; if (b.left < F.left - 2 || b.right > F.right + 2 || b.top < F.top - 2 || b.bottom > F.bottom + 2) out.push('خارج الإطار: ' + x.t); }
+    /* والرسم أيضاً (المراجع B لبوابة S3-U8/U9، 5 و8 و10 و11 (د)): كل شكلٍ مرئي بعد الإطار، بلونٍ أو خطّ، داخله */
+    const paint = e => { const c = getComputedStyle(e), f = c.fill, k = c.stroke; return (f && f !== 'none' && !/rgba\(.*, 0\)$/.test(f) && f !== 'transparent') || (k && k !== 'none' && !/rgba\(.*, 0\)$/.test(k)); };
+    for (const e of s.querySelectorAll('circle, ellipse, polygon, polyline, path, line, rect')) { if (e === fr || !(fr.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING) || !vis(e) || !paint(e) || e.closest('.chaosbody, .hostbody, .charbody') || e.closest('[role="button"]') && e.getAttribute('fill') === 'transparent') continue;
+      const b = e.getBoundingClientRect(); if (!b.width && !b.height) continue; if (b.left < F.left - 3 || b.right > F.right + 3 || b.top < F.top - 3 || b.bottom > F.bottom + 3) { out.push('رسمٌ خارج الإطار: ' + e.tagName + (e.closest('[data-help]') ? ' (مساعدة)' : '')); break; } } }
   return out; }"""
 # ولا يغطّي هدفٌ شارةَ عدٍّ تحته (الفحص المستقل D2 لبوابة S1-U4 (8): بطاقة الاختيار الوسطى على أسفل البرج وشارته «١» في فوضى S1-U2 د5): هدفٌ مرسوم بعد
 # الشارة ولا يحويها يغطّي ربعها أو أكثر
@@ -253,7 +262,7 @@ async def main():
           elif MODE == 'deepall' and st['mode'] == 'practice' and st['itype'] and not st['twin'] and deep_wrong(deep, (tid, st['scene'], st['q'], a['kind']), st.get('tryN')): how = 'wrong'   # كل بند بمساعدة: الدرجات الأربع والكشف ثم التوأم (صحيحاً)
           elif MODE == 'remedialdeep' and st['mode'] == 'mastery': how = 'wrong'   # الإتقان يخفق فيُشغَّل العلاج، وبنوده بالدرجات الأربع ثم التوأم
           elif MODE == 'remedialdeep' and st['mode'] == 'remedial' and st['itype'] and not st['twin'] and deep_wrong(deep, (tid, st['scene'], st['q'], a['kind']), st.get('tryN')): how = 'wrong'
-          elif MODE == 'failtest' and st['mode'] == 'test' and failed_test.setdefault(sc.split(':')[0], 0) < 3: failed_test[sc.split(':')[0]] += 1; how = 'wrong'
+          elif MODE == 'failtest' and st['mode'] == 'test' and fail_test_wrong(failed_test, sc.split(':')[0], st.get('tryN')): how = 'wrong'   # ثلاثة بنود خاطئة لا ثلاث خطوات (المراجع B لبوابة S3-U8/U9، 11 (و): «املأ» خطواتٌ كثيرة لبند واحد)
           elif MODE == 'failmastery' and st['mode'] == 'mastery': how = 'wrong'
           elif MODE == 'failreview' and st['mode'] == 'review':   # المبدأ 14: خطأ في بند ثم في البند الثاني ← إعادة الدرس (بالبنود لا بالانتظارات، فالبند ذو الخطوات الكثيرة خطأ واحد)
             aid = await pg.evaluate("() => { const it = window.__item; if (!it) return null; if (!it.__aid) it.__aid = (window.__aidN = (window.__aidN || 0) + 1); return it.__aid; }")

@@ -18,7 +18,9 @@ const ciUnitOf = (ask, u) => ['area', 'half'].includes(ask) ? u + '2' : ['ratio'
 /* حسابٌ بالأعداد وحدها: يُكتب من اليسار ويُعكس للأرقام العربية (MF)، فيُقرأ من اليمين «3.14 × 10 = 31.4» */
 function ciEq(parent, x, y, s, col = CI.ok, fs = 18) { const t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', 'pointer-events': 'none' }, parent); return mfSet(t, s); }
 /* قانونٌ بالكلمات (نصٌّ من اليمين) */
-function ciRule(parent, x, y, txt, col = CI.think, fs = 16) { const g = el('g', { 'pointer-events': 'none' }, parent), w = Math.min(340, Math.max(120, 9.4 * plain(txt).length + 30));
+function ciRule(parent, x, y, txt, col = CI.think, fs = 16) { const g = el('g', { 'pointer-events': 'none' }, parent), w = Math.min(312, Math.max(120, 9.4 * plain(txt).length + 30));
+  /* البطاقة داخل الإطار الورقي أياً كان موضعها المطلوب (المراجع B لبوابة S3-U8/U9، 4) */
+  { const sv = parent.ownerSVGElement || parent, vb = sv.viewBox && sv.viewBox.baseVal, H = vb && vb.height ? vb.height : 250; y = Math.min(Math.max(y, 14 + 22), H - 14 - 20); x = Math.min(Math.max(x, 20 + w / 2 + 2), 340 - w / 2 - 2); }
   el('rect', { x: x - w / 2, y: y - 19, width: w, height: 36, rx: 12, fill: '#fff', stroke: col, 'stroke-width': 2.4 }, g); const t = el('text', { x, y: y + 6, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, direction: 'rtl' }, g); t.textContent = txt; return g; }
 /* الحرف π مرسوماً (لا يحمله خط القراءة) */
 function ciPi(parent, x, y, s = 1, col = CI.think) { const g = el('g', { transform: `translate(${x} ${y}) scale(${s})`, 'pointer-events': 'none' }, parent);

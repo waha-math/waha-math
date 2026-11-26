@@ -36,11 +36,12 @@ ITEM.voCount = cpItem({ H: 250, tLine: 'gen.vo.together.count', hint: 'gen.vo.hi
 /* ================= ② «املأ الصندوق»: طبقة بعد طبقة حتى يمتلئ، والعدّاد يعدّ المكعبات (C309، إنتاج) ================= */
 ITEM.voFill = {
   make(spec) { return { ...spec, want: spec.h, tag: 'vo-fill' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), host = el('g', {}, svg); let v = 0, reg = null;
-    const cnt = el('text', { x: 310, y: 40, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 800, fill: VO.ok, 'pointer-events': 'none' }, svg);
-    const draw = () => { host.innerHTML = ''; voStack(host, item.w, item.d, item.h, { cy: 118, layers: v }); cnt.textContent = MS(String(v * item.w * item.d)); /*T*/window.__cdV = v; window.__cdWant = item.h;/*/T*/ if (reg) reg(); };
+  /* الزرّان داخل الورقة، والعدّاد بتسميته، والحلّ المشترك يملأ الطبقة الأولى ويترك الطبقات للطفل (المراجع B لبوابة S3-U8/U9، 12) */
+  async ask(item, mode, tries) { const svg = m3Stage(262), host = el('g', {}, svg); let v = tries >= 3 ? 1 : 0, reg = null;
+    const cnt = el('text', { x: 326, y: 42, 'text-anchor': 'start', 'font-size': 18, 'font-weight': 800, fill: VO.ok, direction: 'rtl', 'pointer-events': 'none' }, svg);   /* يبدأ من يمين الإطار ويمتدّ إلى اليسار */
+    const draw = () => { host.innerHTML = ''; voStack(host, item.w, item.d, item.h, { cy: 118, layers: v }); cnt.textContent = `${labelText('voCntL')}: ${MS(String(v * item.w * item.d))}`; /*T*/window.__cdV = v; window.__cdWant = item.h;/*/T*/ if (reg) reg(); };
     draw(); if (tries >= 3) ciEq(helpG(svg), 180, 30, `${item.w} × ${item.d} = ${item.w * item.d}`, VO.hl, 16);
-    const btns = svgSteppers(svg, [[44, 238], [316, 238]], dd => { v = Math.max(0, Math.min(item.h + 1, v + dd)); SFX.tick(); draw(); }, { key: 'cd', labels: ['voLess', 'voMore'] });
+    const btns = svgSteppers(svg, [[48, 214], [312, 214]], dd => { v = Math.max(0, Math.min(item.h + 1, v + dd)); SFX.tick(); draw(); }, { key: 'cd', labels: ['voLess', 'voMore'] });
     await S(tries >= 3 ? 'gen.vo.together.fill' : item.q || 'gen.vo.q.fill');
     const t = item.h, tap = b => b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     const fin = rulDone(() => { reg = null; btns.forEach(b => { b.onclick = null; b.onkeydown = null; b.removeAttribute('role'); }); });

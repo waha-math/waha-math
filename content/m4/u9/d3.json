@@ -80,6 +80,42 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u8",
+   "art": "shadow",
+   "again": [
+    {
+     "key": "d2",
+     "q": "gen.home.lampD2",
+     "min": 3,
+     "max": 40,
+     "val": 15,
+     "unit": "lenM"
+    },
+    {
+     "key": "a2",
+     "q": "gen.home.lampA2",
+     "min": 10,
+     "max": 80,
+     "val": 30,
+     "unit": "cpDeg"
+    },
+    {
+     "key": "h2",
+     "q": "gen.home.lampH2",
+     "min": 1,
+     "max": 40,
+     "val": 8,
+     "unit": "lenM"
+    }
+   ],
+   "askAgain": "gen.home.askLamp2",
+   "sayAgain": "lampAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "c9ProtHook",
    "lines": [
     "hk.01",

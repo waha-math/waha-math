@@ -274,7 +274,8 @@ ITEM.twoReasons = {
       b.onclick = () => { if (on.has(i)) on.delete(i); else on.add(i); b.classList.toggle('sel', on.has(i)); b.setAttribute('aria-pressed', on.has(i)); SFX.tick(); upd(); }; box.appendChild(b); return b; });
     let db = null; const upd = () => { if (db) { db.disabled = on.size !== 2; db.setAttribute('aria-disabled', String(on.size !== 2)); } };   /* «تمّ» حين تُختار بطاقتان بالضبط، فلا تُستهلك محاولة بلمسة عارضة (المراجع B لبوابة S3-U0/U1، 7) */
     fitDense();   /* سؤالٌ وثلاث بطاقات طويلة (م4): الدرس الكثيف */
-    /* المستوى الثاني بلا شطب: الجواب الخاطئ فيه المشتّت دائماً، فشطبه يكشف البطاقتين (المراجع A لبوابة S3-U8/U9، 9) */
+    /* المستوى الثاني بلا شطب: الجواب الخاطئ فيه المشتّت دائماً، فشطبه يكشف البطاقتين (المراجع A لبوابة S3-U8/U9، 9)؛ بل تُحاط بطاقتا الطفل السابقتان بخطّ متقطّع، وتبقيان حتى يجيب («إحدى بطاقتيك لا تُقنع») */
+    if (tries === 2 && item._last) [...item._last].forEach(ch => { const i = 'abc'.indexOf(ch); if (i >= 0) btns[order.indexOf(i)].classList.add('mine'); });
     if (tries >= 3) { const b0 = btns[order.indexOf(0)]; b0.click(); }   /* الحلّ المشترك: البطاقة الأولى الصحيحة مختارة، والثانية للطفل */
     /* البطاقات تُقرأ أول مرة وفي الحلّ المشترك، وتضيء المقروءة، ويعيدها «أعد الجملة» بعد السؤال؛ والقراءة بـ readChoices تقف عند الخروج (المراجع B لبوابة S3-U0/U1، 1 و6) */
     readChoices(order.map((i, j) => ({ line: lineOf(ids[i]), el: btns[j] })), { intro: [lineOf(tries >= 3 ? 'gen.as.together.two' : item.q)], host: box, quiet: !!tries && tries < 3 });

@@ -54,6 +54,48 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u5",
+   "art": "tape",
+   "again": [
+    {
+     "key": "r2",
+     "q": "gen.home.slopeR",
+     "min": 5,
+     "max": 30,
+     "val": 12,
+     "unit": "rulCm"
+    },
+    {
+     "key": "t2",
+     "q": "gen.home.slopeT",
+     "min": 15,
+     "max": 60,
+     "val": 30,
+     "unit": "rulCm"
+    },
+    {
+     "key": "st",
+     "q": "gen.home.slopeQ",
+     "pick": [
+      [
+       "home",
+       "gen.home.slopeHome"
+      ],
+      [
+       "other",
+       "gen.home.slopeOther"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askSlope",
+   "sayAgain": "slopeAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 5,
    "lines": [

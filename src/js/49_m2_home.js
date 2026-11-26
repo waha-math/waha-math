@@ -125,6 +125,29 @@ const HOME_SAY = {
   /* S3-U1: عدد البلاطات حول الرأس × زاوية الركن، وزوايا الشطيرة بعد أسبوع */
   tileSum: async (r, v) => S(v.n * v.ang === 360 ? 'gen.home.tile360' : 'gen.home.tileNot360'),
   sandAgain: async (r, v) => S(v.a + v.b + v.c === 180 ? 'gen.home.sandOk' : 'gen.home.sandNo'),   /* الثالثة محسوبةٌ قبل قياسها: المجموع 180 تماماً */
+  /* م4 (D284 (6)): مهام البيت الرباعية؛ القيم المقيسة بتسامح، والمحسوبة بالضبط، والاختيار برقمه */
+  railSay: async (r, v) => S(Math.abs(v.c - v.a) <= 5 && Math.abs(v.s - (180 - v.a)) <= 5 ? 'gen.home.railOk' : 'gen.home.railFar'),
+  ruledAgain: async (r, v) => S(v.alt === v.a && v.co === 180 - v.a ? 'gen.home.ruledOk' : 'gen.home.ruledNo'),
+  traySay: async (r, v) => S(v.sum === (v.n - 2) * 180 ? 'gen.home.trayOk' : 'gen.home.trayCalc'),
+  sticksAgain: async (r, v) => { const L = [v.a, v.b, v.c].sort((x, y) => x - y), can = L[0] + L[1] > L[2], said = v.made === 0; return S(said !== can ? 'gen.home.stCheck' : can ? 'gen.home.stOk' : 'gen.home.stNot'); },
+  framesSay: async (r, v) => { const [L1, W1] = [v.l1, v.w1].sort((x, y) => y - x), [L2, W2] = [v.l2, v.w2].sort((x, y) => y - x), r1 = L1 / L2, r2 = W1 / W2, sim = Math.abs(r1 - r2) <= .06 * Math.max(r1, r2);
+    return S((v.sim === 0) !== sim ? 'gen.home.frCheck' : sim ? 'gen.home.frSimOk' : 'gen.home.frNotOk'); },
+  aaaAgain: async (r, v) => S(v.cong === 1 && v.simq === 0 ? 'gen.home.aaaOk' : 'gen.home.aaaNo'),
+  tvSay: async (r, v) => { const d = Math.hypot(v.w, v.h); return S(Math.abs(v.dc - d) > 2 ? 'gen.home.tvCalc' : Math.abs(v.dm - v.dc) <= 3 ? 'gen.home.tvOk' : 'gen.home.tvFar'); },
+  cornerAgain: async (r, v) => S(Math.abs(v.m - 50) <= 1 ? 'gen.home.cornerRight' : v.m > 50 ? 'gen.home.cornerWide' : 'gen.home.cornerNarrow'),
+  stepSay: async (r, v) => { const e = Math.hypot(v.r, v.t); return S(Math.abs(v.ec - e) > 1 ? 'gen.home.stepCalc' : Math.abs(v.em - v.ec) <= 2 ? 'gen.home.stepOk' : 'gen.home.stepFar'); },
+  slopeAgain: async (r, v) => { const n = r && r.n; if (!n || !n.t || !v.t2) return S('gen.home.slopeNo'); const m1 = n.r / n.t, m2 = v.r2 / v.t2;
+    return S(Math.abs(m1 - m2) < .03 ? 'gen.home.slopeEq' : (v.st === 0) === (m1 > m2) ? 'gen.home.slopeOk' : 'gen.home.slopeNo'); },
+  arcSay: async (r, v) => { const a = 2 * 3.14 * v.r / 4; return S(Math.abs(v.ac - a) > 1 ? 'gen.home.arcCalc' : Math.abs(v.am - v.ac) <= 2 ? 'gen.home.arcOk' : 'gen.home.arcFar'); },
+  cakeAgain: async (r, v) => S(Math.abs(v.p - 3.14 * v.d / 8) <= 1 ? 'gen.home.cakeOk' : 'gen.home.cakeNo'),
+  potLSay: async (r, v) => { const c = 3.14 * (v.d / 2) ** 2 * v.h; return S(Math.abs(v.v - c) > .06 * c ? 'gen.home.potLCalc' : Math.abs(v.l * 1000 - v.v) <= .2 * v.v ? 'gen.home.potLOk' : 'gen.home.potLFar'); },
+  coneAgain: async (r, v) => S(v.k === 3 ? 'gen.home.coneOk' : 'gen.home.coneNo'),
+  /* الارتفاع بالحساب، ويُقبل معه طول القامة إلى العين إن أضافه الطفل */
+  lampSay: async (r, v) => { const e = v.d * Math.tan(v.ang * Math.PI / 180); return S(v.h >= e - 1 && v.h <= e + 2.5 ? 'gen.home.lampOk' : 'gen.home.lampCalc'); },
+  lampAgain: async (r, v) => { const e = v.d2 * Math.tan(v.a2 * Math.PI / 180); if (!(v.h2 >= e - 1 && v.h2 <= e + 2.5)) return S('gen.home.lampCalc2'); const n = r && r.n;
+    return S(n && Math.abs(v.h2 - n.h) <= Math.max(1, .15 * n.h) ? 'gen.home.lampSame' : 'gen.home.lampDiff'); },
+  mir2Say: async (r, v) => S(v.n !== 3 ? 'gen.home.mir2N' : v.rule === 0 ? 'gen.home.mir2Ok' : 'gen.home.mir2Rule'),
+  ordAgain: async (r, v) => S(v.ord === 1 ? 'gen.home.ordOk' : 'gen.home.ordNo'),
   clockAgain: async (r, v) => { const svg = homeStage(); homeArt(svg, 'clock'); homeClock(svg, 6); await S(v.kind === 2 ? 'gen.home.sixOk' : 'gen.home.sixNo'); await S(v.q === 1 ? 'gen.home.quarterOk' : 'gen.home.quarterNo'); },
 };
 /* صورة ناتج مهمة البيت عبر «صيد الكاميرا» (المرجع: U7 السجادة والخيط، U8 الشريحتان؛ المراجع A لبوابتي U6/U7 (30) وU8/U9 (21)):

@@ -54,6 +54,26 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u7",
+   "art": "lid",
+   "again": [
+    {
+     "key": "k",
+     "q": "gen.home.coneK",
+     "min": 1,
+     "max": 6,
+     "val": 2,
+     "unit": "homeTimes"
+    }
+   ],
+   "askAgain": "gen.home.askCone",
+   "sayAgain": "coneAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 7,
    "lines": [

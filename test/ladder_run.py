@@ -63,15 +63,18 @@ HELP_DRAWN = {'lrTap', 'lrPick', 'linePick', 'lineTap', 'mapFind', 'mapPut', 'ro
               'lenPick', 'orderBy', 'sizePick', 'balance', 'unitCount', 'unitLay', 'unitCheck', 'spanPick', 'spanSort', 'transPick', 'barRead', 'barBuild', 'rodCount', 'rodBuild', 'rodMatch',
               'teenCmp', 'teenTrace', 'frameNeed', 'framePaint', 'frameGlance', 'makeTen', 'backTen',
               # S3-U2/U3: بطاقة القاعدة أو الصيغة أو ركن الورقة في الحلّ المشترك (المراجع B لبوابة S3-U2/U3، 11)
-              'diagJudge', 'diagHalf', 'rhombAngle', 'quadIs', 'perpPick', 'paraArea', 'triArea', 'missingDim'}
+              'diagJudge', 'diagHalf', 'rhombAngle', 'quadIs', 'perpPick', 'paraArea', 'triArea', 'missingDim',
+              # S3-U8/U9: المخفيّ ملوّناً، والأزواج المتقابلة، وعدد أوجه كل شبكة، والطبقة الأولى (المراجع B لبوابة S3-U8/U9، 11)
+              'soCount', 'soEdgeHunt', 'soNetYN', 'soNetPick', 'soNetMatch', 'voCount', 'voFill'}
 # والمستوى الثاني فعلٌ على المسرح يبقى حتى يجيب (D240): على مسرح المحاولة الثالثة رسمٌ data-help أو بطاقةٌ جُرِّبت معلَّمة (المراجع B لبوابة S3-U2/U3، 3)
 HELP2 = {'decPointer', 'decConv', 'decOrder', 'decCalc', 'decCmp', 'decRuler', 'triMissing', 'quadMissing', 'isoAngle', 'claimJudge', 'convexPick', 'triPossible', 'reflexOf', 'diagProp', 'diagJudge', 'diagHalf', 'diagBalance', 'diagPerp', 'rhombAngle', 'diagMake', 'quadNames', 'quadIs', 'perpPick', 'footSlide', 'paraArea', 'triArea', 'missingDim', 'areaTune', 'reason', 'twoReasons',
          # S3-U4..U9: المستوى الثاني مرسوم (مراجعات البوابات؛ D240)
          'trapArea', 'trapParts', 'diagArea', 'diagFit', 'kiteTune', 'comp2', 'compCut', 'comp2Perim', 'a2Conv', 'a2Machine', 'a2Cmp', 'a2Tiles',
          'coordPlace', 'coordRead', 'coordWhere', 'coordDist', 'coordAlign', 'coordDraw', 'coordShape',
          'xfDraw', 'xfWhich', 'refLine', 'trVector', 'rotSym', 'congJudge', 'congPart', 'circPart', 'soKind', 'soOpp', 'soNetYN', 'soNetPick', 'soNetMatch', 'soView', 'voUnit', 'voDims', 'voSmart',
-         'triDet', 'circScale', 'circCalc', 'discGrid', 'circString'}   # المراجع B لبوابة S3-U6/U7، 6
-H2 = "() => !!document.querySelector('#stage [data-help], #stage .pick.tried')"
+         'triDet', 'circScale', 'circCalc', 'discGrid', 'circString',
+         'soCount', 'soEdgeHunt', 'soArea', 'voCount', 'voFill', 'voCalc'}   # المراجع B لبوابة S3-U8/U9، 11   # المراجع B لبوابة S3-U6/U7، 6
+H2 = "() => !!document.querySelector('#stage [data-help], #stage .pick.tried, #stage .pick.mine')"
 # ولا يرسم المستوى الثاني الجوابَ في بنود النقطة الواحدة: لا حلقة مساعدة على موضع الجواب (المراجع B لبوابة S3-U6/U7، 2 و18)؛ والحلّ المشترك فيها مرسوم (3)
 ONANS = """() => { const W = window.__axWant || (window.__gridPtWant ? [window.__gridPtWant] : null), at = window.__axWant ? window.__axAt : window.__gridPtAt; if (!W || W.length !== 1 || !at) return null;
   const p = at(W[0][0], W[0][1]); return [...document.querySelectorAll('#stage [data-help] circle')].some(c => { const r = c.getBoundingClientRect(); return Math.hypot((r.left + r.right) / 2 - p.x, (r.top + r.bottom) / 2 - p.y) < 4; }); }"""

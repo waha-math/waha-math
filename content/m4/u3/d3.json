@@ -74,6 +74,56 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u2",
+   "art": "shapes",
+   "again": [
+    {
+     "key": "a",
+     "q": "gen.home.stA",
+     "min": 2,
+     "max": 40,
+     "val": 8,
+     "unit": "rulCm"
+    },
+    {
+     "key": "b",
+     "q": "gen.home.stB",
+     "min": 2,
+     "max": 40,
+     "val": 12,
+     "unit": "rulCm"
+    },
+    {
+     "key": "c",
+     "q": "gen.home.stC",
+     "min": 2,
+     "max": 40,
+     "val": 25,
+     "unit": "rulCm"
+    },
+    {
+     "key": "made",
+     "q": "gen.home.stQ",
+     "pick": [
+      [
+       "yes",
+       "gen.home.y"
+      ],
+      [
+       "no",
+       "gen.home.n"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askSticks",
+   "sayAgain": "sticksAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "pfPicHook",
    "pic": {
     "sim": {

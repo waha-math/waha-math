@@ -58,6 +58,26 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u4",
+   "art": "window",
+   "again": [
+    {
+     "key": "m",
+     "q": "gen.home.cornerM",
+     "min": 30,
+     "max": 70,
+     "val": 50,
+     "unit": "rulCm"
+    }
+   ],
+   "askAgain": "gen.home.askCorner",
+   "sayAgain": "cornerAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 4,
    "lines": [

@@ -80,6 +80,51 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u1",
+   "art": "corner",
+   "ask": "gen.home.askRail",
+   "fields": [
+    {
+     "key": "a",
+     "q": "gen.home.railA",
+     "min": 10,
+     "max": 170,
+     "val": 60,
+     "unit": "cpDeg",
+     "step": 5
+    },
+    {
+     "key": "c",
+     "q": "gen.home.railC",
+     "min": 10,
+     "max": 170,
+     "val": 60,
+     "unit": "cpDeg",
+     "step": 5
+    },
+    {
+     "key": "s",
+     "q": "gen.home.railS",
+     "min": 10,
+     "max": 170,
+     "val": 120,
+     "unit": "cpDeg",
+     "step": 5
+    },
+    {
+     "key": "ph",
+     "q": "gen.home.railPh",
+     "photo": "rail"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m4u1"
+   ],
+   "say": "railSay"
+  },
+  {
+   "s": "hook",
    "scene": "pfHook",
    "lines": [
     "hk.01",

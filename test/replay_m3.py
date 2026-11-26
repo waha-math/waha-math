@@ -129,6 +129,19 @@ async def hook_two_part(p, lid, typ, label):
   check(i == -1, '%s: الجواب قبل الزوج لا يُلحقه بعده (%s)' % (label, said[:4]))
   check(not errs and not errs2, '%s: لا خطأ %s' % (label, (errs + errs2)[:2])); await b.close()
 
+# 4) ما يُقال للخيار هو ما كُتب عليه: «ما مسقط العلبة؟» يُقرأ خياره بأبعاده لا باسم المسقط الذي في السؤال (المراجع B لبوابة S3-U8/U9، 1)
+async def option_lines(p, lid, typ, prefix, bad, label):
+  b, pg, errs = await boot(p, fast=False)
+  spec = await pg.evaluate(FIND, [lid, typ]); check(bool(spec), '%s: بندٌ في %s' % (label, lid))
+  if not spec: await b.close(); return
+  await pg.evaluate(START, [lid, spec, 'test'])
+  try: await pg.wait_for_function("(p) => (window.__clips || []).filter(c => c.startsWith(p)).length >= 3 && !speechBusy()", arg=prefix, timeout=40000, polling=50)   # الخيارات تُقرأ بعد السؤال
+  except Exception: pass
+  said = [c.split('|')[0].split('#')[0] for c in await pg.evaluate("() => (window.__clips || []).slice()")]
+  check(sum(c.startswith(prefix) for c in said) >= 3, '%s: الخيارات الثلاثة تُقال بما كُتب عليها (%s)' % (label, [c for c in said if c.startswith(prefix)][:3]))
+  check(not any(c.startswith(bad) for c in said), '%s: لا خيار يُقال بجملة الكشف (%s)' % (label, [c for c in said if c.startswith(bad)][:2]))
+  check(not errs, '%s: لا خطأ %s' % (label, errs[:2])); await b.close()
+
 async def main():
   async with async_playwright() as p:
     await continuation(p, 'm3.u0.d3', 'decConv', 'التحويل')
@@ -137,5 +150,7 @@ async def main():
     await hook_two_part(p, 'm3.u5.d1', 'coordPlace', 'عيّن النقطة')
     await two_reasons(p)
     await reason_exit(p)
+    await option_lines(p, 'm3.u8.d6', 'soView', 'gen.so.vd.', 'gen.so.view.', 'المسقط')
+    await option_lines(p, 'm3.u9.d4', 'voDims', 'gen.vo.dims.', 'gen.vo.reveal.', 'الأبعاد')
   print('FAILS:', len(FAILS)); sys.exit(1 if FAILS else 0)
 asyncio.run(main())

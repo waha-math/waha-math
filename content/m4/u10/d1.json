@@ -48,6 +48,50 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u9",
+   "art": "fold",
+   "ask": "gen.home.askMir2",
+   "fields": [
+    {
+     "key": "n",
+     "q": "gen.home.mirN",
+     "min": 1,
+     "max": 6,
+     "val": 2,
+     "unit": "homeImgs"
+    },
+    {
+     "key": "rule",
+     "q": "gen.home.cornQ",
+     "pick": [
+      [
+       "rot",
+       "gen.home.cornRot"
+      ],
+      [
+       "tr",
+       "gen.home.cornTr"
+      ],
+      [
+       "ref",
+       "gen.home.cornRef"
+      ]
+     ]
+    },
+    {
+     "key": "ph",
+     "q": "gen.home.mirPh",
+     "photo": "mirrors"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m4u9"
+   ],
+   "say": "mir2Say"
+  },
+  {
+   "s": "hook",
    "scene": "lines",
    "mat": {
     "prompt": "mat.01",

@@ -74,6 +74,43 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u6",
+   "art": "clock",
+   "ask": "gen.home.askArc",
+   "fields": [
+    {
+     "key": "r",
+     "q": "gen.home.arcR",
+     "min": 5,
+     "max": 30,
+     "val": 15,
+     "unit": "rulCm"
+    },
+    {
+     "key": "ac",
+     "q": "gen.home.arcAc",
+     "min": 5,
+     "max": 50,
+     "val": 24,
+     "unit": "rulCm"
+    },
+    {
+     "key": "am",
+     "q": "gen.home.arcAm",
+     "min": 5,
+     "max": 50,
+     "val": 24,
+     "unit": "rulCm"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m4u6"
+   ],
+   "say": "arcSay"
+  },
+  {
+   "s": "hook",
    "scene": "c7CylHook",
    "lines": [
     "hk.01",

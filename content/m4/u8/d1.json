@@ -79,6 +79,52 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u7",
+   "art": "lid",
+   "ask": "gen.home.askPotL",
+   "fields": [
+    {
+     "key": "d",
+     "q": "gen.home.potD",
+     "min": 10,
+     "max": 40,
+     "val": 20,
+     "unit": "rulCm"
+    },
+    {
+     "key": "h",
+     "q": "gen.home.potH",
+     "min": 5,
+     "max": 40,
+     "val": 15,
+     "unit": "rulCm"
+    },
+    {
+     "key": "v",
+     "q": "gen.home.potV",
+     "min": 100,
+     "max": 40000,
+     "val": 4700,
+     "unit": "voCm3",
+     "step": 100
+    },
+    {
+     "key": "l",
+     "q": "gen.home.potL",
+     "min": 1,
+     "max": 40,
+     "val": 5,
+     "unit": "homeLitres"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m4u7"
+   ],
+   "say": "potLSay"
+  },
+  {
+   "s": "hook",
    "scene": "c8BisHook",
    "lines": [
     "hk.01",

@@ -54,6 +54,34 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u6",
+   "art": "clock",
+   "again": [
+    {
+     "key": "d",
+     "q": "gen.home.cakeD",
+     "min": 10,
+     "max": 40,
+     "val": 24,
+     "unit": "rulCm"
+    },
+    {
+     "key": "p",
+     "q": "gen.home.cakeP",
+     "min": 2,
+     "max": 20,
+     "val": 9,
+     "unit": "rulCm"
+    }
+   ],
+   "askAgain": "gen.home.askCake",
+   "sayAgain": "cakeAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 6,
    "lines": [

@@ -322,7 +322,11 @@ async def run(p, dev):
               await pg.wait_for_timeout(700)
             if await pg.evaluate('() => window.__axFound') != len(want): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  axis hunt miss', st['scene'])
           else:
-            for kk in await pg.evaluate('() => window.__dsgWant'): q = await pg.evaluate('(k) => window.__dsgCell(k)', kk); await tap(q['x'], q['y']); await pg.wait_for_timeout(80)
+            mid = await pg.evaluate('() => !!window.__dsgMid')   # «صائد الأحرف»: منتصف الحرف الظاهر (لا أفضل نقطة)، والمخفيّ في موضعه البعيد عن الظاهر (المراجع B لبوابة S3-U8/U9، 2 و11)
+            for kk in await pg.evaluate('() => window.__dsgWant'):
+                q = await pg.evaluate('(k) => window.__dsgMid(k)', kk) if mid else None
+                if not q or q.get('hid'): q = await pg.evaluate('(k) => window.__dsgCell(k)', kk)
+                await tap(q['x'], q['y']); await pg.wait_for_timeout(80)
             if not set(await pg.evaluate('() => window.__dsgWant')) <= set(await pg.evaluate('() => window.__dsgOn') or []): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  design cells miss', st['scene'])
           xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(60); continue
         if k in ('rulAlign', 'rulDraw', 'gridPt', 'midMark', 'paraDraw', 'perpTurn', 'angMatch', 'angDraw', 'polyDraw', 'plyTilt'):   # S2-U0: سحب حقيقي للمسطرة حتى الصفر، ولمسة حقيقية عند طول الخط المطلوب؛ ثم «تمّ»

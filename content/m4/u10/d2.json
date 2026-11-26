@@ -46,6 +46,32 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u9",
+   "art": "fold",
+   "again": [
+    {
+     "key": "ord",
+     "q": "gen.home.ordQ",
+     "pick": [
+      [
+       "yes",
+       "gen.home.y"
+      ],
+      [
+       "no",
+       "gen.home.n"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askOrd",
+   "sayAgain": "ordAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "lines",
    "mat": {
     "prompt": "mat.01",

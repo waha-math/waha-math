@@ -74,6 +74,50 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u2",
+   "art": "shapes",
+   "ask": "gen.home.askTray",
+   "fields": [
+    {
+     "key": "n",
+     "q": "gen.home.trayN",
+     "min": 3,
+     "max": 12,
+     "val": 6,
+     "unit": "homeSides"
+    },
+    {
+     "key": "sum",
+     "q": "gen.home.traySum",
+     "min": 180,
+     "max": 1800,
+     "val": 720,
+     "unit": "cpDeg",
+     "step": 180
+    },
+    {
+     "key": "ang",
+     "q": "gen.home.trayAng",
+     "min": 30,
+     "max": 175,
+     "val": 120,
+     "unit": "cpDeg",
+     "step": 5
+    },
+    {
+     "key": "ph",
+     "q": "gen.home.trayPh",
+     "photo": "tray"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m4u2"
+   ],
+   "say": "traySay"
+  },
+  {
+   "s": "hook",
    "scene": "cgHook",
    "lines": [
     "hk.01",

@@ -80,6 +80,51 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u5",
+   "art": "tape",
+   "ask": "gen.home.askStep",
+   "fields": [
+    {
+     "key": "r",
+     "q": "gen.home.stepR",
+     "min": 5,
+     "max": 30,
+     "val": 17,
+     "unit": "rulCm"
+    },
+    {
+     "key": "t",
+     "q": "gen.home.stepT",
+     "min": 15,
+     "max": 45,
+     "val": 28,
+     "unit": "rulCm"
+    },
+    {
+     "key": "ec",
+     "q": "gen.home.stepEc",
+     "min": 15,
+     "max": 55,
+     "val": 33,
+     "unit": "rulCm"
+    },
+    {
+     "key": "em",
+     "q": "gen.home.stepEm",
+     "min": 15,
+     "max": 55,
+     "val": 33,
+     "unit": "rulCm"
+    }
+   ],
+   "lines": [
+    "gen.home.back.m4u5"
+   ],
+   "say": "stepSay"
+  },
+  {
+   "s": "hook",
    "scene": "ci4ChordHook",
    "lines": [
     "hk.01",

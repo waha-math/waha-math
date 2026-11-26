@@ -74,11 +74,11 @@ def pic(rng, lvl, rot_n, pid):
         if tops_seen(shown) and fresh(t): return {'id': pid, 'kind': 'pic', 'name': 'gen.ws.p.cu.' + ('picRot' if rot_n else 'pic'), 't': t, 'rot': rot_n}
     raise RuntimeError('pic')
 def count(rng, lvl, pid, hid_min):
-    n_cols, hmax, total = [(4, 2, range(5, 7)), (5, 2, range(6, 9)), (5, 3, range(8, 11)), (6, 3, range(9, 13)), (7, 3, range(11, 15))][lvl]
+    n_cols, hmax, total = [(4, 2, range(5, 9)), (5, 2, range(6, 10)), (5, 3, range(8, 12)), (6, 3, range(9, 14)), (7, 3, range(11, 16))][lvl]   # ثلاثة أعداد على الأقل لكل مستوى
     out = []
     for _ in range(20000):
         t = rand_map(rng, n_cols, hmax, total)
-        if tops_seen(t) and hidden_n(t) >= hid_min and fresh(t): out.append(t)
+        if tops_seen(t) and hidden_n(t) >= hid_min and sum(map(sum, t)) not in [sum(map(sum, x)) for x in out] and fresh(t): out.append(t)   # أعدادٌ مختلفة للأبنية الثلاثة، فلا يُعرف الثاني من الأول بلا عدّ (المراجع A لبوابة S3-U8/U9، 33)
         if len(out) == 3: return {'id': pid, 'kind': 'count', 'name': 'gen.ws.p.cu.count', 'builds': out}
     raise RuntimeError('count')
 def views_p(rng, lvl, pid):
@@ -233,7 +233,7 @@ G = {
  'gen.ws.nt.need2': 'المَطْلُوبُ شَبَكَتَانِ مُخْتَلِفَتَانِ.',
  'gen.ws.nt.need3': 'المَطْلُوبُ ثَلَاثُ شَبَكَاتٍ مُخْتَلِفَةٍ.',
  'gen.ws.nt.no4': 'المَطْلُوبُ شَبَكَتَانِ لَيْسَ فِي أَيٍّ مِنْهُمَا أَرْبَعَةُ مُرَبَّعَاتٍ فِي صَفٍّ.',
- 'gen.ws.nt.six': 'سِتَّةُ مُرَبَّعَاتٍ فَقَطْ، فَلِلمُكَعَّبِ سِتَّةُ أَوْجُهٍ.',
+ 'gen.ws.nt.six': 'سِتَّةُ مُرَبَّعَاتٍ فَقَطْ، فَلِلْمُكَعَّبِ سِتَّةُ أَوْجُهٍ.',
  'gen.ws.nt.apart': 'كُلُّ مُرَبَّعٍ يَلْمِسُ جَارَهُ بِضِلْعٍ كَامِلٍ، وَالمُحَاطُ بِالأَحْمَرِ مُنْفَصِلٌ.',
  'gen.ws.nt.overlap': 'المُرَبَّعَانِ المُحَاطَانِ بِالأَحْمَرِ يَقَعَانِ عَلَى الوَجْهِ نَفْسِهِ، فَيَبْقَى وَجْهٌ مَفْتُوحٌ.',
  'gen.ws.nt.ok': 'تُطْوَى مُكَعَّبًا! وَكُلُّ لَوْنٍ وَجْهَانِ مُتَقَابِلَانِ.',

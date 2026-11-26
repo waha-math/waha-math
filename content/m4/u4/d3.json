@@ -87,6 +87,46 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u3",
+   "art": "frame",
+   "again": [
+    {
+     "key": "cong",
+     "q": "gen.home.aaaQ",
+     "pick": [
+      [
+       "yes",
+       "gen.home.y"
+      ],
+      [
+       "no",
+       "gen.home.n"
+      ]
+     ]
+    },
+    {
+     "key": "simq",
+     "q": "gen.home.aaaS",
+     "pick": [
+      [
+       "yes",
+       "gen.home.y"
+      ],
+      [
+       "no",
+       "gen.home.n"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askAAA",
+   "sayAgain": "aaaAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "pyPumpShow",
    "lines": [
     "pu.01",

@@ -77,6 +77,45 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m4.u1",
+   "art": "corner",
+   "again": [
+    {
+     "key": "a",
+     "q": "gen.home.ruledA",
+     "min": 10,
+     "max": 170,
+     "val": 70,
+     "unit": "cpDeg",
+     "step": 5
+    },
+    {
+     "key": "alt",
+     "q": "gen.home.ruledAlt",
+     "min": 10,
+     "max": 170,
+     "val": 70,
+     "unit": "cpDeg",
+     "step": 5
+    },
+    {
+     "key": "co",
+     "q": "gen.home.ruledCo",
+     "min": 10,
+     "max": 170,
+     "val": 110,
+     "unit": "cpDeg",
+     "step": 5
+    }
+   ],
+   "askAgain": "gen.home.askRuled",
+   "sayAgain": "ruledAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "ineqShow",
    "sets": [
     [
