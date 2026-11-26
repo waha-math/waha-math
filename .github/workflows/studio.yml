@@ -25,7 +25,7 @@ env:
 jobs:
   checks:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 100
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -44,7 +44,7 @@ jobs:
           node build/build.mjs
           node build/build.mjs --dev
       - name: Where each line is said ("watch the scene" map)
-        run: STUDIO_SEEDS=7 python3 test/studio_where.py
+        run: STUDIO_SEEDS=7 STUDIO_WORKERS=3 python3 test/studio_where.py   # ثلاث صفحات متوازية: الصفحة الواحدة تجاوزت الساعة بدروس م3 وم4 وانهارت
       - name: Studio app and work packs
         run: node build/studio.mjs
       - name: Studio end to end (fake microphone)
