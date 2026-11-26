@@ -6,7 +6,7 @@
    ===================================================================== */
 const XF = { org: '#3d7cc0', orgF: '#d8e8f6', img: '#e07b39', imgF: '#fbe3d1', line: '#8e6bbf', ctr: '#c8392d', ok: '#2f9d6b', ghost: '#9fb4c0' };
 const XF_NM = ['a', 'b', 'j', 'd'];
-const xfName = (i, img) => LTR[XF_NM[i]] + (img ? '′' : '');   /* الشرطة «′» كما في دليل الرموز (المراجع A لبوابة S3-U6/U7، 23) */
+const xfName = (i, img) => LTR[XF_NM[i]] + (img ? '\u2019' : '');   /* الشرطة كما في دليل الرموز (المراجع A لبوابة S3-U6/U7، 23)، بـ«’» لأن «′» (U+2032) ليس في خطّ القراءة المضمّن فيُستبدل به خطٌّ آخر (D256) */
 /* صورة نقطة بالتحويل: ref {axis v|h، at}، tr {dx، dy}، rot {c، q أرباع الدورة، cw مع عقارب الساعة} */
 function xfApply(xf, [x, y]) {
   if (xf.k === 'ref') return xf.axis === 'v' ? [2 * xf.at - x, y] : [x, 2 * xf.at - y];

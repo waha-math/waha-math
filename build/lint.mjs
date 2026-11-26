@@ -1137,16 +1137,16 @@ export function lint(content, js) {
     if (['reason', 'robotWatch', 'routePick'].includes(v.t) && Array.isArray(v.opts)) { const txt = id => (L.lines && L.lines[id]) || (content.gen.lines || {})[id] || ''; const ok = v.opts.filter(o => o.ok).map(o => bare(txt(o.id))), bad = v.opts.filter(o => !o.ok).map(o => bare(txt(o.id)));
       if (ok.length && bad.length && Math.max(...ok) > 1.2 * Math.max(...bad)) errors.push(`${where}: في بند ${v.t === 'reason' ? 'التعليل' : 'البطاقتين'} «${v.q}» الصحيح ${Math.max(...ok)} حرفاً وأطول المشتّتين ${Math.max(...bad)}: الطول قرينة`);
       /* والكلمة المطلقة («دائماً»، «أبداً»، «في كل مرة») في مشتّتٍ وحده قرينةٌ يُستبعد بها (المراجع A لبوابة S3-U6/U7، 16): خطأٌ في م1–م3، وتنبيهٌ في م4 حتى تُراجَع */
-      { const ABS = /^m2\.|^m3\.u1[01]\./.test(where) ? /دائما|أبدا|في كل مرة|كل مرة|مهما|في كل (شيء|خريطة|رسم|مثال|مسقط|علبة|صندوق|شكل|باب)|(^|\s)كل (شيء|باب|خريطة)|(^|\s)فقط(?=$|[\s،.:؛])|(^|\s)لا\s+\S+\s+إلا/ : /دائما|أبدا|في كل مرة|كل مرة|مهما|في كل شيء|(^|\s)لا\s+\S+\s+إلا/, raw = id =>   /* و«مهما» و«في كل شيء» و«لا… إلا» (المراجع A لبوابة S3-U8/U9، 17) */ String(txt(id)).replace(/[\u064B-\u0652\u0670]/g, ''), okA = v.opts.filter(o => o.ok).some(o => ABS.test(raw(o.id))), badA = v.opts.filter(o => !o.ok && ABS.test(raw(o.id))).map(o => o.id);
+      { const ABS = /^m[23]\./.test(where) ? /دائما|أبدا|في كل مرة|كل مرة|مهما|كيفما|في كل (شيء|خريطة|رسم|مثال|مسقط|علبة|صندوق|شكل|باب)|(^|\s)كل (شيء|باب|خريطة)|(^|\s)فقط(?=$|[\s،.:؛])|(^|\s)لا\s+\S+\s+إلا/ : /دائما|أبدا|في كل مرة|كل مرة|مهما|في كل شيء|(^|\s)لا\s+\S+\s+إلا/, raw = id =>   /* و«مهما» و«في كل شيء» و«لا… إلا» (المراجع A لبوابة S3-U8/U9، 17) */ String(txt(id)).replace(/[\u064B-\u0652\u0670]/g, ''), okA = v.opts.filter(o => o.ok).some(o => ABS.test(raw(o.id))), badA = v.opts.filter(o => !o.ok && ABS.test(raw(o.id))).map(o => o.id);
         if (badA.length && !okA) (/^m4\./.test(where) ? warn : errors).push(`${where}: في بند ${v.t === 'reason' ? 'التعليل' : 'البطاقتين'} «${v.q}» كلمةٌ مطلقة في المشتّت وحده (${badA.join('، ')}): قرينة استبعاد (D240)`); } }
     for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkWhy(x, where, L); };
   for (const L of Object.values(lessons)) walkWhy(L, L.id, L);
   /* 4ج5 و4ج6 في م2، وفي م3 من بوابة S3-U10 (المراجع A لبوابة S3-U10، 7) */
-  const M3WHY = /^m2\.|^m3\.u1[01]\./;
+  const M3WHY = /^m[23]\./;
   // 4ج5) أنماط تكشف الصحيح في بطاقات التعليل (مراجعة بوابة S2-U4/U5، 3)، في م2: (أ) في بنود «نعم/لا» لا يكون الصحيح القطبَ الوحيد (مشتّتٌ بقطبه بسبب خاطئ)؛
   //      (ب) «لِأَنَّ» في البطاقات الثلاث أو في لا شيء منها؛ (ج) لفظ مطلق (دائماً، أبداً، تماماً، فقط، مهما) لا يكون في المشتّتات وحدها
   { const plain = t => String(t || '').replace(/\{([^|{}]*)\|[^{}]*\}/g, '$1').replace(/[\u064B-\u0652\u0670]/g, '').trim();
-    const ABS = /دائما|أبدا|تماما|فقط|مهما|يجب/, POL = t => (/^(نعم|لا)\s*[:،]/.exec(t) || [])[1] || null, WHY = t => /(^|[\s،:؛])لأن/.test(t);
+    const ABS = /دائما|أبدا|تماما|(^|[\s،:؛])فقط(?=$|[\s،.:؛])|مهما|كيفما|(^|\s)يجب/, POL = t => (/^(نعم|لا)\s*[:،]/.exec(t) || [])[1] || null, WHY = t => /(^|[\s،:؛])لأن/.test(t);
     const walkP = (v, where, L) => { if (Array.isArray(v)) return v.forEach(x => walkP(x, where, L)); if (!v || typeof v !== 'object') return;
       if (v.t === 'reason' && Array.isArray(v.opts)) { const txt = id => plain((L.lines && L.lines[id]) || (content.gen.lines || {})[id] || ''), T = v.opts.map(o => ({ ok: !!o.ok, t: txt(o.id) })), ok = T.filter(o => o.ok), bad = T.filter(o => !o.ok);
         const P = T.map(o => POL(o.t)); if (P.every(Boolean) && ok.length === 1 && !bad.some(o => POL(o.t) === POL(ok[0].t))) errors.push(`${where}: في بند التعليل «${v.q}» الصحيح وحده «${POL(ok[0].t)}»: يُعرف بقطبه (4ج5 أ)`);
