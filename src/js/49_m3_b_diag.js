@@ -142,7 +142,7 @@ ITEM.rhombAngle = { ...numItem,
     else await S(item.q || (item.ask === 'half' ? 'gen.dq.q.rhombHalf' : 'gen.dq.q.rhombOther'));
     const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); return { ans: await np.p, ctx: { svg, R } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.ang ? 'rhombSame' : 'rhombOff' }; },
-  async hint2(item, r) { await S(item.ask === 'half' ? 'gen.dq.hint.rhombHalf' : 'gen.dq.hint.rhombOther'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 216, labelText(item.ask === 'half' ? 'dqRhombHalfH' : 'dqRhombOtherH')); await S(item.ask === 'half' ? 'gen.dq.hint.rhombHalf' : 'gen.dq.hint.rhombOther'); }, async together() {},
   async reveal(item) { await S('gen.as.reveal.missing', { noGap: true }); await S(degw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -160,7 +160,7 @@ ITEM.diagMake = {
     const k = await choosePick(shuffle(item.pick).map(dqName), item.want); return { ans: k, ctx: { svg, R } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: (DQ_GEN[item.want] || []).includes(k) ? 'dqGeneral' : 'dqMakeWrong' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { await S('gen.dq.hint.make'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30, labelText('dqMakeHint')); await S('gen.dq.hint.make'); }, async together() {},   /* المستوى الثاني على المسرح (المراجع A لبوابة S3-U2/U3، 10) */
   async reveal(item, r) { if (r && r.ctx && r.ctx.R) { const p = r.ctx.R.g.querySelector('polygon'); p.setAttribute('stroke', DQ.ink); p.setAttribute('fill', DQ.fill); } await S(dqName(item.want)[3]); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -173,7 +173,7 @@ ITEM.quadNames = { ...numItem,
     if (tries >= 3) { svg.replaceChildren(); plyFrame(svg, 208); famNestAt(svg); await S('gen.dq.together.names'); } else { await S(item.q || 'gen.dq.q.names', { noGap: true }); await S('gen.poly.q.' + item.k, { append: true }); }   /* الحلّ المشترك: المخطط نفسه على المسرح */
     const np = numberPick(shuffle(item.nums), item.want); return { ans: await np.p, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.old ? 'dqNamesOld' : 'dqNamesOff' }; },
-  async hint2(item) { await S('gen.dq.hint.names'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30, labelText('dqNamesH')); await S('gen.dq.hint.names'); }, async together() {},
   async reveal(item) { await S('gen.dq.names.' + item.k); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
