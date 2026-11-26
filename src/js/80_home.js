@@ -149,12 +149,61 @@ function lessonOpen(U, i) { const ids = U.lessons; if (PROG.unlockAll) return tr
 const wsOpen = U => PROG.unlockAll || !!PROG['badge:' + U.id] || !!(PROG[U.lessons[U.lessons.length - 2]] || {}).done;
 
 /* لافتة الواحة: النبع بحجارة الشارات، وجدول لكل حيّ أُتقن، ونخيل يخضرّ */
-function oasisBanner() { const n = stageStones('m1').placed;   /* لافتة الواحة نبع م1 بأحجاره الستة؛ وقنوات م2 تُرسم مع هويتها */
-  const b = el('svg', { viewBox: '0 0 360 150', 'aria-hidden': 'true' }); backdrop(b, 150, { oasis: false, ground: 30 }); dunes(b, 140, 1);
+/* لافتة الواحة تنمو بالمراحل (D230): م1 النبع بأحجاره الستة وجداوله؛ م2 «قنوات الأدوات» عشرٌ تخرج من النبع إلى الكثبان، تُشقّ كلٌّ بشارة وحدتها؛
+   م3 «بساتين الهندسة» أحد عشر بستاناً، عشرةٌ على أطراف القنوات وواحدٌ خلف النبع، وأشجارها أشكال؛ م4 «ناعورة الاختراع» على حافة النبع بتسعة أجزاء،
+   فإذا اكتملت دارت ورفعت الماء فجرى في عشرين موضعاً؛ وبعد شهادة م4 «المركز الكبير للاختراع» في وسطها (هوية م4). الشارة تُحسب بترتيب وحدات مرحلتها */
+const bannerGot = m => UNITS.filter(u => stageOf(u.id) === m && !FINAL_UNIT[u.id]).map(u => !!PROG['badge:' + u.id]);
+const OB_GROVE = [[18, 110], [50, 102], [84, 108], [116, 99], [146, 104], [214, 104], [244, 99], [276, 108], [310, 102], [342, 110], [180, 94]];
+/* رسم الواحة في مجموعة b (إحداثيات 360 × 150): hide يُبقي القطعة الجديدة خارج الرسم لمشهد الشارة (canal أو grove أو part برقمها)، وspring نبعُ حلقةٍ أخرى،
+   وnoSky بلا سماء (المسرح له سماؤه) وأرضٌ أطول (groundH). يُرجع مجموعتي القنوات والبساتين والناعورة ليضيف المشهد قطعته في موضعها */
+function oasisArt(b, o = {}) { const n = stageStones('m1').placed, c2 = bannerGot('m2'), c3 = bannerGot('m3'), c4 = bannerGot('m4'), H = o.hide || {};
+  if (H.canal != null) c2[H.canal] = false; if (H.grove != null) c3[H.grove] = false; if (H.part != null) c4[H.part] = false; const full4 = c4.length && c4.every(Boolean);
+  if (o.noSky) el('rect', { x: -360, y: 120, width: 1080, height: o.groundH || 30, fill: css('--ground') }, b); else backdrop(b, 150, { oasis: false, ground: 30 });
+  dunes(b, 140, 1);
+  if (PROG['final:m4'] && PROG['final:m4'].cert) inventCenter(b, 180, 58);
+  /* القنوات أولاً (تحت البساتين والنخيل): من حافة النبع العليا إلى بستانها */
+  const gC = el('g', { 'data-canals': 1 }, b); c2.forEach((on, k) => { if (on) canalAt(gC, k); });
   [[40, 132, .8], [96, 140, .7], [262, 138, .75], [322, 132, .85]].forEach(([x, y, s], i) => palmAt(b, x, y, s, i < 2 + n * 2 || i === 0));
-  UNITS.forEach((U, i) => { if (!PROG['badge:' + U.id] || stageOf(U.id) !== 'm1') return; const dir = i % 2 ? 1 : -1; const p = el('path', { d: `M180 132 Q${180 + dir * 50} 140 ${180 + dir * (90 + i * 20)} 146`, stroke: 'url(#waterG)', 'stroke-width': 7, fill: 'none', 'stroke-linecap': 'round' }, b);
-    anim(p, [{ strokeDasharray: '4 200' }, { strokeDasharray: '200 0' }], { duration: 1600, fill: 'forwards' }); });
-  springAt(b, 180, 128, 1, { stones: n, total: 6, level: n / 6 }); return b.outerHTML; }
+  const gG = el('g', { 'data-groves': 1 }, b); c3.forEach((on, k) => { if (on) groveAt(gG, ...OB_GROVE[k], k); });
+  UNITS.forEach((U, i) => { if (!PROG['badge:' + U.id] || stageOf(U.id) !== 'm1') return; const dir = i % 2 ? 1 : -1; el('path', { d: `M180 132 Q${180 + dir * 50} 140 ${180 + dir * (90 + i * 20)} 146`, stroke: 'url(#waterG)', 'stroke-width': 7, fill: 'none', 'stroke-linecap': 'round' }, b); });
+  const sp = springAt(b, 180, 128, 1, o.spring || { stones: n, total: 6, level: n / 6 });
+  const nor = c4.some(Boolean) || H.part != null ? noriaAt(b, 228, 106, c4, full4) : null;
+  if (full4) for (let k = 0; k < 20; k++) { const [x, y] = k < 11 ? OB_GROVE[k] : [[34, 122], [68, 128], [100, 118], [132, 126], [228, 128], [258, 120], [292, 126], [326, 120], [180, 146]][k - 11];   /* الماء في عشرين موضعاً */
+    const d = el('circle', { cx: x + (k < 11 ? 9 : 0), cy: y + (k < 11 ? 4 : 0), r: 2.6, fill: css('--water-hi'), stroke: css('--water'), 'stroke-width': 1, 'data-glint': k }, b);
+    if (!RM) el('animate', { attributeName: 'opacity', values: '.35;1;.35', dur: (1.8 + k * .07).toFixed(2) + 's', repeatCount: 'indefinite' }, d); }   /* SMIL لا WAAPI: اللافتة تُكتب نصّاً (outerHTML) فلا تبقى حركة WAAPI */
+  return { gC, gG, nor, sp }; }
+function oasisBanner() { const b = el('svg', { viewBox: '0 0 360 150', 'aria-hidden': 'true' }); oasisArt(b); return b.outerHTML; }
+/* قناةٌ من حافة النبع إلى بستانها: ضفّتان رمليتان وماء */
+function canalAt(parent, k) { const [x, y] = OB_GROVE[k], x0 = 180 + (x < 180 ? -18 : 18), d = `M${x0} 118 Q${(x0 + x) / 2} ${y + 14} ${x} ${y + 6}`;
+  el('path', { d, stroke: css('--sand-dk'), 'stroke-width': 5.5, fill: 'none', 'stroke-linecap': 'round' }, parent);
+  return el('path', { d, stroke: css('--water'), 'stroke-width': 2.6, fill: 'none', 'stroke-linecap': 'round', 'data-canal': k }, parent); }
+/* بستانٌ هندسي صغير: مسكبة خضراء وثلاث أشجار تيجانها دائرة ومثلث ومربع، بألوان الرفاق */
+function groveAt(parent, x, y, k) { const g = el('g', { transform: `translate(${x} ${y})`, 'data-grove': k }, parent);
+  el('ellipse', { cx: 0, cy: 7, rx: 15, ry: 4.5, fill: '#8fca7a' }, g);
+  [[-8, 'circle'], [0, 'triangle'], [8, 'square']].forEach(([dx, sh], i) => { const ty = i === 1 ? -3 : 0; el('line', { x1: dx, y1: 7, x2: dx, y2: ty, stroke: css('--trunk'), 'stroke-width': 1.8 }, g);
+    const col = ['#4f9a4a', '#5fae57', '#3f8a3c'][(i + k) % 3];
+    if (sh === 'circle') el('circle', { cx: dx, cy: ty - 4, r: 5, fill: col }, g);
+    else if (sh === 'triangle') el('polygon', { points: `${dx},${ty - 11} ${dx + 5.5},${ty - 1} ${dx - 5.5},${ty - 1}`, fill: col }, g);
+    else el('rect', { x: dx - 4.5, y: ty - 9, width: 9, height: 9, rx: 1.5, fill: col }, g); });
+  return g; }
+/* ناعورة الاختراع: إطارٌ على حافة النبع، وتسعة أذرع بدلائها تظهر بشارات م4؛ فإذا اكتملت دارت (إلا مع تقليل الحركة) */
+const NORIA_R = 17, noriaRim = (i, n) => { const a = i * 2 * Math.PI / n - Math.PI / 2; return [Math.cos(a) * NORIA_R, Math.sin(a) * NORIA_R]; };
+function noriaPart(w, i, n) { const [cx, cy] = noriaRim(i, n), g = el('g', { 'data-part': i }, w);
+  el('line', { x1: 0, y1: 0, x2: cx, y2: cy, stroke: css('--trunk'), 'stroke-width': 1.8 }, g); el('rect', { x: cx - 3, y: cy - 3, width: 6, height: 6, rx: 1, fill: css('--water'), stroke: css('--trunk-dk'), 'stroke-width': 1 }, g); return g; }
+function noriaAt(parent, x, y, parts, full) { const g = el('g', { transform: `translate(${x} ${y})`, 'data-noria': parts.filter(Boolean).length }, parent), r = NORIA_R;
+  el('path', { d: `M-12 20 L0 0 L12 20`, stroke: css('--trunk-dk'), 'stroke-width': 3, fill: 'none', 'stroke-linejoin': 'round' }, g);
+  const w = el('g', {}, g); el('circle', { cx: 0, cy: 0, r, fill: 'none', stroke: css('--trunk'), 'stroke-width': 2.4, 'stroke-dasharray': full ? null : '3 3' }, w);
+  parts.forEach((on, i) => { if (on) noriaPart(w, i, parts.length); });
+  el('circle', { cx: 0, cy: 0, r: 3, fill: css('--trunk-dk') }, g); g.wheel = w;
+  if (full && !RM) el('animateTransform', { attributeName: 'transform', type: 'rotate', from: '0 0 0', to: '360 0 0', dur: '9s', repeatCount: 'indefinite' }, w);
+  return g; }
+/* المركز الكبير للاختراع: قبّةٌ وعمودان ونافذة، على الكثيب في وسط الواحة */
+function inventCenter(parent, x, y) { const g = el('g', { transform: `translate(${x} ${y})`, 'data-center': 1 }, parent);
+  el('rect', { x: -22, y: -4, width: 44, height: 20, rx: 2, fill: '#f3e6c4', stroke: css('--trunk-dk'), 'stroke-width': 1.5 }, g);
+  el('path', { d: 'M-16 -4 A16 15 0 0 1 16 -4z', fill: '#7fb6d9', stroke: css('--trunk-dk'), 'stroke-width': 1.5 }, g);
+  el('rect', { x: -4, y: 4, width: 8, height: 12, rx: 4, fill: css('--trunk-dk') }, g);
+  for (const dx of [-15, 11]) el('rect', { x: dx, y: 0, width: 4, height: 16, fill: '#e2cf9e' }, g);
+  el('circle', { cx: 0, cy: -21, r: 2.5, fill: '#f2b33d' }, g); return g; }
 
 /* تنبيه الكبار في الخريطة حين لا صوت عربي (المراجعة بعين جديدة U2، S2): قائمة الأصوات ومحرّك أندرويد قد يتأخران، فـ«لم تصل بعد» يُعاد فحصها كل ثانية
    (3 مرات في المتصفح، و15 مع جسر أندرويد: محرّكه يبدأ بعد فتح التطبيق) ثم تُعدّ «لا صوت»، فلا يُقال للكبار «لا صوت» وهو يبدأ.

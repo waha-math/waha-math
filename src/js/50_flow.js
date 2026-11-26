@@ -201,9 +201,26 @@ async function testStage(L) {
 /* فوضى تضع حجر النبع في مكانه (قوس فوضى، D236)، فيجري الماء في جدول الحيّ (D230) */
 async function stoneScene(L) {
   const U = UNITS.find(u => u.id === L.unit); const { placed, total: TT } = stageStones(stageOf(U.id));
+  if (stageOf(U.id) !== 'm1') return stageRewardScene(L, U, placed, TT);
   const svg = newStage(300, { oasisOpacity: .4 }); const sp = springAt(svg, 180, 240, 1.3, { stones: placed - 1, total: TT, level: (placed - 1) / TT });
   const fz = chaosAt(svg, 290, 120, .55); const st = el('g', { transform: 'translate(270 150) scale(.32)' }, svg); stoneArt(st, L.unit, 0, 0);
   await S(L.test.stoneLine); await anim(st, [{ transform: 'translate(270px,150px) scale(.32)' }, { transform: 'translate(180px,236px) scale(.24)' }], { duration: 1200, fill: 'forwards', easing: 'cubic-bezier(.3,1.2,.6,1)' }).done;
   SFX.win(); confetti(); sp.remove(); springAt(svg, 180, 240, 1.3, { stones: placed, total: TT, level: placed / TT });
   await S(L.test.winLines);
 }
+/* شارة م2 وم3 وم4 بمكافأة مرحلتها في الواحة نفسها (D230، والجمل كذلك): فوضى «تشقّ القناة» فتجري؛ أو «تُرجع الحجر» إلى حلقة نبع م3
+   فيُزهر البستان؛ أو تأتي بجزء الناعورة فيُركَّب، والتاسع يُديرها فيجري الماء في عشرين موضعاً. وكان الحجر يطير إلى حلقةٍ في المراحل كلها والجمل تقول غيره */
+async function stageRewardScene(L, U, placed, TT) { const m = stageOf(U.id), k = UNITS.filter(u => stageOf(u.id) === m && !FINAL_UNIT[u.id]).findIndex(u => u.id === U.id);
+  const svg = newStage(300, { oasis: false, ground: 0 }), art = el('g', { transform: 'translate(0 96)' }, svg), Y = 96;
+  const hide = m === 'm2' ? { canal: k } : m === 'm3' ? { grove: k } : { part: k };
+  let A = oasisArt(art, { noSky: true, groundH: 140, hide, spring: m === 'm3' ? { stones: placed - 1, total: TT, level: 1 } : undefined });
+  const fz = chaosAt(svg, 300, 64, .5); await S(L.test.stoneLine);
+  if (m === 'm2') { const p = canalAt(A.gC, k), len = p.getTotalLength ? p.getTotalLength() : 200; await anim(p, [{ strokeDasharray: `0 ${len}` }, { strokeDasharray: `${len} 0` }], { duration: 1400, fill: 'forwards' }).done; }
+  else if (m === 'm3') { const i = placed - 1, a = Math.PI * (1 + i / (TT - 1)), to = [180 + Math.cos(a) * 48, Y + 128 + Math.sin(a) * 17 - 2], st = el('g', { transform: 'translate(290 96) scale(.3)' }, svg); stoneArt(st, L.unit, 0, 0);
+    await anim(st, [{ transform: 'translate(290px,96px) scale(.3)' }, { transform: `translate(${to[0]}px,${to[1]}px) scale(.18)` }], { duration: 1100, fill: 'forwards', easing: 'cubic-bezier(.3,1.2,.6,1)' }).done; st.remove();
+    A.sp.remove(); springAt(art, 180, 128, 1, { stones: placed, total: TT, level: 1 }); const gv = groveAt(A.gG, ...OB_GROVE[k], k);
+    await anim(gv, [{ transform: `translate(${OB_GROVE[k][0]}px,${OB_GROVE[k][1] + 8}px) scale(.1)` }, { transform: `translate(${OB_GROVE[k][0]}px,${OB_GROVE[k][1]}px) scale(1)` }], { duration: 900, easing: 'cubic-bezier(.3,1.4,.6,1)' }).done; }
+  else { const n = TT, [rx, ry] = noriaRim(k, n), to = [228 + rx, Y + 106 + ry], b = el('rect', { x: -4, y: -4, width: 8, height: 8, rx: 1.5, fill: css('--water'), stroke: css('--trunk-dk'), 'stroke-width': 1.2 }, svg);
+    await anim(b, [{ transform: 'translate(290px,96px) scale(2)' }, { transform: `translate(${to[0]}px,${to[1]}px) scale(1)` }], { duration: 1100, fill: 'forwards', easing: 'cubic-bezier(.3,1.2,.6,1)' }).done; b.remove(); noriaPart(A.nor.wheel, k, n); }
+  SFX.win(); confetti(); art.innerHTML = ''; A = oasisArt(art, { noSky: true, groundH: 140, spring: m === 'm3' ? { stones: placed, total: TT, level: 1 } : undefined });   /* بعد القطعة: الواحة كما ستبقى (والناعورة التاسعة تدور) */
+  await S(L.test.winLines); }
