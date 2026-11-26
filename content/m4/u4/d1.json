@@ -83,59 +83,58 @@
    "scene": "homeNums",
    "unit": "m4.u3",
    "art": "frame",
-   "ask": "gen.home.askFrames",
+   "ask": "gen.home.askDoor",
    "fields": [
     {
-     "key": "l1",
-     "q": "gen.home.frL1",
-     "min": 5,
-     "max": 100,
-     "val": 30,
+     "key": "rl",
+     "q": "gen.home.doorRL",
+     "min": 100,
+     "max": 300,
+     "val": 200,
      "unit": "rulCm"
     },
     {
-     "key": "w1",
-     "q": "gen.home.frW1",
-     "min": 5,
+     "key": "rw",
+     "q": "gen.home.doorRW",
+     "min": 40,
+     "max": 150,
+     "val": 90,
+     "unit": "rulCm"
+    },
+    {
+     "key": "pl",
+     "q": "gen.home.doorPL",
+     "min": 20,
+     "max": 200,
+     "val": 100,
+     "unit": "rulMm"
+    },
+    {
+     "key": "pw",
+     "q": "gen.home.doorPW",
+     "min": 10,
+     "max": 150,
+     "val": 45,
+     "unit": "rulMm"
+    },
+    {
+     "key": "k",
+     "q": "gen.home.doorK",
+     "min": 2,
      "max": 100,
      "val": 20,
-     "unit": "rulCm"
+     "unit": "homeTimes"
     },
     {
-     "key": "l2",
-     "q": "gen.home.frL2",
-     "min": 5,
-     "max": 100,
-     "val": 15,
-     "unit": "rulCm"
-    },
-    {
-     "key": "w2",
-     "q": "gen.home.frW2",
-     "min": 5,
-     "max": 100,
-     "val": 10,
-     "unit": "rulCm"
-    },
-    {
-     "key": "sim",
-     "q": "gen.home.frSimQ",
-     "pick": [
-      [
-       "yes",
-       "gen.home.y"
-      ],
-      [
-       "no",
-       "gen.home.n"
-      ]
-     ]
+     "key": "ph",
+     "q": "gen.home.doorPh",
+     "photo": "door"
     }
    ],
    "lines": [
     "gen.home.back.m4u3"
    ],
-   "say": "framesSay"
+   "say": "doorSay"
   },
   {
    "s": "hook",
@@ -476,7 +475,7 @@
    "cands": [
     "sas",
     "sss",
-    "looks"
+    "looksS"
    ],
    "q": "gen.pf.q.reason",
    "c": "C407",

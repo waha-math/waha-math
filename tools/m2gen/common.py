@@ -32,6 +32,31 @@ def pf_vary(d):
             for v in x: walk(v, assess)
     for k in ('flow','practice','chaos'): walk(d.get(k), False)
     for k in ('mastery','review','test'): walk(d.get(k), True)
+    pf_kinds(d)
+# المشتّتان العامّان «قسناهما بالمنقلة» و«تبدوان متساويتين» عن زاويتين: لخطوةٍ عن أضلاعٍ أو مثلثاتٍ أو طولٍ مشتّتٌ من جنسها (المراجع A لبوابة M4-U3/U4، 9)
+_LBL=None
+def pf_kinds(d):
+    global _LBL
+    if _LBL is None:
+        try: _LBL=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..','content','strings','labels.json'),encoding='utf8')).get('ui',{})
+        except Exception: _LBL={}
+    def kind(it):
+        t=_LBL.get('pf.%s%s.%d'%(it['pf'], '.v%d'%it['v'] if it.get('v') and ('pf.%s.v%d.1'%(it['pf'],it['v'])) in _LBL else '', it['step']+1),'')
+        import re as _re
+        t=_re.sub('[\u064B-\u0652\u0670]','',t)
+        if 'زاوي' in t: return None
+        if '²' in t or 'مساح' in t or 'مربع' in t: return 'T'
+        if 'أقصر' in t or 'أطول' in t: return 'L'
+        return 'S'
+    def walk(x):
+        if isinstance(x, dict):
+            if x.get('t')=='prReason' and isinstance(x.get('cands'), list):
+                k=kind(x)
+                if k: x['cands']=[({'measure':'measureT' if k=='T' else 'measureS','looks':'looksL' if k=='L' else 'looksS'}.get(c,c)) for c in x['cands']]
+            for v in x.values(): walk(v)
+        elif isinstance(x, list):
+            for v in x: walk(v)
+    if str(d.get('id','')).startswith(('m4.u3','m4.u4')): walk(d)
 def merge_json(path, fn):
     d=json.load(open(path)); fn(d); json.dump(d, open(path,'w'), ensure_ascii=False, indent=1); open(path,'a').write('\n')
 

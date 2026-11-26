@@ -227,7 +227,7 @@
     "cands": [
      "sss",
      "sas",
-     "looks"
+     "looksS"
     ],
     "q": "gen.pf.q.reason",
     "twin": {
@@ -288,7 +288,7 @@
     "cands": [
      "draw2",
      "alt",
-     "measure"
+     "measureS"
     ],
     "q": "gen.pf.q.reason",
     "twin": {
@@ -510,7 +510,7 @@
    "cands": [
     "pyth",
     "sas",
-    "measure"
+    "measureT"
    ],
    "q": "gen.pf.q.reason",
    "c": "C407",

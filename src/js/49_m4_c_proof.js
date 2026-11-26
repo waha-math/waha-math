@@ -105,7 +105,7 @@ ITEM.prChain = {
   praise: () => 'praiseThink', twin(item) { return item.twin || null; } };
 
 /* ================= ② أغلق البرهان (C408، C402، C411): pf، step (0..2)، cands [أسباب، الأول الصحيح] بطاقاتٍ مسموعة ================= */
-const PF_ERR = { measure: 'pfMeasure', looks: 'pfLooks', circ: 'pfCircular' };
+const PF_ERR = { measure: 'pfMeasure', measureS: 'pfMeasure', measureT: 'pfMeasure', looks: 'pfLooks', looksS: 'pfLooks', looksL: 'pfLooks', circ: 'pfCircular' };   /* والقياس والنظر من جنس الخطوة: أضلاع، أو مثلثات، أو طول (المراجع A لبوابة M4-U3/U4، 9) */
 ITEM.prReason = {
   make(spec) { /*T*/if (TESTHOOK && spec.cands[0] !== PF_PROOFS[spec.pf].rs[spec.step]) testBug('prReason: السبب الأول ليس سبب الخطوة');/*/T*/ return { ...spec, want: spec.cands[0], tag: 'pf-reason-' + spec.pf }; },
   async ask(item, mode, tries) { const svg = m3Stage(276), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFitFig(g, item.pf, 18, 124, { v, sMax: .72, y0: 12, s: .72 });   /* على الورقة: تُقرأ في الوضع الداكن (المراجع B لبوابة M4-U1/U2، 3) */

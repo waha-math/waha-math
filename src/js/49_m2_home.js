@@ -144,6 +144,11 @@ const HOME_SAY = {
   framesSay: async (r, v) => { const [L1, W1] = [v.l1, v.w1].sort((x, y) => y - x), [L2, W2] = [v.l2, v.w2].sort((x, y) => y - x), r1 = L1 / L2, r2 = W1 / W2, sim = Math.abs(r1 - r2) <= .06 * Math.max(r1, r2);
     return S((v.sim === 0) !== sim ? 'gen.home.frCheck' : sim ? 'gen.home.frSimOk' : 'gen.home.frNotOk'); },
   aaaAgain: async (r, v) => S(v.cong === 1 && v.simq === 0 ? 'gen.home.aaaOk' : 'gen.home.aaaNo'),
+  /* M4-U3 (المرجع): الباب وصورته؛ الطول بالسنتيمتر حقيقةً وبالملّيمتر في الصورة، والمعامل نسبة الطولين بوحدةٍ واحدة */
+  doorSay: async (r, v) => { const k1 = v.rl * 10 / v.pl, k2 = v.rw * 10 / v.pw; return S(Math.abs(k1 - k2) > .12 * Math.max(k1, k2) ? 'gen.home.doorFar' : Math.abs(v.k - k1) > Math.max(1, .1 * k1) ? 'gen.home.doorCalc' : 'gen.home.doorOk'); },
+  /* M4-U4 (المرجع): حيلة البنّاء ٦٠ و٨٠ ← ١٠٠، ثم قطر الباب محسوباً ومقيساً */
+  builderSay: async (r, v) => { await S(Math.abs(v.m - 100) <= 1 ? 'gen.home.cornerRight' : v.m > 100 ? 'gen.home.cornerWide' : 'gen.home.cornerNarrow'); const d = Math.hypot(v.dw, v.dh);
+    return S(Math.abs(v.dc - d) > 2 ? 'gen.home.doorDCalc' : Math.abs(v.dm - v.dc) <= 3 ? 'gen.home.doorDOk' : 'gen.home.doorDFar'); },
   tvSay: async (r, v) => { const d = Math.hypot(v.w, v.h); return S(Math.abs(v.dc - d) > 2 ? 'gen.home.tvCalc' : Math.abs(v.dm - v.dc) <= 3 ? 'gen.home.tvOk' : 'gen.home.tvFar'); },
   cornerAgain: async (r, v) => S(Math.abs(v.m - 50) <= 1 ? 'gen.home.cornerRight' : v.m > 50 ? 'gen.home.cornerWide' : 'gen.home.cornerNarrow'),
   stepSay: async (r, v) => { const e = Math.hypot(v.r, v.t); return S(Math.abs(v.ec - e) > 1 ? 'gen.home.stepCalc' : Math.abs(v.em - v.ec) <= 2 ? 'gen.home.stepOk' : 'gen.home.stepFar'); },

@@ -82,50 +82,53 @@
    "scene": "homeNums",
    "unit": "m4.u4",
    "art": "window",
-   "ask": "gen.home.askTv",
+   "ask": "gen.home.askBuilder",
    "fields": [
     {
-     "key": "w",
-     "q": "gen.home.tvW",
-     "min": 20,
-     "max": 200,
+     "key": "m",
+     "q": "gen.home.cornerM",
+     "min": 60,
+     "max": 140,
      "val": 100,
      "unit": "rulCm"
     },
     {
-     "key": "h",
-     "q": "gen.home.tvH",
-     "min": 10,
+     "key": "dw",
+     "q": "gen.home.doorRW",
+     "min": 40,
      "max": 150,
-     "val": 60,
+     "val": 90,
+     "unit": "rulCm"
+    },
+    {
+     "key": "dh",
+     "q": "gen.home.doorRL",
+     "min": 100,
+     "max": 300,
+     "val": 200,
      "unit": "rulCm"
     },
     {
      "key": "dc",
-     "q": "gen.home.tvDc",
-     "min": 20,
-     "max": 250,
-     "val": 117,
+     "q": "gen.home.doorDc",
+     "min": 100,
+     "max": 330,
+     "val": 219,
      "unit": "rulCm"
     },
     {
      "key": "dm",
-     "q": "gen.home.tvDm",
-     "min": 20,
-     "max": 250,
-     "val": 117,
+     "q": "gen.home.doorDm",
+     "min": 100,
+     "max": 330,
+     "val": 219,
      "unit": "rulCm"
-    },
-    {
-     "key": "ph",
-     "q": "gen.home.tvPh",
-     "photo": "tv"
     }
    ],
    "lines": [
     "gen.home.back.m4u4"
    ],
-   "say": "tvSay"
+   "say": "builderSay"
   },
   {
    "s": "hook",

@@ -82,16 +82,48 @@
    "art": "window",
    "again": [
     {
-     "key": "m",
-     "q": "gen.home.cornerM",
-     "min": 30,
-     "max": 70,
-     "val": 50,
+     "key": "w",
+     "q": "gen.home.tvW",
+     "min": 20,
+     "max": 200,
+     "val": 100,
+     "unit": "rulCm"
+    },
+    {
+     "key": "h",
+     "q": "gen.home.tvH",
+     "min": 10,
+     "max": 150,
+     "val": 60,
+     "unit": "rulCm"
+    },
+    {
+     "key": "dc",
+     "q": "gen.home.tvDc",
+     "min": 20,
+     "max": 250,
+     "val": 117,
+     "unit": "rulCm"
+    },
+    {
+     "key": "dm",
+     "q": "gen.home.tvDm",
+     "min": 20,
+     "max": 250,
+     "val": 117,
+     "unit": "rulCm"
+    },
+    {
+     "key": "df",
+     "q": "gen.home.tvDf",
+     "min": 0,
+     "max": 40,
+     "val": 0,
      "unit": "rulCm"
     }
    ],
-   "askAgain": "gen.home.askCorner",
-   "sayAgain": "cornerAgain",
+   "askAgain": "gen.home.askTv",
+   "sayAgain": "tvSay",
    "quiet": true,
    "lines": []
   },

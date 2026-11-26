@@ -175,7 +175,7 @@
       "cands": [
        "asa",
        "sas",
-       "measure"
+       "measureS"
       ],
       "q": "gen.pf.q.reason",
       "v": 1
@@ -188,7 +188,7 @@
      "cands": [
       "sas",
       "sss",
-      "looks"
+      "looksS"
      ],
      "q": "gen.pf.q.reason",
      "twin": {
@@ -223,7 +223,7 @@
     "cands": [
      "oppSides",
      "alt",
-     "measure"
+     "measureS"
     ],
     "q": "gen.pf.q.reason",
     "twin": {
@@ -233,7 +233,7 @@
      "cands": [
       "sss",
       "asa",
-      "looks"
+      "looksS"
      ],
      "q": "gen.pf.q.reason",
      "v": 1
@@ -318,7 +318,7 @@
     "cands": [
      "rhomb",
      "oppSides",
-     "measure"
+     "measureS"
     ],
     "q": "gen.pf.q.reason",
     "twin": {
@@ -345,7 +345,7 @@
    "step": 2,
    "cands": [
     "asa",
-    "measure",
+    "measureS",
     "circ"
    ],
    "q": "gen.pf.q.reason"
@@ -377,7 +377,7 @@
      "cands": [
       "oppSides",
       "rhomb",
-      "measure"
+      "measureS"
      ],
      "q": "gen.pf.q.reason",
      "v": 1

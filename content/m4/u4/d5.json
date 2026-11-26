@@ -63,22 +63,40 @@
    "art": "frame",
    "again": [
     {
-     "key": "cong",
-     "q": "gen.home.aaaQ",
-     "pick": [
-      [
-       "yes",
-       "gen.home.y"
-      ],
-      [
-       "no",
-       "gen.home.n"
-      ]
-     ]
+     "key": "l1",
+     "q": "gen.home.frL1",
+     "min": 5,
+     "max": 100,
+     "val": 30,
+     "unit": "rulCm"
     },
     {
-     "key": "simq",
-     "q": "gen.home.aaaS",
+     "key": "w1",
+     "q": "gen.home.frW1",
+     "min": 5,
+     "max": 100,
+     "val": 20,
+     "unit": "rulCm"
+    },
+    {
+     "key": "l2",
+     "q": "gen.home.frL2",
+     "min": 5,
+     "max": 100,
+     "val": 15,
+     "unit": "rulCm"
+    },
+    {
+     "key": "w2",
+     "q": "gen.home.frW2",
+     "min": 5,
+     "max": 100,
+     "val": 10,
+     "unit": "rulCm"
+    },
+    {
+     "key": "sim",
+     "q": "gen.home.frSimQ",
      "pick": [
       [
        "yes",
@@ -91,8 +109,8 @@
      ]
     }
    ],
-   "askAgain": "gen.home.askAAA",
-   "sayAgain": "aaaAgain",
+   "askAgain": "gen.home.askFrames",
+   "sayAgain": "framesSay",
    "quiet": true,
    "lines": []
   },
@@ -226,7 +244,7 @@
     "cands": [
      "pos",
      "sss",
-     "measure"
+     "measureT"
     ],
     "q": "gen.pf.q.reason",
     "twin": {
@@ -324,7 +342,7 @@
      "step": 2,
      "cands": [
       "algebra",
-      "measure",
+      "measureT",
       "sss"
      ],
      "q": "gen.pf.q.reasonT",
