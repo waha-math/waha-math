@@ -95,6 +95,11 @@ const HOME_SAY = {
     await S('gen.home.decDiff'); },
   ropeAgain: async (r, v) => { const svg = newStage(230, { oasis: false, ground: 0 }); homeArt(svg, 'tape'); const t = el('text', { x: 180, y: 190, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg);
     t.textContent = `${mcTxt(v.rm, v.rc)} = ${((v.rm * 100 + v.rc) / 100).toFixed(2)} ${labelText('lenM')}`; await S('gen.home.ropeSay'); },
+  /* S3-U2: فحص النجّار على الباب (فرقٌ حتى 1 سم مقبول في الكبير)، وبعد أسبوع باب الثلاجة أو إطار صورة؛ S3-U3: مساحة العلّاقة ومثلث الشريحة */
+  doorSay: async (r, v) => S((Math.abs(v.d1 - v.d2) <= 1) === (v.v === 0) ? 'gen.home.doorOk' : 'gen.home.doorNo'),
+  frameDiag: async (r, v) => S(Math.abs(v.f1 - v.f2) <= 1 ? 'gen.home.frameRect' : 'gen.home.frameLean'),
+  hangerSay: async (r, v) => S(Math.abs(v.a - v.b * v.h / 2) <= 5 ? 'gen.home.hangOk' : 'gen.home.hangNo'),
+  toastAgain: async (r, v) => S(Math.abs(v.a - v.b * v.h / 2) <= 2 ? 'gen.home.toastOk' : 'gen.home.toastNo'),
   /* S3-U1: عدد البلاطات حول الرأس × زاوية الركن، وزوايا الشطيرة بعد أسبوع */
   tileSum: async (r, v) => S(v.n * v.ang === 360 ? 'gen.home.tile360' : 'gen.home.tileNot360'),
   sandAgain: async (r, v) => S(v.a + v.b + v.c === 180 ? 'gen.home.sandOk' : 'gen.home.sandNo'),   /* الثالثة محسوبةٌ قبل قياسها: المجموع 180 تماماً */

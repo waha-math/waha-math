@@ -27,6 +27,7 @@
   "bagScissors": "مِقَصٌّ"
  },
  "lines": {
+  "home.back": "العَلَّاقَةُ الَّتِي {حَسَبْتَ|حَسَبْتِ} مِسَاحَتَهَا مُثَلَّثٌ. لَوْ قَصَصْنَا رَأْسَهَا بِخَطٍّ مُوَازٍ لِلْقَاعِدَةِ لَبَقِيَ شِبْهُ مُنْحَرِفٍ: فَكَيْفَ نَحْسُبُ مِسَاحَتَهُ؟",
   "bag.ask": "هَلْ {مَعَكَ|مَعَكِ} وَرَقُ مُرَبَّعَاتٍ وَمِقَصٌّ؟ أَمْ نَعْمَلُ عَلَى الشَّاشَةِ؟",
   "hk.01": [
    "chaos",
@@ -73,6 +74,44 @@
   ]
  },
  "flow": [
+  {
+   "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u3",
+   "art": "shapes",
+   "ask": "gen.home.askHanger",
+   "fields": [
+    {
+     "key": "b",
+     "q": "gen.home.hangB",
+     "min": 10,
+     "max": 60,
+     "val": 40,
+     "unit": "rulCm"
+    },
+    {
+     "key": "h",
+     "q": "gen.home.hangH",
+     "min": 5,
+     "max": 40,
+     "val": 15,
+     "unit": "rulCm"
+    },
+    {
+     "key": "a",
+     "q": "gen.home.hangA",
+     "min": 20,
+     "max": 1200,
+     "val": 300,
+     "step": 5,
+     "unit": "arCm2"
+    }
+   ],
+   "say": "hangerSay",
+   "lines": [
+    "home.back"
+   ]
+  },
   {
    "s": "hook",
    "scene": "trapHook",

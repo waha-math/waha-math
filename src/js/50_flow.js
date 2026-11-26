@@ -146,8 +146,9 @@ async function masteryStage(L) {
     const cs = P.cs[C] = isObj(P.cs[C]) ? P.cs[C] : {}; const entry = (M.entryOnly || []).includes(C);
     let passed = false, ok = 0, round = 0;
     for (round = 1; round <= 2; round++) {
-      ok = 0; for (const it of items) { const r = await runItem(it, 'mastery', { scene: 'mastery:' + C }); if (r.firstTry) ok++; }
-      if (ok >= msNeed(items.length)) { passed = true; break; }
+      const list = round === 2 && M.alt && M.alt[C] ? M.alt[C] : items;   /* الدورة الثانية ببنود بديلة إن وُجدت، لا البنود التي كُشفت أجوبتها (المراجع A لبوابة S3-U2/U3، 4) */
+      ok = 0; for (const it of list) { const r = await runItem(it, 'mastery', { scene: 'mastery:' + C }); if (r.firstTry) ok++; }
+      if (ok >= msNeed(list.length)) { passed = true; break; }
       if (round === 1) { await S('gen.ms.again');
         if (M.recall && M.recall[C]) await (M.recall[C].scene ? SCENES[M.recall[C].scene](M.recall[C], L) : SCENES.steps(M.recall[C]));   /* تذكّر بمشهد من الكتالوج (S1-U3) أو بلغة الخطوات */
         for (const it of (M.remedial && M.remedial[C]) || []) await runItem(it, 'remedial', { scene: 'remedial:' + C });

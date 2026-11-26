@@ -27,6 +27,7 @@
   "bagRuler": "مِسْطَرَةٌ"
  },
  "lines": {
+  "home.back": "البَابُ الَّذِي {قِسْتَ|قِسْتِ} قُطْرَيْهِ مُسْتَطِيلٌ أَوْ مَائِلٌ قَلِيلًا. وَاليَوْمَ نَسْأَلُ: إِذَا مَالَ المُسْتَطِيلُ، كَيْفَ نَقِيسُ ارْتِفَاعَهُ؟",
   "bag.ask": "هَلْ {مَعَكَ|مَعَكِ} خَيْطٌ وَمِسْطَرَةٌ؟ أَمْ نَعْمَلُ عَلَى الشَّاشَةِ؟",
   "hk.01": [
    "chaos",
@@ -71,6 +72,49 @@
   ]
  },
  "flow": [
+  {
+   "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u2",
+   "art": "window",
+   "ask": "gen.home.askDoor",
+   "fields": [
+    {
+     "key": "d1",
+     "q": "gen.home.doorD1",
+     "min": 50,
+     "max": 300,
+     "val": 220,
+     "unit": "rulCm"
+    },
+    {
+     "key": "d2",
+     "q": "gen.home.doorD2",
+     "min": 50,
+     "max": 300,
+     "val": 220,
+     "unit": "rulCm"
+    },
+    {
+     "key": "v",
+     "q": "gen.home.doorQ",
+     "pick": [
+      [
+       "rect",
+       "gen.home.doorRect"
+      ],
+      [
+       "lean",
+       "gen.home.doorLean"
+      ]
+     ]
+    }
+   ],
+   "say": "doorSay",
+   "lines": [
+    "home.back"
+   ]
+  },
   {
    "s": "hook",
    "scene": "pumpHook",

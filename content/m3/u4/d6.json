@@ -69,6 +69,42 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u3",
+   "art": "shapes",
+   "again": [
+    {
+     "key": "b",
+     "q": "gen.home.toastB",
+     "min": 5,
+     "max": 20,
+     "val": 10,
+     "unit": "rulCm"
+    },
+    {
+     "key": "h",
+     "q": "gen.home.toastH",
+     "min": 5,
+     "max": 20,
+     "val": 10,
+     "unit": "rulCm"
+    },
+    {
+     "key": "a",
+     "q": "gen.home.toastA",
+     "min": 5,
+     "max": 200,
+     "val": 50,
+     "unit": "arCm2"
+    }
+   ],
+   "askAgain": "gen.home.askToast",
+   "sayAgain": "toastAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 4,
    "lines": [

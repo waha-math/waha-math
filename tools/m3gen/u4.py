@@ -38,7 +38,14 @@ ADULT={"title":"المساحات (2): سلّم الأداء (المرجع S3-U4)
    "الوحدات: 🌱 ينساها · 🌿 يكتبها غالباً · 🌳 يكتب سم² وم² وم بدقة."]}
 
 # ---------------- د1: مساحة شبه المنحرف (C305) ----------------
+# مهمة بيت S3-U3 (D221، D244؛ المراجع A لبوابة S3-U2/U3، 19): قاعدة العلّاقة وارتفاعها ومساحتها؛ وبعد أسبوع مثلث شريحة الخبز
+HOME_U3={"s":"hook","scene":"homeNums","unit":"m3.u3","art":"shapes","ask":"gen.home.askHanger","fields":[
+   {"key":"b","q":"gen.home.hangB","min":10,"max":60,"val":40,"unit":"rulCm"},{"key":"h","q":"gen.home.hangH","min":5,"max":40,"val":15,"unit":"rulCm"},
+   {"key":"a","q":"gen.home.hangA","min":20,"max":1200,"val":300,"step":5,"unit":"arCm2"}],"say":"hangerSay","lines":["home.back"]}
+AGAIN_U3={"s":"hook","scene":"homeNums","unit":"m3.u3","art":"shapes","again":[{"key":"b","q":"gen.home.toastB","min":5,"max":20,"val":10,"unit":"rulCm"},
+   {"key":"h","q":"gen.home.toastH","min":5,"max":20,"val":10,"unit":"rulCm"},{"key":"a","q":"gen.home.toastA","min":5,"max":200,"val":50,"unit":"arCm2"}],"askAgain":"gen.home.askToast","sayAgain":"toastAgain","quiet":True,"lines":[]}
 L1={
+ "home.back":"العَلَّاقَةُ الَّتِي {حَسَبْتَ|حَسَبْتِ} مِسَاحَتَهَا مُثَلَّثٌ. لَوْ قَصَصْنَا رَأْسَهَا بِخَطٍّ مُوَازٍ لِلْقَاعِدَةِ لَبَقِيَ شِبْهُ مُنْحَرِفٍ: فَكَيْفَ نَحْسُبُ مِسَاحَتَهُ؟",
  "bag.ask":"هَلْ {مَعَكَ|مَعَكِ} وَرَقُ مُرَبَّعَاتٍ وَمِقَصٌّ؟ أَمْ نَعْمَلُ عَلَى الشَّاشَةِ؟",
  "hk.01":["chaos","مِسَاحَةُ هَذِهِ الأَرْضِ سَهْلَةٌ: القَاعِدَةُ الكُبْرَى فِي الارْتِفَاعِ، عَشَرَةٌ فِي أَرْبَعَةٍ: أَرْبَعُونَ!"],
  "hk.02":"نَعُدُّ المُرَبَّعَاتِ: فِي الوَسَطِ مُسْتَطِيلٌ أَرْبَعَةٌ وَعِشْرُونَ، وَالمُثَلَّثَانِ مَعًا ثَمَانِيَةٌ. المِسَاحَةُ اثْنَانِ وَثَلَاثُونَ، لَا أَرْبَعُونَ.",
@@ -76,7 +83,7 @@ d1={"id":"m3.u4.d1","title":"مِسَاحَةُ شِبْهِ المُنْحَر�
  "concepts":{"C305":"مساحة شبه المنحرف = نصف مجموع القاعدتين × الارتفاع (نسختان تكوّنان متوازي أضلاع)، والتحقق بقطر إلى مثلثين"},
  "bag":{**BAG("gridPaper","scissors","bagGrid","bagScissors"),"adult":"ورق مربعات ومقص آمن.","screenPath":"على الشاشة يسمّي الطفل القاعدتين، ويحسب مساحة أشباه منحرف بتدوير مختلف."},
  "labels":{"bagGrid":"وَرَقُ مُرَبَّعَاتٍ","bagScissors":"مِقَصٌّ"},"lines":L1,
- "flow":[
+ "flow":[HOME_U3,
   {"s":"hook","scene":"trapHook","lines":["hk.01","hk.02"]},
   {"s":"explore","scene":"trapCopies","mat":MAT(),"lines":["tc.01","tc.02","tc.03","tc.04","tc.05"]},
   {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(tp(4,8,4,rot=90),tp(5,9,3,rot=180)), tw(tr(6,10,4,rot=90),tr(4,8,5,rot=180)), tw(tr(5,9,4,off=0,rot=90),tr(3,7,6,off=4))]},
@@ -197,7 +204,7 @@ d3={"id":"m3.u4.d3","title":"مِسَاحَةُ الشَّكْلِ المُرَ�
  "concepts":{"C323":"مساحة الشكل المركّب بالتقسيم إلى مثلثات ورباعيات أو بالإتمام ثم الطرح، واختيار الأسهل والتحقق بالأخرى، ومحيطه بالحافة الخارجية"},
  "bag":{**BAG("gridPaper","pencils","bagGrid","bagPencils"),"adult":"ورق مربعات وأقلام ملوّنة.","screenPath":"على الشاشة يختار الطفل القطع المناسب، ويحسب المساحة بالتقسيم أو بالإتمام، والمحيط بالحافة الخارجية."},
  "labels":{"bagGrid":"وَرَقُ مُرَبَّعَاتٍ","bagPencils":"أَقْلَامٌ مُلَوَّنَةٌ"},"lines":L3,
- "flow":[
+ "flow":[AGAIN_U3,
   {"s":"hook","scene":"houseHook","lines":["hk.01","hk.02"]},
   {"s":"explore","scene":"compShow","part":"a","mat":MAT(),"lines":["cs.01","cs.02"]},
   {"s":"explore","scene":"compShow","part":"b","lines":["cs.03","cs.04","cs.05"]},
@@ -375,7 +382,7 @@ def T6(i,of,item): return {"id":"t%d"%i,"of":"m3.u4.d%d"%of,"item":item}
 d6={"id":"m3.u4.d6","title":"مُغَامَرَةُ المِسَاحَاتِ","icon":["stone"],"concepts":{},
  "bag":{**BAG("gridPaper","ruler","bagGrid","bagRuler"),"adult":"ورق مربعات ومسطرة وقلم.","screenPath":"أسئلة الوحدة على الشاشة: شبه المنحرف والأقطار والمركّب والتحويل بين سم² وم²."},
  "labels":{"bagGrid":"وَرَقُ مُرَبَّعَاتٍ","bagRuler":"مِسْطَرَةٌ"},"lines":L6,
- "flow":[
+ "flow":[AGAIN_U3,
   {"s":"hook","scene":"stoneHook","placed":4,"lines":["hook.01","hook.02"]},
   {"s":"explore","scene":"lines","mat":MAT(),"lines":["rv.01","rv.02"]},
   {"s":"game","scene":"items","mode":"practice","stage":"game","intro":"gm.intro","items":[tw(tr(4,12,5,q='gm.big'),tr(8,10,3,q='gm.big')), tw(reason("gm.rect",{"kind":"poly","k":"qRect3","rot":0},["gm.recta","gm.rectb","gm.rectc"]),reason("gm.rect",{"kind":"poly","k":"qRect4","rot":0},["gm.recta","gm.rectb","gm.rectc"])), tw(cv(2,'m2',q='gm.conv'),cv(3,'m2',q='gm.conv')), tw({"t":"triArea","b":10,"h":5,"foot":3,"q":"gm.half"},{"t":"triArea","b":8,"h":7,"foot":2,"q":"gm.half"})]},
@@ -490,11 +497,15 @@ def walk(x):
     elif isinstance(x,list):
         for v in x: walk(v)
 for f in glob.glob(U+'/d*.json'): walk(json.load(open(f,encoding='utf8')))
+def nomw(w):   # العدد مرفوعاً قبل «وَنِصْفٌ» (لا وقفٌ وإعرابٌ في عبارة واحدة؛ المراجع A لبوابة S3-U2/U3، 23)
+    for a,b in (('ة','ةٌ'),('ون','ونَ'),('ان','انِ'),('وَاحِد','وَاحِدٌ')):
+        if w.endswith(a): return w[:-len(a)]+b
+    return w
 G={}
 NUMW=json.load(open(ROOT+'/content/strings/gen.json',encoding='utf8'))['lines']
 for n in sorted(NUMS):
     if n>100 and float(n).is_integer(): G['gen.big.%d'%n]=bigphrase(int(n))
-    elif not float(n).is_integer() and n<100: G['gen.half.%d'%int(n)]=(NUMW['gen.numw.%02d'%int(n)]+' وَنِصْفٌ') if int(n) else 'نِصْفٌ'
+    elif not float(n).is_integer() and n<100: G['gen.half.%d'%int(n)]=(nomw(NUMW['gen.numw.%02d'%int(n)])+' وَنِصْفٌ') if int(n) else 'نِصْفٌ'
 for v,u in sorted(VALS): G['gen.a2.v.%d.%s'%(v,u)]=unitphrase(v,u)
 LN={'a':'أَلِف','b':'بَاء','j':'جِيم','d':'دَال'}
 for i,x in enumerate('abjd'):

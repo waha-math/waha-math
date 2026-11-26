@@ -62,6 +62,34 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u2",
+   "art": "frame",
+   "again": [
+    {
+     "key": "f1",
+     "q": "gen.home.frameD1",
+     "min": 10,
+     "max": 250,
+     "val": 60,
+     "unit": "rulCm"
+    },
+    {
+     "key": "f2",
+     "q": "gen.home.frameD2",
+     "min": 10,
+     "max": 250,
+     "val": 60,
+     "unit": "rulCm"
+    }
+   ],
+   "askAgain": "gen.home.askFrame",
+   "sayAgain": "frameDiag",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "stoneHook",
    "placed": 3,
    "lines": [
