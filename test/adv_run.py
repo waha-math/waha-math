@@ -492,37 +492,42 @@ VIS = """() => { const svg = document.querySelector('#stage svg'), st = document
 TAPS = re.search(r'^TAPS = """(.*?)"""', open(os.path.join(HERE, 'auto_run.py'), encoding='utf-8').read(), re.S | re.M).group(1)
 async def land_cases(b):
   lessons = os.environ.get('LAND', '').split(',') if os.environ.get('LAND') else None
-  for vp in (os.environ.get('LANDVP', '640x360,740x360,844x390,412x860')).split(','):   # والطول (412×860) لـ N-01 وحده
-    W, H = map(int, vp.split('x')); ctx = await b.new_context(viewport={'width': W, 'height': H}, has_touch=True, is_mobile=True); pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
-    await pg.goto(FAST.replace('seed=5', 'seed=7')); await pg.wait_for_timeout(250)
-    await pg.evaluate("""() => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([{ id: 'k1', name: 'سلمى', gender: 'f', photo: '', avatar: 'f3' }])); localStorage.setItem('hp_kid', JSON.stringify('k1'));
-      localStorage.setItem('hp_settings:k1', JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:k1', JSON.stringify({ schema: 3, unlockAll: true })); }""")
-    await reopen(pg); ids = lessons or await pg.evaluate("() => [...UNITS.flatMap(u => u.lessons), ...UNITS.filter(u => WS[u.id]).map(u => 'ws:' + u.id)]"); rows = []   # والورش في شاشة الدرس نفسها
-    for lid in ids:
-      await pg.evaluate("(id) => { showHome(); if (id.startsWith('ws:')) runWorkshop(UNITS.find(u => u.id === id.slice(3))); else runLesson(id); }", lid); await pg.wait_for_timeout(200); last = None
-      for _ in range(900):
-        st = await pg.evaluate(ST)
-        if st['home'] and not st['covers']: break
-        if 'exitCover' in st['covers']: await pg.click('#rsGo'); continue
-        a = st['auto']
-        if a and a['n'] != last:
-          last = a['n']; await pg.wait_for_timeout(120); v = await pg.evaluate(VIS)
-          if v: v.update(lesson=lid, scene=st['scene'], taps=await pg.evaluate(TAPS)); rows.append(v)
-          if st['scene'].endswith(':bag'): await pg.evaluate("() => { const b = [...document.querySelectorAll('.choices .pick')]; (b.find(x => x.dataset.k === 'screen') || b[0]).click(); }")
-          else: await pg.evaluate("() => window.__auto && window.__auto.ok()")
-        elif st['go']: await pg.click('#go')
-        await pg.wait_for_timeout(30)
-    sv = [r for r in rows if r['offSvg'] or r['nest']]
-    check('N-01', len(rows) > 20 and not sv, '%s: لا هدف حيّ خارج المسرح كله، وما يُسحب من داخل شيءٍ رأسُه له، في %d انتظاراً (كانت الدمية في «قال المرشد» تُقذف خارج المسرح بعد «داخل»)' % (vp, len(rows)), [len(sv), sv[:4]])
-    tc = [(r['scene'], t) for r in rows for t in r['taps']]
-    check('X-03' if W > H else 'N-01', len(rows) > 20 and not tc, '%s: لا تعارض لمس في المسرح (مركز كل هدف وحوافّه المرسومة له، D255) في %d انتظاراً' % (vp, len(rows)), [len(tc), tc[:6]])
-    if H > W: check('N-01', not errs, 'لا أخطاء في الصفحة (%s)' % vp, errs[:3]); await ctx.close(); continue
-    bad = [r for r in rows if r['visH'] < 120 or r['offLive'] or r['offPick']]
-    check('X-03', len(rows) > 20 and not bad, 'الهاتف بالعرض %s: في %d انتظاراً الرسم ظاهر 120 بكسلاً فأكثر، ولا هدف ولا زرّ خارج الشاشة' % (vp, len(rows)), [len(bad), min([r['visH'] for r in rows] or [0]), bad[:6]])
-    tb = [r for r in rows if r['sayW'] < 150 or r['rpOut'] or r['rpHit']]
-    check('X-03', len(rows) > 20 and not tb, 'الهاتف بالعرض %s: نصّ الفقاعة عرضه 150 بكسلاً فأكثر، وزرّ «أعد» ظاهر كاملاً لا يغطّي النصّ ولا المرشد' % vp,
-          [len(tb), min([r['sayW'] for r in rows] or [0]), tb[:4]])
-    check('X-03', not errs, 'لا أخطاء في الصفحة (الهاتف بالعرض %s)' % vp, errs[:3]); await ctx.close()
+  # الأحجام الأربعة متوازيةً، اثنان معاً (LANDPAR): الدروس كلها في كل حجم تجاوزت 110 دقائق بعد م4 (Gate 45725310317)
+  sem = asyncio.Semaphore(int(os.environ.get('LANDPAR', '2')))
+  async def one(vp):
+   async with sem:
+     W, H = map(int, vp.split('x')); ctx = await b.new_context(viewport={'width': W, 'height': H}, has_touch=True, is_mobile=True); pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+     await pg.goto(FAST.replace('seed=5', 'seed=7')); await pg.wait_for_timeout(250)
+     await pg.evaluate("""() => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([{ id: 'k1', name: 'سلمى', gender: 'f', photo: '', avatar: 'f3' }])); localStorage.setItem('hp_kid', JSON.stringify('k1'));
+       localStorage.setItem('hp_settings:k1', JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:k1', JSON.stringify({ schema: 3, unlockAll: true })); }""")
+     await reopen(pg); ids = lessons or await pg.evaluate("() => [...UNITS.flatMap(u => u.lessons), ...UNITS.filter(u => WS[u.id]).map(u => 'ws:' + u.id)]"); rows = []   # والورش في شاشة الدرس نفسها
+     for lid in ids:
+       await pg.evaluate("(id) => { showHome(); if (id.startsWith('ws:')) runWorkshop(UNITS.find(u => u.id === id.slice(3))); else runLesson(id); }", lid); await pg.wait_for_timeout(200); last = None
+       for _ in range(900):
+         st = await pg.evaluate(ST)
+         if st['home'] and not st['covers']: break
+         if 'exitCover' in st['covers']: await pg.click('#rsGo'); continue
+         a = st['auto']
+         if a and a['n'] != last:
+           last = a['n']; await pg.wait_for_timeout(120); v = await pg.evaluate(VIS)
+           if v: v.update(lesson=lid, scene=st['scene'], taps=await pg.evaluate(TAPS)); rows.append(v)
+           if st['scene'].endswith(':bag'): await pg.evaluate("() => { const b = [...document.querySelectorAll('.choices .pick')]; (b.find(x => x.dataset.k === 'screen') || b[0]).click(); }")
+           else: await pg.evaluate("() => window.__auto && window.__auto.ok()")
+         elif st['go']: await pg.click('#go')
+         await pg.wait_for_timeout(30)
+     sv = [r for r in rows if r['offSvg'] or r['nest']]
+     check('N-01', len(rows) > 20 and not sv, '%s: لا هدف حيّ خارج المسرح كله، وما يُسحب من داخل شيءٍ رأسُه له، في %d انتظاراً (كانت الدمية في «قال المرشد» تُقذف خارج المسرح بعد «داخل»)' % (vp, len(rows)), [len(sv), sv[:4]])
+     tc = [(r['scene'], t) for r in rows for t in r['taps']]
+     check('X-03' if W > H else 'N-01', len(rows) > 20 and not tc, '%s: لا تعارض لمس في المسرح (مركز كل هدف وحوافّه المرسومة له، D255) في %d انتظاراً' % (vp, len(rows)), [len(tc), tc[:6]])
+     if H > W: check('N-01', not errs, 'لا أخطاء في الصفحة (%s)' % vp, errs[:3]); await ctx.close(); return
+     bad = [r for r in rows if r['visH'] < 120 or r['offLive'] or r['offPick']]
+     check('X-03', len(rows) > 20 and not bad, 'الهاتف بالعرض %s: في %d انتظاراً الرسم ظاهر 120 بكسلاً فأكثر، ولا هدف ولا زرّ خارج الشاشة' % (vp, len(rows)), [len(bad), min([r['visH'] for r in rows] or [0]), bad[:6]])
+     tb = [r for r in rows if r['sayW'] < 150 or r['rpOut'] or r['rpHit']]
+     check('X-03', len(rows) > 20 and not tb, 'الهاتف بالعرض %s: نصّ الفقاعة عرضه 150 بكسلاً فأكثر، وزرّ «أعد» ظاهر كاملاً لا يغطّي النصّ ولا المرشد' % vp,
+           [len(tb), min([r['sayW'] for r in rows] or [0]), tb[:4]])
+     check('X-03', not errs, 'لا أخطاء في الصفحة (الهاتف بالعرض %s)' % vp, errs[:3]); await ctx.close()
+
+  await asyncio.gather(*[one(vp) for vp in (os.environ.get('LANDVP', '640x360,740x360,844x390,412x860')).split(',')])
 
 async def main():
   async with async_playwright() as p:
