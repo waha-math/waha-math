@@ -6,7 +6,7 @@ import asyncio, os, sys, json
 from playwright.async_api import async_playwright
 HERE = os.path.dirname(os.path.abspath(__file__))
 FILE = os.environ.get('FILE', os.path.join(HERE, '..', 'dist', 'واحة_الرياضيات.dev.html'))
-DEVICES = sys.argv[1:] or ['iPhone SE', 'Pixel 5', 'Galaxy S5']
+DEVICES = sys.argv[1:] or ['iPhone SE', 'Pixel 5', 'Galaxy S5', 'Galaxy S5 landscape']   # والشاشة العريضة القصيرة 640×360 (المراجع B لبوابة S3-U2/U3، 11)
 FAILS = []
 def check(ok, what): print(('ok   ' if ok else 'FAIL ') + what, flush=True); (None if ok else FAILS.append(what))
 SMALL = """() => [...document.querySelectorAll('#stage svg [data-cell], #stage svg [data-cubtn], #stage .choices .pick')].filter(e => { const r = e.getBoundingClientRect(); return r.width && Math.min(r.width, r.height) < 55.5 && !e.closest('[hidden]'); })
@@ -30,7 +30,19 @@ async def run(p, dev, kbd):
   check(len(puzzles) == 60, '%s: ستون لغزاً في عشرين ورشة (%d)' % (dev, len(puzzles)))
   for uid, i, kind in puzzles:
     await pg.evaluate("([uid, i]) => { hush(); CUR = null; FLOW++; reseed('cutap|' + uid + '|' + i); show('lesson'); window.__cuDone = false; const U = UNITS.find(u => u.id === uid); cuPuzzle(U, WS[uid].puzzles[i], i).then(() => { window.__cuDone = true; }); }", [uid, i])
-    await pg.wait_for_timeout(300); P = await pg.evaluate("([uid, i]) => WS[uid].puzzles[i]", [uid, i]); bad = []; small = set(); nets_i = 0
+    await pg.wait_for_timeout(300); P = await pg.evaluate("([uid, i]) => WS[uid].puzzles[i]", [uid, i]); bad = []; small = set(); nets_i = 0; replayed = False
+    # «ابنِ ما في الصورة» باتجاهها (rot 0، D281 (3)): البناء المُدار ربع دورة لا يُقبل (المراجع B لبوابة S3-U2/U3، 10)
+    if kind == 'pic' and not P.get('rot'):
+      rot, same = await pg.evaluate("(t) => { const r = cuRot(t); return [r, cuJ(cuTrim(r)) === cuJ(cuTrim(t))]; }", P['t'])
+      if len(rot) == len(P['t']) and len(rot[0]) == len(P['t'][0]) and not same:   # والبناء الذي يعود كما هو بالدوران لا يُفحص به
+        for _ in range(60):
+          cells = await pg.evaluate("() => [...document.querySelectorAll('#stage svg [data-cell][role=button]')].map(e => [e.dataset.cell, +e.dataset.h])")
+          diff = [c for c, h in cells if rot[int(c[0])][int(c[2])] != h]
+          if not cells: await pg.wait_for_timeout(100); continue
+          if not diff or await pg.evaluate("() => window.__cuDone"): break
+          await tap(pg, '#stage svg [data-cell="%s"]' % diff[0], kbd); await pg.wait_for_timeout(60)
+        await pg.wait_for_timeout(250)
+        if await pg.evaluate("() => window.__cuDone"): bad.append('البناء المُدار ربع دورة قُبل')
     for step in range(400):
       if await pg.evaluate("() => window.__cuDone"): break
       for x in await pg.evaluate(SMALL): small.add(x)
@@ -61,6 +73,11 @@ async def run(p, dev, kbd):
       else:
         sel = '#stage .choices:not([data-done]) .pick[data-ok="true"]'
         if not await pg.evaluate("(s) => !!document.querySelector(s)", sel): await pg.wait_for_timeout(100); continue
+        if not replayed:   # «أعد الجملة» والخيارات ظاهرة: يعيد السؤال ثم الخيارات، ولا يُسقط اللغز (المراجع B لبوابة S3-U2/U3، 2)
+          replayed = True; e = await tap(pg, '#replay', kbd); await pg.wait_for_timeout(500)
+          if e: bad.append('replay ' + e)
+          if await pg.evaluate("() => { const c = document.querySelector('#crashCover'); return !!c && !c.hidden; }"): bad.append('«أعد الجملة» أسقط اللغز'); break
+          continue
         e = await tap(pg, sel, kbd); await pg.wait_for_timeout(150)
         if e: bad.append('pick ' + e)
     done = await pg.evaluate("() => window.__cuDone")

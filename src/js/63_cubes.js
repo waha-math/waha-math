@@ -71,7 +71,7 @@ function cuPlan(svg, t, o) { const R = t.length, C = t[0].length, cs = o.cs || 7
     const tx = el('text', { x: x0 + (c + .5) * cs, y: y0 + (r + .5) * cs + 10, 'text-anchor': 'middle', 'font-size': 28, 'font-weight': 800, fill: SO.ink, 'pointer-events': 'none' }, cg);
     cg.onclick = () => o.tap(r, c); cells.push({ r, c, g: cg, rc, tx }); }
   el('line', { x1: x0 + 2, y1: y0 + R * cs + 3, x2: x0 + C * cs - 2, y2: y0 + R * cs + 3, stroke: CU.front, 'stroke-width': 5, 'stroke-linecap': 'round', 'data-front': 1 }, g);
-  const fl = el('text', { x: x0 + C * cs / 2, y: y0 + R * cs + 16, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 800, fill: CU.front, 'font-family': css('--f') }, g); fl.textContent = G(labelText('cuFront'));
+  const fl = el('text', { x: x0 + C * cs / 2, y: y0 + R * cs + 16, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: '#6a4a9e', stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', 'font-family': css('--f') }, g); fl.textContent = G(labelText('cuFront'));   /* بنفسجي أغمق بهالة بيضاء: يُقرأ بالفاتح والداكن (المراجع B لبوابة S3-U2/U3، 14) */
   const update = () => cells.forEach(q => { const h = t[q.r][q.c]; q.rc.setAttribute('fill', h ? CU.shade[Math.min(h, CU.shade.length - 1)] : css('--paper')); q.tx.textContent = h ? DG(h) : '';
     q.g.setAttribute('aria-label', plain(G(labelText('cuCell'))) + ' ' + DG(q.r + 1) + '، ' + DG(q.c + 1) + ': ' + DG(h)); q.g.dataset.h = h; });
   update(); return { g, cells, update }; }
@@ -99,7 +99,7 @@ function cuBuild(U, P, free) {
   let resolve; const doneP = gate(new Promise(r => resolve = r));
   const check = () => { if (free || done) return; const v = cuViews(t), w = goal && cuViews(goal);
     if (!pic) for (const k of ['front', 'side', 'top']) cards.K[k].ok(cuJ(v[k]) === cuJ(w[k]));
-    const ok = pic ? cuSum(t) && cuSameShape(t, goal) : cuJ(v) === cuJ(w); if (pic) mine.ok(ok);
+    const ok = pic ? cuSum(t) && (P.rot ? cuSameShape(t, goal) : cuJ(cuTrim(t)) === cuJ(cuTrim(goal))) : cuJ(v) === cuJ(w);   /* الصورة باتجاهها (rot 0، D281 (3)): يُطابَق البناء بعد قصّ الفارغ دون تدوير؛ والمُدارة (م4) بأيّ دوران (المراجع B لبوابة S3-U2/U3، 10) */ if (pic) mine.ok(ok);
     if (ok) { done = true; disarmIdle(); hush(); AUTO_CLEAR(); plan.cells.forEach(q => untarget([q.g])); logAttempt({ scene: 'ws', tag: P.id, ok: true });
       SFX.win(); confetti(); S(pic ? 'gen.ws.cv.solvedPic' : 'gen.ws.cv.solved').then(() => resolve()); } };
   const tap = (r, c) => { if (done) return; resetIdle(); t[r][c] = (t[r][c] + 1) % (Hm + 1); t[r][c] ? SFX.pop() : SFX.tick(); plan.update(); draw(); check(); };
@@ -126,7 +126,7 @@ async function cuCountPuzzle(U, P) { const n = P.builds.length;
     const svg = newStage(250, { oasis: false, ground: 0 }); cuVox(svg, cuVoxOf(t), { cx: 180, cy: 122, W: 250, H: 220, s: 40, floor: [3, 3] });
     const nums = shuffle([...new Set([want, seen, want + 1, want - 1, want + 2].filter(x => x > 0))].slice(0, 4));
     if (!i) await S(P.name);
-    for (let tries = 0; ; tries++) { if (!tries) await S('gen.ws.cc.q'); const np = numberPick(nums, want, { intro: 'gen.ws.cc.q' }); const a = await np.p;
+    for (let tries = 0; ; tries++) { if (!tries) await S('gen.ws.cc.q'); const np = numberPick(nums, want, { intro: [lineOf('gen.ws.cc.q')] }); const a = await np.p;
       if (a === want) { SFX.good(); np.btns.find(b => +b.dataset.k === a).classList.add('ok'); logAttempt({ scene: 'ws', tag: P.id + ':' + i, ok: true }); cuCountPlan(svg, t, want); await S('gen.ws.cc.ok'); np.box.remove(); break; }
       SFX.soft(); np.btns.find(b => +b.dataset.k === a).classList.add('no'); await sleep(500); np.box.remove();
       if (!tries) { cuCountPlan(svg, t, null); await S('gen.ws.cc.hint'); continue; }

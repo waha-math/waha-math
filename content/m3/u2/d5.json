@@ -175,8 +175,9 @@
      "t": "reason",
      "q": "gm.r1",
      "pic": {
-      "kind": "poly",
-      "k": "qRhom",
+      "kind": "dqsticks",
+      "k": "rhom",
+      "full": true,
       "rot": 30
      },
      "opts": [
@@ -195,9 +196,10 @@
       "t": "reason",
       "q": "gm.r2",
       "pic": {
-       "kind": "poly",
-       "k": "qSq",
-       "rot": 20
+       "kind": "dqsticks",
+       "k": "square",
+       "full": true,
+       "rot": 65
       },
       "opts": [
        {
@@ -448,9 +450,9 @@
      "t": "reason",
      "q": "ts.11",
      "pic": {
-      "kind": "poly",
-      "k": "qPara4",
-      "rot": 0
+      "kind": "dqsticks",
+      "k": "trap",
+      "full": true
      },
      "opts": [
       {

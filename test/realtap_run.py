@@ -68,6 +68,11 @@ CENTER_OF = """(sel) => { const e = document.querySelector(sel); if (!e) return 
     r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) } : { l: b.left, t: b.top, r: b.right, b: b.bottom }; }
   if (!r) { const b = e.getBoundingClientRect(); r = { l: b.left, t: b.top, r: b.right, b: b.bottom }; } return [(r.l + r.r) / 2, (r.t + r.b) / 2]; }"""
 
+HTMLK = ('pick', 'card', 'num'); STEPK = {'dqBal': '__dqS', 'dqPerp': '__dqTh', 'htFoot': '__htAt', 'htTune': '__htH'}
+PICK_OK = """() => { const b = [...document.querySelectorAll('#stage .choices .pick')].filter(x => !x.disabled && x.offsetParent && !x.classList.contains('done')); const e = b.find(x => x.dataset.ok === 'true') || b[0]; if (!e) return null;
+  e.scrollIntoView({ block: 'nearest' }); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"""
+STEP_BTN = "(i) => { const e = document.querySelectorAll('#stage .choices.icons .pick')[i]; if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
+DONE_BTN = "() => { const e = document.querySelector('#stage .pick.done'); if (!e) return null; e.scrollIntoView({ block: 'nearest' }); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
 async def run(p, dev):
   b = await p.chromium.launch(); ctx = await b.new_context(**p.devices[dev]); pg = await ctx.new_page(); errs = []
   pg.on('pageerror', lambda e: errs.append('pageerror: ' + str(e)))
@@ -437,6 +442,25 @@ async def run(p, dev):
           if not ok:
             bad.append((dev, st['scene'], k)); await pg.screenshot(path=os.path.join(HERE, 'out', 'realtap_%s_%s.png' % (dev.replace(' ', ''), st['scene'].replace(':', '_').replace('.', '_'))))
             await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")   # يكمل بخطّاف البند ليتابع الدرس
+          continue
+        # م3 وم4: أزرار HTML (الخيارات والبطاقات والأعداد) تُلمس في مركز الصحيح منها، وأزرار الضبط تُلمس حتى القيمة المطلوبة ثم «تمّ» (المراجع B لبوابة S3-U2/U3، 11: كانت تُجاب كلها بالخطّاف)
+        if lid.startswith(('m3.', 'm4.')) and (k in HTMLK or k in STEPK):
+          await pg.wait_for_timeout(120); tried[k] = tried.get(k, 0) + 1
+          if k in HTMLK:
+            xy = await pg.evaluate(PICK_OK)
+            if xy: await tap(*xy)
+          else:
+            for _ in range(40):
+              v, w = await pg.evaluate("(g) => [window[g](), window.__item && window.__item.want]", STEPK[k])
+              if v == w: break
+              xy = await pg.evaluate(STEP_BTN, 0 if v > w else 1)
+              if not xy: break
+              await tap(*xy); await pg.wait_for_timeout(60)
+            xy = await pg.evaluate(DONE_BTN)
+            if xy: await tap(*xy)
+          if not await gone(st['n']):
+            bad.append((dev, st['scene'], k + ' (html)')); await pg.screenshot(path=os.path.join(HERE, 'out', 'realtap_%s_%s.png' % (dev.replace(' ', ''), st['scene'].replace(':', '_').replace('.', '_'))))
+            await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")
           continue
         await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }"); await pg.wait_for_timeout(40); continue
       if st['go']: await pg.click('#go'); await pg.wait_for_timeout(30); continue

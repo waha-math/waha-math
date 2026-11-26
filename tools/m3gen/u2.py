@@ -101,10 +101,10 @@ d1={"id":"m3.u2.d1","title":"القُطْرَانِ يَتَسَاوَيَانِ
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(dp('rect','eq'),dp('para','eq')), tw(dp('square','eq'),dp('rhom','eq')), tw(dp('isoTrap','eq'),dp('trap','eq')), tw(dj(15,15,12,9),dj(17,12.7,12,9))],
-  "challenge":[tw(dp('isoTrap','eq',p=11,r=11,th=58),dp('trap','eq',p=11,r=8)), tw(dp('kite','eq'),dp('rect','eq',p=13,r=13,th=45)), tw(reason("pr.r1",{"kind":"poly","k":"qTrap","rot":0},["pr.r1a","pr.r1b","pr.r1c"]),reason("pr.r2",{"kind":"poly","k":"qPara","rot":0},["pr.r2a","pr.r2b","pr.r2c"]))]},
+  "challenge":[tw(dp('isoTrap','eq',p=11,r=11,th=58),dp('trap','eq',p=11,r=8)), tw(dp('kite','eq'),dp('rect','eq',p=13,r=13,th=45)), tw(reason("pr.r1",{"kind":"dqsticks","k":"isoTrap","full":True},["pr.r1a","pr.r1b","pr.r1c"]),reason("pr.r2",{"kind":"dqsticks","k":"para","full":True},["pr.r2a","pr.r2b","pr.r2c"]))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":dj(11.2,8.6),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
-   "C316":[dp('kite','eq',p=9,r=6), dj(13.2,5.1), reason("ms.1",{"kind":"poly","k":"qSq","rot":20},["ms.1a","ms.1b","ms.1c"])]},
+   "C316":[dp('kite','eq',p=9,r=6), dj(13.2,5.1), reason("ms.1",{"kind":"dqsticks","k":"square","full":True,"rot":65},["ms.1a","ms.1b","ms.1c"])]},
   "alt":{"C316":[dp('isoTrap','eq',p=9,r=9,th=64), dj(12.9,5.8), dp('rhom','eq',p=10,r=6)]},
   "recall":{"C316":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C316":[tw(dp('square','eq',p=6,r=6),dj(11.6,8.1))]},
@@ -160,10 +160,10 @@ d2={"id":"m3.u2.d2","title":"القُطْرَانِ وَتَقَاطُعُهُم
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(dh(9.2),dh(8.6)), tw(dp('para','mid'),dp('kite','mid')), tw(dp('rect','mid'),dp('isoTrap','mid'))],
-  "challenge":[tw(dh(7.2,'rhom'),dh(12.4)), tw(dp('trap','mid'),dp('rhom','mid')), tw(reason("pr.r1",{"kind":"dqsticks","p":10,"r":6,"s":0.5,"u":0.5,"th":60,"rot":20},["pr.r1a","pr.r1b","pr.r1c"]),reason("pr.r2",{"kind":"poly","k":"qKite","rot":0},["pr.r2a","pr.r2b","pr.r2c"]))]},
+  "challenge":[tw(dh(7.2,'rhom'),dh(12.4)), tw(dp('trap','mid'),dp('rhom','mid')), tw(reason("pr.r1",{"kind":"dqsticks","p":10,"r":6,"s":0.5,"u":0.5,"th":60,"rot":20},["pr.r1a","pr.r1b","pr.r1c"]),reason("pr.r2",{"kind":"dqsticks","k":"kite","full":True,"rot":90},["pr.r2a","pr.r2b","pr.r2c"]))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":dp('kite','mid',p=8,r=5),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
-   "C331":[dh(5.4), dp('para','mid',p=9,r=6,th=50), reason("ms.1",{"kind":"poly","k":"qRhom","rot":20},["ms.1a","ms.1b","ms.1c"])]},
+   "C331":[dh(5.4), dp('para','mid',p=9,r=6,th=50), reason("ms.1",{"kind":"dqsticks","k":"rhom","full":True,"rot":20},["ms.1a","ms.1b","ms.1c"])]},
   "alt":{"C331":[dh(7.8), dp('rhom','mid',p=8,r=6), dp('kite','mid',p=10,r=7)]},
   "recall":{"C331":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C331":[tw(dh(6.8),db(9,5,64,8))]},
@@ -220,10 +220,10 @@ d3={"id":"m3.u2.d3","title":"الأَقْطَارُ المُتَعَامِدَة
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(dp('rhom','perp'),dp('rect','perp')), tw(dp('kite','perp'),dp('para','perp')), tw(ra(50,'half'),ra(70,'half'))],
-  "challenge":[tw(dp('isoTrap','perp'),dp('square','perp')), tw(ra(60,'other'),ra(40,'other')), tw(reason("pr.r1",{"kind":"poly","k":"qKite2","rot":0},["pr.r1a","pr.r1b","pr.r1c"]),reason("pr.r2",{"kind":"poly","k":"qRhom","rot":0},["pr.r2a","pr.r2b","pr.r2c"]))]},
+  "challenge":[tw(dp('isoTrap','perp'),dp('square','perp')), tw(ra(60,'other'),ra(40,'other')), tw(reason("pr.r1",{"kind":"dqsticks","k":"kite","full":True,"rot":90},["pr.r1a","pr.r1b","pr.r1c"]),reason("pr.r2",{"kind":"dqsticks","k":"rhom","full":True},["pr.r2a","pr.r2b","pr.r2c"]))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":dp('rect','perp',p=9,r=9,th=60),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
-   "C332":[dp('kite','perp',p=9,r=5), ra(80,'half'), reason("ms.1",{"kind":"poly","k":"qSq","rot":30},["ms.1a","ms.1b","ms.1c"])]},
+   "C332":[dp('kite','perp',p=9,r=5), ra(80,'half'), reason("ms.1",{"kind":"dqsticks","k":"square","full":True,"rot":75},["ms.1a","ms.1b","ms.1c"])]},
   "alt":{"C332":[dp('rhom','perp',p=11,r=5), ra(120,'half'), dpp(9,5,70)]},
   "recall":{"C332":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C332":[tw(dpp(10,4,60),ra(30,'half'))]},
@@ -288,7 +288,7 @@ d4={"id":"m3.u2.d4","title":"تَعْرِيفَانِ أَوْسَعُ","icon":[
   "challenge":[tw(dm('rect',PK['rect'],p=9,r=9,th=50),qi('rhom','rect')), tw(two("tr.1",["tr.1a","tr.1b","tr.1c"],hint="tr.1h",err="dqCounter"),two("tr.2",["tr.2a","tr.2b","tr.2c"],hint="tr.2h",err="reasonWrong")), tw(qi('square','kite'),dm('square',PK['square'],p=8,r=8))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":qi('square','trap'),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{
-   "C333":[qi('rect','trap'), qi('para','kite'), reason("ms.1",{"kind":"poly","k":"qTrap","rot":0},["ms.1a","ms.1b","ms.1c"])]},
+   "C333":[qi('rect','trap'), qi('para','kite'), reason("ms.1",{"kind":"dqsticks","k":"isoTrap","full":True},["ms.1a","ms.1b","ms.1c"])]},
   "alt":{"C333":[qi('rhom','trap'), dm('rhom',PK['rhom'],p=11,r=5), dm('rect',PK['rect'],p=12,r=12,th=50)]},
   "recall":{"C333":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C333":[tw(dm('rhom',PK['rhom'],p=8,r=4),dm('kite',PK['kite'],p=8,r=5))]},
@@ -346,7 +346,7 @@ d5={"id":"m3.u2.d5","title":"بَوَّابَةُ حَيِّ الأَقْطَا�
  "flow":[AGAIN_U1,
   {"s":"hook","scene":"stoneHook","placed":2,"lines":["hook.01","hook.02"]},
   {"s":"explore","scene":"lines","mat":MAT(),"lines":["rv.01","rv.02"]},
-  {"s":"game","scene":"items","mode":"practice","stage":"game","intro":"gm.intro","items":[tw(dp('rect','perp',q='gm.perp',p=11,r=11,th=50),dp('rect','perp',q='gm.perp',p=12,r=12,th=40)), tw(dp('kite','mid',q='gm.mid',p=12,r=7),dp('kite','mid',q='gm.mid',p=9,r=6)), tw(reason("gm.r1",{"kind":"poly","k":"qRhom","rot":30},["gm.r1a","gm.r1b","gm.r1c"]),reason("gm.r2",{"kind":"poly","k":"qSq","rot":20},["gm.r2a","gm.r2b","gm.r2c"]))]},
+  {"s":"game","scene":"items","mode":"practice","stage":"game","intro":"gm.intro","items":[tw(dp('rect','perp',q='gm.perp',p=11,r=11,th=50),dp('rect','perp',q='gm.perp',p=12,r=12,th=40)), tw(dp('kite','mid',q='gm.mid',p=12,r=7),dp('kite','mid',q='gm.mid',p=9,r=6)), tw(reason("gm.r1",{"kind":"dqsticks","k":"rhom","full":True,"rot":30},["gm.r1a","gm.r1b","gm.r1c"]),reason("gm.r2",{"kind":"dqsticks","k":"square","full":True,"rot":65},["gm.r2a","gm.r2b","gm.r2c"]))]},
   {"s":"practice"},{"s":"test"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(dj(16.2,13.7,12,9),dj(11.8,7.8)), tw(dh(6.2),dh(14.4)), tw(dp('square','mid',p=5,r=5),dp('trap','eq',p=9,r=6))],
@@ -357,7 +357,7 @@ d5={"id":"m3.u2.d5","title":"بَوَّابَةُ حَيِّ الأَقْطَا�
    T5(5,3,dp('para','perp',p=10,r=5,th=70)), T5(6,3,ra(40,'half')),
    T5(7,4,dm('square',PK['square'],p=6,r=6)), T5(8,4,dm('kite',PK['kite'],p=11,r=6)),
    T5(9,4,qn('para')), T5(10,4,qn('rect')),
-   T5(11,4,reason("ts.11",{"kind":"poly","k":"qPara4","rot":0},["ts.11a","ts.11b","ts.11c"])),
+   T5(11,4,reason("ts.11",{"kind":"dqsticks","k":"trap","full":True},["ts.11a","ts.11b","ts.11c"])),
    T5(12,4,two("ts.12",["ts.12a","ts.12b","ts.12c"]))]},
  "wrap":{"art":"medal","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اسألوه دائماً: «هل هذا صحيح دائماً؟ هل نجد مثالاً مضاداً؟» وافحصوا معه إطار صورة أو نافذة بقياس القطرين."}
@@ -466,7 +466,7 @@ IS={("rhom","kite"):("هَلِ المُعَيَّنُ طَائِرَةٌ وَر�
  ("rhom","rect"):("هَلْ هَذَا المُعَيَّنُ مُسْتَطِيلٌ؟","لَا: زَوَايَاهُ غَيْرُ قَائِمَةٍ.")}
 for (k,a),(q,w) in IS.items(): G['gen.dq.q.is.%s.%s'%(k,a)]=q; G['gen.dq.why.%s.%s'%(k,a)]=w
 LB={"dqMakeHint":"مُتَسَاوِيَانِ؟ فِي المُنْتَصَفِ؟ مُتَعَامِدَانِ؟","dqRhombHalfH":"القُطْرُ يَقْسِمُ الزَّاوِيَةَ نِصْفَيْنِ","dqRhombOtherH":"زَاوِيَتَانِ مُتَجَاوِرَتَانِ: مَعًا ١٨٠".replace("١٨٠","180"),"dqNamesH":"مِنَ الأَوْسَعِ: رُبَاعِيٌّ، ثُمَّ مَا فِي دَاخِلِهِ","dqOnly.paraNR":"مُتَوَازِي أَضْلَاعٍ غَيْرُ مُسْتَطِيلٍ","dqOnly.rhomNS":"مُعَيَّنٌ غَيْرُ مُرَبَّعٍ","dqOnly.trapNI":"شِبْهُ مُنْحَرِفٍ غَيْرُ مُتَسَاوِي السَّاقَيْنِ","dqOnly.rectNS":"مُسْتَطِيلٌ غَيْرُ مُرَبَّعٍ","dqOnly.paraNRh":"مُتَوَازِي أَضْلَاعٍ غَيْرُ مُعَيَّنٍ","dqOnly.kiteNR":"طَائِرَةٌ غَيْرُ مُعَيَّنٍ","dqOnly.trapNP":"شِبْهُ مُنْحَرِفٍ غَيْرُ مُتَوَازِي الأَضْلَاعِ","dq.al.y":"دَائِمًا","dq.al.n":"لَا","dq.al.s":"لَيْسَ دَائِمًا","dq.mid.both":"كُلٌّ مِنْهُمَا","dq.mid.one":"أَحَدُهُمَا فَقَطْ","dq.mid.none":"وَلَا وَاحِدٌ مِنْهُمَا",
- "dqIsoTrap":"شِبْهُ مُنْحَرِفٍ مُتَسَاوِي السَّاقَيْنِ","dqLean":"مَائِلٌ","dqRectEq":"المُسْتَطِيلُ: قُطْرَانِ مُتَسَاوِيَانِ","dqCmpDiag":"{قَارِنِ|قَارِنِي} القُطْرَيْنِ","dqBlue":"القُطْرُ الأَزْرَقُ:",
+ "dqIsoTrap":"شِبْهُ مُنْحَرِفٍ مُتَسَاوِي السَّاقَيْنِ","dqLean":"مَائِلٌ","dqRectEq":"المُسْتَطِيلُ: قُطْرَانِ مُتَسَاوِيَانِ","dqCmpDiag":"{قَارِنِ|قَارِنِي} القُطْرَيْنِ","dqBlue":"القُطْرُ الأَزْرَقُ:","dqOrange":"القُطْرُ البُرْتُقَالِيُّ:",
  "dqMoveL":"يَسَارًا","dqMoveR":"يَمِينًا","dqTurnL":"أَصْغَرُ","dqTurnR":"أَكْبَرُ","dqSticks":"العُودَانِ:","dqAnd":"وَ",
  "dqDef.kite":"زَوْجَانِ مُتَجَاوِرَانِ مُتَسَاوِيَانِ","dqDef.trap":"زَوْجٌ مُتَوَازٍ عَلَى الأَقَلِّ","dqDef.rect":"أَرْبَعُ زَوَايَا قَائِمَةٍ"}
 E={

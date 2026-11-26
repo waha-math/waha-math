@@ -24,7 +24,7 @@ async function praiseFor(item, tries) {
 /* mode: practice | explore | remedial (بمساعدة) · mastery | review | test (بلا مساعدة، من المحاولة الأولى) */
 async function runItem(spec, mode = 'practice', ctx = {}) {
   /*T*/const outer = { item: window.__item, mode: window.__itemMode, twin: window.__itemTwin };/*/T*/
-  IN_ITEM++; try { return await runItem0(spec, mode, ctx); } finally { IN_ITEM = Math.max(0, IN_ITEM - 1); /*T*/window.__item = outer.item; window.__itemMode = outer.mode || ''; window.__itemTwin = !!outer.twin;/*/T*/ }   /* وضع الفحص: نمط البند الجاري لا يبقى بعد انتهائه */
+  IN_ITEM++; HELP_CARRY = null; try { return await runItem0(spec, mode, ctx); } finally { HELP_CARRY = null; IN_ITEM = Math.max(0, IN_ITEM - 1); /*T*/window.__item = outer.item; window.__itemMode = outer.mode || ''; window.__itemTwin = !!outer.twin;/*/T*/ }   /* وضع الفحص: نمط البند الجاري لا يبقى بعد انتهائه */
 }
 /* مواصفة البند في السجلّ (مراجعة الخصم A-07): بلا توأمه، وحتى 200 حرف (فوقها يُقصّ وينتهي بـ«…»)؛ تكفي ليُعرف أيّ بندٍ أُجيب */
 function specText(spec) { let t = ''; try { const o = {}; for (const k of Object.keys(spec || {})) if (k !== 'twin') o[k] = spec[k]; t = JSON.stringify(o); } catch (e) { return ''; } return t.length <= 200 ? t : t.slice(0, 199) + '…'; }
@@ -55,8 +55,8 @@ async function runItem0(spec, mode, ctx) {
     if (mode === 'mastery') { await S('gen.ms.noted'); return { firstTry: false, ok: false, item }; }
     if (mode === 'review') { await T.reveal(item, r); const why = T.reason && T.reason(item); if (why) await S(why); return { firstTry: false, ok: false, item }; }
     if (tries === 1) { await S(errQ(j.err, item)); await sleep(300); continue; }                       // المستوى 1: سؤال
-    if (tries === 2) { await S(bank('look') || 'gen.hint2.01'); await T.hint2(item, r, j.err); await sleep(300); continue; }   // المستوى 2: حركة الأداة
-    if (tries === 3) { together = true; await T.together(item, r, j.err); continue; }                  // المستوى 3: حلّ مشترك، والخطوة الأخيرة للطفل
+    if (tries === 2) { await S(bank('look') || 'gen.hint2.01'); await T.hint2(item, r, j.err); { const sv = $('#stage svg'); HELP_CARRY = sv ? [...sv.querySelectorAll('[data-help]')].filter(n => !n.parentNode.closest('[data-help]')).map(n => n.cloneNode(true)) : null; } await sleep(300); continue; }   // المستوى 2: حركة الأداة
+    if (tries === 3) { HELP_CARRY = null; together = true; await T.together(item, r, j.err); continue; }                  // المستوى 3: حلّ مشترك، والخطوة الأخيرة للطفل
     await T.reveal(item, r); { const why = T.reason && T.reason(item); if (why) await S(why); }
     /* توأم واحد للبند: لا توأم للتوأم، فلا تتسلسل البنود على طفل يخطئ (الفحص المستقل B) */
     if (help && mode !== 'explore' && T.twin && !ctx.isTwin) { const tw = T.twin(item); if (tw) { await S('gen.twin.01'); await runItem(tw, mode, { scene: scene + '-twin', isTwin: true }); } }

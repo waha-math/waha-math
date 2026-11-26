@@ -263,12 +263,13 @@ ITEM.twoReasons = {
     const btns = order.map(i => { const b = document.createElement('button'); b.className = 'pick card'; b.innerHTML = `<span>${esc(T(ids[i]))}</span>`; b.setAttribute('aria-pressed', 'false'); b.dataset.k = 'abc'[i]; /*T*/if (TESTHOOK) b.dataset.ok = i < 2;/*/T*/
       b.onclick = () => { if (on.has(i)) on.delete(i); else on.add(i); b.classList.toggle('sel', on.has(i)); b.setAttribute('aria-pressed', on.has(i)); SFX.tick(); }; box.appendChild(b); return b; });
     fitDense();   /* سؤالٌ وثلاث بطاقات طويلة (م4): الدرس الكثيف */
+    if (tries >= 2 && item._last && item._last.includes('c')) btns[order.indexOf(2)].classList.add('no', 'tried');   /* المستوى الثاني: البطاقة غير الصحيحة التي اختارها معلَّمة، وتبقى حتى يجيب (D240) */
     if (tries >= 3) { const b0 = btns[order.indexOf(0)]; b0.click(); }   /* الحلّ المشترك: البطاقة الأولى الصحيحة مختارة، والثانية للطفل */
     if (!tries || tries >= 3) for (const i of order) await S(ids[i], { keep: true, free: true });   /* تُقرأ البطاقات أول مرة وفي الحلّ المشترك */
     AUTO({ kind: 'two', ok: () => { [0, 1].forEach(i => { if (!on.has(i)) btns[order.indexOf(i)].click(); }); if (on.has(2)) btns[order.indexOf(2)].click(); rulDoneBtn().click(); }, wrong: () => { [0, 2].forEach(i => { if (!on.has(i)) btns[order.indexOf(i)].click(); }); if (on.has(1)) btns[order.indexOf(1)].click(); rulDoneBtn().click(); } });
     const dn = rulDone(() => { btns.forEach(b => b.onclick = null); }); fitDense(); await dn;   /* وبعد زرّ «تمّ» أيضاً: هو ما يضغط المسرح */
     const ans = [...on].sort().map(i => 'abc'[i]).join(''); box.remove(); return { ans, ctx: {} }; },
-  judge(item, k) { return k === 'ab' ? { ok: true } : { ok: false, err: k.includes('c') ? (item.errFalse || 'reasonFalse') : 'reasonOne' }; },   /* errFalse: وسمٌ لبطاقات غير المثلثات (U0: «reasonWrong») */
+  judge(item, k) { item._last = k; return k === 'ab' ? { ok: true } : { ok: false, err: k.includes('c') ? (item.errFalse || 'reasonFalse') : 'reasonOne' }; },   /* errFalse: وسمٌ لبطاقات غير المثلثات (U0: «reasonWrong») */
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item) { await S(item.hint || 'gen.as.hint.two'); }, async together() {},   /* hint: تلميح خاصّ بالبند (S3-U4) */
   async reveal(item) { await S(item.opts[0].id); await S(item.opts[1].id); },

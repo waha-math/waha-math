@@ -61,7 +61,12 @@ GONE = r"""() => { if (window.__mo) window.__mo.disconnect(); const A = window._
 HELP_DRAWN = {'lrTap', 'lrPick', 'linePick', 'lineTap', 'mapFind', 'mapPut', 'routePick', 'fact', 'unknownStart', 'same',
               # S1-U4: كلها حلّها رسم (خطوط عند النهايات، وشارات الترتيب الأولى، والسهم إلى الكفّة الأنزل، والعدّ، والوحدات الموضوعة، وعلامات الخطأ، والشبران، والمربعات، والعمود، والإطار)
               'lenPick', 'orderBy', 'sizePick', 'balance', 'unitCount', 'unitLay', 'unitCheck', 'spanPick', 'spanSort', 'transPick', 'barRead', 'barBuild', 'rodCount', 'rodBuild', 'rodMatch',
-              'teenCmp', 'teenTrace', 'frameNeed', 'framePaint', 'frameGlance', 'makeTen', 'backTen'}
+              'teenCmp', 'teenTrace', 'frameNeed', 'framePaint', 'frameGlance', 'makeTen', 'backTen',
+              # S3-U2/U3: بطاقة القاعدة أو الصيغة أو ركن الورقة في الحلّ المشترك (المراجع B لبوابة S3-U2/U3، 11)
+              'diagJudge', 'diagHalf', 'rhombAngle', 'quadIs', 'perpPick', 'paraArea', 'triArea', 'missingDim'}
+# والمستوى الثاني فعلٌ على المسرح يبقى حتى يجيب (D240): على مسرح المحاولة الثالثة رسمٌ data-help أو بطاقةٌ جُرِّبت معلَّمة (المراجع B لبوابة S3-U2/U3، 3)
+HELP2 = {'diagProp', 'diagJudge', 'diagHalf', 'diagBalance', 'diagPerp', 'rhombAngle', 'diagMake', 'quadNames', 'quadIs', 'perpPick', 'footSlide', 'paraArea', 'triArea', 'missingDim', 'areaTune', 'reason', 'twoReasons'}
+H2 = "() => !!document.querySelector('#stage [data-help], #stage .pick.tried')"
 async def main():
   async with async_playwright() as p:
     b = await p.chromium.launch(); ctx = await b.new_context(**p.devices['Pixel 5']); pg = await ctx.new_page(); errs = []
@@ -70,10 +75,10 @@ async def main():
     await pg.evaluate("""() => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([{ id: 'k1', name: 'سلمى', gender: 'f' }])); localStorage.setItem('hp_kid', JSON.stringify('k1'));
       localStorage.setItem('hp_settings:k1', JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:k1', JSON.stringify({ schema: 3, unlockAll: true })); }""")
     await pg.reload(); await pg.wait_for_timeout(500)
-    items = await pg.evaluate(LIST, ONLY); per = {}; n_run = 0; drawn = {}; onright = {}
+    items = await pg.evaluate(LIST, ONLY); per = {}; n_run = 0; drawn = {}; onright = {}; lvl2 = {}
     lrsaid = []; unders = []; laps = []; orders = []; counted = []; covers = []
     for lid, key, typ, n, rowhelp, side, ans, ask in items:
-      e0 = len(errs); await pg.evaluate(START, n); last = -1; fourth = None; res = None
+      e0 = len(errs); await pg.evaluate(START, n); last = -1; fourth = None; third = None; res = None
       for _ in range(1500):
         st = await pg.evaluate(STATE)
         if len(errs) > e0: break
@@ -81,6 +86,7 @@ async def main():
         a = st['auto']
         if a and a['n'] != last:
           last = a['n']
+          if not st['twin'] and st['fails'] == 2 and third is None: await pg.wait_for_timeout(40); third = await pg.evaluate(H2)
           if not st['twin'] and st['fails'] == 3 and fourth is None: fourth = await pg.evaluate(GONE)   # انتظار المحاولة الرابعة: ما رُسم منذ الحكم الثالث
           h = 'wrong' if not st['twin'] and a['wrong'] and st['fails'] < 3 else 'ok'
           await pg.evaluate("(h) => { const a = window.__auto; if (a) (h === 'wrong' && a.wrong ? a.wrong : a.ok)(); }", h); continue
@@ -91,6 +97,7 @@ async def main():
       n_run += 1
       if fourth is None: continue   # بند بلا خطأ مقصود (لا يبلغ المحاولة الرابعة)
       per.setdefault(typ, []).append((fourth, tag))
+      if typ in HELP2: lvl2.setdefault(typ, []).append((third, tag))
       if typ in HELP_DRAWN and (typ != 'lineTap' or rowhelp): drawn.setdefault(typ, []).append((fourth[3], tag))
       if typ in ('lrTap', 'lrPick'):
         onright.setdefault(typ, []).append((fourth[4], tag)); want = 'gen.lr.togetherL' if side == 'L' else 'gen.lr.together'
@@ -108,6 +115,9 @@ async def main():
     for typ, L in sorted(drawn.items()):
       miss = [t for h, t in L if not h]
       check(not miss, '%s: في المحاولة الرابعة حلٌّ مشترك مرسوم (data-help) في كل بنوده (%d%s)' % (typ, len(L), '' if not miss else '؛ بلا حلّ: ' + ', '.join(miss[:3])))
+    for typ, L in sorted(lvl2.items()):
+      miss = [t for h, t in L if not h]
+      check(not miss, '%s: المستوى الثاني باقٍ على مسرح المحاولة الثالثة (%d%s)' % (typ, len(L), '' if not miss else '؛ بلا شيء: ' + ', '.join(miss[:3])))
     for typ, L in sorted(onright.items()):
       off = [t for h, t in L if h is not True]
       check(not off, '%s: هالة الحلّ المشترك على اليد اليمنى للطفل المرسوم (%d%s)' % (typ, len(L), '' if not off else '؛ في غيرها: ' + ', '.join(off[:3])))

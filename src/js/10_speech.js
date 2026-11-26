@@ -69,6 +69,8 @@ let PEND_INTRO = null, STAGE_T = -1e9; const STAGE_SETTLE = 320;
 /* «تخطَّ» (D270): يقطع الجملة الجارية، وما بعدها حتى ينتظر الدرسُ فعلَ الطفل يُكتب في الفقاعة بلا صوت ولا انتظار (SKIPPING، يُلغيه AUTO عند كل انتظار
    لفعله، وhush عند الإجابة). ولا يمسّ جملة غطاء. وIN_ITEM: نحن داخل بند (سؤاله وتلميحه وتنبيهه)، فوضع «الأسئلة فقط» يُسمعها ويكتب الشرح */
 let SKIPPING = false, IN_ITEM = 0, SKIP_AT = 0;
+/* ما رسمه المستوى الثاني من التلميح ([data-help]) يُنسخ إلى مسرح المحاولة التالية فيبقى حتى يجيب الطفل (D240؛ المراجع B لبوابة S3-U2/U3، 3) */
+let HELP_CARRY = null;
 /* «السابق» (D271، قرار فراس): جمل الشاشة الجارية (منذ آخر لوح جديد) بما فيها ما تُخطّي، ولمس «السابق» يعيد الجملة التي قبل المعروضة، ثم التي قبلها،
    بصوتها ونصّها وتلوين كلماتها. لا تدخلها جملة مخفيّة النص (بطاقات فوضى) ولا الأعداد ولا الخيارات المقروءة. ولا رجوع إلى سؤالٍ أُجيب: الحكم والتقدّم كما هما */
 let HIST = [], BACK_I = null;
@@ -110,8 +112,9 @@ const NAMED_SKIP = new Set(['الذي', 'التي', 'هذا', 'هذه', 'هنا�
 function hiliter(words) { const W = words.map(w => plain(w.textContent).length + 1 + (/[.!؟?:،…]$/.test(w.textContent) ? 5 : 0)); const tot = W.reduce((a, b) => a + b, 0) || 1;
   const at = []; let c = 0; for (const w of W) { at.push(c / tot); c += w; }   /* بداية كل كلمة كنسبة من الزمن */
   let t0 = 0, dur = 0, raf = 0, cur = -1, off = 0; const chars = []; { let k = 0; for (const w of words) { chars.push(k); k += w.textContent.length + 1; } }
+  /* المسرح نفسه (svg بعنوان الدرس) ليس شيئاً تسمّيه الجملة، فلا يتوهّج كلّه (المراجع B لبوابة S3-U2/U3، 15) */
   const named = w => { const k = plain(w.textContent).replace(/[.!؟?:،…«»]/g, '').replace(/^(و|ف|ب|ل|ك)?(ال)?/, ''); if (k.length < 3 || NAMED_SKIP.has(plain(w.textContent))) return;
-    const st = $('#stage'); if (!st) return; for (const e of st.querySelectorAll('[aria-label]')) { const l = plain(e.getAttribute('aria-label')).replace(/^(ال)/, ''); if (l.startsWith(k)) { e.classList.add('named'); setTimeout(() => e.classList.remove('named'), 1100); break; } } };
+    const st = $('#stage'); if (!st) return; for (const e of st.querySelectorAll('[aria-label]:not(#stage > svg)')) { const l = plain(e.getAttribute('aria-label')).replace(/^(ال)/, ''); if (l.startsWith(k)) { e.classList.add('named'); setTimeout(() => e.classList.remove('named'), 1100); break; } } };
   const set = i => { if (i === cur || i >= words.length) return; if (cur >= 0 && words[cur]) words[cur].classList.remove('on'); cur = i; if (i >= 0) { words[i].classList.add('on'); try { named(words[i]); const sy = words[i].closest('#say'); if (sy && sy.scrollHeight > sy.clientHeight + 4) { const r = words[i].getBoundingClientRect(), q = sy.getBoundingClientRect(); if (r.bottom > q.bottom || r.top < q.top) sy.scrollTop += r.top - q.top - 2; } } catch (e) {} } };   /* الجملة الطويلة: نافذة الفقاعة تتبع القراءة سطراً سطراً */
   const tick = () => { if (!dur) return; const f = (performance.now() - t0) / dur + off; let i = 0; while (i + 1 < at.length && at[i + 1] <= f) i++; set(i); if (f < 1) raf = requestAnimationFrame(tick); };
   return { start(ms) { if (!words.length) return; dur = Math.max(300, ms); t0 = performance.now(); off = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); },

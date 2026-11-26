@@ -39,6 +39,7 @@ function measWatch(st) { if (MEAS_MO || !st || typeof MutationObserver === 'unde
     for (const n of m.addedNodes || []) { if (n.nodeType === 3) { if (n.parentElement instanceof SVGElement) measFix(n.parentElement); else if (n.parentElement) measFix(n.parentElement); } else if (n.nodeType === 1) { if (n instanceof SVGElement) { if (n.tagName === 'text') measFix(n); n.querySelectorAll && n.querySelectorAll('text').forEach(measFix); } else { measFix(n); n.querySelectorAll('svg text').forEach(measFix); } } } } });
   MEAS_MO.observe(st, { childList: true, subtree: true, characterData: true }); }
 function newStage(H = 300, bg = {}, aria) { const st = $('#stage'); measWatch(st); st.innerHTML = ''; const LS = $('#lesson'); if (LS) LS.classList.remove('dense'); STAGE_T = performance.now(); HIST = []; BACK_I = null; if (typeof updateSkip === 'function') updateSkip(); if (PEND_INTRO) Promise.resolve().then(flushIntro);   /* المقدّمة بعد رسم المشهد (D270) */ const svg = el('svg', { viewBox: `0 0 360 ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': aria || (CUR ? plain(CUR.title || '') : '') }); st.appendChild(svg);
+  if (HELP_CARRY && HELP_CARRY.length) { const keep = HELP_CARRY; setTimeout(() => { if (svg.isConnected && !svg.querySelector('[data-help]')) for (const n of keep) svg.appendChild(n.cloneNode(true)); }, 0); }   /* المستوى الثاني يبقى على مسرح المحاولة التالية، إلا إن رسم البندُ مساعدته بنفسه (D240) */
   try { if (STAGE_RO) STAGE_RO.disconnect(); STAGE_RO = new ResizeObserver(() => refreshPads(svg)); STAGE_RO.observe(svg); } catch (e) {}
   /* وحين تظهر الخيارات تحت المسرح أو تزول يصغر أو يكبر قبل أن يُبلغ ResizeObserver: يُعاد الحساب فوراً، فلا تبقى منطقة لمس دون حدّها لحظةً
      (الفحصان المستقلان C وD: زرّ تحريك الطريق 55 بكسلاً، وقطعة الورشة 61، على iPhone SE) */
@@ -51,7 +52,7 @@ function label(svgOrKey, x, y, text, size = 19, color) {
 function labelFit(svg, x, y, text, size, color, maxW) { if (!text) return null; const t = label(svg, x, y, text, size, color); try { if (t.getComputedTextLength() <= maxW) return t;
   const w = G(text).split(' '); if (w.length < 2) { t.setAttribute('font-size', size * maxW / t.getComputedTextLength()); return t; } const mid = Math.ceil(w.length / 2); t.textContent = '';
   [w.slice(0, mid).join(' '), w.slice(mid).join(' ')].forEach((s, i) => { const sp = el('tspan', { x, dy: i ? size * 1.15 : -size * .2 }, t); sp.textContent = s; }); } catch (e) {} return t; }
-function labelText(k) { const D = CUR ? LDATA[CUR.id] : null, t = (D && D.labels && D.labels[k]) || LABELS.ui[k] || k; return k === 'myDigits' ? t : MS(t); }   /* أعداد التسميات بأرقام الطفل (D279)، إلا زرّ «أرقامي» نفسه */
+function labelText(k) { const D = CUR ? LDATA[CUR.id] : null, t = (D && D.labels && D.labels[k]) || LABELS.ui[k] || k; return k === 'myDigits' ? t : MS(G(t)); }   /* والتسمية بصيغتين {للولد|للبنت} تُحلّ هنا (بطاقة «قارِنِ القطرين» كُتبت بقوسيها على المسرح: المراجع B لبوابة S3-U2/U3) */   /* أعداد التسميات بأرقام الطفل (D279)، إلا زرّ «أرقامي» نفسه */
 /* شارة العدّ: لون النص يُختار بحسب الخلفية (T10) */
 function badge(parent, x, y, n, col) { const bg = col || css('--compass'); const m = el('g', { transform: `translate(${x} ${y})`, 'pointer-events': 'none', 'data-badge': 1 }, parent);
   el('circle', { r: 15, fill: bg, stroke: '#fff', 'stroke-width': 3 }, m);
@@ -162,7 +163,8 @@ function cardPick(cards, opt = {}) {   // cards: [{id(line), k, ok, icon, hide, 
    items: [{line, el}]؛ opt.intro: جمل السؤال، وإلا آخر جملة قيلت قبل أول خيار؛ opt.host: ما يزول بزوال الخيارات أو يُعلَّم done عند الجواب */
 function readChoices(items, opt = {}) {
   /* والسؤال آخر جملة دخلت الطابور ساعة الإنشاء (الفحص المستقل G2 (1): كان يُعرف عند بدء الخيار الأول، فالغطاء بعد السؤال وقبله يعيد الخيارين بلا سؤالهما) */
-  let intro = opt.intro || (LASTQ ? [LASTQ] : null), run = 0; const flow = FLOW, host = opt.host;
+  /* intro: مصفوفة جمل [lineOf(id)]، أو معرّفٌ واحد يُحوَّل؛ سلسلةٌ هنا كان كلّ حرف منها «جملة» فانهار «أعد الجملة» (المراجع B لبوابة S3-U2/U3، 2) */
+  let intro = opt.intro ? (Array.isArray(opt.intro) ? opt.intro : [lineOf(opt.intro)]) : (LASTQ ? [LASTQ] : null), run = 0; const flow = FLOW, host = opt.host;
   const dead = () => flow !== FLOW || !!(host && (!host.isConnected || host.dataset.done));
   /* والخيار المخفيّ (زرّ أداةٍ أدّت عملها: «اُفْرُدِي» و«حاذِ البدايات» بـ barGone) لا يُقرأ، والخطّاف بلا خيارٍ ظاهر ميت (الفحص المستقل H2 (6): قالت «أعد» و«نبقى» اسم زرٍّ غير ظاهر) */
   const shown = it => !it.el || (it.el.isConnected && getComputedStyle(it.el).visibility !== 'hidden' && !it.el.closest('[hidden]'));

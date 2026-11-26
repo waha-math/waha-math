@@ -157,10 +157,11 @@ ITEM.paint = {
 /* التعليل (D238، D240): «لماذا هذا مثلث؟» يختار الطفل سبباً من ثلاثة مسموعة. opts: [{id, ok}] */
 ITEM.reason = {   /* show: مولّد الشيء، أو pic: صورة من رسوم «قارن وقس» (reasonPic، S1-U4) */
   make(spec) { return { ...spec, it: spec.show ? make(spec.show) : null, tag: spec.tag || 'reason', want: 'ok' }; },
-  async ask(item) { const svg = newStage(200, { oasis: false, ground: 0 }); if (item.pic) reasonPic(svg, item.pic); else fitThing(svg, { ...item.it, label: null }, 180, 100, 140); await S(item.q);
+  async ask(item, mode, tries) { const svg = newStage(200, { oasis: false, ground: 0 }); if (item.pic) reasonPic(svg, item.pic); else fitThing(svg, { ...item.it, label: null }, 180, 100, 140); await S(item.q);
     const cp = cardPick(item.opts.map((o, i) => ({ id: o.id, k: 'o' + i, ok: !!o.ok })), { intro: item.q });   /* «أعد الجملة» يعيد السؤال ثم الأسباب */
+    if (tries >= 2 && item._no) for (const b of cp.btns) if (item._no.includes(b.dataset.k)) b.classList.add('no', 'tried');   /* المستوى الثاني: ما جُرِّب من الأسباب يبقى معلَّماً حتى يجيب (D240؛ المراجع B لبوابة S3-U2/U3، 3) */
     const c = await cp.p; cp.done(); return { ans: c.ok ? 'ok' : c.k, ctx: { svg, cp, c } }; },
-  judge(item, a) { return a === 'ok' ? { ok: true } : { ok: false, err: item.err || 'generic' }; },
+  judge(item, a) { if (a !== 'ok') (item._no = item._no || []).push(a); return a === 'ok' ? { ok: true } : { ok: false, err: item.err || 'generic' }; },
   onOk(item, r) { SFX.good(); r.ctx.cp.btns.find(b => b.dataset.k === r.ctx.c.k).classList.add('ok'); },
   onWrong(item, r) { SFX.soft(); r.ctx.cp.btns.find(b => b.dataset.k === r.ctx.c.k).classList.add('no'); },
   mark(item, r) { const i = item.opts.findIndex(o => o.ok); const b = r.ctx.cp.btns.find(x => x.dataset.k === 'o' + i); if (b) b.classList.add('ok'); },

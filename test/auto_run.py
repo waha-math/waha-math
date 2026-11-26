@@ -85,7 +85,8 @@ KEYOK = """() => { const a = window.__auto; window.__keyAsync = false; if (!a ||
   HTMLElement.prototype.click = function () { grab(this, 'c'); };
   try { r = a.ok(); } catch (x) { if (x !== LOOP) throw x; EventTarget.prototype.dispatchEvent = D; HTMLElement.prototype.click = C; a.ok(); return 0; } finally { EventTarget.prototype.dispatchEvent = D; HTMLElement.prototype.click = C; }
   const replay = () => cap.forEach(([e, how]) => how === 'c' ? e.click() : e.dispatchEvent(new MouseEvent('click', { bubbles: true })));
-  const e = cap.length === 1 && cap[0][0]; if (!e || !(e instanceof SVGElement) || !e.closest('#stage') || e.getAttribute('role') !== 'button') { replay(); return 0; }
+  const e = cap.length === 1 && cap[0][0], html = !!e && e instanceof HTMLButtonElement && !!e.closest('#stage .choices');   /* وأزرار الخيارات HTML (م3 وم4) بالمفتاح الحقيقي أيضاً (المراجع B لبوابة S3-U2/U3، 11) */
+  if (!e || !e.closest('#stage') || !(html || (e instanceof SVGElement && e.getAttribute('role') === 'button'))) { replay(); return 0; }
   /* والحلّ المتتابع (async: يلمس الأول ثم ينتظر ويلمس ما بعده وحده، كطريق الأعداد والعدّ باللمس والوجوه) يمضي بعد 30 م.ث فأكثر بلمساتٍ حقيقية،
      فما يتغيّر بعدها ليس من مفتاحٍ يُضغط: يُعلَّم، فيُضغط مفتاح الفعل فوراً كما قبل J2 بلا المفاتيح الأخرى (بوابة S1-U4 بعد J: سبق الحلّ المفاتيح الأخرى
      في طريق الأعداد، وظهر بلا أي مفتاح؛ ولا انتظار هنا ولا ذهاب وإياب زائد، فيبقى مفتاح الفعل قبل لمسته الثانية كما كان) */

@@ -279,9 +279,9 @@
     "t": "reason",
     "q": "pr.r1",
     "pic": {
-     "kind": "poly",
-     "k": "qTrap",
-     "rot": 0
+     "kind": "dqsticks",
+     "k": "isoTrap",
+     "full": true
     },
     "opts": [
      {
@@ -299,9 +299,9 @@
      "t": "reason",
      "q": "pr.r2",
      "pic": {
-      "kind": "poly",
-      "k": "qPara",
-      "rot": 0
+      "kind": "dqsticks",
+      "k": "para",
+      "full": true
      },
      "opts": [
       {
@@ -355,9 +355,10 @@
      "t": "reason",
      "q": "ms.1",
      "pic": {
-      "kind": "poly",
-      "k": "qSq",
-      "rot": 20
+      "kind": "dqsticks",
+      "k": "square",
+      "full": true,
+      "rot": 65
      },
      "opts": [
       {

@@ -23,6 +23,9 @@ const htNumItem = { ...numItem, async askNum(item) { const np = numberPick(shuff
 
 /* ================= ① «مضخة الماء» و«رافعة البناء» (C126، C315؛ اللعبتان): تُحرَّك القدم على مستقيم أفقي حتى يصير الأنبوب أو الخيط عمودياً ================= */
 /* spec: mode pump | crane، pt [x، y] النقطة (البئر أو رأس المثلث)، y صف المستقيم، seg [a، b] القطعة المرسومة، at بداية القدم، tri [A، B] قاعدة المثلث في الرافعة */
+/* المستوى الثاني: خيط الشاقول يتدلّى من النقطة نحو المستقيم (نصف الطريق)، فيُرى اتجاه العمود ولا تُعلَّم القدم (D240؛ المراجع B لبوابة S3-U2/U3، 3) */
+function htPlumb(svg, G, item) { const m = helpG(svg), Q = G.P(item.pt), F = G.P([item.pt[0], item.y ?? 1]), e = [Q[0], Q[1] + (F[1] - Q[1]) * .55];
+  geoLine(m, Q[0], Q[1] + 8, e[0], e[1], { color: css('--think'), w: 2.6, dash: '6 5' }); el('path', { d: `M${e[0] - 7} ${e[1] - 2} L${e[0] + 7} ${e[1] - 2} L${e[0]} ${e[1] + 10} Z`, fill: css('--think') }, m); return m; }
 ITEM.footSlide = {
   make(spec) { return { ...spec, want: spec.pt[0], tag: 'foot-' + spec.mode }; },
   async ask(item, mode, tries) { const svg = m3Stage(250), G = htGrid(svg, 12, 7, { H: 168 }), y = item.y ?? 1, seg = item.seg || [1, 11]; let at = item.at ?? seg[0], live = null;
@@ -31,14 +34,14 @@ ITEM.footSlide = {
     const draw = () => { if (live) live.remove(); live = el('g', { 'pointer-events': 'none' }, svg); const F = G.P([at, y]), Q = G.P(item.pt); geoLine(live, Q[0], Q[1], F[0], F[1], { color: item.mode === 'pump' ? '#3d7cc0' : HT.h, w: 3, dash: item.mode === 'crane' ? '5 4' : null });
       if (item.mode === 'pump') { el('rect', { x: F[0] - 9, y: F[1] - 9, width: 18, height: 18, rx: 4, fill: '#e0a32e', stroke: HT.ink, 'stroke-width': 2 }, live); const d = Math.hypot(at - item.pt[0], y - item.pt[1]); htLab(live, [(F[0] + Q[0]) / 2 + 22, (F[1] + Q[1]) / 2], htCm(decFmt(Math.round(d * 10) / 10, 1)), '#3d7cc0', 14); }
       else { el('circle', { cx: F[0], cy: F[1], r: 6, fill: HT.h, stroke: '#fff', 'stroke-width': 2 }, live); const pc = el('path', { d: `M${F[0]} ${F[1] - 22} L${F[0]} ${F[1]} L${F[0] + 22} ${F[1]}`, fill: 'none', stroke: '#c9a54a', 'stroke-width': 2.4 }, live); } };   /* ركن الورقة عند القدم: يُرى أهو على الخيط */
-    draw(); if (tries >= 3) { at = item.want + (at < item.want ? -1 : 1); draw(); await S('gen.ht.together.' + item.mode); } else await S(item.q || 'gen.ht.q.' + item.mode);
+    if (tries >= 2) htPlumb(svg, G, item); draw(); if (tries >= 3) { at = item.want + (at < item.want ? -1 : 1); draw(); await S('gen.ht.together.' + item.mode); } else await S(item.q || 'gen.ht.q.' + item.mode);
     const St = dqSteps(['htLeft', 'htRight'], d => { const n = Math.max(0, Math.min(12, at + d)); if (n === at) return false; at = n; draw(); return true; });
     /*T*/window.__htAt = () => at;/*/T*/
     AUTO({ kind: 'htFoot', ok: () => { at = item.want; draw(); rulDoneBtn().click(); }, wrong: () => { at = item.want + (item.want < 11 ? 1 : -1); draw(); rulDoneBtn().click(); } });
     await rulDone(() => St.off()); return { ans: at, ctx: { svg, G, set: v => { at = v; draw(); } } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.mode === 'pump' ? 'distSlant' : 'heightSlant' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { await S('gen.ht.hint.' + item.mode); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.G) htPlumb(r.ctx.svg, r.ctx.G, item); await S('gen.ht.hint.' + item.mode); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.set) { r.ctx.set(item.want); const F = r.ctx.G.P([item.want, item.y ?? 1]); htRight(r.ctx.svg, F, -90, 0, 11, HT.ok); } await S('gen.ht.reveal.' + item.mode); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -52,7 +55,10 @@ ITEM.perpPick = {
     htLine(svg, G, y, seg[0], seg[1], { ext: item.ext !== false, color: item.kind === 'height' ? '#3f9e93' : HT.ink }); const Q = G.P(item.pt);
     if (item.kind === 'height') { el('polygon', { points: polyStr([G.P([seg[0], y]), G.P([seg[1], y]), Q]), fill: HT.fill, stroke: HT.ink, 'stroke-width': 3, 'stroke-linejoin': 'round' }, svg); const b0 = G.P([seg[0], y]), b1 = G.P([seg[1], y]); geoLine(svg, b0[0], b0[1], b1[0], b1[1], { color: '#3f9e93', w: 6 }); }   /* القاعدة ملوّنة بلونٍ لا تحمله القطع */
     else el('circle', { cx: Q[0], cy: Q[1], r: 6, fill: HT.ink }, svg);
-    const cols = [HT.h, HT.side, HT.mid]; item.feet.forEach((fx, i) => { const F = G.P([fx, y]); geoLine(svg, Q[0], Q[1], F[0], F[1], { color: cols[i], w: 3 }); const t = htLab(svg, [F[0], F[1] + 20], LTR[item.keys[i]], cols[i], 17); if (item.rot) t.setAttribute('transform', `rotate(${-item.rot} ${F[0]} ${F[1] + 15})`); });   /* الحرف تحت قدم قطعته، فلا يتراكب حرفان (8) */
+    const cols = [HT.h, HT.side, HT.mid]; item.feet.forEach((fx, i) => { const F = G.P([fx, y]); geoLine(svg, Q[0], Q[1], F[0], F[1], { color: cols[i], w: 3 }); let L = [F[0], F[1] + 20];
+      if (item.rot) { const r = item.rot * Math.PI / 180, W = [180 + (L[0] - 180) * Math.cos(r) - (L[1] - 116) * Math.sin(r), 116 + (L[0] - 180) * Math.sin(r) + (L[1] - 116) * Math.cos(r)], C = [Math.max(36, Math.min(324, W[0])), Math.max(34, Math.min(212, W[1]))];   /* موضع الحرف بعد التدوير داخل الإطار، ثم يُعاد إلى إحداثيات المجموعة (المراجع B لبوابة S3-U2/U3، 12) */
+        L = [180 + (C[0] - 180) * Math.cos(-r) - (C[1] - 116) * Math.sin(-r), 116 + (C[0] - 180) * Math.sin(-r) + (C[1] - 116) * Math.cos(-r)]; } else L[0] = Math.max(34, Math.min(326, L[0]));
+      const t = htLab(svg, L, LTR[item.keys[i]], cols[i], 17); if (item.rot) t.setAttribute('transform', `rotate(${-item.rot} ${L[0]} ${L[1] - 5})`); });   /* الحرف تحت قدم قطعته، فلا يتراكب حرفان (8) */
     if (tries >= 3) { const F = G.P([item.pt[0], y]); htRight(helpG(svg), F, -90, 0, 11, css('--think')); await S('gen.ht.together.pick'); } else await S(item.q || (item.rot && item.kind === 'height' ? 'gen.ht.q.heightRot' : 'gen.ht.q.' + item.kind));
     const k = await choosePick(['a', 'b', 'j'].map(x => [x, LTR[x], '<i></i>', 'gen.ltr.' + x]), item.want); return { ans: k, ctx: { svg, G } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const i = item.keys.indexOf(k); return { ok: false, err: item.kind === 'height' ? (item.roles && item.roles[i - 1] === 'mid' ? 'heightMid' : 'heightSide') : 'distSlant' }; },
@@ -71,7 +77,8 @@ function htTri(parent, G, b, h, foot, o = {}) { const lo = Math.min(0, foot), hi
 /* الارتفاع مرسوماً: متقطّع من الرأس إلى القدم، وامتداد القاعدة إن وقعت القدم خارجها، وعلامة القائمة، والطول */
 function htHeight(parent, G, T, hLab, o = {}) { const g = el('g', { 'pointer-events': 'none' }, parent), C = o.top || T.C, F = o.foot || T.F;
   if (o.extend) geoLine(g, Math.min(T.A[0], F[0]) - 10, T.A[1], Math.max(T.B[0], F[0]) + 10, T.A[1], { color: HT.ext, w: 2, dash: '6 5' });
-  geoLine(g, C[0], C[1], F[0], F[1], { color: HT.h, w: 3, dash: '6 4' }); htRight(g, F, -90, F[0] > (T.A[0] + T.B[0]) / 2 ? 180 : 0, 9, HT.h); if (hLab != null) htLab(g, [F[0] + (F[0] < Math.min(T.A[0], T.B[0]) - 2 ? -20 : F[0] > Math.max(T.A[0], T.B[0]) + 2 ? 20 : F[0] < (T.A[0] + T.B[0]) / 2 ? 20 : -20), (C[1] + F[1]) / 2], hLab, HT.h, 15); return g; }   /* الطول في جهة الشكل من الخط فلا يلاصق الضلع المائل، وخارجه حين تقع القدم خارج القاعدة */
+  geoLine(g, C[0], C[1], F[0], F[1], { color: HT.h, w: 3, dash: '6 4' }); htRight(g, F, -90, F[0] > (T.A[0] + T.B[0]) / 2 ? 180 : 0, 9, HT.h); if (hLab != null) { let dx = F[0] < Math.min(T.A[0], T.B[0]) - 2 ? -20 : F[0] > Math.max(T.A[0], T.B[0]) + 2 ? 20 : F[0] < (T.A[0] + T.B[0]) / 2 ? 20 : -20; if (F[0] + dx < 46 || F[0] + dx > 314) dx = -dx;   /* لا يخرج الطول عن الإطار (المراجع B لبوابة S3-U2/U3، 12) */
+    htLab(g, [F[0] + dx, (C[1] + F[1]) / 2], hLab, HT.h, 15); } return g; }   /* الطول في جهة الشكل من الخط فلا يلاصق الضلع المائل، وخارجه حين تقع القدم خارج القاعدة */
 
 /* ================= ③ مساحة متوازي الأضلاع أو محيطه (C304): b القاعدة، h الارتفاع، s الضلع المائل (يُحسب منه الإزاحة)، ask area | perim | heightOther ================= */
 ITEM.paraArea = { ...htNumItem,
@@ -82,11 +89,13 @@ ITEM.paraArea = { ...htNumItem,
   async ask(item, mode, tries) { const svg = m3Stage(250), G = htGrid(svg, Math.max(12, Math.ceil(item.b + item.off) + 2), 7, { H: 168 }), T = htPara(svg, G, item.b, item.h, item.off), u = item.u || 'cm';
     htLab(svg, [(T.A[0] + T.B[0]) / 2, T.A[1] + 16], htCm(item.b, u), HT.ink); htLab(svg, [(T.A[0] + T.D[0]) / 2 - 22, (T.A[1] + T.D[1]) / 2], htCm(item.s, u), HT.side);
     const F = [T.D[0], T.A[1]]; htHeight(svg, G, { A: T.A, B: T.B }, htCm(item.h, u), { top: T.D, foot: F, extend: F[0] < T.A[0] || F[0] > T.B[0] });
-    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = item.ask === 'perim' ? `2 × (${item.b} + ${item.s}) = ؟` : `${item.b} × ${item.h} = ؟`; await S('gen.ht.together.' + item.ask); }
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 227, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = item.ask === 'perim' ? `2 × (${item.b} + ${item.s}) = ؟` : `${item.b} × ${item.h} = ؟`; await S('gen.ht.together.' + item.ask); }
     else await S(item.q || 'gen.ht.q.para.' + item.ask);
     const np = await this.askNum(item); return { ans: await np.p, ctx: { svg, T } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.ask === 'perim' ? (k === item.b * item.h ? 'perimArea' : 'perimOff') : k === item.b * item.s ? 'areaSlant' : k === 2 * (item.b + item.s) ? 'perimArea' : k === item.want / 2 ? 'areaHalf' : k === item.b + item.h ? 'htAddBH' : 'htMulOff' }; },
-  async hint2(item, r) { if (item.ask !== 'perim' && r && r.ctx && r.ctx.T) { const T = r.ctx.T, m = helpG(r.ctx.svg); el('polygon', { points: polyStr([T.A, T.B, [T.B[0], T.D[1]], [T.A[0], T.D[1]]]), fill: 'none', stroke: css('--think'), 'stroke-width': 2.6, 'stroke-dasharray': '7 5' }, m); }   /* المستطيل الذي يصير إليه (10) */
+  async hint2(item, r) { if (item.ask === 'perim' && r && r.ctx && r.ctx.T) { const T = r.ctx.T, m = helpG(r.ctx.svg), u = item.u || 'cm';   /* المحيط: الضلعان المقابلان مكتوبان، فالأضلاع الأربعة أمامه */
+      htLab(m, [(T.D[0] + T.C[0]) / 2, T.D[1] - 14], htCm(item.b, u), css('--think')); htLab(m, [(T.B[0] + T.C[0]) / 2 + 24, (T.B[1] + T.C[1]) / 2], htCm(item.s, u), css('--think')); }
+    if (item.ask !== 'perim' && r && r.ctx && r.ctx.T) { const T = r.ctx.T, m = helpG(r.ctx.svg); el('polygon', { points: polyStr([T.A, T.B, [T.B[0], T.D[1]], [T.A[0], T.D[1]]]), fill: 'none', stroke: css('--think'), 'stroke-width': 2.6, 'stroke-dasharray': '7 5' }, m); }   /* المستطيل الذي يصير إليه (10) */
     await S(item.ask === 'perim' ? 'gen.ht.hint.perim' : 'gen.ht.hint.paraArea'); }, async together() {},
   async reveal(item) { await S('gen.ht.reveal.num', { noGap: true }); await S(halfw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
@@ -101,7 +110,7 @@ ITEM.triArea = { ...htNumItem,
     htLab(svg, [(T.A[0] + T.B[0]) / 2, T.A[1] + 16], htCm(item.b, u), HT.ink);
     if (item.foot !== 0 && item.foot !== item.b) htHeight(svg, G, T, htCm(item.h, u), { extend: out }); else htLab(svg, [(item.foot ? T.B[0] + 20 : T.A[0] - 20), (T.C[1] + T.A[1]) / 2], htCm(item.h, u), HT.h);   /* القائم: الارتفاع ضلعه */
     if (item.side) { const S0 = item.foot > item.b / 2 ? [T.A, T.C] : [T.B, T.C]; htLab(svg, [(S0[0][0] + S0[1][0]) / 2 + (S0[0] === T.A ? -20 : 20), (S0[0][1] + S0[1][1]) / 2], htCm(item.side, u), HT.side); }
-    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${item.b} × ${item.h} ÷ 2 = ؟`; await S('gen.ht.together.tri'); }
+    if (tries >= 3) { const m = helpG(svg), t = el('text', { x: 180, y: 227, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); t.textContent = `${item.b} × ${item.h} ÷ 2 = ؟`; await S('gen.ht.together.tri'); }
     else await S(item.q || 'gen.ht.q.tri');
     const np = await this.askNum(item); return { ans: await np.p, ctx: { svg, T } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: k === item.b * item.h ? 'triNoHalf' : item.side && k === item.b * item.side / 2 ? 'triSlant' : k === item.b + item.h ? 'htAddBH' : 'htMulOff' }; },
@@ -117,26 +126,29 @@ ITEM.missingDim = { ...htNumItem,
     const errs = spec.fig === 'tri' ? [spec.A / spec.v, spec.A * 2, spec.A - spec.v] : [spec.A / spec.v * 2, spec.A - spec.v, spec.A / 2];
     return { ...spec, want, nums: halfMix(want, errs), tag: 'missing-' + spec.fig }; },
   async ask(item, mode, tries) { const svg = m3Stage(250), G = htGrid(svg, 14, 7, { H: 168 }), u = item.u || 'cm', b = item.give === 'b' ? item.v : item.want, h = item.give === 'h' ? item.v : item.want;
-    G.g.remove(); const hs = item.give === 'h' ? Math.min(h, 6) : 4, bs = item.give === 'b' ? Math.min(b, 12) : 9, T = item.fig === 'tri' ? htTri(svg, G, bs, hs, Math.round(bs * .35)) : htPara(svg, G, bs, hs, 2);   /* بلا شبكة، والمجهول بطولٍ ثابت لا يُعدّ ولا يطابق خياراً (المراجع A لبوابة S3-U2/U3، 5) */
+    G.g.setAttribute('display', 'none'); const hs = item.give === 'h' ? Math.min(h, 6) : 4, bs = item.give === 'b' ? Math.min(b, 12) : 9, T = item.fig === 'tri' ? htTri(svg, G, bs, hs, Math.round(bs * .35)) : htPara(svg, G, bs, hs, 2);   /* بلا شبكة، والمجهول بطولٍ ثابت لا يُعدّ ولا يطابق خياراً (المراجع A لبوابة S3-U2/U3، 5) */
     const top = item.fig === 'tri' ? T.C : T.D, F = [top[0], T.A[1]]; htHeight(svg, G, { A: T.A, B: T.B, C: top, F }, item.give === 'h' ? htCm(h, u) : '؟', { top, foot: F });
     htLab(svg, [(T.A[0] + T.B[0]) / 2, T.A[1] + 16], item.give === 'b' ? htCm(b, u) : '؟', HT.ink);
-    const t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: HT.ok, direction: 'rtl' }, svg); t.textContent = `${labelText('arArea0')} ${item.A} ${labelText(u === 'm' ? 'arM2' : 'arCm2')}`;
+    const t = el('text', { x: 180, y: 226, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: HT.ok, direction: 'rtl' }, svg); t.textContent = `${labelText('arArea0')} ${item.A} ${labelText(u === 'm' ? 'arM2' : 'arCm2')}`;
     if (tries >= 3) { const m = helpG(svg), f = el('text', { x: 180, y: 30, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: css('--think'), direction: 'ltr' }, m); f.textContent = item.fig === 'tri' ? `2 × ${item.A} ÷ ${item.v} = ؟` : `${item.A} ÷ ${item.v} = ؟`; await S('gen.ht.together.missing'); }   /* الصيغة بلا حرف عربي: من اليسار، وتنقلب مع المشرقية (D251، 21) */
     else await S(item.q || 'gen.ht.q.missing.' + item.fig + '.' + item.give);
     const np = await this.askNum(item); return { ans: await np.p, ctx: { svg } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; return { ok: false, err: item.fig === 'tri' && k === item.A / item.v ? 'triNoDouble' : 'dimOff' }; },
-  async hint2(item) { await S(item.fig === 'tri' ? 'gen.ht.hint.missingTri' : 'gen.ht.hint.missingPara'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30, labelText(item.fig === 'tri' ? 'htRuleTri' : 'htRulePara')); await S(item.fig === 'tri' ? 'gen.ht.hint.missingTri' : 'gen.ht.hint.missingPara'); }, async together() {},
   async reveal(item) { await S('gen.ht.reveal.num', { noGap: true }); await S(halfw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 
 /* ================= ⑥ «مهندس المساحات» (C335، اللعبة): قاعدة ثابتة، ويُضبط الارتفاع بزرّين حتى تطابق المساحة المطلوبة ================= */
+/* المستوى الثاني: مساحة الشكل الآن مقروءةً فوقه، تتغيّر مع كل ضبط، فيقارنها الطفل بالمطلوبة (D240) */
+function htAreaNow(parent, item, h) { const m = helpG(parent), A = item.fig === 'tri' ? item.b * h / 2 : item.b * h, t = el('text', { x: 180, y: 26, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, m);
+  t.textContent = `${labelText('htNow')} ${decFmt(A)} ${labelText((item.u || 'cm') === 'm' ? 'arM2' : 'arCm2')}`; return m; }
 ITEM.areaTune = {
   make(spec) { const want = (spec.fig === 'tri' ? 2 : 1) * spec.A / spec.b; /*T*/if (TESTHOOK && (!Number.isInteger(want) || want > 6)) testBug('areaTune: ارتفاع غير صالح');/*/T*/ return { ...spec, want, tag: 'area-tune' }; },
   async ask(item, mode, tries) { const svg = m3Stage(250), G = htGrid(svg, 14, 7, { H: 168 }); let h = item.h0 ?? 1, sh = null; const u = item.u || 'cm';
-    const goal = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: HT.ink, direction: 'rtl' }, svg); goal.textContent = `${labelText('htGoal')} ${item.A} ${labelText(u === 'm' ? 'arM2' : 'arCm2')}`;
+    const goal = el('text', { x: 180, y: 227, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: HT.ink, direction: 'rtl' }, svg); goal.textContent = `${labelText('htGoal')} ${item.A} ${labelText(u === 'm' ? 'arM2' : 'arCm2')}`;
     const draw = () => { if (sh) sh.remove(); sh = el('g', {}, svg); const T = item.fig === 'tri' ? htTri(sh, G, item.b, h, Math.round(item.b / 2)) : htPara(sh, G, item.b, h, 2), top = item.fig === 'tri' ? T.C : T.D;
-      htHeight(sh, G, { A: T.A, B: T.B }, htCm(h, u), { top, foot: [top[0], T.A[1]] }); htLab(sh, [(T.A[0] + T.B[0]) / 2, T.A[1] + 16], htCm(item.b, u)); };
+      htHeight(sh, G, { A: T.A, B: T.B }, htCm(h, u), { top, foot: [top[0], T.A[1]] }); htLab(sh, [(T.A[0] + T.B[0]) / 2, T.A[1] + 16], htCm(item.b, u)); if (tries >= 2) htAreaNow(sh, item, h); };
     draw(); if (tries >= 3) { h = item.want + (h < item.want ? -1 : 1); draw(); await S('gen.ht.together.tune'); } else await S(item.q || 'gen.ht.q.tune');
     const St = dqSteps(['htLower', 'htHigher'], d => { const n = Math.max(1, Math.min(6, h + d)); if (n === h) return false; h = n; draw(); return true; }, { vert: true });
     /*T*/window.__htH = () => h;/*/T*/
@@ -144,7 +156,7 @@ ITEM.areaTune = {
     await rulDone(() => St.off()); return { ans: h, ctx: { svg, set: v => { h = v; draw(); } } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.fig === 'tri' && k * 2 === item.want ? 'triNoDouble' : 'dimOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S(item.fig === 'tri' ? 'gen.ht.hint.missingTri' : 'gen.ht.hint.missingPara'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) htAreaNow(r.ctx.svg, item, r.ans); await S(item.fig === 'tri' ? 'gen.ht.hint.missingTri' : 'gen.ht.hint.missingPara'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.set) r.ctx.set(item.want); await S('gen.ht.reveal.tune'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -178,13 +190,13 @@ SCENES.paraCut = async c => { const L = c.lines, svg = m3Stage(250), G = htGrid(
   const F = [T.D[0], T.A[1]], cut = el('polygon', { points: polyStr([T.A, F, T.D]), fill: '#f2d38a', stroke: HT.ink, 'stroke-width': 2 }, svg); geoLine(svg, T.D[0], T.D[1], F[0], F[1], { color: HT.h, w: 3, dash: '6 4' }); SFX.tick(); await S(L[1]);
   await axPredictNum(24, 'gen.ht.pr.rect');   /* توقّعٌ قبل النقل (20) */
   await anim(cut, [{ transform: 'translate(0px,0px)' }, { transform: `translate(${T.B[0] - T.A[0]}px,0px)` }], { duration: FAST ? 10 : 1000, fill: 'forwards' }).done; SFX.good();
-  const t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, svg); t.textContent = `6 × 4 = 24`; await S(L[2]);
+  const t = el('text', { x: 180, y: 227, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, svg); t.textContent = `6 × 4 = 24`; await S(L[2]);
   for (const l of L.slice(3)) await S(l);
   if (c.two) { const s2 = m3Stage(250), G2 = htGrid(s2, 14, 7, { H: 168 }), P1 = htPara(s2, G2, 8, 3, Math.sqrt(27), { x: 1 });   /* القاعدتان: 8 × 3 = 6 × 4 (12) */
-    htLab(s2, [(P1.A[0] + P1.B[0]) / 2, P1.A[1] + 16], htCm(8)); htHeight(s2, G2, { A: P1.A, B: P1.B }, htCm(3), { top: P1.D, foot: [P1.D[0], P1.A[1]] }); const t1 = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, s2); t1.textContent = '8 × 3 = 24'; await S(c.two[0]);
+    htLab(s2, [(P1.A[0] + P1.B[0]) / 2, P1.A[1] + 16], htCm(8)); htHeight(s2, G2, { A: P1.A, B: P1.B }, htCm(3), { top: P1.D, foot: [P1.D[0], P1.A[1]] }); const t1 = el('text', { x: 180, y: 227, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, s2); t1.textContent = '8 × 3 = 24'; await S(c.two[0]);
     const s3 = m3Stage(250), G3 = htGrid(s3, 14, 7, { H: 168 }), P2 = htPara(s3, G3, 6, 4, Math.sqrt(48), { x: 1 }); htLab(s3, [(P2.A[0] + P2.B[0]) / 2, P2.A[1] + 16], htCm(6)); htHeight(s3, G3, { A: P2.A, B: P2.B }, htCm(4), { top: P2.D, foot: [P2.D[0], P2.A[1]] });
-    await axPredictNum(24, 'gen.ht.pr.other'); const t2 = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, s3); t2.textContent = '6 × 4 = 24'; SFX.good(); await S(c.two[1]); } };
-SCENES.frameArea = async c => { const L = c.lines, svg = m3Stage(250), G = htGrid(svg, 14, 7, { H: 168 }); let sh = null; const t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: HT.ink, direction: 'rtl' }, svg);
+    await axPredictNum(24, 'gen.ht.pr.other'); const t2 = el('text', { x: 180, y: 227, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, s3); t2.textContent = '6 × 4 = 24'; SFX.good(); await S(c.two[1]); } };
+SCENES.frameArea = async c => { const L = c.lines, svg = m3Stage(250), G = htGrid(svg, 14, 7, { H: 168 }); let sh = null; const t = el('text', { x: 180, y: 227, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: HT.ink, direction: 'rtl' }, svg);
   for (const [i, h] of [6, 4, 3].entries()) { if (sh) sh.remove(); sh = el('g', {}, svg); const off = Math.sqrt(36 - h * h), T = htPara(sh, G, 8, h, off, { x: 2 }); if (h < 6) htHeight(sh, G, { A: T.A, B: T.B }, htCm(h), { top: T.D, foot: [T.D[0], T.A[1]] });
     t.textContent = `${labelText('arPerim0')} 28 ${U_('cm')} · ${labelText('arArea0')} ${8 * h} ${labelText('arCm2')}`; SFX.tick(); await S(L[i]); }
   for (const l of L.slice(3)) await S(l); };
@@ -192,9 +204,9 @@ SCENES.frameArea = async c => { const L = c.lines, svg = m3Stage(250), G = htGri
 SCENES.triDouble = async c => { const L = c.lines, svg = m3Stage(250), G = htGrid(svg, 14, 7, { H: 168 }), T = htTri(svg, G, 6, 4, 2, { x: 2 }); await S(L[0]);
   await axPredictYN('yes', 'gen.ht.pr.copy'); const cp = el('polygon', { points: polyStr([T.A, T.B, T.C]), fill: '#f2d38a', 'fill-opacity': .8, stroke: HT.ink, 'stroke-width': 2 }, svg), M = [(T.B[0] + T.C[0]) / 2, (T.B[1] + T.C[1]) / 2];
   await anim(cp, [{ transform: 'rotate(0deg)', transformOrigin: `${M[0]}px ${M[1]}px` }, { transform: 'rotate(180deg)', transformOrigin: `${M[0]}px ${M[1]}px` }], { duration: FAST ? 10 : 1300, fill: 'forwards' }).done; SFX.good(); await S(L[1]);
-  const t = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, svg); t.textContent = `6 × 4 ÷ 2 = 12`; for (const l of L.slice(2)) await S(l);
+  const t = el('text', { x: 180, y: 227, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, svg); t.textContent = `6 × 4 ÷ 2 = 12`; for (const l of L.slice(2)) await S(l);
   if (c.same) { const s2 = m3Stage(250), G2 = htGrid(s2, 14, 7, { H: 168 }); [[0, '#8aa040'], [3, '#5aa0c8'], [8, '#e0a32e']].forEach(([f, col]) => htTri(s2, G2, 6, 4, f, { x: 3, fill: col }));   /* ثلاثة مثلثات بالقاعدة والارتفاع نفسهما (12) */
-    s2.querySelectorAll('polygon').forEach(p => p.setAttribute('fill-opacity', .35)); const t2 = el('text', { x: 180, y: 232, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, s2); t2.textContent = '6 × 4 ÷ 2 = 12';
+    s2.querySelectorAll('polygon').forEach(p => p.setAttribute('fill-opacity', .35)); const t2 = el('text', { x: 180, y: 227, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 800, fill: HT.ok, direction: 'ltr' }, s2); t2.textContent = '6 × 4 ÷ 2 = 12';
     for (const l of c.same) await S(l); } };
 /* المشروع (د5): أرض متوازي أضلاع 12 × 4 وضلعها المائل 5، يقسمها قطر إلى مثلثين */
 SCENES.landProject = async c => { const L = c.lines, svg = m3Stage(250), G = htGrid(svg, 16, 6, { H: 150 }), T = htPara(svg, G, 12, 4, 3, { x: 1 });

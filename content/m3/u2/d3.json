@@ -247,9 +247,10 @@
     "t": "reason",
     "q": "pr.r1",
     "pic": {
-     "kind": "poly",
-     "k": "qKite2",
-     "rot": 0
+     "kind": "dqsticks",
+     "k": "kite",
+     "full": true,
+     "rot": 90
     },
     "opts": [
      {
@@ -267,9 +268,9 @@
      "t": "reason",
      "q": "pr.r2",
      "pic": {
-      "kind": "poly",
-      "k": "qRhom",
-      "rot": 0
+      "kind": "dqsticks",
+      "k": "rhom",
+      "full": true
      },
      "opts": [
       {
@@ -322,9 +323,10 @@
      "t": "reason",
      "q": "ms.1",
      "pic": {
-      "kind": "poly",
-      "k": "qSq",
-      "rot": 30
+      "kind": "dqsticks",
+      "k": "square",
+      "full": true,
+      "rot": 75
      },
      "opts": [
       {

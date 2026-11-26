@@ -28,12 +28,14 @@ function dqDraw(parent, spec, box = [180, 118, 230, 150], o = {}) { const D = dq
   el('polygon', { points: polyStr(Q), fill: o.fill || DQ.fill, stroke: DQ.ink, 'stroke-width': 3, 'stroke-linejoin': 'round' }, g);
   const dg = el('g', { 'pointer-events': 'none' }, g);
   if (o.diag !== false) { geoLine(dg, Q[0][0], Q[0][1], Q[2][0], Q[2][1], { color: DQ.d1, w: 3 }); geoLine(dg, Q[1][0], Q[1][1], Q[3][0], Q[3][1], { color: DQ.d2, w: 3 }); el('circle', { cx: M[0], cy: M[1], r: 4.5, fill: DQ.m, stroke: '#fff', 'stroke-width': 1.5 }, dg); }
-  const lab = (a, b, txt, col, side = 1, off = 15) => { const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, d = dirOf(a, b) + 90 * side, p = angP([mx, my], d, off), t = el('text', { x: p[0], y: p[1] + 6, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, dg); t.textContent = txt; return t; };
+  const lab = (a, b, txt, col, side = 1, off = 15, f = .5) => { const mx = a[0] + (b[0] - a[0]) * f, my = a[1] + (b[1] - a[1]) * f, d = dirOf(a, b) + 90 * side, p = angP([mx, my], d, off), t = el('text', { x: p[0], y: p[1] + 6, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, dg); t.textContent = txt; return t; };
   if (o.lens) { lab(M, Q[2], lenTxt([D.p, 'dcm']), DQ.d1, 1); lab(Q[1], M, lenTxt([D.r, 'dcm']), DQ.d2, 1); }   /* في ربعين متقابلين، فلا يتراكبان */
-  if (o.parts) { const r1 = v => Math.round(v * 10) / 10; lab(Q[0], M, decFmt(r1(D.s * D.p)), DQ.d1, 1, 21); lab(M, Q[2], decFmt(r1((1 - D.s) * D.p)), DQ.d1, 1, 21); if (o.parts !== 'p') { lab(Q[1], M, decFmt(r1(D.u * D.r)), DQ.d2, -1, 21); lab(M, Q[3], decFmt(r1((1 - D.u) * D.r)), DQ.d2, -1, 21); } }   /* الصحيح بلا «٫٠»، وأبعد عن علامتي التساوي (22) */   /* parts: 'p' أجزاء القطر الأزرق وحده (ميزان الأقطار) */
+  /* العلامات وركن القائمة قبل أطوال الأجزاء، فتقع تحت هالتها؛ والطول أقرب إلى طرف القطر (0.4 و0.6) لا عند التقاطع حيث يتراكب طولا قطرين متقاربين (المراجع B لبوابة S3-U2/U3، 6) */
   if (o.ticks) { const tick = (a, b, n, col) => { const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, d = dirOf(a, b); for (let i = 0; i < n; i++) { const c = angP([mx, my], d, (i - (n - 1) / 2) * 5), p1 = angP(c, d + 90, 6), p2 = angP(c, d - 90, 6); geoLine(dg, p1[0], p1[1], p2[0], p2[1], { color: col, w: 2.2 }); } };
     if (Math.abs(D.s - .5) < .01) { tick(Q[0], M, 1, DQ.d1); tick(M, Q[2], 1, DQ.d1); } if (Math.abs(D.u - .5) < .01) { tick(Q[1], M, 2, DQ.d2); tick(M, Q[3], 2, DQ.d2); } }
   if (o.right && Math.abs(D.th - 90) < .5) { const a = angP(M, dirOf(M, Q[2]), 11), b = angP(M, dirOf(M, Q[3]), 11), c = [a[0] + b[0] - M[0], a[1] + b[1] - M[1]]; el('path', { d: `M${a[0]} ${a[1]} L${c[0]} ${c[1]} L${b[0]} ${b[1]}`, fill: 'none', stroke: DQ.ink, 'stroke-width': 2 }, dg); }
+  /* وطولا نصفي القطر على جهتين متعاكستين («دولاب»)، والقطر الآخر كذلك: فلا يقع طولان من قطرين في ربعٍ واحد (المراجع B لبوابة S3-U2/U3، 6: «٤٫٤» فوق «٣» في الطائرة) */
+  if (o.parts) { const r1 = v => Math.round(v * 10) / 10; lab(Q[0], M, decFmt(r1(D.s * D.p)), DQ.d1, 1, 21, .4); lab(M, Q[2], decFmt(r1((1 - D.s) * D.p)), DQ.d1, o.parts === 'p' ? 1 : -1, 21, .6); if (o.parts !== 'p') { lab(Q[1], M, decFmt(r1(D.u * D.r)), DQ.d2, 1, 21, .4); lab(M, Q[3], decFmt(r1((1 - D.u) * D.r)), DQ.d2, -1, 21, .6); } }   /* الصحيح بلا «٫٠»، وأبعد عن علامتي التساوي (22) */   /* parts: 'p' أجزاء القطر الأزرق وحده (ميزان الأقطار) */
   if (o.labels) ['a', 'b', 'j', 'd'].forEach((n, i) => { const p = angP(Q[i], dirOf(M, Q[i]), 16), t = el('text', { x: p[0], y: p[1] + 6, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: DQ.ink }, g); t.textContent = LTR[n]; });
   return { g, dg, Q, M, D, k }; }
 const dqOpt = (grp, k) => [k, labelText('dq.' + grp + '.' + k), '<i></i>', 'gen.dq.' + grp + '.' + k];
@@ -41,10 +43,13 @@ const dqLen = v => Number.isInteger(v) ? [v, 'cm'] : [v, 'dcm'];
 const dqName = k => k === 'isoTrap' ? ['isoTrap', labelText('dqIsoTrap'), '<i></i>', 'gen.dq.n.isoTrap'] : plyOpt('q', k);
 
 /* ================= ① خاصية القطرين في نوع (C316 وC331 وC332): k، prop eq | mid | perp؛ الجواب من جدول المرجع ================= */
+const dqPaper = (parent, M, a) => el('path', { d: `M${M[0]} ${M[1]} L${angP(M, a, 26)} L${angP(angP(M, a, 26), a + 90, 26)} L${angP(M, a + 90, 26)} Z`, fill: '#fdf2c4', 'fill-opacity': .85, stroke: '#c9a54a', 'stroke-width': 2 }, parent);
 ITEM.diagProp = {
   make(spec) { const T = spec.prop === 'eq' ? DQ_EQ : spec.prop === 'mid' ? DQ_MID : DQ_PERP, want = T[spec.k]; /*T*/if (TESTHOOK && !want) testBug('diagProp: لا جواب لهذا النوع ' + spec.k + ' ' + spec.prop);/*/T*/ return { ...spec, want, tag: 'dq-' + spec.prop }; },
-  async ask(item, mode, tries) { const svg = m3Stage(236), R = dqDraw(svg, item, [180, 112, 220, 150], { lens: tries >= 3 && item.prop === 'eq', ticks: tries >= 3 && item.prop === 'mid', right: tries >= 3 && item.prop === 'perp' });
-    const only = DQ_ONLY[item.prop + '.' + item.k], nm = el('text', { x: 180, y: 214, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, svg); nm.textContent = labelText(only ? 'dqOnly.' + only : item.k === 'isoTrap' ? 'dqIsoTrap' : 'ply.q.' + item.k);
+  async ask(item, mode, tries) { const svg = m3Stage(236), R = dqDraw(svg, item, [180, 112, 220, 150], { lens: tries >= 3 && item.prop === 'eq', ticks: tries >= 3 && item.prop === 'mid', parts: tries >= 3 && item.prop === 'mid', right: tries >= 3 && item.prop === 'perp' });
+    if (tries >= 3 && item.prop === 'perp' && Math.abs(R.D.th - 90) > .5) dqAngRead(R, Math.round(R.D.th));   /* الحلّ المشترك: غير المتعامدين تُقرأ زاويتهما، والمنصَّف وغيره بأطوال أجزائه (المراجع B لبوابة S3-U2/U3، 7) */
+    if (tries === 2 && DQ_SPECIAL[item.prop + '.' + item.k]) R.g.setAttribute('opacity', .15);   /* والحالة الخاصة من المستوى الثاني باقية فوق الشكل باهتاً كما رُسمت */
+    const only = DQ_ONLY[item.prop + '.' + item.k], nm = el('text', { x: 180, y: 208, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, svg); nm.textContent = labelText(only ? 'dqOnly.' + only : item.k === 'isoTrap' ? 'dqIsoTrap' : 'ply.q.' + item.k);
     if (tries >= 3) await S('gen.dq.together.' + item.prop); else if (item.q) await S(item.q); else { await S(only ? 'gen.dq.only.' + only : item.k === 'isoTrap' ? 'gen.dq.n.isoTrap' : 'gen.poly.q.' + item.k, { noGap: true }); await S('gen.dq.q.' + item.prop, { append: true }); }
     const opts = item.prop === 'mid' ? ['both', 'one', 'none'].map(k => dqOpt('mid', k)) : ['y', 'n', 's'].map(k => dqOpt('al', k));
     const k = await choosePick(opts, item.want); return { ans: k, ctx: { svg, R } }; },
@@ -52,7 +57,9 @@ ITEM.diagProp = {
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { const sp = DQ_SPECIAL[item.prop + '.' + item.k];
     if (sp && r && r.ctx && r.ctx.R) { r.ctx.R.g.setAttribute('opacity', .15); const m = helpG(r.ctx.svg); dqDraw(m, sp, [180, 112, 200, 140], { lens: item.prop === 'eq', right: item.prop === 'perp' }); await S('gen.dq.hint.special'); return; }   /* «ليس دائماً»: الحالة الخاصة من النوع نفسه (المراجع A لبوابة S3-U2/U3، 10) */
-    if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg); dqDraw(m, item, [180, 112, 220, 150], { fill: 'none', diag: true, lens: item.prop === 'eq', ticks: item.prop === 'mid', right: item.prop === 'perp' }); } await S('gen.dq.hint.' + item.prop); }, async together() {},
+    if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg), H = dqDraw(m, item, [180, 112, 220, 150], { fill: 'none', diag: true, lens: item.prop === 'eq', ticks: item.prop === 'mid', right: item.prop === 'perp' });
+      if (item.prop === 'perp') dqPaper(m, H.M, dirOf(H.M, H.Q[2])); }   /* ورقة الزاوية القائمة عند التقاطع على القطر الأزرق: أينطبق عليها الآخر؟ */
+    await S('gen.dq.hint.' + item.prop); }, async together() {},
   async reveal(item) { await S('gen.dq.reveal.' + item.prop + '.' + item.want); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -62,14 +69,16 @@ ITEM.diagJudge = {
   make(spec) { const a = spec.a || 8, b = spec.b || 6, c = (spec.p * spec.p / 4 + spec.r * spec.r / 4 - a * a) / (spec.p * spec.r / 2), th = Math.acos(Math.max(-1, Math.min(1, c))) * 180 / Math.PI;
     /*T*/if (TESTHOOK && Math.abs(spec.p * spec.p + spec.r * spec.r - 2 * (a * a + b * b)) > 2) testBug('diagJudge: القطران لا يناسبان الأضلاع');/*/T*/
     return { ...spec, a, b, th, s: .5, u: .5, want: Math.abs(spec.p - spec.r) < .2 ? 'rect' : 'lean', tag: 'dq-judge' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(236), R = dqDraw(svg, { ...item, k: 'para' }, [180, 112, 220, 140], { lens: true, level: true }); const [A, B, C, D] = R.Q;
+  async ask(item, mode, tries) { const svg = m3Stage(236), R = dqDraw(svg, { ...item, k: 'para' }, [180, 116, 220, 108], { level: true }); const [A, B, C, D] = R.Q;
+    /* طولا القطرين تحت الشكل بلونيهما، لا عند التقاطع حيث تراكبا مع طول الضلع (المراجع B لبوابة S3-U2/U3، 4)؛ والبطاقة فوقه */
+    for (const [x, k, v, col] of [[268, 'dqBlue', item.p, DQ.d1], [92, 'dqOrange', item.r, DQ.d2]]) { const t = el('text', { x, y: 209, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); t.textContent = `${labelText(k)} ${lenTxt([v, 'dcm'])}`; }
     const sl = (p1, p2, v) => { const mx = (p1[0] + p2[0]) / 2, my = (p1[1] + p2[1]) / 2, d = dirOf(R.M, [mx, my]), p = angP([mx, my], d, 16), t = el('text', { x: p[0], y: p[1] + 5, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: '#6b7f88', direction: 'rtl' }, svg); t.textContent = lenTxt([v, 'cm']); };
     sl(A, B, item.a); sl(C, D, item.a); sl(B, C, item.b); sl(D, A, item.b);
-    if (tries >= 3) { hintCard(svg, 180, 214, labelText('dqRectEq')); await S('gen.dq.together.judge'); } else await S(item.q || 'gen.dq.q.judge');
+    if (tries >= 3) { hintCard(svg, 180, 22, labelText('dqRectEq')); await S('gen.dq.together.judge'); } else await S(item.q || 'gen.dq.q.judge');
     const k = await choosePick([['rect', labelText('ply.q.rect'), '<i></i>', 'gen.poly.q.rect'], ['lean', labelText('dqLean'), '<i></i>', 'gen.dq.lean']], item.want); return { ans: k, ctx: { svg, R } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: item.want === 'lean' ? 'dqSidesOnly' : 'dqEqMissed' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 214, labelText('dqCmpDiag')); await S('gen.dq.hint.judge'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 22, labelText('dqCmpDiag')); await S('gen.dq.hint.judge'); }, async together() {},
   async reveal(item) { await S(item.want === 'rect' ? 'gen.dq.reveal.rect' : 'gen.dq.reveal.lean'); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -98,9 +107,12 @@ function dqSteps(labels, onStep, o = {}) { const box = document.createElement('d
   return { box, btns, off() { btns.forEach(b => b.onclick = null); box.remove(); } }; }
 
 /* ================= ④ «ميزان الأقطار» (C331، اللعبة): يُنقل التقاطع على القطر الأزرق حتى منتصفه (والبرتقالي منصَّف)، فيصير متوازي أضلاع ================= */
+/* المستوى الثاني: منتصف القطر الأزرق معلَّماً (حلقة وعلامة)، يُرسم مع الرباعي في كل ضبط ويبقى حتى يجيب (D240؛ المراجع B لبوابة S3-U2/U3، 3) */
+function dqMidMark(R) { const m = helpG(R.g), a = R.Q[0], c = R.Q[2], x = (a[0] + c[0]) / 2, y = (a[1] + c[1]) / 2, d = dirOf(a, c) + 90;
+  el('circle', { cx: x, cy: y, r: 9, fill: 'none', stroke: css('--think'), 'stroke-width': 3, 'stroke-dasharray': '4 3' }, m); geoLine(m, ...angP([x, y], d, 13), ...angP([x, y], d, -13), { color: css('--think'), w: 3 }); return m; }
 ITEM.diagBalance = {
   make(spec) { return { ...spec, want: 5, tag: 'dq-balance' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(236); let s = item.s0 ?? 2, R = null; const draw = () => { if (R) R.g.remove(); R = dqDraw(svg, { p: item.p, r: item.r, s: s / 10, u: .5, th: item.th || 64, rot: item.rot || 0 }, [180, 108, 250, 170], { parts: 'p', ticks: true, maxK: 24 }); };
+  async ask(item, mode, tries) { const svg = m3Stage(236); let s = item.s0 ?? 2, R = null; const draw = () => { if (R) R.g.remove(); R = dqDraw(svg, { p: item.p, r: item.r, s: s / 10, u: .5, th: item.th || 64, rot: item.rot || 0 }, [180, 108, 250, 170], { parts: 'p', ticks: true, maxK: 24 }); if (tries >= 2) dqMidMark(R); };
     draw(); if (tries >= 3) { s = s < 5 ? 4 : 6; draw(); await S('gen.dq.together.balance'); } else await S(item.q || 'gen.dq.q.balance');
     const St = dqSteps(['dqMoveL', 'dqMoveR'], d => { const n = Math.max(1, Math.min(9, s + d)); if (n === s) return false; s = n; draw(); return true; });
     /*T*/window.__dqS = () => s;/*/T*/
@@ -108,25 +120,28 @@ ITEM.diagBalance = {
     await rulDone(() => St.off()); return { ans: s, ctx: { svg, R: () => R, set: v => { s = v; draw(); } } }; },
   judge(item, k) { return k === 5 ? { ok: true } : { ok: false, err: 'dqMidMissed' }; },
   onOk(item, r) { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { await S('gen.dq.hint.balance'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.R) dqMidMark(r.ctx.R()); await S('gen.dq.hint.balance'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.set) r.ctx.set(5); await S('gen.dq.reveal.balance'); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
 
 /* ================= ⑤ «حارس التقاطع» (C332، اللعبة): تُدار الزاوية بين القطرين بعشر درجات حتى تنطبق ورقة الزاوية القائمة؛ s 0.5 (معيّن) أو 0.4 (طائرة) ================= */
+/* المستوى الثاني: قراءة الزاوية بين القطرين عند التقاطع (منقلة)، تتغيّر مع كل دورة (D240) */
+function dqAngRead(R, th) { const m = helpG(R.g), M = R.M, t = el('text', { x: M[0] + 34, y: M[1] - 26, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: css('--think'), stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'ltr' }, m); t.textContent = String(th); let w = 18; try { w = t.getComputedTextLength() || w; } catch (e) {}
+  el('circle', { cx: M[0] + 34 + w / 2 + 5, cy: M[1] - 37, r: 3, fill: 'none', stroke: css('--think'), 'stroke-width': 2 }, m); return m; }   /* علامة الدرجة دائرةً صغيرة: «°» ليس في خطّ القراءة (D256) */
 ITEM.diagPerp = {
   make(spec) { return { ...spec, want: 90, tag: 'dq-perp' }; },
   async ask(item, mode, tries) { const svg = m3Stage(236); let th = item.th0 ?? 50, R = null, paper = null;
-    const draw = () => { if (R) R.g.remove(); R = dqDraw(svg, { p: item.p, r: item.r, s: item.s ?? .5, u: .5, th, rot: item.rot ?? 90 }, [180, 112, 230, 160], { maxK: 14 });
+    const draw = () => { if (R) R.g.remove(); R = dqDraw(svg, { p: item.p, r: item.r, s: item.s ?? .5, u: .5, th, rot: item.rot ?? 90 }, [180, 112, 230, 160], { maxK: 14 }); if (tries >= 2) dqAngRead(R, th);
       if (paper) paper.remove(); paper = el('g', { 'pointer-events': 'none', opacity: .85 }, svg); const M = R.M, a = dirOf(M, R.Q[2]); el('path', { d: `M${M[0]} ${M[1]} L${angP(M, a, 26)} L${angP(angP(M, a, 26), a + 90, 26)} L${angP(M, a + 90, 26)} Z`, fill: '#fdf2c4', stroke: '#c9a54a', 'stroke-width': 2 }, paper); };   /* ورقة الزاوية القائمة على القطر الأزرق */
     draw(); if (tries >= 3) { th = th < 90 ? 80 : 100; draw(); await S('gen.dq.together.perp2'); } else await S(item.q || 'gen.dq.q.perp2');
     const St = dqSteps(['dqTurnL', 'dqTurnR'], d => { const n = Math.max(30, Math.min(150, th + 10 * d)); if (n === th) return false; th = n; draw(); return true; });
     /*T*/window.__dqTh = () => th;/*/T*/
     AUTO({ kind: 'dqPerp', ok: () => { th = 90; draw(); rulDoneBtn().click(); }, wrong: () => { th = 80; draw(); rulDoneBtn().click(); } });
-    await rulDone(() => St.off()); return { ans: th, ctx: { svg, set: v => { th = v; draw(); } } }; },
+    await rulDone(() => St.off()); return { ans: th, ctx: { svg, R: () => R, set: v => { th = v; draw(); } } }; },
   judge(item, k) { return k === 90 ? { ok: true } : { ok: false, err: 'dqPerpMissed' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2() { await S('gen.dq.hint.perp2'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.R) dqAngRead(r.ctx.R(), r.ans); await S('gen.dq.hint.perp2'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx && r.ctx.set) r.ctx.set(90); await S(item.s && item.s !== .5 ? 'gen.dq.reveal.perpKite' : 'gen.dq.reveal.perpRhom'); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };
@@ -155,7 +170,7 @@ ITEM.diagMake = {
   make(spec) { return { ...DQ_MAKE[spec.k], ...spec, want: spec.k, tag: 'dq-make' }; },
   async ask(item, mode, tries) { const svg = m3Stage(236), R = dqDraw(svg, item, [180, 104, 220, 150], { parts: true, right: true, ticks: true, fill: tries >= 3 ? DQ.fill : 'none' });
     if (tries < 3) R.g.querySelector('polygon').setAttribute('stroke', 'none');   /* العودان وحدهما: الأضلاع تُرى في الحلّ المشترك */
-    const t = el('text', { x: 180, y: 214, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, svg); t.textContent = labelText('dqSticks') + ' ' + lenTxt(dqLen(item.p)) + ' ' + labelText('dqAnd') + ' ' + lenTxt(dqLen(item.r));
+    const t = el('text', { x: 180, y: 209, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, svg); t.textContent = labelText('dqSticks') + ' ' + lenTxt(dqLen(item.p)) + ' ' + labelText('dqAnd') + ' ' + lenTxt(dqLen(item.r));
     await S(tries >= 3 ? 'gen.dq.together.make' : item.q || 'gen.dq.q.make');
     const k = await choosePick(shuffle(item.pick).map(dqName), item.want); return { ans: k, ctx: { svg, R } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: (DQ_GEN[item.want] || []).includes(k) ? 'dqGeneral' : 'dqMakeWrong' }; },
@@ -167,10 +182,11 @@ ITEM.diagMake = {
 
 /* ================= ⑧ أسماء الشكل بالتعريف الشمولي (C333، إتقان C158): كم اسماً؟ (مربع 7، معيّن 5، مستطيل 4، متوازي أضلاع 3) ================= */
 const DQ_NAMES = { square: 7, rhom: 5, rect: 4, para: 3 };
+const DQ_IN = { square: ['other', 'trap', 'para', 'rect', 'rhom', 'kite', 'square'], rhom: ['other', 'trap', 'para', 'rhom', 'kite'], rect: ['other', 'trap', 'para', 'rect'], para: ['other', 'trap', 'para'] };   /* الصناديق التي يقع فيها كل شكل (عددها DQ_NAMES) */
 ITEM.quadNames = { ...numItem,
   make(spec) { const want = DQ_NAMES[spec.k], old = { square: 5, rhom: 3, rect: 3, para: 2 }[spec.k], third = [want + 1, want - 1].find(v => v > 0 && v !== old); return { ...spec, want, old, nums: [want, old, third], tag: 'quad-names' }; },   /* old: العدّ بتعريف م2 (المربع مستطيل ومعيّن ومتوازي أضلاع ورباعي)، وهو بين الخيارات دائماً (المراجع A لبوابة S3-U2/U3، 13) */
-  async ask(item, mode, tries) { const svg = m3Stage(236); polyAt(svg, POLYS[{ square: 'qSq', rhom: 'qRhom', rect: 'qRect', para: 'qPara' }[item.k]], [180, 104], {}); const nm = el('text', { x: 180, y: 206, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, svg); nm.textContent = labelText('ply.q.' + item.k);
-    if (tries >= 3) { svg.replaceChildren(); plyFrame(svg, 208); famNestAt(svg); await S('gen.dq.together.names'); } else { await S(item.q || 'gen.dq.q.names', { noGap: true }); await S('gen.poly.q.' + item.k, { append: true }); }   /* الحلّ المشترك: المخطط نفسه على المسرح */
+  async ask(item, mode, tries) { const svg = m3Stage(236); if (tries < 3) { polyAt(svg, POLYS[{ square: 'qSq', rhom: 'qRhom', rect: 'qRect', para: 'qPara' }[item.k]], [180, 104], {}); const nm = el('text', { x: 180, y: 206, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, svg); nm.textContent = labelText('ply.q.' + item.k); }
+    if (tries >= 3) { famNestAt(svg, { hi: DQ_IN[item.k] }); await S('gen.dq.together.names'); } else { await S(item.q || 'gen.dq.q.names', { noGap: true }); await S('gen.poly.q.' + item.k, { append: true }); }   /* الحلّ المشترك: المخطط بصناديق الشكل مُبرزة، يعدّها الطفل (المراجع B لبوابة S3-U2/U3، 7) */
     const np = numberPick(shuffle(item.nums), item.want); return { ans: await np.p, ctx: { svg } }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: k === item.old ? 'dqNamesOld' : 'dqNamesOff' }; },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) hintCard(r.ctx.svg, 180, 30, labelText('dqNamesH')); await S('gen.dq.hint.names'); }, async together() {},
@@ -229,11 +245,13 @@ SCENES.dqPerpShow = async c => { const L = c.lines, svg = m3Stage(262), paper = 
   if (L[4]) { triCorner(R.g, B, C, A, 120, TRI_COL[2], { r: 30, fs: 13 }); SFX.tick(); await S(L[4]); }   /* الزاوية المجاورة: 180 − 60 (المراجع A لبوابة S3-U2/U3، 7) */
   for (const l of L.slice(5)) await S(l); };
 /* الاكتشاف (د4): مخطط العائلة متداخلاً: الرباعيات ⊃ شبه المنحرف ⊃ متوازي الأضلاع ⊃ المستطيل والمعيّن، والمربع في تقاطعهما؛ والطائرة تحوي المعيّن */
-function famNestAt(parent, o = {}) { const g = el('g', { transform: 'translate(24 12) scale(.866)' }, parent),   /* داخل إطار المسرح */ box = (x, y, w, h, col, key, lx, ly) => { el('rect', { x, y, width: w, height: h, rx: 12, fill: col, 'fill-opacity': .2, stroke: col, 'stroke-width': 2.4 }, g); const t = el('text', { x: lx, y: ly, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: DQ.ink, direction: 'rtl', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }, g); t.textContent = labelText(key); return t; };
-  /* مجموعات صحيحة: الطائرة تخرج من شبه المنحرف من أسفله، فلا يلتقيان إلا في المعيّن؛ والمربع تقاطع المستطيل والمعيّن، وهو في الطائرة */
-  box(10, 6, 340, 226, '#9fb4c0', 'ply.q.other', 300, 22); box(96, 28, 246, 142, '#5aa0c8', 'ply.q.trap', 296, 44); box(106, 50, 228, 120, '#8aa040', 'ply.q.para', 282, 66);
-  box(114, 110, 166, 112, '#c98a5a', 'ply.q.kite', 196, 210); box(230, 74, 96, 96, '#e0a32e', 'ply.q.rect', 296, 92); box(114, 110, 166, 60, '#a77bc6', 'ply.q.rhom', 166, 144);
-  el('rect', { x: 230, y: 110, width: 50, height: 60, rx: 8, fill: '#3f9e93', 'fill-opacity': .35, stroke: '#3f9e93', 'stroke-width': 2.4 }, g); const st = el('text', { x: 255, y: 145, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, g); st.textContent = labelText('ply.q.square');
+function famNestAt(parent, o = {}) { const g = el('g', { transform: 'translate(24 12) scale(.866)' }, parent),   /* داخل إطار المسرح؛ o.hi: الصناديق التي يقع فيها الشكل تُبرز وغيرها يبهت (الحلّ المشترك في «كم اسماً؟») */
+    dim = key => o.hi && !o.hi.includes(key.replace('ply.q.', '')), box = (x, y, w, h, col, key, lx, ly) => { el('rect', { x, y, width: w, height: h, rx: 12, fill: col, 'fill-opacity': dim(key) ? .05 : o.hi ? .3 : .2, stroke: col, 'stroke-width': o.hi && !dim(key) ? 3.4 : 2.4, 'stroke-opacity': dim(key) ? .35 : 1 }, g); const t = el('text', { x: lx, y: ly, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: DQ.ink, direction: 'rtl', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }, g); t.textContent = labelText(key); return t; };
+  /* مجموعات صحيحة: الطائرة تخرج من شبه المنحرف من أسفله، فلا يلتقيان إلا في المعيّن؛ والمربع تقاطع المستطيل والمعيّن، وهو في الطائرة.
+     خطّ 16 (نحو 14 بعد التصغير) وكل اسمٍ بين حدّ صندوقه وحدّ الصندوق الذي تحته بفسحة (المراجع B لبوابة S3-U2/U3، 13) */
+  box(10, 4, 340, 230, '#9fb4c0', 'ply.q.other', 300, 24); box(96, 30, 244, 156, '#5aa0c8', 'ply.q.trap', 296, 50); box(104, 58, 232, 122, '#8aa040', 'ply.q.para', 282, 78);
+  box(112, 120, 170, 108, '#c98a5a', 'ply.q.kite', 196, 216); box(228, 86, 100, 92, '#e0a32e', 'ply.q.rect', 296, 104); box(112, 120, 170, 58, '#a77bc6', 'ply.q.rhom', 160, 154);
+  el('rect', { x: 228, y: 120, width: 54, height: 58, rx: 8, fill: '#3f9e93', 'fill-opacity': dim('square') ? .05 : .35, stroke: '#3f9e93', 'stroke-width': o.hi && !dim('square') ? 3.4 : 2.4, 'stroke-opacity': dim('square') ? .35 : 1 }, g); const st = el('text', { x: 255, y: 154, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, g); st.textContent = labelText('ply.q.square');
   return g; }
 /* إشعال بادّعاء فوضى على شكل (د2 ود3 ود4): k والرسم (show)، وورقة حمراء (paper)، والجمل */
 SCENES.dqClaimHook = async c => { const L = [...c.lines], svg = m3Stage(250), R = dqDraw(svg, { k: c.k }, [176, 118, 220, 150], c.show || {}); const fz = chaosAt(svg, 322, 36, .4); chaosGiggle(fz);

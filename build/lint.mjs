@@ -347,6 +347,9 @@ export function lint(content, js) {
       if (v.errs && typeof v.errs === 'object' && !Array.isArray(v.errs)) for (const t of Object.values(v.errs)) if (typeof t === 'string' && !ERR[t]) errors.push(`${where}: وسم خطأ في البيانات غير موجود في errors.json «${t}»`);
       for (const [k, x] of Object.entries(v)) if (!['lines', 'labels', 'sort'].includes(k)) walkE(x, where); };
     for (const L of Object.values(lessons)) { walkE(L, L.id); for (const r of (L.sort && L.sort.errors) || []) if (r.err && !ERR[r.err]) errors.push(`${L.id}: وسم خطأ في قواعد الفرز غير موجود «${r.err}»`); } }
+  /* ورشة اختيارية بثلاثة ألغاز بعد كل وحدة من m3.u0 إلى m3.u10 ومن m4.u1 إلى m4.u9 (D281 (1)): مولّد وحدةٍ كتب unit.json فمحاها مرةً دون أن يُرى (المراجع B لبوابة S3-U2/U3، 1) */
+  { const WS_UNITS = [...Array.from({ length: 11 }, (_, i) => 'm3.u' + i), ...Array.from({ length: 9 }, (_, i) => 'm4.u' + (i + 1))];
+    for (const id of WS_UNITS) { const u = content.units.find(x => x.id === id); if (!u) continue; if (!u.workshop || !Array.isArray(u.workshop.puzzles) || u.workshop.puzzles.length !== 3) errors.push(`${id}: الورشة غائبة أو ألغازها غير ثلاثة (D281 (1)): شغّل tools/wsgen/m34.py`); } }
   for (const u of content.units) { if (u.workshop) for (const p of u.workshop.puzzles) if (!LINES.has(p.name)) errors.push(`${u.id}: اسم لغز بلا جملة ${p.name}`);
     for (const [, lid] of u.hunt) if (!lessons[lid]) errors.push(`${u.id}: الصيد يشير إلى درس غير موجود ${lid}`); }
   for (const [name, ids] of Object.entries(content.gen.banks || {})) { if (!ids.length) errors.push('بنك فارغ: ' + name); for (const id of ids) if (!LINES.has(id)) errors.push(`بنك ${name}: جملة غير موجودة ${id}`); }

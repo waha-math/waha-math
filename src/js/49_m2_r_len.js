@@ -56,8 +56,12 @@ const LEN_TH = {
 };
 const lenThing = (parent, k, x, y, s = 1) => { const g = el('g', { transform: `translate(${x} ${y}) scale(${s})`, 'data-thing': k, 'pointer-events': 'none' }, parent); LEN_TH[k].draw(g); return g; };
 /* المستوى الثاني من التلميح فعلٌ على المسرح لا جملة فقط (المراجعان A وB لبوابة U6/U7، 9 و5): بطاقة تكتب الحقيقة التي يحتاجها الطفل الآن (التحويل، أو مجموع عمود، أو ما بقي) قرب ما تخصّه، وتبقى حتى يجيب */
-function hintCard(svg, x, y, txt, o = {}) { const m = helpG(svg), w = Math.max(90, 9.2 * String(txt).length + 26), g = el('g', { 'pointer-events': 'none' }, m);
-  el('rect', { x: x - w / 2, y: y - 19, width: w, height: 34, rx: 12, fill: '#fff', stroke: css('--think'), 'stroke-width': 2.5 }, g); const t = el('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': o.fs || 16, 'font-weight': 800, fill: css('--think'), direction: 'rtl' }, g); t.textContent = txt;
+/* العرض من طول النصّ المرسوم لا من عدد حروفه (الحركات لا عرض لها)، وحدٌّ 336 يُصغَّر الخطّ دونه، والبطاقة داخل المسرح؛ والصيغة بلا حرف عربي من اليسار (D251، D280) وتنقلب مع المشرقية (المراجع B لبوابة S3-U2/U3، 8 و9) */
+function hintCard(svg, x, y, txt, o = {}) { const m = helpG(svg), g = el('g', { 'pointer-events': 'none' }, m), s = String(txt), rtl = /[\u0621-\u064A]/.test(s); let fs = o.fs || 16;
+  const r = el('rect', { y: y - 19, height: 34, rx: 12, fill: '#fff', stroke: css('--think'), 'stroke-width': 2.5 }, g), t = el('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: css('--think'), direction: rtl ? 'rtl' : 'ltr' }, g); t.textContent = s;
+  let tw = 0; try { tw = t.getComputedTextLength(); } catch (e) {} if (!tw) tw = 8.6 * s.replace(/[\u064B-\u0652\u0670]/g, '').length * fs / 16;
+  if (tw > 312) { fs = Math.max(11, fs * 312 / tw); t.setAttribute('font-size', fs.toFixed(1)); tw = Math.min(tw, 312); }
+  const w = Math.max(90, tw + 28), cx = Math.max(w / 2 + 4, Math.min(356 - w / 2, x)); t.setAttribute('x', cx); r.setAttribute('x', cx - w / 2); r.setAttribute('width', w);
   anim(g, [{ opacity: 0 }, { opacity: 1 }], { duration: 300 }); return g; }
 const U_ = u => labelText(LEN_LB[u]);
 const lenStage = (H = 232) => { const svg = newStage(H, { oasis: false, ground: 0 }); plyFrame(svg, H - 28); return svg; };
