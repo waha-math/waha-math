@@ -142,11 +142,12 @@ const SCU = 24;
 const scText = k => `${MS('1')} ${labelText('rulCm')} : ${MS(String(k))} ${labelText('lenM')}`;
 function scBadge(g, x, y, k, col = RA.a) { const b = el('g', { 'pointer-events': 'none' }, g); el('rect', { x: x - 62, y: y - 17, width: 124, height: 34, rx: 10, fill: '#fff', stroke: col, 'stroke-width': 2.4 }, b);
   const t = el('text', { x, y: y + 7, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: col, direction: 'rtl' }, b); t.textContent = scText(k); return b; }
-function scPaper(g, y, n = 12, x0 = 36) { el('rect', { x: x0 - 14, y, width: n * SCU + 28, height: 44, rx: 6, fill: RA.paper, stroke: RA.grid, 'stroke-width': 1.6 }, g);
-  for (let i = 0; i <= n; i++) geoLine(g, x0 + i * SCU, y + 4, x0 + i * SCU, y + 40, { color: '#e6dcc4', w: 1 }); }
-function scRuler(g0, y, n = 12, x0 = 36) { const g = el('g', { 'data-ruler': 1, 'pointer-events': 'none' }, g0); el('rect', { x: x0 - 10, y, width: n * SCU + 20, height: 30, rx: 4, fill: '#f6d77a', stroke: '#8a6a1a', 'stroke-width': 1.6 }, g);
-  for (let i = 0; i <= n; i++) { geoLine(g, x0 + i * SCU, y, x0 + i * SCU, y + 10, { color: '#8a6a1a', w: 1.6 }); const t = el('text', { x: x0 + i * SCU, y: y + 24, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#5a4410' }, g); t.textContent = String(i); } }
-const scLine = (g, y, n, col = RA.a, x0 = 36) => { const l = geoLine(g, x0, y, x0 + n * SCU, y, { color: col, w: 5 }); [x0, x0 + n * SCU].forEach(x => geoLine(g, x, y - 8, x, y + 8, { color: col, w: 3 })); return l; };
+/* U: طول السنتيمتر على المسرح؛ يصغر حين يطول الخطّ عن اثني عشر، فيبقى الورق والمسطرة داخل الإطار */
+function scPaper(g, y, n = 12, x0 = 36, U = SCU) { el('rect', { x: x0 - 14, y, width: n * U + 28, height: 44, rx: 6, fill: RA.paper, stroke: RA.grid, 'stroke-width': 1.6 }, g);
+  for (let i = 0; i <= n; i++) geoLine(g, x0 + i * U, y + 4, x0 + i * U, y + 40, { color: '#e6dcc4', w: 1 }); }
+function scRuler(g0, y, n = 12, x0 = 36, U = SCU) { const g = el('g', { 'data-ruler': 1, 'pointer-events': 'none' }, g0); el('rect', { x: x0 - 10, y, width: n * U + 20, height: 30, rx: 4, fill: '#f6d77a', stroke: '#8a6a1a', 'stroke-width': 1.6 }, g);
+  for (let i = 0; i <= n; i++) { geoLine(g, x0 + i * U, y, x0 + i * U, y + 10, { color: '#8a6a1a', w: 1.6 }); const t = el('text', { x: x0 + i * U, y: y + 24, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#5a4410' }, g); t.textContent = String(i); } }
+const scLine = (g, y, n, col = RA.a, x0 = 36, U = SCU) => { const l = geoLine(g, x0, y, x0 + n * U, y, { color: col, w: 5 }); [x0, x0 + n * U].forEach(x => geoLine(g, x, y - 8, x, y + 8, { color: col, w: 3 })); return l; };
 /* الشيء الحقيقي فوق الورقة (ليس بالمقياس): obj road | wall | pool | fence | bus | track، بسهم طوله المكتوب */
 function scObj(g, kind, n, o = {}) { const y = o.y ?? 70, x0 = 40, x1 = 320, m = el('g', { 'pointer-events': 'none' }, g);
   if (kind === 'road') { el('rect', { x: x0, y: y - 14, width: x1 - x0, height: 28, fill: '#9a948a', stroke: '#6d675e', 'stroke-width': 2 }, m); geoLine(m, x0 + 8, y, x1 - 8, y, { color: '#fff', w: 3, dash: '14 10' }); }
@@ -166,7 +167,7 @@ ITEM.scConv = cpItem({ H: 250, tLine: 'gen.sc.together.conv', hint: 'gen.sc.hint
   sayQ: async it => { await S(scLine$(it.n, it.dir === 'up' ? 'cm' : 'm'), { append: true }); await S(it.dir === 'up' ? 'gen.sc.q.upEnd' : 'gen.sc.q.downEnd', { append: true }); },
   make: s => ({ want: s.ch[0][0] + s.ch[0][1], tag: 'sc-conv-' + s.dir }),
   draw(svg, item, tries) { scBadge(svg, 270, 32, item.k); const g = el('g', {}, svg);
-    if (item.dir === 'up') { scPaper(g, 112); scLine(g, 134, item.n); scRuler(g, 162); htLab(g, [36 + item.n * SCU / 2, 100], scUnitLab(item.n, 'cm'), RA.a, 16); }
+    if (item.dir === 'up') { const n = Math.max(12, Math.ceil(item.n)), U = Math.min(SCU, 288 / n); scPaper(g, 112, n, 36, U); scLine(g, 134, item.n, RA.a, 36, U); scRuler(g, 162, n, 36, U); htLab(g, [36 + item.n * U / 2, 100], scUnitLab(item.n, 'cm'), RA.a, 16); }
     else { scObj(g, item.thing || 'wall', item.n, { y: 96 }); scPaper(g, 150); }
     if (tries >= 3) ciEq(helpG(svg), 100, 36, item.dir === 'up' ? `${item.n} × ${item.k} = ؟` : `${item.n} ÷ ${item.k} = ؟`, RA.hl, 17); return {}; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); ciRule(m, 180, 228, labelText(item.dir === 'up' ? 'scRuleUp' : 'scRuleDown'), RA.hl, 13); await sleep(FAST ? 10 : 250); },
@@ -179,20 +180,20 @@ ITEM.scConv = cpItem({ H: 250, tLine: 'gen.sc.together.conv', hint: 'gen.sc.hint
 ITEM.scBig = cpItem({ H: 250, tLine: 'gen.sc.together.big', hint: 'gen.sc.hint.big', rLine: 'gen.sc.reveal.big', praise: 'praiseThink',
   make: s => ({ want: 's' + Math.min(s.a, s.b), tag: 'sc-big' }),
   draw(svg, item, tries) { const g = el('g', {}, svg); scObj(g, item.thing || 'wall', item.n, { y: 86 }); [[item.a, 140], [item.b, 200]].forEach(([k, y]) => { scBadge(g, 276, y, k, RA.ink); scPaper(g, y - 22, 6, 36); });
-    if (tries >= 3) [[item.a, 140], [item.b, 200]].forEach(([k, y]) => scLine(helpG(svg), y, item.n / k, RA.hl)); return {}; },
+    if (tries >= 3) { const U = Math.min(SCU, 288 / Math.max(item.n / item.a, item.n / item.b)); [[item.a, 140], [item.b, 200]].forEach(([k, y]) => scLine(helpG(svg), y, item.n / k, RA.hl, 36, U)); } return {}; },   /* الخطّان داخل الإطار */
   h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 28, labelText('scRuleBig'), RA.hl, 13); await sleep(FAST ? 10 : 250); },
-  show: async (item, ctx) => { if (!ctx || !ctx.svg) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); [[item.a, 140], [item.b, 200]].forEach(([k, y]) => scLine(helpG(ctx.svg), y, item.n / k, k === Math.min(item.a, item.b) ? RA.ok : RA.ink)); },
+  show: async (item, ctx) => { if (!ctx || !ctx.svg) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); const U = Math.min(SCU, 288 / Math.max(item.n / item.a, item.n / item.b)); [[item.a, 140], [item.b, 200]].forEach(([k, y]) => scLine(helpG(ctx.svg), y, item.n / k, k === Math.min(item.a, item.b) ? RA.ok : RA.ink, 36, U)); },
   pick: item => choosePick(shuffle([['s' + item.a, scText(item.a), '<i></i>', `gen.sc.scale.${item.a}`], ['s' + item.b, scText(item.b), '<i></i>', `gen.sc.scale.${item.b}`], ['same', labelText('scSame'), '<i></i>', 'gen.sc.same']]), 's' + Math.min(item.a, item.b)),
   errOf: (it, k) => k === 'same' ? 'scSame' : 'scBigNum' });
 
 /* ⑨ «خريطة المدينة»: ارسم الطول على الورق بزرّين (C310، إنتاج): n م حقيقية، k، obj؛ والجواب n/k سم */
 ITEM.scDraw = {
   make(spec) { /*T*/if (TESTHOOK && spec.n % spec.k) testBug('scDraw: الطول لا ينقسم على المقياس');/*/T*/ return { ...spec, want: spec.n / spec.k, tag: 'sc-draw' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), g = el('g', {}, svg); scBadge(svg, 270, 32, item.k); scObj(g, item.thing || 'road', item.n, { y: 94 }); scPaper(g, 134); scRuler(g, 182);
+  async ask(item, mode, tries) { const svg = m3Stage(262), g = el('g', {}, svg); scBadge(svg, 270, 32, item.k); scObj(g, item.thing || 'road', item.n, { y: 86 }); scPaper(g, 124); scRuler(g, 170);   /* والزرّان تحت المسطرة داخل الإطار */
     const host = el('g', { 'pointer-events': 'none' }, svg); let v = 0, reg = null;
-    const draw = () => { host.innerHTML = ''; if (v > 0) { scLine(host, 156, v, RA.hl); htLab(host, [36 + v * SCU / 2, 144], scUnitLab(v, 'cm'), RA.hl, 14); } /*T*/window.__cdV = v; window.__cdWant = item.want;/*/T*/ if (reg) reg(); };
+    const draw = () => { host.innerHTML = ''; if (v > 0) { scLine(host, 146, v, RA.hl); htLab(host, [36 + v * SCU / 2, 134], scUnitLab(v, 'cm'), RA.hl, 14); } /*T*/window.__cdV = v; window.__cdWant = item.want;/*/T*/ if (reg) reg(); };
     draw(); if (tries >= 3) ciEq(helpG(svg), 100, 36, `${item.n} ÷ ${item.k} = ؟`, RA.hl, 17);
-    const btns = svgSteppers(svg, [[40, 236], [320, 236]], d => { v = Math.max(0, Math.min(12, v + d)); SFX.tick(); draw(); }, { key: 'cd', labels: ['scLess', 'scMore'] });
+    const btns = svgSteppers(svg, [[50, 224], [310, 224]], d => { v = Math.max(0, Math.min(12, v + d)); SFX.tick(); draw(); }, { key: 'cd', labels: ['scLess', 'scMore'] });
     if (tries >= 3) await S('gen.sc.together.draw'); else { await S(item.q, { noGap: true }); await S(scLine$(item.n, 'm'), { append: true }); await S('gen.sc.q.drawEnd', { append: true }); }
     const t = item.want, tap = b => b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     const fin = rulDone(() => { reg = null; btns.forEach(b => { b.onclick = null; b.onkeydown = null; b.removeAttribute('role'); }); });
@@ -201,7 +202,7 @@ ITEM.scDraw = {
   judge(item, v) { return v === item.want ? { ok: true } : { ok: false, err: v === item.n ? 'scNoDiv' : v === item.n - item.k ? 'scSub' : v < item.want ? 'scShort' : 'scLong' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx) ciRule(helpG(r.ctx.svg), 180, 30, labelText('scRuleDown'), RA.hl, 13); await S('gen.sc.hint.draw'); }, async together() {},
-  async reveal(item, r) { if (r && r.ctx) { r.ctx.host.innerHTML = ''; const m = helpG(r.ctx.svg); scLine(m, 156, item.want, RA.ok); ciEq(m, 100, 36, `${item.n} ÷ ${item.k} = ${item.want}`, RA.ok, 17); } await S('gen.sc.reveal.conv', { noGap: true }); await S(scLine$(item.want, 'cm'), { append: true }); },
+  async reveal(item, r) { if (r && r.ctx) { r.ctx.host.innerHTML = ''; const m = helpG(r.ctx.svg); scLine(m, 146, item.want, RA.ok); ciEq(m, 100, 36, `${item.n} ÷ ${item.k} = ${item.want}`, RA.ok, 17); } await S('gen.sc.reveal.conv', { noGap: true }); await S(scLine$(item.want, 'cm'), { append: true }); },
   praise: () => 'praisePlace', twin(item) { return item.twin || null; },
 };
 
@@ -278,7 +279,7 @@ SCENES.enRuleShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('
 SCENES.scHook = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg);
   el('rect', { x: 120, y: 60, width: 120, height: 160, rx: 4, fill: RA.paper, stroke: RA.grid, 'stroke-width': 2 }, g); htLab(g, [180, 46], labelText('scSheet'), RA.ink, 14);
   const ln = geoLine(g, 140, 140, 140, 140, { color: RA.bad, w: 5 }); await raSay(L, 0);
-  for (let x = 140; x <= 352; x += 12) { ln.setAttribute('x2', x); await sleep(FAST ? 1 : 40); } geoArrow(g, 354, 140, 0, RA.bad, 9); htLab(g, [300, 126], `${MS('15')} ${labelText('lenM')}`, RA.bad, 16); await raSay(L, 1); for (const l of L.slice(2)) await S(l); };
+  for (let x = 140; x <= 320; x += 12) { ln.setAttribute('x2', x); await sleep(FAST ? 1 : 40); } geoArrow(g, 326, 140, 0, RA.bad, 9);   /* يخرج عن الورقة الصغيرة ويبقى في الإطار */ htLab(g, [300, 126], `${MS('15')} ${labelText('lenM')}`, RA.bad, 16); await raSay(L, 1); for (const l of L.slice(2)) await S(l); };
 /* د3 الاكتشاف (أ): المقياس «1 سم : 3 م»، وجدارٌ 6 م يُرسم 2 سم */
 SCENES.scShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg); scBadge(g, 180, 34, 3); scPaper(g, 84, 12); scRuler(g, 130, 12);
   for (let i = 0; i < 6; i++) { const x = 36 + i * SCU; htLab(g, [x + SCU / 2, 74], MS('3'), RA.a, 12); SFX.tick(); await sleep(FAST ? 2 : 200); }

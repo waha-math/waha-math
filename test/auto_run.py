@@ -138,7 +138,8 @@ TEXTOV = """() => { const s = document.querySelector('#stage svg'); if (!s) retu
     /* والرسم أيضاً (المراجع B لبوابة S3-U8/U9، 5 و8 و10 و11 (د)): كل شكلٍ مرئي بعد الإطار، بلونٍ أو خطّ، داخله */
     const paint = e => { const c = getComputedStyle(e), f = c.fill, k = c.stroke; return (f && f !== 'none' && !/rgba\(.*, 0\)$/.test(f) && f !== 'transparent') || (k && k !== 'none' && !/rgba\(.*, 0\)$/.test(k)); };
     for (const e of s.querySelectorAll('circle, ellipse, polygon, polyline, path, line, rect')) { if (e === fr || !(fr.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING) || !vis(e) || !paint(e) || e.closest('.chaosbody, .hostbody, .charbody') || e.closest('[role="button"]') && e.getAttribute('fill') === 'transparent') continue;
-      const b = e.getBoundingClientRect(); if (!b.width && !b.height) continue; if (b.left < F.left - 3 || b.right > F.right + 3 || b.top < F.top - 3 || b.bottom > F.bottom + 3) { out.push('رسمٌ خارج الإطار: ' + e.tagName + (e.closest('[data-help]') ? ' (مساعدة)' : '')); break; } } }
+      const b = e.getBoundingClientRect(); if (!b.width && !b.height) continue; if (b.left < F.left - 3 || b.right > F.right + 3 || b.top < F.top - 3 || b.bottom > F.bottom + 3) { const o = [F.left - b.left, b.right - F.right, F.top - b.top, b.bottom - F.bottom].map(v => Math.round(Math.max(0, v)));
+        out.push('رسمٌ خارج الإطار: ' + e.tagName + (e.closest('[data-help]') ? ' (مساعدة)' : '') + (window.__TXDBG ? ' ' + o.join('/') + ' ' + (e.getAttribute('d') || e.getAttribute('points') || [e.getAttribute('x'), e.getAttribute('y'), e.getAttribute('cx'), e.getAttribute('cy'), e.getAttribute('x1'), e.getAttribute('x2')].join(',')).slice(0, 60) + ' ' + (e.getAttribute('stroke') || e.getAttribute('fill') || '') : '')); break; } } }
   return out; }"""
 # ولا يغطّي هدفٌ شارةَ عدٍّ تحته (الفحص المستقل D2 لبوابة S1-U4 (8): بطاقة الاختيار الوسطى على أسفل البرج وشارته «١» في فوضى S1-U2 د5): هدفٌ مرسوم بعد
 # الشارة ولا يحويها يغطّي ربعها أو أكثر
@@ -181,6 +182,7 @@ async def main():
                                       color_scheme='dark' if os.environ.get('DARK') == '1' else 'light'); pg = await ctx.new_page(); errs = []   # DARK=1: الوضع الليلي
     pg.on('pageerror', lambda e: errs.append('pageerror: ' + str(e) + ' | ' + ' <- '.join(l.strip().split(' (')[0].replace('at ', '') + ':' + (l.rsplit(':', 2)[-2] if l.count(':') >= 2 else '?') for l in (e.stack or '').split('\n')[1:9]))); pg.on('console', lambda m: errs.append('console: ' + m.text) if (m.type == 'error' and 'ERR_TUNNEL' not in m.text and 'ERR_NAME' not in m.text and not ('ERR_FILE_NOT_FOUND' in m.text and (m.location or {}).get('url', '').endswith('/voice/index.js'))) or (m.type == 'warning' and 'keyframe' in m.text.lower()) else None)   # الخط من الشبكة يفشل في البيئة المغلقة فلا يُعدّ؛ وفهرس حزمة الصوت voice/index.js غائبٌ عن بيئة الفحص (يُبنى من مستودع الأصوات)، فغيابه وحده بالاسم لا يُعدّ (Gate، 18 نوفمبر 2026)
     cdp = await ctx.new_cdp_session(pg); await cdp.send('DOM.enable'); await cdp.send('CSS.enable'); fontfb = {}
+    if os.environ.get('TXDBG'): await pg.add_init_script('window.__TXDBG = 1')   # تفاصيل الرسم الخارج عن الإطار
     await pg.goto(URL); await pg.wait_for_timeout(500)
     await pg.evaluate("localStorage.setItem('hp_settings', JSON.stringify({sessionMax: 0}))"); await pg.reload(); await pg.wait_for_timeout(500)
     if SHOTS: await pg.screenshot(path=OUT + '/00_start.png')

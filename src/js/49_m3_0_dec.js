@@ -174,11 +174,11 @@ SCENES.decCalcShow = async c => { const L = c.lines, svg = decStage(250), rows =
 /* تذكير بوابة الوحدة (د3): الوحدتان بالرسم، ثم الحساب بالوحدة الصغرى والتحقّق بالتقريب (المراجع A لبوابة S3-U0/U1، 21) */
 SCENES.decRecap = async c => { const L = c.lines, svg = decStage(236), R = rulerAt(svg, { x: 60, y: 30, pxcm: 240, from: 3, to: 4, mm: true, broken: true });
   const T = (y, s, col, fs = 21) => { const t = el('text', { x: 180, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, direction: 'rtl' }, svg); t.textContent = s; return t; };
-  T(112, `1 ${U_('cm')} = 10 ${U_('mm')}`, DEC.frac); el('rect', { x: 60, y: 136, width: 240, height: 14, rx: 4, fill: LENC.tape, stroke: LENC.tapeEd, 'stroke-width': 2 }, svg);
-  for (let i = 0; i <= 10; i++) el('line', { x1: 60 + i * 24, y1: 136, x2: 60 + i * 24, y2: i % 5 ? 144 : 150, stroke: LENC.tapeEd, 'stroke-width': 1.6 }, svg);
-  T(182, `1 ${U_('m')} = 100 ${U_('cm')}`, DEC.int); void R; await S(L[0]);
-  [['m', 270], ['cm', 180], ['mm', 90]].forEach(([u, x], i) => { el('rect', { x: x - 34, y: 198, width: 68, height: 32, rx: 10, fill: i === 2 ? DEC.ok : '#fff', stroke: DEC.ok, 'stroke-width': 2 }, svg);
-    const t = el('text', { x, y: 220, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: i === 2 ? '#fff' : DEC.ok, direction: 'rtl' }, svg); t.textContent = U_(u); }); SFX.tick(); await S(L[1]);
+  T(108, `1 ${U_('cm')} = 10 ${U_('mm')}`, DEC.frac); el('rect', { x: 60, y: 126, width: 240, height: 14, rx: 4, fill: LENC.tape, stroke: LENC.tapeEd, 'stroke-width': 2 }, svg);
+  for (let i = 0; i <= 10; i++) el('line', { x1: 60 + i * 24, y1: 126, x2: 60 + i * 24, y2: i % 5 ? 134 : 140, stroke: LENC.tapeEd, 'stroke-width': 1.6 }, svg);
+  T(168, `1 ${U_('m')} = 100 ${U_('cm')}`, DEC.int); void R; await S(L[0]);   /* البطاقات داخل الإطار (فحص الرسم، المراجع B لبوابة S3-U8/U9، 11) */
+  [['m', 270], ['cm', 180], ['mm', 90]].forEach(([u, x], i) => { el('rect', { x: x - 34, y: 182, width: 68, height: 32, rx: 10, fill: i === 2 ? DEC.ok : '#fff', stroke: DEC.ok, 'stroke-width': 2 }, svg);
+    const t = el('text', { x, y: 204, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: i === 2 ? '#fff' : DEC.ok, direction: 'rtl' }, svg); t.textContent = U_(u); }); SFX.tick(); await S(L[1]);
   for (const l of L.slice(2)) await S(l); };
 /* ختام د2: المتر بالأجزاء من المئة */
 WRAP_ART.decMeterArt = svg => { const x0 = 40, W = 280, y = 120; el('rect', { x: x0, y, width: W, height: 22, rx: 4, fill: LENC.tape, stroke: LENC.tapeEd, 'stroke-width': 2.5 }, svg);

@@ -159,10 +159,10 @@ SCENES.compassShow = async c => { const L = c.lines, svg = m3Stage(250); let g =
   for (const [i, [r, d]] of rows.entries()) { const y = 80 + i * 48; el('rect', { x: 30, y: y - 26, width: 300, height: 40, rx: 10, fill: i % 2 ? '#f6eccf' : '#fff', stroke: CI.grid, 'stroke-width': 2 }, g); htLab(g, [262, y - 6], ciTxt(r, 'cm'), CI.r, 16); htLab(g, [98, y - 6], ciTxt(d, 'cm'), CI.d, 16); SFX.tick(); await sleep(FAST ? 2 : 350); }
   ciRule(g, 180, 222, labelText('ciRule.d2r'), CI.ok, 17); await ciSay(L, 3); };
 /* د2 الإشعال: «ثلاثة أضعاف القطر بالضبط!»: يُفرد الخيط، وتوضع عليه ثلاثة أقطار فيبقى منه جزء */
-SCENES.piHook = async c => { const L = c.lines, svg = m3Stage(250), C = [180, 92], R = 56, d = 6; el('circle', { cx: C[0], cy: C[1], r: R, fill: CI.can, stroke: CI.canEdge, 'stroke-width': 3, 'pointer-events': 'none' }, svg); geoLine(svg, C[0] - R, C[1], C[0] + R, C[1], { color: CI.d, w: 3.4 });
-  await ciSay(L, 0); const k = 300 / 20; await ciUnroll(svg, C, R + 4, 18.8, { k, y: 192 });
-  for (let i = 0; i < 3; i++) { geoLine(svg, 26 + i * d * k + 2, 176, 26 + (i + 1) * d * k - 2, 176, { color: CI.d, w: 5 }); badge(svg, 26 + (i + .5) * d * k, 160, i + 1, CI.d); SFX.tick(); await sleep(FAST ? 2 : 350); }
-  const m = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: 26 + 18 * k - 2, y: 182, width: .8 * k + 6, height: 20, fill: 'none', stroke: CI.think, 'stroke-width': 2.4 }, m); await ciSay(L, 1); };
+SCENES.piHook = async c => { const L = c.lines, svg = m3Stage(250), C = [180, 82], R = 56, d = 6; el('circle', { cx: C[0], cy: C[1], r: R, fill: CI.can, stroke: CI.canEdge, 'stroke-width': 3, 'pointer-events': 'none' }, svg); geoLine(svg, C[0] - R, C[1], C[0] + R, C[1], { color: CI.d, w: 3.4 });
+  await ciSay(L, 0); const k = 300 / 20; await ciUnroll(svg, C, R + 4, 18.8, { k, y: 182 });   /* المسطرة تحته داخل الإطار */
+  for (let i = 0; i < 3; i++) { geoLine(svg, 26 + i * d * k + 2, 168, 26 + (i + 1) * d * k - 2, 168, { color: CI.d, w: 5 }); badge(svg, 26 + (i + .5) * d * k, 153, i + 1, CI.d); SFX.tick(); await sleep(FAST ? 2 : 350); }
+  const m = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: 26 + 18 * k - 2, y: 172, width: .8 * k + 6, height: 20, fill: 'none', stroke: CI.think, 'stroke-width': 2.4 }, m); await ciSay(L, 1); };
 /* د2 الاكتشاف (أ): ثلاث علب، والخيط حول كل منها، والنسبة نحو 3.1 */
 SCENES.ciStringShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg); const cans = [[4, 12.5], [6, 18.8], [8, 25.1]];   /* أطوال الخيط مقيسة (لا محسوبة): النسبة 3.1 في كل علبة */
   for (const [i, [d, len]] of cans.entries()) { g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const C = [180, 96], R = d * 7.5; el('circle', { cx: C[0], cy: C[1], r: R, fill: CI.can, stroke: CI.canEdge, 'stroke-width': 3 }, g); geoLine(g, C[0] - R, C[1], C[0] + R, C[1], { color: CI.d, w: 3.4 }); htLab(g, [C[0], C[1] - 14], ciTxt(d, 'cm'), CI.d, 15);
@@ -204,7 +204,7 @@ SCENES.ciDoubleShow = async c => { const L = c.lines, svg = m3Stage(250), A = [9
 /* د4 المشروع: حديقة نصف قطرها 5 م على الشبكة (كل مربع متر): السياج 31.4 م، والعشب 78.5 م²، ونصفاه 39.25 م²، ثم الجدول */
 SCENES.gardenShow = async c => { const L = c.lines, svg = m3Stage(262);
   if (c.table) { const rows = [['ciT.fence', '2 × 3.14 × 5', `31.4 ${labelText('lenM')}`], ['ciT.grass', '3.14 × 5 × 5', `78.5 ${labelText('arM2')}`], ['ciT.half', '78.5 ÷ 2', `39.25 ${labelText('arM2')}`]], g = el('g', { 'pointer-events': 'none' }, svg);
-    rows.forEach(([k, f, v], i) => { const y = 40 + i * 64; el('rect', { x: 16, y, width: 328, height: 54, rx: 12, fill: i % 2 ? '#f6eccf' : '#fff', stroke: CI.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 330, y: y + 33, 'text-anchor': 'start', 'font-size': 16, 'font-weight': 800, fill: CI.ink, direction: 'rtl' }, g); a.textContent = labelText(k);
+    rows.forEach(([k, f, v], i) => { const y = 40 + i * 64; el('rect', { x: 22, y, width: 316, height: 54, rx: 12, fill: i % 2 ? '#f6eccf' : '#fff', stroke: CI.grid, 'stroke-width': 2 }, g); const a = el('text', { x: 330, y: y + 33, 'text-anchor': 'start', 'font-size': 16, 'font-weight': 800, fill: CI.ink, direction: 'rtl' }, g); a.textContent = labelText(k);
       ciEq(g, 180, y + 33, f, CI.think, 15); const b = el('text', { x: 30, y: y + 33, 'text-anchor': 'end', 'font-size': 16, 'font-weight': 800, fill: CI.ok, direction: 'rtl' }, g); b.textContent = MS(v); });
     for (const l of L) await S(l); return; }
   const G = htGrid(svg, 12, 12, { H: 220, top: 14 }), C = G.P([6, 6]), R = 5 * G.c, g = el('g', { 'pointer-events': 'none' }, svg); cpCompassAt(g, C, angP(C, 0, R)); await drawCircleAnim(g, C, R, CI.edge); g.remove();

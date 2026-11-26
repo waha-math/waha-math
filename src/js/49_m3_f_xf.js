@@ -202,8 +202,8 @@ ITEM.rotSym = { ...numItem,
     else want = D.order > 1 && D.axes ? 'both' : D.order > 1 ? 'rot' : D.axes ? 'axis' : 'none';
     /*T*/if (TESTHOOK && ask === 'angle' && D.order < 2) testBug('rotSym: لا زاوية لشكل بلا تماثل دوراني');/*/T*/
     return { ...spec, ask, want, nums, tag: 'rot-sym-' + ask }; },
-  async ask(item, mode, tries) { const svg = m3Stage(250); rsDraw(svg, item.k, 180, 112, 78);
-    if (tries >= 3) { await S('gen.xf.together.sym'); await rsSpin(svg, item.k, 180, 112, 78); } else await S(item.q || 'gen.xf.q.sym.' + item.ask);
+  async ask(item, mode, tries) { const svg = m3Stage(250); rsDraw(svg, item.k, 180, 122, 68);
+    if (tries >= 3) { await S('gen.xf.together.sym'); await rsSpin(svg, item.k, 180, 122, 68); } else await S(item.q || 'gen.xf.q.sym.' + item.ask);
     if (item.ask === 'kinds') { const k = await choosePick(['axis', 'rot', 'both', 'none'].map(w => [w, labelText('xfK.' + w), '<i></i>', 'gen.xf.k.' + w]), item.want); return { ans: k, ctx: { svg } }; }
     const np = numberPick(shuffle(item.nums), item.want, { west: true, word: item.ask === 'angle' ? n => 'gen.deg.' + n : undefined }); return { ans: await np.p, ctx: { svg } }; },
   judge(item, k) { if (k === item.want) return { ok: true }; const D = RS[item.k];
@@ -214,7 +214,7 @@ ITEM.rotSym = { ...numItem,
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg), C = [180, 112], R = 22, P = a => [C[0] + R * Math.cos(a * Math.PI / 180), C[1] + R * Math.sin(a * Math.PI / 180)], a0 = P(40), a1 = P(-220);   /* قوسٌ يدور حول المركز: نُدير ولا نطوي */
       el('path', { d: `M${a0[0]} ${a0[1]} A${R} ${R} 0 1 0 ${a1[0]} ${a1[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 3.4, 'stroke-linecap': 'round' }, m); const t = -220 * Math.PI / 180; geoArrow(m, a1[0], a1[1], Math.atan2(-Math.cos(t), Math.sin(t)) * 180 / Math.PI, THINK_INK, 10); el('circle', { cx: C[0], cy: C[1], r: 6.5, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.4 }, m); }
     await S(item.ask === 'angle' ? 'gen.xf.hint.angle' : 'gen.xf.hint.sym'); }, async together() {},
-  async reveal(item, r) { if (r && r.ctx && item.ask !== 'kinds') await rsSpin(r.ctx.svg, item.k, 180, 112, 78, { ms: 1600 }); if (item.ask === 'kinds') await S('gen.xf.k.' + item.want); else { await S('gen.ht.reveal.num', { noGap: true }); await S(item.ask === 'angle' ? 'gen.deg.' + item.want : numw(item.want), { append: true }); } },
+  async reveal(item, r) { if (r && r.ctx && item.ask !== 'kinds') await rsSpin(r.ctx.svg, item.k, 180, 122, 68, { ms: 1600 }); if (item.ask === 'kinds') await S('gen.xf.k.' + item.want); else { await S('gen.ht.reveal.num', { noGap: true }); await S(item.ask === 'angle' ? 'gen.deg.' + item.want : numw(item.want), { append: true }); } },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 
@@ -313,7 +313,7 @@ SCENES.triDetShow = async c => { const L = c.lines, svg = m3Stage(250), A = [104
   const lab = (p, s, col) => { const t = el('text', { x: p[0], y: p[1], 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: col || CO.ink, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }, g); t.textContent = s; return t; };
   lab([A[0] + AB / 2, A[1] + 22], ciTxt(5, 'cm')); tri(60, { fill: XF.orgF }); lab([A[0] + 30, A[1] - 52], ciTxt(4, 'cm')); el('path', { d: `M${A[0] + 26} ${A[1]} A26 26 0 0 0 ${A[0] + 26 * Math.cos(Math.PI / 3)} ${A[1] - 26 * Math.sin(Math.PI / 3)}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 3 }, g); lab([A[0] + 46, A[1] - 12], MS('60'), THINK_INK); el('circle', { cx: A[0] + 58, cy: A[1] - 24, r: 2.6, fill: 'none', stroke: THINK_INK, 'stroke-width': 1.6 }, g);
   await S(L[0]); const t2 = tri(60, { col: XF.img, dash: '7 5', w: 3.4 }); SFX.tick(); await sleep(FAST ? 2 : 500); await S(L[1]); t2.remove();
-  g.innerHTML = ''; lab([A[0] + AB / 2, A[1] + 22], ciTxt(5, 'cm')); for (const [i, ang] of [38, 62, 92, 122].entries()) { tri(ang, { col: [XF.org, XF.img, XF.ok, XF.line][i], w: 2.6 }); SFX.tick(); await sleep(FAST ? 2 : 350); } const arc = (a, b) => `M${A[0] + AC * Math.cos(-a * Math.PI / 180)} ${A[1] + AC * Math.sin(-a * Math.PI / 180)} A${AC} ${AC} 0 0 0 ${A[0] + AC * Math.cos(-b * Math.PI / 180)} ${A[1] + AC * Math.sin(-b * Math.PI / 180)}`; el('path', { d: arc(30, 132), fill: 'none', stroke: THINK_INK, 'stroke-width': 2, 'stroke-dasharray': '5 5' }, g); lab([A[0] + (AC + 18) * Math.cos(-107 * Math.PI / 180), A[1] + (AC + 18) * Math.sin(-107 * Math.PI / 180)], ciTxt(4, 'cm'), THINK_INK);   /* طرف الضلع الثاني يدور على قوسٍ كالمفصل */
+  g.innerHTML = ''; lab([A[0] + AB / 2, A[1] + 22], ciTxt(5, 'cm')); for (const [i, ang] of [38, 62, 92, 122].entries()) { tri(ang, { col: [XF.org, XF.img, XF.ok, XF.line][i], w: 2.6 }); SFX.tick(); await sleep(FAST ? 2 : 350); } const arc = (a, b) => `M${A[0] + AC * Math.cos(-a * Math.PI / 180)} ${A[1] + AC * Math.sin(-a * Math.PI / 180)} A${AC} ${AC} 0 0 0 ${A[0] + AC * Math.cos(-b * Math.PI / 180)} ${A[1] + AC * Math.sin(-b * Math.PI / 180)}`; el('path', { d: arc(30, 125), fill: 'none', stroke: THINK_INK, 'stroke-width': 2, 'stroke-dasharray': '5 5' }, g); lab([A[0] + (AC + 18) * Math.cos(-107 * Math.PI / 180), A[1] + (AC + 18) * Math.sin(-107 * Math.PI / 180)], ciTxt(4, 'cm'), THINK_INK);   /* طرف الضلع الثاني يدور على قوسٍ كالمفصل */
   for (const l of L.slice(2)) await S(l); };
 /* الإشعال (د1): فوضى تنسخ المثلث بالاتجاه نفسه «هذه صورته في المرآة!»، والورقة المقلوبة تُظهر الصورة الصحيحة */
 SCENES.mirrorHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, { nums: false }), P = [[1, 1], [4, 1], [2, 4]], xf = { k: 'ref', axis: 'v', at: 5 }; xfMark(svg, Pl, xf); xfPoly(svg, Pl, P); const fz = chaosAt(svg, 318, 40, .4); chaosGiggle(fz);
