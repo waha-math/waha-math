@@ -66,20 +66,19 @@ ITEM.voCalc.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: 
 
 /* ================= ④ وحدة الحجم (C325): u cm | m؛ المكعب الوحدة حرفه 1 سم أو 1 م (بالصورة) ================= */
 /* الشيء نفسه بلا «1 م»: حجمه من سياقه (حوض أم نرد)، والخيارات بكتابةٍ واحدة: مكعّبتان بالسنتيمتر والمتر ومربّعة (المراجع A لبوابة S3-U8/U9، 4) */
-const VO_CTX = { die: { d: [1, 1, 1], pips: 1 }, sugar: { d: [1, 1, 1] }, juice: { d: [2, 1, 3] }, box: { d: [5, 1, 2] }, pool: { d: [8, 4, 1], water: 1 },
-  tank: { d: [3, 3, 3], water: 1 }, truck: { d: [7, 3, 3] }, room: { d: [6, 4, 3] } };
+const VO_CTX = { die: { d: [1, 1, 1], pips: 1, s: 30 }, sugar: { d: [1, 1, 1], s: 30 }, juice: { d: [2, 3, 1], s: 22 }, box: { d: [5, 1, 2], s: 20 }, pool: { d: [8, 1, 4], water: 1 },
+  tank: { d: [3, 3, 3], water: 1 }, truck: { d: [7, 3, 3] }, room: { d: [6, 4, 3] } };   /* [w h d]؛ الصغير يُرسم صغيراً */
 const voUW = k => labelText({ cm3: 'voCm3w', m3: 'voM3w', cm2: 'arCm2w', m2: 'arM2w' }[k]);
 ITEM.voUnit = cpItem({ H: 230, tLine: 'gen.vo.together.unit', hint: 'gen.vo.hint.unit', rLine: it => 'gen.vo.unit.' + it.want, praise: 'praiseThink',
   make: s => ({ want: s.u + '3', tag: 'vo-unit' }),
   draw(svg, item, tries) { const C = VO_CTX[item.ctx]; let B;
-    if (!C) { B = soBox(svg, 1, 1, 1, { s: 96, cy: 124, dims: false }); htLab(svg, [130, 204], `${MS('1')} ${item.u === 'm' ? labelText('lenM') : labelText('rulCm')}`, SO.ink, 16); }   /* «ما وحدة حجم مكعب حرفه 1 م؟» (المرجع) */
-    else { const [w, h, d] = C.d; B = soBox(svg, w, h, d, { s: soFit(w, h, d, 170, 112), cy: 136, dims: false });
+    if (!C) { B = soBox(svg, 1, 1, 1, { s: 72, cy: 150, dims: false }); htLab(svg, [138, 206], `${MS('1')} ${item.u === 'm' ? labelText('lenM') : labelText('rulCm')}`, SO.ink, 16); }   /* «ما وحدة حجم مكعب حرفه 1 م؟» (المرجع) */
+    else { const [w, h, d] = C.d; B = soBox(svg, w, h, d, { s: C.s || soFit(w, h, d, 170, 100), cy: 150, dims: false });
       if (C.water) el('polygon', { points: polyStr(B.G.F.top.map(v => B.G.P[v])), fill: '#7fbfe8', opacity: .85, 'pointer-events': 'none' }, svg);
       if (C.pips) { const Q = B.G.F.front.map(v => B.G.P[v]), cx = Q.reduce((a, p) => a + p[0], 0) / 4, cy = Q.reduce((a, p) => a + p[1], 0) / 4; el('circle', { cx, cy, r: 7, fill: SO.ink, 'pointer-events': 'none' }, svg); } }
     if (tries >= 3) ciRule(helpG(svg), 180, 26, labelText('voUnitHint'), VO.hl, 14); return { G: B.G }; },
-  /* المستوى الثاني: مكعّبا المقارنة، حرفه سنتيمتر وحرفه متر، في ركنين، والطفل يقارن بهما الشيء */
-  h2: async (item, ctx) => { const m = helpG(ctx.svg); soBox(m, 1, 1, 1, { s: 9, cx: 52, cy: 34, dims: false }); htLab(m, [52, 58], `${MS('1')} ${labelText('rulCm')}`, VO.hl, 13);
-    soBox(m, 1, 1, 1, { s: 30, cx: 306, cy: 38, dims: false }); htLab(m, [306, 76], `${MS('1')} ${labelText('lenM')}`, VO.hl, 13); await sleep(FAST ? 10 : 250); },
+  /* المستوى الثاني: مكعّبا المقارنة بالكلمات (الرسم ليس بمقياس، فمكعّبٌ مرسوم بجانبه يوهم)، والطفل يقارن بهما الشيء */
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); ciRule(m, 180, 38, labelText('voRefCm'), VO.hl, 14); ciRule(m, 180, 80, labelText('voRefM'), VO.hl, 14); await sleep(FAST ? 10 : 250); },
   pick: item => { const u = item.u, o = u === 'm' ? 'cm' : 'm'; return choosePick(shuffle([u + '3', o + '3', u + '2']).map(k => [k, voUW(k), '<i></i>', 'gen.vo.unit.' + k]), item.want); },
   errOf: (it, k) => k.endsWith('2') ? 'voUnitSq' : 'voUnitSize' });
 
