@@ -143,24 +143,24 @@
      "item": {
       "t": "decConv",
       "v": [
-       67,
+       84,
        "cmm"
       ],
       "ch": [
        [
-        6.7,
+        8.4,
         "dcm"
        ],
        [
         [
-         6.07,
+         8.04,
          "dcm"
         ],
         "decZero"
        ],
        [
         [
-         67,
+         84,
          "cm"
         ],
         "decPlace"
@@ -192,7 +192,7 @@
      "id": "f5",
      "item": {
       "t": "convexPick",
-      "k": "ell"
+      "k": "crown"
      }
     },
     {

@@ -288,7 +288,7 @@ ITEM.fenceBuild = {
     AUTO({ kind: 'fence', ok: () => { item.pieces.forEach((c, i) => { if (!!(item.okMask >> i & 1) !== on.has(i)) P[i].tog(); }); rulDoneBtn().click(); }, wrong: () => { item.pieces.forEach((c, i) => { if (!on.has(i)) P[i].tog(); }); rulDoneBtn().click(); } });
     await rulDone(() => P.forEach(p => { p.pg.onclick = null; p.pg.onkeydown = null; p.pg.removeAttribute('role'); }));
     return { ans: redraw(), ctx: { svg, redraw } }; },
-  judge(item, s) { return s === item.goal ? { ok: true } : { ok: false, err: s > item.goal ? 'fenceOver' : 'fenceShort' }; },
+  judge(item, s) { return s === item.goal ? { ok: true } : { ok: false, err: s > item.goal ? (item.errOver || 'fenceOver') : (item.errShort || 'fenceShort') }; },   /* errShort/errOver: وسما S3-U0 (السور خطّ واحد بلا أضلاع؛ المراجع A لبوابة S3-U0/U1، 23) */
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const got = typeof r.ans === 'number' ? r.ans : null; if (got != null && got !== item.goal) hintCard(r.ctx.svg, 180, 150, got < item.goal ? `${labelText('lenLeft')} ${lenTxt(FV(item, item.goal - got))}` : `${labelText('lenOver')} ${lenTxt(FV(item, got - item.goal))}`); } await S('gen.len.hint.fence'); }, async together() {},   /* ما بقي أو ما زاد على الهدف */
   async reveal(item) { await S('gen.len.reveal.fence'); },

@@ -139,6 +139,7 @@
      "t": "fenceBuild",
      "q": "gm.fence",
      "u": "dm",
+     "errShort": "decFenceShort",
      "fence": 385,
      "pieces": [
       150,
@@ -150,6 +151,7 @@
       "t": "fenceBuild",
       "q": "gm.fence",
       "u": "dm",
+      "errShort": "decFenceShort",
       "fence": 300,
       "pieces": [
        125,
@@ -323,7 +325,7 @@
      ],
      [
       [
-       3.68,
+       3.48,
        "dm"
       ],
       "decAlign"
@@ -569,7 +571,7 @@
        2.75,
        "dm"
       ],
-      "decAlign"
+      "decCarry"
      ]
     ],
     "twin": {

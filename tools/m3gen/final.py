@@ -12,10 +12,10 @@ MAT=lambda: {"prompt":"mat.01","show":[],"icon":True,"after":"mat.02","facts":[]
 def C(i,item): return {"id":"f%d"%i,"item":item}
 # ---------------- د1: الجزء أ (20 بنداً: 17 اختياراً أو سحباً، و3 «لماذا؟») ----------------
 A=[C(1,{"t":"decCmp","a":[4.07,"dm"],"b":[4.7,"dm"]}),                                                    # العشري U0: المقارنة
-   C(2,{"t":"decConv","v":[67,"cmm"],"ch":[[6.7,"dcm"],[[6.07,"dcm"],"decZero"],[[67,"cm"],"decPlace"]],"q":"q.toDcm"}),   # العشري U0: سم وملم إلى عشري
+   C(2,{"t":"decConv","v":[84,"cmm"],"ch":[[8.4,"dcm"],[[8.04,"dcm"],"decZero"],[[84,"cm"],"decPlace"]],"q":"q.toDcm"}),   # العشري U0: سم وملم إلى عشري
    C(3,{"t":"triMissing","a":75,"b":40}),                                                                   # الزوايا U1: مجموع زوايا المثلث
    C(4,{"t":"quadMissing","degs":[70,120,85]}),                                                             # الزوايا U1: الزاوية المجهولة في الرباعي
-   C(5,{"t":"convexPick","k":"ell"}),                                                                      # المضلعات U1: محدّب أم مقعّر
+   C(5,{"t":"convexPick","k":"crown"}),                                                                      # المضلعات U1: محدّب أم مقعّر
    C(6,{"t":"diagProp","k":"rect","prop":"mid","p":12,"r":12,"th":50}),                                     # الأقطار U2: التنصيف
    C(7,{"t":"diagMake","k":"kite","pick":["kite","rhom","para"],"p":10,"r":7}),                                                                     # الأقطار U2: التعريف الشمولي
    C(8,{"t":"perpPick","kind":"height","pt":[8,5],"seg":[2,10],"others":[2,6],"roles":["side","mid"]}),     # الارتفاع U3
