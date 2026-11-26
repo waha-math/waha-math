@@ -1137,10 +1137,12 @@ export function lint(content, js) {
     if (['reason', 'robotWatch', 'routePick'].includes(v.t) && Array.isArray(v.opts)) { const txt = id => (L.lines && L.lines[id]) || (content.gen.lines || {})[id] || ''; const ok = v.opts.filter(o => o.ok).map(o => bare(txt(o.id))), bad = v.opts.filter(o => !o.ok).map(o => bare(txt(o.id)));
       if (ok.length && bad.length && Math.max(...ok) > 1.2 * Math.max(...bad)) errors.push(`${where}: في بند ${v.t === 'reason' ? 'التعليل' : 'البطاقتين'} «${v.q}» الصحيح ${Math.max(...ok)} حرفاً وأطول المشتّتين ${Math.max(...bad)}: الطول قرينة`);
       /* والكلمة المطلقة («دائماً»، «أبداً»، «في كل مرة») في مشتّتٍ وحده قرينةٌ يُستبعد بها (المراجع A لبوابة S3-U6/U7، 16): خطأٌ في م1–م3، وتنبيهٌ في م4 حتى تُراجَع */
-      { const ABS = /دائما|أبدا|في كل مرة|كل مرة|مهما|في كل شيء|(^|\s)لا\s+\S+\s+إلا/, raw = id =>   /* و«مهما» و«في كل شيء» و«لا… إلا» (المراجع A لبوابة S3-U8/U9، 17) */ String(txt(id)).replace(/[\u064B-\u0652\u0670]/g, ''), okA = v.opts.filter(o => o.ok).some(o => ABS.test(raw(o.id))), badA = v.opts.filter(o => !o.ok && ABS.test(raw(o.id))).map(o => o.id);
+      { const ABS = /^m2\.|^m3\.u1[01]\./.test(where) ? /دائما|أبدا|في كل مرة|كل مرة|مهما|في كل (شيء|خريطة|رسم|مثال|مسقط|علبة|صندوق|شكل|باب)|(^|\s)كل (شيء|باب|خريطة)|(^|\s)فقط(?=$|[\s،.:؛])|(^|\s)لا\s+\S+\s+إلا/ : /دائما|أبدا|في كل مرة|كل مرة|مهما|في كل شيء|(^|\s)لا\s+\S+\s+إلا/, raw = id =>   /* و«مهما» و«في كل شيء» و«لا… إلا» (المراجع A لبوابة S3-U8/U9، 17) */ String(txt(id)).replace(/[\u064B-\u0652\u0670]/g, ''), okA = v.opts.filter(o => o.ok).some(o => ABS.test(raw(o.id))), badA = v.opts.filter(o => !o.ok && ABS.test(raw(o.id))).map(o => o.id);
         if (badA.length && !okA) (/^m4\./.test(where) ? warn : errors).push(`${where}: في بند ${v.t === 'reason' ? 'التعليل' : 'البطاقتين'} «${v.q}» كلمةٌ مطلقة في المشتّت وحده (${badA.join('، ')}): قرينة استبعاد (D240)`); } }
     for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkWhy(x, where, L); };
   for (const L of Object.values(lessons)) walkWhy(L, L.id, L);
+  /* 4ج5 و4ج6 في م2، وفي م3 من بوابة S3-U10 (المراجع A لبوابة S3-U10، 7) */
+  const M3WHY = /^m2\.|^m3\.u1[01]\./;
   // 4ج5) أنماط تكشف الصحيح في بطاقات التعليل (مراجعة بوابة S2-U4/U5، 3)، في م2: (أ) في بنود «نعم/لا» لا يكون الصحيح القطبَ الوحيد (مشتّتٌ بقطبه بسبب خاطئ)؛
   //      (ب) «لِأَنَّ» في البطاقات الثلاث أو في لا شيء منها؛ (ج) لفظ مطلق (دائماً، أبداً، تماماً، فقط، مهما) لا يكون في المشتّتات وحدها
   { const plain = t => String(t || '').replace(/\{([^|{}]*)\|[^{}]*\}/g, '$1').replace(/[\u064B-\u0652\u0670]/g, '').trim();
@@ -1151,13 +1153,13 @@ export function lint(content, js) {
         const W = T.filter(o => WHY(o.t)).length; if (W && W < T.length) errors.push(`${where}: في بند التعليل «${v.q}» «لأنّ» في ${W} من ${T.length} بطاقات: في الثلاث أو في لا شيء (4ج5 ب)`);
         if (bad.some(o => ABS.test(o.t)) && !ok.some(o => ABS.test(o.t))) errors.push(`${where}: في بند التعليل «${v.q}» لفظ مطلق في المشتّتات وحدها (${bad.filter(o => ABS.test(o.t)).map(o => ABS.exec(o.t)[0]).join('، ')}) (4ج5 ج)`); }
       for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkP(x, where, L); };
-    for (const L of Object.values(lessons)) if (/^m2\./.test(L.id)) walkP(L, L.id, L); }
+    for (const L of Object.values(lessons)) if (M3WHY.test(L.id)) walkP(L, L.id, L); }
   // 4ج6) في كل وحدة من م2: الصحيح أطول البطاقات وحده (أو أقصرها وحده) في ثلث بنود التعليل على الأكثر (D266 (6)؛ المراجع A لبوابة U8/U9، 17)
   { const U = {}; const walkU = (v, L) => { if (Array.isArray(v)) return v.forEach(x => walkU(x, L)); if (!v || typeof v !== 'object') return;
       if (v.t === 'reason' && Array.isArray(v.opts) && v.opts.length > 2) { const txt = id => (L.lines && L.lines[id]) || (content.gen.lines || {})[id] || '', ok = v.opts.filter(o => o.ok).map(o => bare(txt(o.id))), bad = v.opts.filter(o => !o.ok).map(o => bare(txt(o.id)));
         if (ok.length === 1 && bad.length) { const u = L.id.split('.').slice(0, 2).join('.'), r = U[u] = U[u] || { n: 0, long: 0, short: 0 }; r.n++; if (ok[0] > Math.max(...bad)) r.long++; if (ok[0] < Math.min(...bad)) r.short++; } }
       for (const [k, x] of Object.entries(v)) if (!['lines', 'labels'].includes(k)) walkU(x, L); };
-    for (const L of Object.values(lessons)) if (/^m2\./.test(L.id)) walkU(L, L);
+    for (const L of Object.values(lessons)) if (M3WHY.test(L.id)) walkU(L, L);
     for (const [u, r] of Object.entries(U)) { if (r.long * 3 > r.n) errors.push(`${u}: الصحيح أطول بطاقات التعليل وحده في ${r.long} من ${r.n} بنود (الحدّ الثلث، 4ج6)`); if (r.short * 3 > r.n) errors.push(`${u}: الصحيح أقصر بطاقات التعليل وحده في ${r.short} من ${r.n} بنود (الحدّ الثلث، 4ج6)`); } }
   // 4ج2) وعلى مستوى التقييم كله (مراجعة الخصم A-13: في 6 من 10 بنود تعليل في الإتقان والاختبار كان الصحيح أطولَ البطاقات وحده، والطفل يسمعها فالأطول أطول زمناً):
   //      عدد بنود التعليل في التقييم (الإتقان ومشتبكه، والمراجعة، والاختبار) التي الصحيحُ فيها أطولُ البطاقات وحده لا يزيد على ثلثها (مقرَّباً إلى أعلى)، وكذلك أقصرها وحده

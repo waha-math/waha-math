@@ -16,7 +16,7 @@ function raSpoon(g, x, y) { el('ellipse', { cx: x, cy: y, rx: 7, ry: 4.5, fill: 
 function raDots(g, x, y, a, b) { const row = (n, yy, col) => { const w = Math.min(11, 120 / Math.max(n, 1)); for (let i = 0; i < n; i++) el('circle', { cx: x + (i - (n - 1) / 2) * w, cy: yy, r: Math.min(4.5, w / 2 - .5), fill: col }, g); };
   row(a, y, RA.a); row(b, y + 14, RA.b); }
 /* جدول النسب: صفّان (عنوانهما من السياق)، والأعمدة من اليمين؛ قيمة null خانةٌ ناقصة */
-function raTableDraw(g, ctx, cols, o = {}) { const n = cols.length, hw = 116, x1 = 338, cw = Math.min(62, (x1 - hw - 22) / n), y0 = o.y0 ?? 72, rh = 50;
+function raTableDraw(g, ctx, cols, o = {}) { const n = cols.length, hw = 116, x1 = 330, cw = Math.min(62, (x1 - hw - 22) / n), y0 = o.y0 ?? 72, rh = 50;
   [0, 1].forEach(r => { const y = y0 + r * rh; el('rect', { x: x1 - hw, y, width: hw, height: rh, fill: r ? '#fdf1e2' : '#e8f1fb', stroke: RA.ink, 'stroke-width': 1.6 }, g);
     const t = el('text', { x: x1 - 8, y: y + 31, 'text-anchor': 'start', 'font-size': 14, 'font-weight': 800, fill: r ? RA.b : RA.a, direction: 'rtl', 'pointer-events': 'none' }, g); t.textContent = raLab(ctx, r ? 'b' : 'a'); });
   const cells = cols.map((c, i) => { const xr = x1 - hw - i * cw; return [0, 1].map(r => { const y = y0 + r * rh, miss = c[r] == null;
@@ -28,6 +28,8 @@ function raTableDraw(g, ctx, cols, o = {}) { const n = cols.length, hw = 116, x1
 function raFactorArrows(g, T, i, j, txt, col = RA.hl) { const xa = T.cx(i), xb = T.cx(j), mid = (xa + xb) / 2;
   for (const [y, bend] of [[T.y0 - 4, -22], [T.y0 + 2 * T.rh + 4, 22]]) { el('path', { d: `M${xa} ${y} Q${mid} ${y + bend} ${xb + (xa > xb ? 4 : -4)} ${y}`, fill: 'none', stroke: col, 'stroke-width': 2.4 }, g); geoArrow(g, xb + (xa > xb ? 4 : -4), y, xa > xb ? (bend < 0 ? 140 : 220) : (bend < 0 ? 40 : -40), col, 7);
     ciEq(g, mid, y + bend + (bend < 0 ? -4 : 14), txt, col, 15); } }
+/* المستوى الثاني في حكم التكافؤ وفي «a : b = c : ؟»: قوسٌ منقّط من النسبة إلى الأخرى عليه «× ؟» (المراجع A لبوابة S3-U10، 10) */
+function raBridge(g, xa, xb, y, lab = '× ؟') { const mid = (xa + xb) / 2; el('path', { d: `M${xa} ${y} Q${mid} ${y + 22} ${xb} ${y}`, fill: 'none', stroke: RA.hl, 'stroke-width': 2.6, 'stroke-dasharray': '6 5' }, g); geoArrow(g, xb, y, xa > xb ? 220 : -40, RA.hl, 7); ciEq(g, mid, y + 34, lab, RA.hl, 15); }
 const raFactor = (c0, ci, r) => ci[r] >= c0[r] ? `× ${ci[r] / c0[r]}` : `÷ ${c0[r] / ci[r]}`;
 
 /* ================= ① جدول النسب (C324): ctx، cols [[a b]…] وخانة واحدة null، وch [[الجواب]، [عدد، خطأ]…]؛ eq: «3 : 5 = 6 : ؟» ================= */
@@ -40,7 +42,7 @@ ITEM.raTable = cpItem({ H: 230, tLine: 'gen.ra.together.table', hint: 'gen.ra.hi
     const T = raTableDraw(svg, item.ctx, item.cols); if (tries >= 3) raFactorArrows(helpG(svg), T, 0, i, k); return { T }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), [i] = raMiss(item);
     if (ctx.T) for (const j of [0, i]) el('rect', { x: ctx.T.cx(j) - ctx.T.cw / 2 + 2, y: ctx.T.y0 - 2, width: ctx.T.cw - 4, height: 2 * ctx.T.rh + 4, rx: 6, fill: 'none', stroke: RA.hl, 'stroke-width': 3 }, m);
-    else ciRule(m, 180, 208, labelText('raRule'), RA.hl, 14); await sleep(FAST ? 10 : 250); },
+    else raBridge(m, 250, 110, 176); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (!ctx || !ctx.svg) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); const [i, r] = raMiss(item), m = helpG(ctx.svg);
     if (ctx.T) { const t = ctx.T.cells[i][r]; t.textContent = MS(String(item.want)); t.setAttribute('fill', RA.ok); raFactorArrows(m, ctx.T, 0, i, raFactor(item.cols[0], item.cols[i], 1 - r), RA.ok); }
     else { const C = item.cols.map(c => c.slice()); C[i][r] = item.want; ctx.t.remove(); ciEq(m, 180, 104, `${C[0][0]} : ${C[0][1]} = ${C[i][0]} : ${C[i][1]}`, RA.ok, 34); } },
@@ -55,7 +57,7 @@ ITEM.raEq = cpItem({ H: 230, tLine: 'gen.ra.together.eq', hint: 'gen.ra.hint.eq'
   make: s => ({ want: s.r1[0] * s.r2[1] === s.r1[1] * s.r2[0] ? 'yes' : 'no', tag: 'ra-eq' }),
   draw(svg, item, tries) { [[item.r1, 262], [item.r2, 98]].forEach(([[a, b], x]) => { el('rect', { x: x - 70, y: 46, width: 140, height: 70, rx: 14, fill: '#fff', stroke: RA.ink, 'stroke-width': 2 }, svg); ciEq(svg, x, 92, `${a} : ${b}`, RA.ink, 28); raDots(svg, x, 140, a, b); });
     htLab(svg, [180, 78], '؟', RA.hl, 30); if (tries >= 3) { const w = raEqWork(item); ciEq(helpG(svg), 180, 196, w.s.replace(/= \d+$/, '= ؟'), RA.hl, 16); } return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 196, labelText('raRule'), RA.hl, 14); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { raBridge(helpG(ctx.svg), 262, 98, 160); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (!ctx || !ctx.svg) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); const w = raEqWork(item); ciEq(helpG(ctx.svg), 180, 196, w.s, w.ok ? RA.ok : RA.bad, 16); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => k === 'no' ? 'raNotEq' : (it.r1[1] - it.r1[0] === it.r2[1] - it.r2[0] ? 'raDiff' : 'raEqOff') });
@@ -79,6 +81,11 @@ async function enTileShow(g, Pl, shape, x, y, a, b, k, cnt) { const T = enTiles(
 /* شبكة التكبير: الأصلي يميناً والمكبَّر يساراً (يُقرأ من اليمين) */
 const enBare = Pl => { const r = Pl.g.querySelector('rect'); if (r) { r.setAttribute('fill', 'none'); r.setAttribute('stroke', 'none'); } return Pl; };   /* إطار المسرح يكفي: لا إطارٌ ثانٍ للشبكة */
 const enPlane = (svg, H = 250, n = 12, m = 7, top = 14) => enBare(coPlane(svg, { axes: false, n, m, H, top }));
+/* علامة المستوى الثاني: الضلع السفلي والضلع الأيسر مظلَّلان، وسهمٌ من كلٍّ منهما إلى اليسار عليه «× k» (بلا موضع النهاية) */
+function enSideMarks(g, Pl, shape, x, y, a, b, k) { const [X0, Y0] = Pl.P(x, y), [X1] = Pl.P(x + a, y), [, Y1] = Pl.P(x, y + b);
+  geoLine(g, X0, Y0, X1, Y0, { color: RA.hl, w: 5 }); geoLine(g, X0, Y0, X0, Y1, { color: RA.hl, w: 5 });
+  const tag = (x0, y0, dy) => { geoLine(g, x0, y0, x0 - 44, y0, { color: RA.hl, w: 2.2, dash: '5 4' }); geoArrow(g, x0 - 44, y0, 180, RA.hl, 6); ciEq(g, x0 - 24, y0 + dy, `× ${k}`, RA.hl, 14); };
+  tag(X0 - 26, (Y0 + Y1) / 2, -8); tag(X0 - 6, Y0, 20); }   /* سهم الضلع الرأسي وفوقه «× k»، وسهم الضلع السفلي على امتداده وتحته «× k» */
 const enBadge = (svg, k, x = 180, y = 30) => { const g = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: x - 34, y: y - 18, width: 68, height: 34, rx: 12, fill: '#fff6d8', stroke: RA.hl, 'stroke-width': 2.4 }, g); ciEq(g, x, y + 7, `× ${k}`, RA.hl, 20); return g; };
 
 /* ③ ما البعدان الجديدان؟ (C327): shape a b k، opts [[w h خطأ]…] (الأول الصحيح) */
@@ -87,20 +94,23 @@ ITEM.enDims = cpItem({ H: 250, tLine: 'gen.en.together.dims', hint: 'gen.en.hint
   make: s => ({ want: s.cands[0][0] + 'x' + s.cands[0][1], tag: 'en-dims-' + s.fig }),
   draw(svg, item, tries) { const Pl = enPlane(svg); enShape(svg, Pl, item.fig, Pl.N - item.a - 1, 1, item.a, item.b, { dims: true }); enBadge(svg, item.k, 300, 30);
     if (tries >= 3) ciEq(helpG(svg), 120, 110, `${item.a} × ${item.k} ، ${item.b} × ${item.k}`, RA.hl, 16); return { Pl }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 150, 150, labelText('enRuleLen'), RA.hl, 14); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { enSideMarks(helpG(ctx.svg), ctx.Pl, item.fig, ctx.Pl.N - item.a - 1, 1, item.a, item.b, item.k); await sleep(FAST ? 10 : 250); },   /* المستوى الثاني رسم: الضلعان مظلَّلان و«× k» على كلٍّ منهما في الفراغ الأيسر، لا فوق المعطيات (المراجع A لبوابة S3-U10، 10) */
   show: async (item, ctx) => { if (!ctx || !ctx.Pl) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); const k = item.k; enShape(helpG(ctx.svg), ctx.Pl, item.fig, 1, 1, item.a * k, item.b * k, { fill: RA.big, dims: true, dimCol: RA.ok }); },
-  pick: item => choosePick(shuffle(item.cands.map(([w, h]) => [w + 'x' + h, `${MS(String(w))} × ${MS(String(h))}`, '<i></i>', `gen.en.dims.${w}x${h}`])), item.want),
+  pick: item => choosePick(shuffle(item.cands.map(([w, h]) => [w + 'x' + h, MX(`${MS(String(w))} × ${MS(String(h))}`), '<i></i>', `gen.en.dims.${w}x${h}`])), item.want),
   errOf: (it, k) => (it.cands.find(([w, h]) => w + 'x' + h === k) || [])[2] || 'enOff' });
 
 /* ④ مساحة المكبَّر (C327): shape a b k، ch [[k²A]، [kA 'enAreaK']، …]؛ المساحة بالمربعات (تُعدّ في الكشف) */
 ITEM.enArea = cpItem({ H: 250, tLine: 'gen.en.together.area', hint: 'gen.en.hint.area', rLine: 'gen.en.reveal.area', rSay: it => S(`gen.en.sq.${it.want}`, { append: true }), praise: 'praiseThink',
   sayQ: async it => { await S(`gen.en.sq.${enAreaOf(it.fig, it.a, it.b)}`, { append: true }); await S(`gen.en.q.areaEnd.${it.k}`, { append: true }); },
   make: s => ({ want: s.ch[0][0], tag: 'en-area-' + s.fig }),
-  draw(svg, item, tries) { const Pl = enPlane(svg), x = Pl.N - item.a - 1, A = enAreaOf(item.fig, item.a, item.b); enShape(svg, Pl, item.fig, x, 1, item.a, item.b, { dims: true });
-    const [X, Y] = Pl.P(x + item.a / 2, 1 + item.b); htLab(svg, [X, Y - 16], `${MS(String(A))} ${labelText(A === 1 ? 'enSq1' : A === 2 ? 'enSq2' : A <= 10 ? 'enSqFew' : 'enSqMany')}`, RA.a, 15); enBadge(svg, item.k, 300, 30);
-    if (tries >= 3) { const k = item.k; ciEq(helpG(svg), 120, 110, `${k} × ${k} = ${k * k}`, RA.hl, 17); } return { Pl, x }; },
-  h2: async (item, ctx) => { const m = helpG(ctx.svg); enTiles(m, ctx.Pl, item.fig, ctx.x, 1, item.a, item.b, 1); ciRule(m, 140, 150, labelText('enRuleArea'), RA.hl, 13); await sleep(FAST ? 10 : 250); },
-  show: async (item, ctx) => { if (!ctx || !ctx.Pl) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); const m = helpG(ctx.svg); enShape(m, ctx.Pl, item.fig, 1, 1, item.a * item.k, item.b * item.k, { fill: '#fff', op: 1 });
+  draw(svg, item, tries) { const Pl = enPlane(svg), x = Pl.N - item.a - 1, A = enAreaOf(item.fig, item.a, item.b), og = el('g', {}, svg); enShape(og, Pl, item.fig, x, 1, item.a, item.b, { dims: true });
+    const over = 1 + item.a * item.k > x - .01, [X, Y] = Pl.P(x + item.a / 2, 1 + item.b), yT = Pl.P(1, 1 + item.b * item.k)[1], LY = over && yT - 22 > 28 ? yT - 12 : Y - 16;   /* الكبير أعرض من الفراغ الأيسر: المساعدة والكشف في مكانه، والمساحة فوق مكانه لا عليه */
+    htLab(og, [X, LY], `${MS(String(A))} ${labelText(A === 1 ? 'enSq1' : A === 2 ? 'enSq2' : A <= 10 ? 'enSqFew' : 'enSqMany')}`, RA.a, 15); enBadge(svg, item.k, 300, 30);
+    if (tries >= 3) { const k = item.k; ciEq(helpG(svg), over ? 180 : 120, over ? 34 : 110, `${k} × ${k} = ${k * k}`, RA.hl, 17); } return { Pl, x, og, over }; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), k = item.k;   /* المستوى الثاني رسم: إطار المكبَّر منقّطاً، وفي ركنه نسخةٌ واحدة من الصغير (المراجع A لبوابة S3-U10، 10) */
+    enShape(m, ctx.Pl, item.fig, 1, 1, item.a * k, item.b * k, { fill: 'none', op: 0, dash: '7 5', stroke: RA.hl, w: 2.6, right: false });
+    enTiles(m, ctx.Pl, item.fig, 1, 1, item.a, item.b, 1); await sleep(FAST ? 10 : 250); },
+  show: async (item, ctx) => { if (!ctx || !ctx.Pl) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); if (ctx.over) ctx.og.remove(); const m = helpG(ctx.svg); enShape(m, ctx.Pl, item.fig, 1, 1, item.a * item.k, item.b * item.k, { fill: '#fff', op: 1 });
     await enTileShow(m, ctx.Pl, item.fig, 1, 1, item.a, item.b, item.k); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.ch.map(c => c[0])), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => (it.ch.find(c => c[0] === k) || [])[1] || 'enAreaOff' });
@@ -123,7 +133,10 @@ ITEM.enDraw = {
   judge(item, a) { const k = item.k, w = item.a * k, h = item.b * k; if (a[0] === w && a[1] === h) return { ok: true };
     return { ok: false, err: a[0] === item.a + k && a[1] === item.b + k ? 'enAdd' : a[0] === h && a[1] === w ? 'enSwap' : a[0] === w || a[1] === h ? 'enOneSide' : 'enOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx) { const m = helpG(r.ctx.svg); enShape(m, r.ctx.Pl, 'rect', 0, 0, item.a * item.k, .02, { fill: RA.hl, stroke: RA.hl, w: 4, right: false }); } await S('gen.en.hint.draw'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx) { const m = helpG(r.ctx.svg), Pl = r.ctx.Pl, [X0, Y0] = Pl.P(0, 0), [X1] = Pl.P(item.a, 0), [, Y1] = Pl.P(0, item.b);   /* المستوى الثاني: الضلعان الأصليان مظلَّلان وسهمٌ منقّط يمدّ كلاً منهما وعليه «× k»، بلا موضع النهاية (الضلع المكبَّر للحلّ المشترك، المراجع A لبوابة S3-U10، 9) */
+      geoLine(m, X0, Y0, X1, Y0, { color: RA.hl, w: 5 }); geoLine(m, X0, Y0, X0, Y1, { color: RA.hl, w: 5 });
+      geoLine(m, X1 + 4, Y0 - 10, X1 + 44, Y0 - 10, { color: RA.hl, w: 2.2, dash: '5 4' }); geoArrow(m, X1 + 44, Y0 - 10, 0, RA.hl, 6); ciEq(m, X1 + 24, Y0 - 18, `× ${item.k}`, RA.hl, 14);
+      geoLine(m, X0 + 12, Y1 - 4, X0 + 12, Y1 - 40, { color: RA.hl, w: 2.2, dash: '5 4' }); geoArrow(m, X0 + 12, Y1 - 40, 270, RA.hl, 6); ciEq(m, X0 + 40, Y1 - 22, `× ${item.k}`, RA.hl, 14); } await S('gen.en.hint.draw'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx) { r.ctx.set(item.a * item.k, item.b * item.k); const m = helpG(r.ctx.svg); enShape(m, r.ctx.Pl, 'rect', 0, 0, item.a * item.k, item.b * item.k, { fill: 'none', op: 0, stroke: RA.ok, w: 3.4, right: false, dims: true, dimCol: RA.ok }); } await S('gen.en.reveal.draw'); },
   praise: () => 'praisePlace', twin(item) { return item.twin || null; },
 };
@@ -133,7 +146,11 @@ ITEM.enYN = cpItem({ H: 250, tLine: 'gen.en.together.yn', hint: 'gen.en.hint.yn'
   make: s => ({ want: s.ask === 'len' ? 'yes' : 'no', tag: 'en-yn-' + s.ask }),
   draw(svg, item, tries) { const Pl = enPlane(svg), k = item.k; enShape(svg, Pl, item.fig, Pl.N - item.a - 1, 1, item.a, item.b, { dims: true }); enShape(svg, Pl, item.fig, 1, 1, item.a * k, item.b * k, { fill: RA.big, dims: true }); enBadge(svg, k, 300, 30);
     if (tries >= 3) { const m = helpG(svg); enShape(m, Pl, item.fig, 1, 1, item.a, item.b, { fill: '#fff', op: .45, dash: '6 4', stroke: RA.a }); } return { Pl }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 30, labelText(item.ask === 'cong' ? 'enRuleCong' : 'enRuleKeep'), RA.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), Pl = ctx.Pl, k = item.k;   /* المستوى الثاني رسم: الضلع السفلي والزاوية عند طرفه الأيمن مظلَّلان في الشكلين، فيقارن الطفل (المراجع A لبوابة S3-U10، 10) */
+    for (const [x, s] of [[Pl.N - item.a - 1, 1], [1, k]]) { const A = item.a * s, B = item.b * s, [X0, Y0] = Pl.P(x, 1), [X1] = Pl.P(x + A, 1), [XT, YT] = item.fig === 'tri' ? Pl.P(x, 1 + B) : Pl.P(x + A, 1 + B);
+      geoLine(m, X0, Y0, X1, Y0, { color: RA.b, w: 5 }); const a1 = Math.PI, a2 = Math.atan2(YT - Y0, XT - X1), r = 16;
+      el('path', { d: `M${X1 + r * Math.cos(a1)} ${Y0 + r * Math.sin(a1)} A${r} ${r} 0 0 1 ${X1 + r * Math.cos(a2)} ${Y0 + r * Math.sin(a2)}`, fill: 'none', stroke: RA.hl, 'stroke-width': 3.4 }, m); }
+    await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: it => ({ angle: 'enAngle', len: 'enLenSame', cong: 'enCong' }[it.ask]) });
 
@@ -155,22 +172,27 @@ function scObj(g, kind, n, o = {}) { const y = o.y ?? 70, x0 = 40, x1 = 320, m =
   else if (kind === 'fence') { geoLine(m, x0, y - 6, x1, y - 6, { color: '#9b6b3a', w: 4 }); geoLine(m, x0, y + 8, x1, y + 8, { color: '#9b6b3a', w: 4 }); for (let x = x0; x <= x1; x += 28) geoLine(m, x, y - 16, x, y + 16, { color: '#7a4f25', w: 5 }); }
   else if (kind === 'bus') { el('rect', { x: x0 + 20, y: y - 22, width: x1 - x0 - 40, height: 36, rx: 10, fill: '#f2c46b', stroke: '#8a6a1a', 'stroke-width': 2.4 }, m); for (let x = x0 + 34; x < x1 - 40; x += 34) el('rect', { x, y: y - 16, width: 24, height: 13, rx: 3, fill: '#e8f4fc', stroke: '#8a6a1a', 'stroke-width': 1.4 }, m); for (const x of [x0 + 60, x1 - 60]) el('circle', { cx: x, cy: y + 15, r: 8, fill: '#444', stroke: '#222', 'stroke-width': 2 }, m); }
   else if (kind === 'shelf') { el('rect', { x: x0, y: y + 6, width: x1 - x0, height: 10, rx: 2, fill: '#b5835a', stroke: '#7a4f25', 'stroke-width': 2 }, m); for (let x = x0 + 8, i = 0; x < x1 - 14; x += 16, i++) el('rect', { x, y: y - 16 + (i % 3) * 3, width: 12, height: 22 - (i % 3) * 3, fill: ['#2f7fc1', '#d9822b', '#9cc53b', '#c0392b'][i % 4], stroke: '#444', 'stroke-width': 1 }, m); }
+  else if (kind === 'closet') { el('rect', { x: x0, y: y - 18, width: x1 - x0, height: 34, rx: 3, fill: '#d9b48a', stroke: '#7a4f25', 'stroke-width': 2 }, m); for (let x = x0 + 35; x < x1; x += 35) geoLine(m, x, y - 18, x, y + 16, { color: '#7a4f25', w: 1.6 }); for (let x = x0 + 29; x < x1; x += 35) el('circle', { cx: x, cy: y, r: 2.4, fill: '#7a4f25' }, m); }
   else if (kind === 'track') { geoLine(m, x0, y - 8, x1, y - 8, { color: '#6d675e', w: 3 }); geoLine(m, x0, y + 8, x1, y + 8, { color: '#6d675e', w: 3 }); for (let x = x0 + 6; x < x1; x += 16) geoLine(m, x, y - 13, x, y + 13, { color: '#9b6b3a', w: 4 }); }
   else { el('rect', { x: x0, y: y - 16, width: x1 - x0, height: 32, fill: '#e6a476', stroke: '#8a4f2a', 'stroke-width': 2 }, m); for (let r = 0; r < 2; r++) for (let x = x0 + (r ? 14 : 0); x < x1; x += 28) el('rect', { x, y: y - 16 + r * 16, width: Math.min(28, x1 - x), height: 16, fill: 'none', stroke: '#8a4f2a', 'stroke-width': 1.2 }, m); }
   const ya = y - 30; geoLine(m, x0, ya, x1, ya, { color: RA.ink, w: 1.8 }); geoArrow(m, x0, ya, 180, RA.ink, 7); geoArrow(m, x1, ya, 0, RA.ink, 7);
   el('rect', { x: 140, y: ya - 13, width: 80, height: 24, rx: 8, fill: '#fff', stroke: 'none' }, m); htLab(m, [180, ya - 2], `${MS(String(n))} ${labelText('lenM')}`, RA.ink, 16); return m; }
+/* المستوى الثاني في المقياس رسم: الشيء الحقيقي مقسومٌ قطعاً كلٌّ منها أمتار المقياس، أو «k م» فوق كل سنتيمتر من الخطّ (كما في المشهد) */
+function scPieces(g, y, n, k, x0 = 40, x1 = 320) { const p = n / k, w = (x1 - x0) / p; for (let i = 1; i < p; i++) geoLine(g, x0 + i * w, y - 18, x0 + i * w, y + 18, { color: RA.hl, w: 2.6 });
+  htLab(g, [x0 + w / 2, y + 30], `${MS(String(k))} ${labelText('lenM')}`, RA.hl, 12); }
+function scPerCm(g, y, n, k, x0 = 36, U = SCU) { for (let i = 0; i < n; i++) htLab(g, [x0 + (i + .5) * U, y], MS(String(k)), RA.hl, U < 20 ? 10 : 12); }
 const scUnitLab = (v, u) => `${MS(String(v))} ${labelText(u === 'm' ? 'lenM' : 'rulCm')}`;
 const scLine$ = (v, u) => `gen.sc.v.${v}.${u}`;
 
 /* ⑦ من الورق إلى الواقع وبالعكس (C310): dir up (ورقٌ n سم → حقيقي) | down (حقيقي n م → ورق)؛ k؛ obj؛ ch [[v u خطأ]…] (الأول الصحيح) */
 ITEM.scConv = cpItem({ H: 250, tLine: 'gen.sc.together.conv', hint: 'gen.sc.hint.conv', rLine: 'gen.sc.reveal.conv', rSay: it => S(scLine$(it.ch[0][0], it.ch[0][1]), { append: true }), praise: 'praiseThink',
-  sayQ: async it => { await S(scLine$(it.n, it.dir === 'up' ? 'cm' : 'm'), { append: true }); await S(it.dir === 'up' ? 'gen.sc.q.upEnd' : 'gen.sc.q.downEnd', { append: true }); },
+  sayQ: async it => { await S(scLine$(it.n, it.dir === 'up' ? 'cm' : 'm'), { append: true }); await S(it.end || (it.dir === 'up' ? 'gen.sc.q.upEnd' : 'gen.sc.q.downEnd'), { append: true }); },
   make: s => ({ want: s.ch[0][0] + s.ch[0][1], tag: 'sc-conv-' + s.dir }),
   draw(svg, item, tries) { scBadge(svg, 270, 32, item.k); const g = el('g', {}, svg);
     if (item.dir === 'up') { const n = Math.max(12, Math.ceil(item.n)), U = Math.min(SCU, 288 / n); scPaper(g, 112, n, 36, U); scLine(g, 134, item.n, RA.a, 36, U); scRuler(g, 162, n, 36, U); htLab(g, [36 + item.n * U / 2, 100], scUnitLab(item.n, 'cm'), RA.a, 16); }
     else { scObj(g, item.thing || 'wall', item.n, { y: 96 }); scPaper(g, 150); }
     if (tries >= 3) ciEq(helpG(svg), 100, 36, item.dir === 'up' ? `${item.n} × ${item.k} = ؟` : `${item.n} ÷ ${item.k} = ؟`, RA.hl, 17); return {}; },
-  h2: async (item, ctx) => { const m = helpG(ctx.svg); ciRule(m, 180, 228, labelText(item.dir === 'up' ? 'scRuleUp' : 'scRuleDown'), RA.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); if (item.dir === 'up') scPerCm(m, 124, item.n, item.k); else scPieces(m, 96, item.n, item.k); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (!ctx || !ctx.svg) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); const m = helpG(ctx.svg), v = item.ch[0][0];
     if (item.dir === 'down') { scLine(m, 172, v, RA.ok); } ciEq(m, 100, 36, item.dir === 'up' ? `${item.n} × ${item.k} = ${v}` : `${item.n} ÷ ${item.k} = ${v}`, RA.ok, 17); },
   pick: item => choosePick(shuffle(item.ch.map(([v, u]) => [v + u, scUnitLab(v, u), '<i></i>', scLine$(v, u)])), item.want),
@@ -181,7 +203,7 @@ ITEM.scBig = cpItem({ H: 250, tLine: 'gen.sc.together.big', hint: 'gen.sc.hint.b
   make: s => ({ want: 's' + Math.min(s.a, s.b), tag: 'sc-big' }),
   draw(svg, item, tries) { const g = el('g', {}, svg); scObj(g, item.thing || 'wall', item.n, { y: 86 }); [[item.a, 140], [item.b, 200]].forEach(([k, y]) => { scBadge(g, 276, y, k, RA.ink); scPaper(g, y - 22, 6, 36); });
     if (tries >= 3) { const U = Math.min(SCU, 288 / Math.max(item.n / item.a, item.n / item.b)); [[item.a, 140], [item.b, 200]].forEach(([k, y]) => scLine(helpG(svg), y, item.n / k, RA.hl, 36, U)); } return {}; },   /* الخطّان داخل الإطار */
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 28, labelText('scRuleBig'), RA.hl, 13); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); for (const [k, y] of [[item.a, 140], [item.b, 200]]) { scLine(m, y, 1, RA.hl); htLab(m, [36 + SCU / 2 + 34, y - 10], `${MS('1')} ${labelText('rulCm')} = ${MS(String(k))} ${labelText('lenM')}`, RA.hl, 12); } await sleep(FAST ? 10 : 250); },   /* السنتيمتر الأول على كل ورقة وما يمثّله */
   show: async (item, ctx) => { if (!ctx || !ctx.svg) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); const U = Math.min(SCU, 288 / Math.max(item.n / item.a, item.n / item.b)); [[item.a, 140], [item.b, 200]].forEach(([k, y]) => scLine(helpG(ctx.svg), y, item.n / k, k === Math.min(item.a, item.b) ? RA.ok : RA.ink, 36, U)); },
   pick: item => choosePick(shuffle([['s' + item.a, scText(item.a), '<i></i>', `gen.sc.scale.${item.a}`], ['s' + item.b, scText(item.b), '<i></i>', `gen.sc.scale.${item.b}`], ['same', labelText('scSame'), '<i></i>', 'gen.sc.same']]), 's' + Math.min(item.a, item.b)),
   errOf: (it, k) => k === 'same' ? 'scSame' : 'scBigNum' });
@@ -201,7 +223,7 @@ ITEM.scDraw = {
     return { ans: v, ctx: { svg, host } }; },
   judge(item, v) { return v === item.want ? { ok: true } : { ok: false, err: v === item.n ? 'scNoDiv' : v === item.n - item.k ? 'scSub' : v < item.want ? 'scShort' : 'scLong' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r) { if (r && r.ctx) ciRule(helpG(r.ctx.svg), 180, 30, labelText('scRuleDown'), RA.hl, 13); await S('gen.sc.hint.draw'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx) scPieces(helpG(r.ctx.svg), 86, item.n, item.k); await S('gen.sc.hint.draw'); }, async together() {},
   async reveal(item, r) { if (r && r.ctx) { r.ctx.host.innerHTML = ''; const m = helpG(r.ctx.svg); scLine(m, 146, item.want, RA.ok); ciEq(m, 100, 36, `${item.n} ÷ ${item.k} = ${item.want}`, RA.ok, 17); } await S('gen.sc.reveal.conv', { noGap: true }); await S(scLine$(item.want, 'cm'), { append: true }); },
   praise: () => 'praisePlace', twin(item) { return item.twin || null; },
 };
@@ -213,8 +235,10 @@ ITEM.scRoom = cpItem({ H: 250, tLine: 'gen.sc.together.room', hint: 'gen.sc.hint
   draw(svg, item, tries) { scBadge(svg, 270, 32, item.k); const g = el('g', { 'pointer-events': 'none' }, svg), s = Math.min(150 / item.a, 104 / item.b), w = item.a * s, h = item.b * s;
     el('rect', { x: 180 - w / 2, y: 140 - h / 2, width: w, height: h, fill: '#f6eccf', stroke: RA.ink, 'stroke-width': 3 }, g);
     htLab(g, [180, 140 + h / 2 + 18], scUnitLab(item.a, 'm'), RA.ink, 16); htLab(g, [180 - w / 2 - 26, 140], scUnitLab(item.b, 'm'), RA.ink, 16);
-    if (tries >= 3) ciEq(helpG(svg), 100, 36, `${item.a} ÷ ${item.k} ، ${item.b} ÷ ${item.k}`, RA.hl, 16); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 226, labelText('scRuleDown'), RA.hl, 13); await sleep(FAST ? 10 : 250); },
+    if (tries >= 3) ciEq(helpG(svg), 100, 36, `${item.a} ÷ ${item.k} ، ${item.b} ÷ ${item.k}`, RA.hl, 16); return { R: { x: 180 - w / 2, y: 140 - h / 2, w, h, s } }; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), R0 = ctx.R; if (R0) { const { x, y, w, h, s } = R0, d = item.k * s;   /* المستوى الثاني: كل ضلعٍ مقسومٌ قطعاً كلٌّ منها أمتار المقياس */
+      for (let i = 1; i * item.k < item.a; i++) geoLine(m, x + i * d, y + h - 10, x + i * d, y + h + 4, { color: RA.hl, w: 2.6 }); for (let j = 1; j * item.k < item.b; j++) geoLine(m, x - 4, y + j * d, x + 10, y + j * d, { color: RA.hl, w: 2.6 });
+      htLab(m, [x + d / 2, y + h - 18], `${MS(String(item.k))} ${labelText('lenM')}`, RA.hl, 11); } await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (!ctx || !ctx.svg) return; ctx.svg.querySelectorAll('[data-help]').forEach(n => n.remove()); const [w, h] = item.cands[0]; ciEq(helpG(ctx.svg), 100, 36, `${item.a} ÷ ${item.k} = ${w} ، ${item.b} ÷ ${item.k} = ${h}`, RA.ok, 15); },
   pick: item => choosePick(shuffle(item.cands.map(([w, h]) => [w + 'x' + h, `${MS(String(w))} × ${MS(String(h))} ${labelText('rulCm')}`, '<i></i>', `gen.sc.dims.${w}x${h}`])), item.want),
   errOf: (it, k) => (it.cands.find(([w, h]) => w + 'x' + h === k) || [])[2] || 'scOff' });
@@ -223,7 +247,8 @@ ITEM.scRoom = cpItem({ H: 250, tLine: 'gen.sc.together.room', hint: 'gen.sc.hint
 function raReasonPic(g, P) {
   if (P.ra) { ciEq(g, 180, 70, `${P.ra[0]} : ${P.ra[1]}`, RA.ink, 28); raDots(g, 180, 110, P.ra[0], P.ra[1]); }
   else if (P.en) { const E = P.en, Pl = coPlane(g, { axes: false, n: 12, m: 6, H: 190, top: 8 }); enShape(g, Pl, E.fig, Pl.N - E.a - 1, .5, E.a, E.b, { dims: true }); if (E.k) enShape(g, Pl, E.fig, 1, .5, E.a * E.k, E.b * E.k, { fill: RA.big, dims: true }); }
-  else if (P.sc) { scBadge(g, 180, 40, P.sc); if (P.n) { scPaper(g, 76, 8, 84); scLine(g, 98, P.n, RA.a, 84); } }
+  else if (P.sc) { scBadge(g, 180, 40, P.sc); if (P.n) { scPaper(g, 76, 8, 84); scLine(g, 98, P.n, RA.a, 84); }
+    if (P.door) { const d = el('g', { 'pointer-events': 'none' }, g); el('rect', { x: 84, y: 112, width: P.n * SCU, height: 40, rx: 3, fill: '#c98a55', stroke: '#7a4f25', 'stroke-width': 2 }, d); el('circle', { cx: 84 + P.n * SCU - 14, cy: 132, r: 3.4, fill: '#f2c46b' }, d); } }   /* البابُ مرسوماً بطول الخطّ على الخريطة (المراجع A لبوابة S3-U10، 24) */
   if (P.f) ciEq(g, 180, 200, P.f, P.bad ? SO.bad : SO.ink, 18); }
 
 /* ================= المشاهد ================= */
@@ -289,21 +314,23 @@ SCENES.scUpShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g'
   for (let i = 0; i < 5; i++) { htLab(g, [36 + (i + .5) * SCU, 64], MS('3'), RA.a, 12); SFX.tick(); await sleep(FAST ? 2 : 260); }
   ciEq(g, 180, 184, '5 × 3 = 15', RA.ok, 20); await raSay(L, 0); const t = el('g', {}, g); el('rect', { x: 40, y: 200, width: 280, height: 36, rx: 10, fill: '#fff', stroke: RA.ok, 'stroke-width': 2 }, t);
   htLab(t, [180, 216], `${scUnitLab(5, 'cm')} ${labelText('scOnPaper')} = ${scUnitLab(15, 'm')} ${labelText('scReal')}`, RA.ok, 14); SFX.tick(); await raSay(L, 1); for (const l of L.slice(2)) await S(l); };
-/* د3 الاكتشاف (ج): حافلة صغيرة 6 م تُرسم 6 ÷ 3 = 2 سم */
-SCENES.scDownShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg); scBadge(g, 270, 32, 3); scObj(g, 'bus', 6, { y: 100 }); scPaper(g, 146, 12);
-  await raSay(L, 0); scLine(g, 168, 2, RA.ok); ciEq(g, 180, 222, '6 ÷ 3 = 2', RA.ok, 20); SFX.tick(); await raSay(L, 1); for (const l of L.slice(2)) await S(l); };
-/* د4 المشروع «خريطة غرفتي»: غرفة 9 × 6 م بمقياس 1 سم : 3 م (3 × 2 سم)، والسجادة 3 × 3 م والرفّ 6 م، ثم الجدول */
-SCENES.roomShow = async c => { const L = c.lines, svg = m3Stage(262);
-  if (c.table) { const g = el('g', { 'pointer-events': 'none' }, svg), rows = [['scT.item', 'scT.real', 'scT.paper', 1], ['scT.room', '9 × 6', '3 × 2'], ['scT.rug', '3 × 3', '1 × 1'], ['scT.shelf', '6', '2']];
+/* د3 الاكتشاف (ج): حافلة 9 م تُرسم 9 ÷ 3 = 3 سم (مثالٌ غير مثال الاكتشاف (أ)، المراجع A لبوابة S3-U10، 22) */
+SCENES.scDownShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg); scBadge(g, 270, 32, 3); scObj(g, 'bus', 9, { y: 100 }); scPaper(g, 146, 12);
+  await raSay(L, 0); scLine(g, 168, 3, RA.ok); ciEq(g, 180, 222, '9 ÷ 3 = 3', RA.ok, 20); SFX.tick(); await raSay(L, 1); for (const l of L.slice(2)) await S(l); };
+/* د4 المشروع «خريطة غرفتي»: المشهد الأول يقول الغرفة الحقيقية وحدها (12 × 9 م، وخزانة 9 م، والباب)، ثم بنود الطفل،
+   ثم الجدول يجمع أجوبته: الغرفة 4 × 3 سم، والخزانة 3 سم، والمسافة 2 سم = 6 م (D286 (1)؛ المراجع A لبوابة S3-U10، 3) */
+SCENES.roomShow = async c => { const L = c.lines, svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg);
+  if (c.table) { const rows = [['scT.item', 'scT.real', 'scT.paper', 1], ['scT.room', '12 × 9', '4 × 3'], ['scT.closet', '9', '3'], ['scT.dist', '6', '2']];
     rows.forEach(([k, r, p, head], i) => { const y = 30 + i * 52; el('rect', { x: 26, y, width: 308, height: 44, rx: 10, fill: head ? '#e8f1fb' : i % 2 ? '#fff' : '#f6eccf', stroke: RA.grid, 'stroke-width': 2 }, g);
       const a = el('text', { x: 322, y: y + 28, 'text-anchor': 'start', 'font-size': 14, 'font-weight': 800, fill: RA.ink, direction: 'rtl' }, g); a.textContent = labelText(k);
       if (head) { for (const [x, kk] of [[188, r], [80, p]]) { const t = el('text', { x, y: y + 28, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: RA.ink, direction: 'rtl' }, g); t.textContent = labelText(kk); } }
-      else { ciEq(g, 188, y + 28, r, RA.b, 15); htLab(g, [228, y + 22], labelText('lenM'), RA.b, 13); ciEq(g, 80, y + 28, p, RA.a, 15); htLab(g, [122, y + 22], labelText('rulCm'), RA.a, 13); } });
+      else { ciEq(g, 188, y + 28, r, RA.b, 15); htLab(g, [232, y + 22], labelText('lenM'), RA.b, 13); ciEq(g, 80, y + 28, p, RA.a, 15); htLab(g, [124, y + 22], labelText('rulCm'), RA.a, 13); } SFX.tick(); });
     for (const l of L) await S(l); return; }
-  const g = el('g', { 'pointer-events': 'none' }, svg), U = 56, x0 = 180 - 1.5 * U, y0 = 70; scBadge(g, 270, 32, 3);
-  for (let i = 0; i <= 5; i++) geoLine(g, x0 - U + i * U, y0 - 16, x0 - U + i * U, y0 + 2 * U + 30, { color: '#e6dcc4', w: 1 }); for (let j = 0; j <= 3; j++) geoLine(g, x0 - U, y0 + j * U, x0 + 4 * U, y0 + j * U, { color: '#e6dcc4', w: 1 });
-  el('rect', { x: x0, y: y0, width: 3 * U, height: 2 * U, fill: '#fffdf6', stroke: RA.ink, 'stroke-width': 3.4 }, g); htLab(g, [180, y0 + 2 * U + 18], scUnitLab(3, 'cm'), RA.a, 15); htLab(g, [x0 - 26, y0 + U], scUnitLab(2, 'cm'), RA.a, 15);
-  await raSay(L, 0); el('rect', { x: x0 + 2 * U, y: y0 + U, width: U, height: U, fill: '#e9a3c0', 'fill-opacity': .7, stroke: RA.ink, 'stroke-width': 2 }, g); geoLine(g, x0 + 4, y0 + 6, x0 + 2 * U, y0 + 6, { color: '#9b6b3a', w: 7 }); SFX.tick(); await raSay(L, 1);
-  const d = geoLine(g, x0, y0 + 2 * U - 10, x0 + 2 * U, y0 + 2 * U - 10, { color: RA.hl, w: 3, dash: '6 5' }); el('rect', { x: x0 - 2, y: y0 + U + 18, width: 6, height: U - 20, fill: '#8a4f2a' }, g); ciEq(g, x0 + U, y0 + 2 * U - 18, '2 × 3 = 6', RA.hl, 14); SFX.tick(); await raSay(L, 2); for (const l of L.slice(3)) await S(l); };
+  /* الغرفة الحقيقية رسمٌ تقريبيّ بلا مقياس: الأبعاد بالمتر، والخزانة على الجدار العلوي، والباب في الجدار الأيمن */
+  const x0 = 70, y0 = 62, W = 220, H = 150; el('rect', { x: x0, y: y0, width: W, height: H, fill: '#fffdf6', stroke: RA.ink, 'stroke-width': 4 }, g);
+  htLab(g, [x0 + W / 2, y0 + H + 20], scUnitLab(12, 'm'), RA.b, 16); htLab(g, [x0 - 30, y0 + H / 2], scUnitLab(9, 'm'), RA.b, 16);
+  await raSay(L, 0); const cw = W * 9 / 12; el('rect', { x: x0 + W - cw, y: y0 + 4, width: cw - 4, height: 22, fill: '#d9b48a', stroke: '#7a4f25', 'stroke-width': 2 }, g); htLab(g, [x0 + W - cw / 2, y0 + 44], `${labelText('scT.closet')} ${scUnitLab(9, 'm')}`, '#7a4f25', 13);
+  el('rect', { x: x0 + W - 4, y: y0 + H - 58, width: 8, height: 40, fill: '#8a4f2a' }, g); el('path', { d: `M${x0 + W} ${y0 + H - 58} A40 40 0 0 0 ${x0 + W - 40} ${y0 + H - 18}`, fill: 'none', stroke: '#8a4f2a', 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }, g);
+  scBadge(g, 180, 32, 3); SFX.tick(); await raSay(L, 1); for (const l of L.slice(2)) await S(l); };
 WRAP_ART.mapArt = svg => { const g = el('g', { 'pointer-events': 'none' }, svg); el('rect', { x: 70, y: 40, width: 220, height: 150, rx: 8, fill: RA.paper, stroke: RA.grid, 'stroke-width': 2 }, g);
   geoLine(g, 70, 110, 290, 110, { color: '#9a948a', w: 10 }); geoLine(g, 180, 40, 180, 190, { color: '#9a948a', w: 10 }); for (const [x, y] of [[100, 60], [220, 60], [100, 130], [220, 140]]) el('rect', { x, y, width: 40, height: 30, rx: 4, fill: '#f2c46b', stroke: '#8a6a1a', 'stroke-width': 2 }, g); scBadge(g, 180, 210, 3); };

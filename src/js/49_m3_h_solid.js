@@ -213,7 +213,8 @@ ITEM.soView = cpItem({ H: 240, tLine: 'gen.so.together.view', hint: 'gen.so.hint
   errOf: () => 'viewSwap' });
 
 /* ================= صورة التعليل (sopic): box [w h d] | solid | net | faces ================= */
-function soReasonPic(g, P) { if (P.box) soBox(g, P.box[0], P.box[1], P.box[2], { dims: !!P.dims, s: soFit(...P.box, 200, 120), cy: 96 });
+function soReasonPic(g, P) { if (P.boxes) { const s = Math.min(...P.boxes.map(b => soFit(...b, 150, 120))); P.boxes.forEach((b, i) => soBox(g, b[0], b[1], b[2], { dims: !!P.dims, s, cx: i ? 92 : 262, cy: 100 })); }   /* مبنيان بالواجهة نفسها وعمقين (المراجع A لبوابة S3-U10، 19) */
+  else if (P.box) soBox(g, P.box[0], P.box[1], P.box[2], { dims: !!P.dims, s: soFit(...P.box, 200, 120), cy: 96 });
   else if (P.solid) soSolid(g, P.solid, { cy: P.solid.endsWith('Pyr') ? 190 : 104, sc: .8, s: 22 }); else if (P.net) soNetDraw(g, P.net, { cy: 100 });
   if (P.f) ciEq(g, 180, 200, P.f, P.bad ? SO.bad : SO.ink, 18); }
 

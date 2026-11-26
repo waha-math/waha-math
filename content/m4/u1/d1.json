@@ -73,6 +73,50 @@
  "flow": [
   {
    "s": "hook",
+   "scene": "homeNums",
+   "unit": "m3.u10",
+   "art": "shadow",
+   "again": [
+    {
+     "key": "mes2",
+     "q": "gen.home.meS2",
+     "min": 10,
+     "max": 400,
+     "val": 100,
+     "unit": "rulCm",
+     "step": 5
+    },
+    {
+     "key": "pas2",
+     "q": "gen.home.paS2",
+     "min": 10,
+     "max": 440,
+     "val": 120,
+     "unit": "rulCm",
+     "step": 5
+    },
+    {
+     "key": "same",
+     "q": "gen.home.sameQ",
+     "pick": [
+      [
+       "yes",
+       "gen.home.sameYes"
+      ],
+      [
+       "no",
+       "gen.home.sameNo"
+      ]
+     ]
+    }
+   ],
+   "askAgain": "gen.home.askShadow2",
+   "sayAgain": "shadowAgain",
+   "quiet": true,
+   "lines": []
+  },
+  {
+   "s": "hook",
    "scene": "arHook",
    "lines": [
     "hk.01",

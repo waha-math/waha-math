@@ -95,6 +95,9 @@ export const fact2Of = it => { if (it.t !== 'lenCalc' || !Array.isArray(it.a) ||
   return `lres|${r}|${(it.ch || []).map(v => v.join('.')).sort().join(',')}`; };
 /* المجسّمات والحجوم بلا ترتيب (المراجع A لبوابة S3-U8/U9، 3): الصندوق نفسه بأبعاد مبدّلة مسألةٌ واحدة، والشبكة نفسها مُدارةً أو مقلوبة شبكةٌ واحدة */
 const sortD = a => [...a].map(Number).sort((x, y) => x - y).join(',');
+/* زوج نسبتين بلا ترتيب، وصورة التعليل بلا حسابها: النسبة بنقاطها، والشكل بضلعيه مرتّبين، والمقياس بخطّه */
+export const raqK = (p, q) => 'raq|' + [p.join(','), q.join(',')].sort().join('|');
+export const rapicK = P => 'rapic|' + (P.ra ? 'ra|' + P.ra.join(',') : P.en ? `en|${P.en.fig}|${sortD([P.en.a, P.en.b])}` : P.sc ? `sc|${P.sc}|${P.n ?? ''}` : JSON.stringify(P));
 const NET_T = [([x, y]) => [x, y], ([x, y]) => [-y, x], ([x, y]) => [-x, -y], ([x, y]) => [y, -x], ([x, y]) => [-x, y], ([x, y]) => [y, x], ([x, y]) => [x, -y], ([x, y]) => [-y, -x]];
 export const netCanon = n => NET_T.map(f => { const p = n.map(f), mx = Math.min(...p.map(q => q[0])), my = Math.min(...p.map(q => q[1])); return JSON.stringify(p.map(([x, y]) => [x - mx, y - my]).sort((a, b) => a[0] - b[0] || a[1] - b[1])); }).sort()[0];
 /* تُطوى الشبكة مكعّباً إن دحرجنا المكعّب عليها فلمس كلَّ خانة وجهٌ مختلف */
@@ -389,17 +392,18 @@ export const factOf = it => { const t = it.t;
   if (t === 'arPar') return `arq|${it.phi}|${it.tilt}`;
   if (t === 'arTurn') return `aru|${it.mode}|${it.a ?? ''}|${it.want ?? ''}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'arpic') return `arpic|${JSON.stringify(it.pic)}`;
-  if (t === 'raTable') return `rat|${it.ctx}|${JSON.stringify(it.cols)}|${it.eq ? 1 : 0}`;
-  if (t === 'raEq') return `raq|${it.r1}|${it.r2}`;
-  if (t === 'enDims') return `end|${it.fig}|${it.a}|${it.b}|${it.k}`;
-  if (t === 'enArea') return `ena|${it.fig}|${it.a}|${it.b}|${it.k}`;
-  if (t === 'enDraw') return `enw|${it.a}|${it.b}|${it.k}`;
-  if (t === 'enYN') return `eny|${it.ask}|${it.fig}|${it.a}|${it.b}|${it.k}`;
+  /* S3-U10: المسألة العددية لا عرضها (المراجع A لبوابة S3-U10، 5 و6 و16): جدول النسب وحكم التكافؤ زوجُ نسبتين بلا سياقٍ ولا ترتيب،
+     والتكبير بالضلعين مرتّبين بلا الشكل (والرسم كالأبعاد)، ومساحة المكبَّر بعددها والمعامل، ورسم الطول بالمقياس تحويلٌ إلى الورق */
+  if (t === 'raTable') { let i = 0, r = 0; it.cols.forEach((c, j) => c.forEach((x, q) => { if (x == null) { i = j; r = q; } })); const c0 = it.cols[0], f = c0[1 - r] ? it.cols[i][1 - r] / c0[1 - r] : 1, ci = it.cols[i].map((x, q) => x ?? c0[q] * f); return raqK(c0, ci); }
+  if (t === 'raEq') return raqK(it.r1, it.r2);
+  if (t === 'enDims' || t === 'enDraw') return `end|${sortD([it.a, it.b])}|${it.k}`;
+  if (t === 'enArea') return `ena|${it.fig === 'tri' ? it.a * it.b / 2 : it.a * it.b}|${it.k}`;
+  if (t === 'enYN') return `eny|${it.ask}`;
   if (t === 'scConv') return `scc|${it.dir}|${it.n}|${it.k}`;
-  if (t === 'scBig') return `scb|${it.a}|${it.b}|${it.n}`;
-  if (t === 'scDraw') return `scw|${it.n}|${it.k}`;
-  if (t === 'scRoom') return `scr|${it.a}|${it.b}|${it.k}`;
-  if (t === 'reason' && it.pic && it.pic.kind === 'rapic') return `rapic|${JSON.stringify(it.pic)}`;
+  if (t === 'scBig') return `scb|${sortD([it.a, it.b])}|${it.n}`;
+  if (t === 'scDraw') return `scc|down|${it.n}|${it.k}`;
+  if (t === 'scRoom') return `scr|${sortD([it.a, it.b])}|${it.k}`;
+  if (t === 'reason' && it.pic && it.pic.kind === 'rapic') return rapicK(it.pic);
   if (t === 'voCount' || t === 'voFill' || t === 'voCalc') return `vol|${sortD([it.w, it.d, it.h])}`;   /* العدّ والملء والضرب لصندوق واحد: حجمٌ واحد يُحفظ (D286 (4)) */   /* بلا الوحدة: الحساب نفسه (كالدائرة، D286 (4)) */
   if (t === 'voUnit') return `vou|${it.u}|${it.ctx}`;
   if (t === 'voDims') return `vod|${it.v}|${it.opts.map(sortD).sort().join(';')}`;
@@ -641,9 +645,15 @@ export function d240(lessons, code, MAKERS) {
     viewsShow: () => ['front', 'side', 'top'].map(v => `sov|4|2|3|${v}`), giftShow: () => ['soa|3,4,6', ...['front', 'side', 'top'].map(v => `sov|6|3|4|${v}`)],
     voHook: () => ['vol|2,3,4'], voFillShow: () => ['vol|2,3,4'], voToMul: () => ['vol|2,3,4'], voVsArea: () => ['vol|2,2,3', 'soa|2,2,3'],
     voSumHook: () => ['vol|3,4,5'], voMulShow: () => ['vol|3,4,5', 'vol|3,3,3'], voSameShow: () => ['vol|2,3,4', 'vol|1,4,6', 'soa|2,3,4', 'soa|1,4,6'], treasureShow: s => s.setup ? [] : ['vol|4,5,6', 'vol|3,4,10', 'soa|4,5,6'],
-    raHook: () => ['raq|2,6|1,3', 'raq|1,3|2,6'], raShow: () => ['raq|2,6|1,3', 'raq|1,3|2,6'],
-    enHook: () => ['end|tri|2|2|2', 'ena|tri|2|2|2'], enSqShow: () => ['end|sq|2|2|2', 'ena|sq|2|2|2'], enTriShow: () => ['end|tri|1|2|3', 'ena|tri|1|2|3'],
-    roomShow: () => ['scr|9|6|3'],
+    /* S3-U10: أمثلة المشاهد بأعدادها وصورها (المراجع A لبوابة S3-U10، 6): كل زوجين من نسب الجدول، والتكبير وحسابه، والمقياس في الاتجاهين */
+    raHook: () => [raqK([2, 6], [1, 3]), rapicK({ ra: [2, 6] }), rapicK({ ra: [1, 3] })],
+    raShow: () => [[[2, 6], [1, 3]], [[2, 6], [4, 12]], [[1, 3], [4, 12]]].map(([p, q]) => raqK(p, q)).concat([rapicK({ ra: [2, 6] }), rapicK({ ra: [1, 3] }), rapicK({ ra: [4, 12] })]),
+    raTableShow: () => { const C = [[1, 3], [2, 6], [3, 9], [4, 12]], o = []; C.forEach((p, i) => C.slice(i + 1).forEach(q => o.push(raqK(p, q)))); return o; },
+    raFracShow: () => [[[1, 3], [2, 6]], [[1, 3], [4, 12]], [[2, 6], [4, 12]]].map(([p, q]) => raqK(p, q)),
+    enHook: () => ['end|2,2|2', 'ena|2|2', rapicK({ en: { fig: 'tri', a: 2, b: 2 } })], enSqShow: () => ['end|2,2|2', 'ena|4|2', rapicK({ en: { fig: 'sq', a: 2, b: 2 } })],
+    enTriShow: () => ['end|1,2|3', 'ena|1|3', rapicK({ en: { fig: 'tri', a: 1, b: 2 } })],
+    scShow: () => ['scc|down|6|3', rapicK({ sc: 3 })], scUpShow: () => ['scc|up|5|3', rapicK({ sc: 3, n: 5 })], scDownShow: () => ['scc|down|6|3'],
+    roomShow: () => [],
     /* S3-U1: أشكال «محدّب أم مقعّر» المعروضة، وجولات البلاط (المراجع A لبوابة S3-U0/U1، 2 و3) */
     convexShow: s => (s.polys || ['tri', 'hex', 'arrow', 'ell']).map(k => `cvx|${k}`),
     tessShow: s => (s.rounds || [[3, 6], [4, 4], [6, 3], [5, 3]]).filter(([n]) => n !== 5).map(([n, c]) => `tposs|T|${Array(c).fill(180 - 360 / n).join(',')}`),
@@ -907,10 +917,13 @@ export function d240(lessons, code, MAKERS) {
     // الاختبار الختامي لا يكرّر مسألةً من اختبار وحدةٍ في مرحلته (S2_نظام_التقييم، ثانياً: «لا يكرّر الاختبار الختامي أسئلة اختبارات الوحدات حرفياً»)
     for (const st of L.flow) if (st.scene === 'finalCheck') { const stage = L.id.split('.')[0], TF = new Map();
       /* وD277 (3): «عشرون سؤالاً جديداً»: يُقارن بكل ما في دروس المرحلة (التمرين والتوائم والعلاج والمراجعة و«صحّح لفوضى» والاختبارات)، والدوران ليس فرقاً (D278 (1))، وبند التعليل بنصّ سؤاله (المراجع A لبوابة U8/U9/U10، 6) */
-      const keyOf = (it, O) => { const f = fact(it); if (it && it.t === 'reason' && O && O.lines && typeof it.q === 'string') { const ln = O.lines[it.q]; const tx = typeof ln === 'string' ? ln : ln && (ln.text || ln.t); if (tx) return 'rq|' + String(tx).replace(/[\u064B-\u0652\s{}|]/g, ''); } return f ? f.replace(/^pair\|([^|]*)\|[^|]*\|/, 'pair|$1||') : null; };
-      const walkAll = (v, O, where) => { if (Array.isArray(v)) return v.forEach(x => walkAll(x, O, where)); if (!v || typeof v !== 'object') return; if (typeof v.t === 'string') { const k = keyOf(v, O); if (k && !TF.has(k)) TF.set(k, where); } for (const [kk, x] of Object.entries(v)) if (!['lines', 'labels'].includes(kk)) walkAll(x, O, where); };
+      /* وبند التعليل بنصّ سؤاله وبصورته وببطاقته الصحيحة: «لماذا؟» في الختامي سياقٌ وصورة وبطاقات جديدة (المراجع A لبوابة S3-U10، 19) */
+      const tx0 = (O, id) => { const ln = O && O.lines && O.lines[id]; const tx = typeof ln === 'string' ? ln : Array.isArray(ln) ? ln[1] : ln && (ln.text || ln.t); return tx ? String(tx).replace(/[\u064B-\u0652\s{}|]/g, '') : null; };
+      const keysOf = (it, O) => { const f = fact(it); if (it && it.t === 'reason') { const o = []; const q = typeof it.q === 'string' && tx0(O, it.q); if (q) o.push('rq|' + q); if (f && stage !== 'm2') o.push(f); if (stage !== 'm2') { if (it.pic) o.push('rp|' + JSON.stringify(it.pic)); for (const op of it.opts || []) if (op.ok) { const c = tx0(O, op.id); if (c) o.push('rc|' + c); } } return o; }
+        return f ? [f.replace(/^pair\|([^|]*)\|[^|]*\|/, 'pair|$1||')] : []; };
+      const walkAll = (v, O, where) => { if (Array.isArray(v)) return v.forEach(x => walkAll(x, O, where)); if (!v || typeof v !== 'object') return; if (typeof v.t === 'string') { for (const k of keysOf(v, O)) if (!TF.has(k)) TF.set(k, where); } for (const [kk, x] of Object.entries(v)) if (!['lines', 'labels'].includes(kk)) walkAll(x, O, where); };
       for (const O of Object.values(lessons)) if (O.id.split('.')[0] === stage && O.id !== L.id && !O.flow.some(s2 => s2.scene === 'finalCheck')) walkAll(O, O, O.id);
-      for (const q of st.checks || []) { const k = keyOf(q.item, L); if (k && TF.has(k)) errors.push(`${L.id}: بند الختامي ${q.id} (${k.slice(0, 60)}) رُئي في ${TF.get(k)} (D277 (3): الختامي أسئلة جديدة)`); } }
+      for (const q of st.checks || []) for (const k of keysOf(q.item, L)) if (TF.has(k)) errors.push(`${L.id}: بند الختامي ${q.id} (${k.slice(0, 60)}) رُئي في ${TF.get(k)} (D277 (3): الختامي أسئلة جديدة)`); }
     // D239: اختيار حقيقي في كل درس
     /* إلا «إحماء الحساب» (الوحدات الحسابية المصغّرة): اختبار تخطٍّ بلا تمرين، والاختيار فيه لوحة الأرقام نفسها */
     if (!L.flow.some(s => ['calcCheck', 'geoCheck', 'finalCheck', 'finalResult'].includes(s.scene) || (s.s === 'explore' && (L.id.startsWith('m2.u10.') || L.id.startsWith('m3.u11.') || L.id.startsWith('m4.u10.')))) && !(L.practice && L.practice.challenge && L.practice.challenge.length && L.flow.some(s => s.s === 'practice'))) errors.push(`${L.id}: لا اختيار «تمرين عادي أم تحدٍّ» في الدرس (D239)`);

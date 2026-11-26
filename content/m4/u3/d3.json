@@ -197,24 +197,24 @@
      "twin": {
       "t": "enDims",
       "fig": "rect",
-      "a": 2,
+      "a": 4,
       "b": 4,
-      "k": 1.5,
+      "k": 0.5,
       "cands": [
        [
-        3,
-        6,
+        2,
+        2,
         null
        ],
        [
-        3,
-        4,
-        "enOneSide"
+        3.5,
+        3.5,
+        "enAdd"
        ],
        [
-        3.5,
-        5.5,
-        "enAdd"
+        2,
+        4,
+        "enOneSide"
        ]
       ],
       "q": "gen.en.q.dims.rect"

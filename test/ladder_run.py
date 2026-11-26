@@ -73,7 +73,8 @@ HELP2 = {'decPointer', 'decConv', 'decOrder', 'decCalc', 'decCmp', 'decRuler', '
          'coordPlace', 'coordRead', 'coordWhere', 'coordDist', 'coordAlign', 'coordDraw', 'coordShape',
          'xfDraw', 'xfWhich', 'refLine', 'trVector', 'rotSym', 'congJudge', 'congPart', 'circPart', 'soKind', 'soOpp', 'soNetYN', 'soNetPick', 'soNetMatch', 'soView', 'voUnit', 'voDims', 'voSmart',
          'triDet', 'circScale', 'circCalc', 'discGrid', 'circString',
-         'soCount', 'soEdgeHunt', 'soArea', 'voCount', 'voFill', 'voCalc'}   # المراجع B لبوابة S3-U8/U9، 11   # المراجع B لبوابة S3-U6/U7، 6
+         'soCount', 'soEdgeHunt', 'soArea', 'voCount', 'voFill', 'voCalc',
+         'raTable', 'raEq', 'enDims', 'enArea', 'enDraw', 'enYN', 'scConv', 'scBig', 'scDraw', 'scRoom'}   # S3-U10: المستوى الثاني رسمٌ يبقى (المراجع A لبوابة S3-U10، 10)   # المراجع B لبوابة S3-U8/U9، 11   # المراجع B لبوابة S3-U6/U7، 6
 H2 = "() => !!document.querySelector('#stage [data-help], #stage .pick.tried, #stage .pick.mine')"
 # ولا يرسم المستوى الثاني الجوابَ في بنود النقطة الواحدة: لا حلقة مساعدة على موضع الجواب (المراجع B لبوابة S3-U6/U7، 2 و18)؛ والحلّ المشترك فيها مرسوم (3)
 ONANS = """() => { const W = window.__axWant || (window.__gridPtWant ? [window.__gridPtWant] : null), at = window.__axWant ? window.__axAt : window.__gridPtAt; if (!W || W.length !== 1 || !at) return null;

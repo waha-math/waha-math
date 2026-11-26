@@ -31,7 +31,7 @@ SCENES.homeMeasure = async c => { const unit = c.unit, n = c.n || 3, H = PROG.ho
   if (!again && rec) { if (back && !c.quiet) { stage0(); await S(back); } return; }   /* أُدخلت من قبل: خطّاف العودة وحده */
   stage0();
   await S(again ? 'gen.home.askAgain' : 'gen.home.ask'); const cp = cardPick([{ id: 'gen.home.yes', k: 'yes', ok: true }, { id: 'gen.home.no', k: 'no' }], { keepOrder: true, intro: again ? 'gen.home.askAgain' : 'gen.home.ask' }), pick = await cp.p; cp.done(); cp.box.remove();
-  if (pick.k === 'no') { logAttempt({ scene: c.s || 'hook', tag: 'homeLater', ok: true }); await S('gen.home.later'); if (back && !c.quiet) await S(back); return; }
+  if (pick.k === 'no') { logAttempt({ scene: c.s || 'hook', tag: 'homeLater', ok: true }); await S('gen.home.later'); return; }   /* خطّاف العودة يفترض المهمة: لا يُقال بعد «ليس بعد» (المراجع A لبوابة S3-U10، 25) */
   if (again) { const svg = newStage(230, { oasis: false, ground: 0 }); rulerAt(svg, { x: 30, y: 96, pxcm: 30, from: 0, to: 10, mm: false }); S('gen.home.measQ', { free: true }); const v = await stepperAsk([{ key: 'cm', min: 0, max: 30, val: 10, unit: 'rulCm' }, { key: 'mm', min: 0, max: 9, val: 0, unit: 'rulMm' }]);
     if (v.cm || !v.mm) await sayLen(v.cm, 'cm', { append: false, ...(v.mm ? { noGap: true } : {}) }); if (v.mm) { if (v.cm) await S('gen.rul.and', { noGap: true, append: true }); await sayLen(v.mm, 'mm', { sep: '', ...(v.cm ? {} : { append: false }) }); }   /* بلا «صفر سنتيمترات» */
     await S('gen.home.zeroQ'); const zp = cardPick([{ id: 'gen.home.zeroA', k: 'start', ok: true }, { id: 'gen.home.zeroB', k: 'edge' }], { intro: 'gen.home.zeroQ' }), z = await zp.p; zp.done(); zp.box.remove();
@@ -80,7 +80,16 @@ function homeClock(svg, h) { const g = el('g', { 'pointer-events': 'none' }, svg
   const d = ((h % 12) * 30), sm = d > 180 ? 360 - d : d; if (sm) el('path', { d: d > 180 ? angArc(C, 24, 90, 90 + sm) : angArc(C, 24, 90 - sm, 90), fill: 'none', stroke: ANG.arc, 'stroke-width': 3.2 }, g); return sm; }
 /* شاشات ما بعد مهمة البيت على ورقة الإطار: ما يُكتب بالحبر يُقرأ بالفاتح والداكن (المراجع B لبوابة S3-U0/U1، 5) */
 const homeStage = () => { const svg = newStage(230, { oasis: false, ground: 0 }); plyFrame(svg, 202); return svg; };
+/* S3-U10: نسبتا الظلّ إلى الطول على الورقة، وتقدير العمود من ظلّه بالنسبة نفسها (المراجع A لبوابة S3-U10، 11) */
+function shadowRows(svg, rows) { rows.forEach(([lab, a, b], i) => { const y = 70 + i * 56; el('rect', { x: 40, y: y - 26, width: 280, height: 42, rx: 10, fill: '#fff', stroke: LENC.soft, 'stroke-width': 2 }, svg);
+  const t = el('text', { x: 304, y: y + 2, 'text-anchor': 'start', 'font-size': 17, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, svg); t.textContent = labelText(lab);
+  const r = el('text', { x: 120, y: y + 2, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg); r.textContent = MX(`${MS(String(a))} : ${MS(String(b))}`); }); }
+const shClose = (p, q) => Math.abs(p - q) <= .12 * Math.max(p, q);
 const HOME_SAY = {
+  shadowSay: async (r, v) => { const svg = homeStage(); homeArt(svg, 'shadow'); shadowRows(svg, [['homeShMe', v.mes, v.me], ['homeShPa', v.pas, v.pa]]); await S(shClose(v.mes / v.me, v.pas / v.pa) ? 'gen.home.shEq' : 'gen.home.shFar');
+    const want = v.poleS * v.me / v.mes; await S(Math.abs(v.pole - want) <= Math.max(1, .2 * want) ? 'gen.home.poleOk' : 'gen.home.poleFar'); },
+  shadowAgain: async (r, v) => { const n = r.n || {}; if (!n.me || !n.pa) return; const svg = homeStage(); homeArt(svg, 'shadow'); shadowRows(svg, [['homeShShadows', v.mes2, v.pas2], ['homeShHeights', n.me, n.pa]]);
+    await S(shClose(v.mes2 / v.pas2, n.me / n.pa) ? 'gen.home.sh2Eq' : 'gen.home.sh2Far'); },
   par: async (r, v) => S(Math.abs(v.d1 - v.d2) <= 1 ? 'gen.home.parEq' : 'gen.home.parNe'),
   parAgain: async (r, v) => S(r.n && Math.abs(v.d3 - r.n.d1) <= 1 ? 'gen.home.par3Eq' : 'gen.home.par3Ne'),
   clock: async (r, v) => { const svg = homeStage(); homeArt(svg, 'clock'); const sm = homeClock(svg, v.hour); await S(sm === 90 ? 'gen.home.clockRight' : 'gen.home.clockNot'); if (sm !== 90) { const s2 = homeStage(); homeArt(s2, 'clock'); homeClock(s2, 3); await S('gen.home.clockThree'); } },
@@ -173,7 +182,7 @@ SCENES.homeNums = async c => { const unit = c.unit, H = PROG.home = isObj(PROG.h
   else if (c.again) return;   /* سؤال المراجعة لمهمة لم تُدخل بعد: لا شيء هنا (تُسأل في درسها) */
   if (!again && rec) { if (back && !c.quiet) { stage0(); await S(back); } return; }
   stage0(); const askId = again ? c.askAgain || 'gen.home.askAgain' : c.ask || 'gen.home.ask'; await S(askId); const cp = cardPick([{ id: 'gen.home.did', k: 'yes', ok: true }, { id: 'gen.home.no', k: 'no' }], { keepOrder: true, intro: askId }), pick = await cp.p; cp.done(); cp.box.remove();
-  if (pick.k === 'no') { logAttempt({ scene: c.s || 'hook', tag: 'homeLater', ok: true }); await S('gen.home.later'); if (back && !c.quiet) await S(back); return; }
+  if (pick.k === 'no') { logAttempt({ scene: c.s || 'hook', tag: 'homeLater', ok: true }); await S('gen.home.later'); return; }   /* خطّاف العودة يفترض المهمة: لا يُقال بعد «ليس بعد» (المراجع A لبوابة S3-U10، 25) */
   const vals = {}; for (const f of again ? c.again : c.fields) { stage0(); if (f.pick) { await S(f.q); const k = await choosePick(f.pick.map(([k2, line]) => [k2, T(line), '<i></i>', line]), null); vals[f.key] = f.pick.findIndex(x => x[0] === k); }
     else if (f.photo) vals[f.key] = await homePhoto(f, unit);
     else { S(f.q, { free: true }); const v = await stepperAsk([{ key: f.key, min: f.min ?? 0, max: f.max ?? 99, val: f.val ?? 1, unit: f.unit || 'rulCm', step: f.step || 1 }]); vals[f.key] = v[f.key]; } }

@@ -56,8 +56,17 @@
      "min": 10,
      "max": 400,
      "val": 100,
-     "step": 5,
-     "unit": "rulCm"
+     "unit": "rulCm",
+     "step": 5
+    },
+    {
+     "key": "pas2",
+     "q": "gen.home.paS2",
+     "min": 10,
+     "max": 440,
+     "val": 120,
+     "unit": "rulCm",
+     "step": 5
     },
     {
      "key": "same",
@@ -75,6 +84,7 @@
     }
    ],
    "askAgain": "gen.home.askShadow2",
+   "sayAgain": "shadowAgain",
    "quiet": true,
    "lines": []
   },

@@ -209,7 +209,7 @@ d3={"id":"m4.u3.d3","title":"التَّشَابُهُ","icon":["cgicon"],
  "flow":[
   {"s":"hook","scene":"pfPicHook","pic":{"sim":{"fig":"rect","a":[3,2],"b":[6,4]}},"lines":["hk.01","hk.02"]},
   {"s":"explore","scene":"simShow","mat":MAT(),"lines":["sm.01","sm.02","sm.03","sm.04"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(endims(4,2,1.5,[[6,3,None],[5.5,3.5,"enAdd"],[6,2,"enOneSide"]]),endims(2,4,1.5,[[3,6,None],[3,4,"enOneSide"],[3.5,5.5,"enAdd"]])), tw(endims(4,4,1.5,[[6,6,None],[5.5,5.5,"enAdd"],[6,4,"enOneSide"]]),endims(6,2,0.5,[[3,1,None],[3,2,"enOneSide"],[5.5,1.5,"enAdd"]]))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(endims(4,2,1.5,[[6,3,None],[5.5,3.5,"enAdd"],[6,2,"enOneSide"]]),endims(4,4,0.5,[[2,2,None],[3.5,3.5,"enAdd"],[2,4,"enOneSide"]])), tw(endims(4,4,1.5,[[6,6,None],[5.5,5.5,"enAdd"],[6,4,"enOneSide"]]),endims(6,2,0.5,[[3,1,None],[3,2,"enOneSide"],[5.5,1.5,"enAdd"]]))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(syn('rect',[4,2],[3,2]),syn('tri',[3,4,5],[6,8,10])), tw(smiss([3,4,5],2,1),smiss([4,6,8],1.5,1)), tw(syn('sq',[3],[5]),sides([2,4,5],[4,8,10]))],
