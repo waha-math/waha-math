@@ -315,7 +315,7 @@ d4={"id":"m4.u5.d4","title":"مَشْرُوعُ: خَرِيطَةُ المَدِ
   {"s":"explore","scene":"lines","table":True,"lines":["tb.01","tb.02"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(slope((-4,-2),(2,1)),slope((-1,3),(2,-3))), tw(eq(1,1),eq(-1,5)), tw(on((1,1),(4,5)),on((2,0),(3,5)))],
+  "normal":[tw(slope((-4,-2),(2,1)),slope((-1,3),(2,-3))), tw(eq(1,2),eq(-1,4)), tw(on((1,1),(4,5)),on((2,0),(3,5)))],
   "challenge":[tw(reason("pr.r1",c4p(pts=[[1,2]],ln=[2,0]),["pr.r1a","pr.r1b","pr.r1c"]),perp(2)), tw(perp(3),findb(1,(2,5)))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":dist((-4,-3),(4,3)),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
  "mastery":{"concepts":{"C417":[findb(2,(2,1)), perp(-2), reason("ms.1",c4p(pts=[[-3,-2],[2,3],[0,1]],ln=[1,1]),["ms.1a","ms.1b","ms.1c"])]},
