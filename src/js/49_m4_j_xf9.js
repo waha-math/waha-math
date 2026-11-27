@@ -6,6 +6,7 @@
    ===================================================================== */
 const C9 = { org: '#2f7fc1', img: '#d9822b', ok: SO.ok, hl: SO.hl, q: '#c0392b', ax: '#c0392b', arc: '#7a4fb0', ink: '#24323a' };
 const c9Say = async (L, i) => { if (L[i]) await S(L[i]); };
+const c9Clear = svg => { const fr = svg.querySelector('rect[x="20"][y="14"][rx="14"]'); if (fr) while (fr.nextSibling) fr.nextSibling.remove(); };   /* المسرح خالياً إلا إطاره، قبل بطاقة القاعدة في آخر المشهد */
 /* التحويلات: الدوران عكس عقارب الساعة حول الأصل */
 const C9_XF = { refV: ([x, y]) => [-x, y], refH: ([x, y]) => [x, -y], rot90: ([x, y]) => [-y, x], rot180: ([x, y]) => [-x, -y], rot270: ([x, y]) => [y, -x] };
 const c9Ap = (s, p) => Array.isArray(s) ? [p[0] + s[1], p[1] + s[2]] : C9_XF[s](p);   /* خطوة: اسم تحويل، أو ['tr', dx، dy] */
@@ -18,9 +19,16 @@ function c9Mark(parent, Pl, xf) { const g = el('g', { 'pointer-events': 'none' }
   if (xf === 'refH' || xf === 'refVH') { const A = Pl.P(-Pl.n, 0), B = Pl.P(Pl.n, 0); geoLine(g, A[0], A[1], B[0], B[1], { color: C9.ax, w: 5 }); }
   if (/^rot/.test(xf)) { const O = Pl.P(0, 0); el('circle', { cx: O[0], cy: O[1], r: 7, fill: C9.ax, stroke: '#fff', 'stroke-width': 2 }, g); }
   return g; }
+/* شكلٌ على المستوى الكامل: أعداد المحورين تحت رؤوسه وداخله تُخفى، واسم الرأس يُزاح عن نصٍّ تحته (TXSTRICT لبوابة M4-U9 والختامي) */
+function c9Poly(parent, Pl, pts, o = {}) { const r = xfPoly(parent, Pl, pts, o);
+  if (Pl && Pl.tk) { const B = r.Q.map(q => [q[0] - 6, q[1] - 6, q[0] + 6, q[1] + 6]); if (pts.length > 2 && (o.fill || XF.orgF) !== 'none') { const xs = r.Q.map(q => q[0]), ys = r.Q.map(q => q[1]); B.push([Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]); } c4Hide(Pl, B);
+    for (const t of r.g.querySelectorAll('text')) { const x = +t.getAttribute('x'), y = +t.getAttribute('y'); c4Free(t, [[x + 14, y], [x - 14, y], [x, y - 16], [x, y + 16], [x + 14, y - 14], [x - 14, y + 14], [x + 14, y + 14], [x - 14, y - 14]], Pl); } }
+  return r; }
 /* بطاقة التحويل أعلى المسرح: اسمه بالكلمات */
-function c9Card(svg, txt, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 230, cx = o.cx || 180, y = o.y ?? 4;
-  el('rect', { x: cx - w / 2, y, width: w, height: 28, rx: 10, fill: '#fff', stroke: o.col || C9.ax, 'stroke-width': 2 }, g); preLab(g, cx, y + 20, txt, { fs: 15, col: o.col || C9.ax, dir: 'rtl' }); return g; }
+function c9Card(svg, txt, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 230, cx = o.cx || 180, y = o.y ?? 16;   /* داخل الإطار الورقي (TXSTRICT لبوابة M4-U9 والختامي) */
+  el('rect', { x: cx - w / 2, y, width: w, height: 26, rx: 10, fill: '#fff', stroke: o.col || C9.ax, 'stroke-width': 2 }, g); preLab(g, cx, y + 18, txt, { fs: 15, col: o.col || C9.ax, dir: 'rtl' }); return g; }
+/* المستوى تحت بطاقة التحويل وفوق شريطٍ خالٍ لبطاقة المستوى الثاني (كما في U5) */
+const C9_PL = (ext, H = 262, top = 56) => ({ ...ext, n: Math.min(8, ext.n + 1), top, H: H - 36 });   /* عمودٌ زائد يميناً ويساراً فيبقى الزوج خارج النقطتين لا بينهما */
 const c9Name = xf => labelText('c9N.' + xf);
 /* قاعدة التحويل: اسمه بالكلمات سطراً، وصيغته بالرمز تحته من اليمين لأن رموزها عربية (D280): (س ، ص) ← (−س ، ص)، والسالب على يمين الحرف */
 const C9_FORM = { refV: ['−X', 'Y'], refH: ['X', '−Y'], rot90: ['−Y', 'X'], rot180: ['−X', '−Y'], rot270: ['Y', '−X'] };
@@ -37,18 +45,24 @@ function c9TurnArc(parent, Pl, p, q, o = {}) { const O = Pl.P(0, 0), A = Pl.P(..
   const g = el('g', { 'pointer-events': 'none' }, parent); el('path', { d: angArc(O, r, Math.min(a0, a1), Math.max(a0, a1)), fill: 'none', stroke: o.col || C9.arc, 'stroke-width': 2.6, 'stroke-dasharray': '6 4' }, g);
   geoArrow(g, B[0], B[1], -(a1 + (o.cw ? -90 : 90)), o.col || C9.arc, 7); return g; }
 
+/* المستوى الثاني رسمٌ (المعروف (2) لبوابة M4-U9 والختامي): للانعكاس العمودُ من النقطة إلى المرآة على خطّ الشبكة، وللدوران خطوتا النقطة من الأصل (الأفقية ثم الرأسية)؛ وسؤالٌ على الرسم لا القاعدة */
+const C9_POS = [[180, 248], [0, 248], [400, 248], [180, 60], [0, 60], [400, 60]];   /* الشريط الخالي تحت المستوى أولاً */
+function c9H2(m, Pl, p, xf) { const P = Pl.P(...p);
+  if (xf === 'refV' || xf === 'refH') { const K = xf === 'refV' ? Pl.P(0, p[1]) : Pl.P(p[0], 0); hlSeg(m, P, K, H2C[0]); hlRing(m, K, 9, H2C[0]); return 'ref'; }
+  const O = Pl.P(0, 0), X = Pl.P(p[0], 0); hlSeg(m, O, X, H2C[0]); hlSeg(m, X, P, H2C[1]); hlRing(m, O, 10, C9.arc); return 'rot'; }
+function c9H2Card(m, kind) { ciRule(m, 180, C9_POS, labelText('c9Ask.' + kind), C9.hl, 15); }
 /* ================= ① ارسم الصورة على المستوى الكامل (C420): pts (نقطة إلى ثلاث)، xf؛ يلمس الطفل صورة كل رأس بالترتيب ================= */
 function c9WrongImg(item) { const P = item.pts, alt = { refV: 'refH', refH: 'refV', rot90: 'rot270', rot270: 'rot90', rot180: 'refV' }[item.xf];
   let W = P.map(p => C9_XF[alt](p)); if (!c9Same(W, item.img)) return W; W = P.map(p => [p[0], p[1]]); if (!c9Same(W, item.img)) return W;
   return item.img.map(p => [p[0] + (p[0] < item.n ? 1 : -1), p[1]]); }
 ITEM.c9Draw = {
-  make(spec) { const img = spec.pts.map(p => C9_XF[spec.xf](p)), ex = c4Ext(spec.pts.concat(img), 5);
+  make(spec) { const img = spec.pts.map(p => C9_XF[spec.xf](p)), ex = c4Ext(spec.pts.concat(img), 4);
     /*T*/if (TESTHOOK && img.some(([x, y]) => Math.abs(x) > ex.n || Math.abs(y) > ex.ny)) testBug('c9Draw: الصورة خارج المستوى');/*/T*/
     return { ...spec, img, want: c9K(img), n: ex.n, ny: ex.ny, tag: 'c9-draw-' + spec.xf + (spec.pts.length === 1 ? '-pt' : '') }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = c4Plane(svg, { n: item.n, ny: item.ny, top: 38 }), placed = [], lay = el('g', { 'pointer-events': 'none' }, svg); let prev = null, lastQ = null, done = false;
-    c9Mark(svg, Pl, item.xf); xfPoly(svg, Pl, item.pts, { col: C9.org }); c9Card(svg, c9Name(item.xf));
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = c4Plane(svg, C9_PL({ n: item.n, ny: item.ny })), placed = [], lay = el('g', { 'pointer-events': 'none' }, svg); let prev = null, lastQ = null, done = false;
+    c9Mark(svg, Pl, item.xf); c9Poly(svg, Pl, item.pts, { col: C9.org }); c9Card(svg, c9Name(item.xf));
     if (item.pts.length === 1) { const p = Pl.P(...item.pts[0]); coPairText(svg, p[0] + (item.pts[0][0] >= 0 ? 9 : -9), p[1] + (item.pts[0][1] >= 0 ? -10 : 19), preNum(item.pts[0][0]), preNum(item.pts[0][1]), item.pts[0][0] >= 0 ? 'start' : 'end', 12); }
-    const redraw = () => { lay.innerHTML = ''; if (placed.length) xfPoly(lay, Pl, placed, { col: C9.img, fill: placed.length === item.pts.length && placed.length > 2 ? 'rgba(217,130,43,.14)' : 'none', img: true });
+    const redraw = () => { lay.innerHTML = ''; svg.appendChild(lay);   /* الصورة فوق الأصل وعلامة المحور فلا تغطّي نقطةٌ اسمها */ if (placed.length) c9Poly(lay, Pl, placed, { col: C9.img, fill: placed.length === item.pts.length && placed.length > 2 ? 'rgba(217,130,43,.14)' : 'none', img: true });
       /*T*/window.__axPlaced = placed.length;/*/T*/ };
     const preview = q => { if (prev) prev.remove(); prev = null; if (!q || placed.length >= item.pts.length) return; const P = Pl.P(...Pl.snap(q)); prev = el('circle', { cx: P[0], cy: P[1], r: 7, fill: 'none', stroke: C9.img, 'stroke-width': 2.5, 'stroke-dasharray': '3 3', 'pointer-events': 'none' }, svg); };
     const tapAt = p => { const L = placed[placed.length - 1]; if (L && L[0] === p[0] && L[1] === p[1]) placed.pop(); else if (placed.length < item.pts.length) placed.push(p); SFX.tick(); redraw(); };
@@ -65,8 +79,8 @@ ITEM.c9Draw = {
   judge(item, k) { if (k === item.want) return { ok: true }; const a = k ? k.split(' ').map(s => s.split('_').map(v => v[0] === 'm' ? -+v.slice(1) : +v)) : [];
     if (a.length < item.pts.length) return { ok: false, err: 'c9Short' }; return { ok: false, err: c9ErrOf(item.xf, item.pts, a) }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item) { await S('gen.c9.hint.' + item.xf); }, async together() {},
-  async reveal(item, r) { if (r && r.ctx) xfPoly(r.ctx.svg, r.ctx.Pl, item.img, { col: C9.ok, fill: 'none', dash: '7 5', img: true }); await S('gen.c9.reveal.draw'); },
+  async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { const m = helpG(r.ctx.svg); c9H2Card(m, c9H2(m, r.ctx.Pl, item.pts[0], item.xf)); } await S('gen.c9.hint.' + item.xf); }, async together() {},
+  async reveal(item, r) { if (r && r.ctx) c9Poly(r.ctx.svg, r.ctx.Pl, item.img, { col: C9.ok, fill: 'none', dash: '7 5', img: true }); await S('gen.c9.reveal.draw'); },
   praise: () => 'praisePlace', twin(item) { return item.twin || null; },
 };
 /* تشخيص الصورة: المحور الآخر، أو عكس الإشارتين، أو الإبقاء، أو الدوران بالاتجاه الآخر أو بمقدار آخر، أو تبديل الإحداثيين بلا إشارة */
@@ -81,11 +95,11 @@ function c9ErrOf(xf, P, a) { const is = f => c9Same(a, P.map(f));
 function c9PickCands(p, xf) { const [x, y] = p, img = C9_XF[xf](p), alt = { refV: [[x, -y], [-x, -y]], refH: [[-x, y], [-x, -y]], rot90: [[y, -x], [y, x], [-x, -y]], rot270: [[-y, x], [y, x], [-x, -y]], rot180: [[-x, y], [x, -y], [-y, x]] }[xf];
   return [img, ...alt, [-y, -x], [x + 1, y]].filter((q, i, X) => X.findIndex(r => r[0] === q[0] && r[1] === q[1]) === i && !(q[0] === x && q[1] === y)).slice(0, 3); }
 ITEM.c9Pick = cpItem({ H: 262, tLine: 'gen.c9.together.pick', hint: 'gen.c9.hint.pick', rLine: 'gen.c9.reveal.pick', praise: 'praiseThink',
-  make: s => { const img = C9_XF[s.xf](s.p); return { want: preKey(img), img, cands: c9PickCands(s.p, s.xf), ext: c4Ext([s.p, img], 5), tag: 'c9-pick-' + s.xf }; },
-  draw(svg, item, tries) { const Pl = c4Plane(svg, { ...item.ext, top: 38 }); c9Mark(svg, Pl, item.xf); c4Dot(svg, Pl, ...item.p, { pair: true, col: C9.org }); c9Card(svg, c9Name(item.xf));
+  make: s => { const img = C9_XF[s.xf](s.p); return { want: preKey(img), img, cands: c9PickCands(s.p, s.xf), ext: c4Ext([s.p, img], 4), tag: 'c9-pick-' + s.xf }; },
+  draw(svg, item, tries) { const Pl = c4Plane(svg, C9_PL(item.ext)); c9Mark(svg, Pl, item.xf); c4Dot(svg, Pl, ...item.p, { pair: true, col: C9.org }); c9Card(svg, c9Name(item.xf));
     if (tries >= 3) { const h = helpG(svg), q = Pl.P(...item.img); if (/^rot/.test(item.xf)) c9TurnArc(h, Pl, item.p, item.img, { col: THINK_INK }); el('circle', { cx: q[0], cy: q[1], r: 9, fill: 'none', stroke: C9.hl, 'stroke-width': 3, 'stroke-dasharray': '4 3' }, h); }
     return { Pl }; },
-  h2: async (item, ctx) => { c9RuleCard(helpG(ctx.svg), 180, 58, item.xf); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) c9H2Card(m, c9H2(m, ctx.Pl, item.p, item.xf)); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.Pl) c4Dot(helpG(ctx.svg), ctx.Pl, ...item.img, { col: C9.ok, pair: true }); },
   pick: item => choosePick(shuffle(item.cands.map(p => [preKey(p), coPair(preNum(p[0]), preNum(p[1])), '<i></i>', 'gen.c4.pt.' + preKey(p)])), item.want),
   errOf: (it, k) => { const a = [k.split('_').map(v => v[0] === 'm' ? -+v.slice(1) : +v)]; return c9ErrOf(it.xf, [it.p], a); } });
@@ -93,17 +107,19 @@ ITEM.c9Pick = cpItem({ H: 262, tLine: 'gen.c9.together.pick', hint: 'gen.c9.hint
 /* ================= ③ أيّ إحداثيٍّ تتغيّر إشارته؟ (C420 أ): xf refV | refH | rot180، p للرسم ================= */
 ITEM.c9Which = cpItem({ H: 250, tLine: 'gen.c9.together.which', hint: 'gen.c9.hint.which', rLine: it => 'gen.c9.reveal.which.' + it.want, praise: 'praiseThink',
   make: s => ({ want: { refV: 'x', refH: 'y', rot180: 'both' }[s.xf], tag: 'c9-which-' + s.xf }),
-  draw(svg, item, tries) { const Pl = c4Plane(svg, { n: 5, ny: 5, top: 38 }); c9Mark(svg, Pl, item.xf); c9Card(svg, c9Name(item.xf));
+  draw(svg, item, tries) { const Pl = c4Plane(svg, C9_PL(c4Ext([item.p, C9_XF[item.xf](item.p)], 4), 250)); c9Mark(svg, Pl, item.xf); c9Card(svg, c9Name(item.xf));
     c4Dot(svg, Pl, ...item.p, { pair: tries >= 3, col: C9.org }); if (tries >= 3) c4Dot(helpG(svg), Pl, ...C9_XF[item.xf](item.p), { pair: true, col: C9.img }); return { Pl }; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) c9H2Card(m, c9H2(m, ctx.Pl, item.p, item.xf)); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick([['x', labelText('c9C.x'), '<i></i>', 'gen.c9.c.x'], ['y', labelText('c9C.y'), '<i></i>', 'gen.c9.c.y'], ['both', labelText('c9C.both'), '<i></i>', 'gen.c9.c.both']], item.want),
   errOf: (it, k) => k === 'both' ? 'c9Both' : it.want === 'both' ? 'c9Half' : 'c9Axis' });
 
 /* ================= ④ أيّ تحويل؟ (C420): pts الأصل (شكل غير متماثل)، xf؛ الخيارات الأربعة ================= */
 ITEM.c9NameIt = cpItem({ H: 262, tLine: 'gen.c9.together.name', hint: 'gen.c9.hint.name', rLine: it => 'gen.c9.n.' + it.xf, praise: 'praiseLook',
-  make: s => { const img = s.pts.map(p => C9_XF[s.xf](p)); return { img, want: s.xf, ext: c4Ext(s.pts.concat(img), 5), tag: 'c9-name' }; },
-  draw(svg, item, tries) { const Pl = c4Plane(svg, { ...item.ext, top: 12 }); xfPoly(svg, Pl, item.pts, { col: C9.org, fill: 'rgba(47,127,193,.12)' }); xfPoly(svg, Pl, item.img, { col: C9.img, fill: 'rgba(217,130,43,.14)', img: true });
+  make: s => { const img = s.pts.map(p => C9_XF[s.xf](p)); return { img, want: s.xf, ext: c4Ext(s.pts.concat(img), 4), tag: 'c9-name' }; },
+  draw(svg, item, tries) { const Pl = c4Plane(svg, C9_PL(item.ext, 262, 26)); c9Poly(svg, Pl, item.pts, { col: C9.org, fill: 'rgba(47,127,193,.12)' }); c9Poly(svg, Pl, item.img, { col: C9.img, fill: 'rgba(217,130,43,.14)', img: true });
     if (tries >= 3) { const h = helpG(svg), A = Pl.P(...item.pts[0]), B = Pl.P(...item.img[0]); geoLine(h, A[0], A[1], B[0], B[1], { color: THINK_INK, w: 2.4, dash: '5 4' }); el('circle', { cx: A[0], cy: A[1], r: 9, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, h); el('circle', { cx: B[0], cy: B[1], r: 9, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, h); }
     return { Pl }; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) { hlRing(m, ctx.Pl.P(...item.pts[0]), 11, H2C[0]); hlRing(m, ctx.Pl.P(...item.img[0]), 11, H2C[1]); } c9H2Card(m, 'name'); await sleep(FAST ? 10 : 250); },   /* رأسٌ وصورته محاطان، والخطّ بينهما للثالث */
   show: async (item, ctx) => { if (ctx && ctx.Pl) c9Mark(helpG(ctx.svg), ctx.Pl, item.xf); },
   pick: item => choosePick(['refV', 'refH', 'rot90', 'rot180'].map(k => [k, labelText('c9S.' + k), '<i></i>', 'gen.c9.n.' + k]), item.want, { cls: 'four' }),
   errOf: (it, k) => /^ref/.test(k) && /^ref/.test(it.want) ? 'c9NameAxis' : /^rot/.test(k) && /^rot/.test(it.want) ? 'c9Amount' : 'c9NameKind' });
@@ -126,14 +142,15 @@ ITEM.c9Rot = cpItem({ H: 250, tLine: 'gen.c9.together.rot', hint: 'gen.c9.hint.r
     if (ask === 'dir') return { ask, r, want: s.cw ? 'cw' : 'ccw', tag: 'c9-rot-dir' };
     if (ask === 'len') return { ask, r, want: r, nums: [r, r + 2, 2 * r].filter((v, i, X) => X.indexOf(v) === i), tag: 'c9-rot-len' };
     return { ask, r, want: th, nums: [th, 180 - th, th + (th > 90 ? -20 : 20), 2 * th].filter((v, i, X) => X.indexOf(v) === i && v > 0 && v <= 360).slice(0, 3), tag: 'c9-rot-ang' }; },   /* ثلاثة خياراتٍ دائماً (90: 180 − 90 = 90) */
-  draw(svg, item, tries) { const g = el('g', {}, svg), F = c9RotFig(g, { th: item.th, cw: item.cw, r: item.r, a0: item.a0 ?? 10 }); el('rect', { x: 18, y: 14, width: 324, height: 226, rx: 12, fill: 'none', stroke: css('--line'), 'stroke-width': 1.5 }, g);
+  draw(svg, item, tries) { const g = el('g', {}, svg), F = c9RotFig(g, { th: item.th, cw: item.cw, r: item.r, a0: item.a0 ?? (item.cw ? 90 + item.th / 2 : 90 - item.th / 2) });   /* الزاوية متناظرة حول الرأسي فوق م: أ وأ’ داخل الإطار بالاتجاهين */ el('rect', { x: 22, y: 16, width: 316, height: 216, rx: 12, fill: 'none', stroke: css('--line'), 'stroke-width': 1.5 }, g);
     if (item.ask === 'ang') { if (tries >= 3) c9Prot(helpG(svg), F.M, F.a0, item.cw); else arArc(g, F.M, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1), { r: 34, col: C9.arc, lab: '؟', dl: 18, fs: 15, fill: true }); }
     else { arArc(g, F.M, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1), { r: 34, col: C9.arc, deg: item.th, dl: 18, fs: 14, fill: true }); }
     if (item.ask === 'len') { const m = [(F.M[0] + F.A[0]) / 2, (F.M[1] + F.A[1]) / 2]; preLab(g, m[0], m[1] + 20, MS(String(item.r)), { fs: 16, col: C9.org }); const n = [(F.M[0] + F.B[0]) / 2, (F.M[1] + F.B[1]) / 2]; preLab(g, n[0] - 14, n[1], '؟', { fs: 18, col: C9.q });
       if (tries >= 3) { const h = helpG(svg); el('path', { d: angArc(F.M, item.r * F.u, Math.min(F.a0, F.a1) - 6, Math.max(F.a0, F.a1) + 6), fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, h); } }
     if (item.ask === 'dir' && tries >= 3) { const h = helpG(svg); el('path', { d: angArc(F.M, item.r * F.u + 10, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1)), fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, h); const E = angP(F.M, F.a1, item.r * F.u + 10); geoArrow(h, E[0], E[1], -(F.a1 + (item.cw ? -90 : 90)), THINK_INK, 7); }
     return { F }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 250, 36, labelText('c9Rule.rot'), C9.hl, 12); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), F = ctx.F; if (F) { hlRing(m, F.M, 10, C9.arc); if (item.ask === 'dir') { hlRing(m, F.A, 11, H2C[0]); hlRing(m, F.B, 11, H2C[1]); } else hlSeg(m, F.M, F.A, H2C[0]); }   /* الصفر على م أ، أو البعد الثابت، أو البداية والنهاية */
+    ciRule(m, 180, C9_POS, labelText('c9Ask.rot' + { ang: 'Ang', len: 'Len', dir: 'Dir' }[item.ask]), C9.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { if (item.ask === 'dir') return choosePick([['ccw', labelText('c9D.ccw'), '<i></i>', 'gen.c9.d.ccw'], ['cw', labelText('c9D.cw'), '<i></i>', 'gen.c9.d.cw']], item.want);
     const np = numberPick(shuffle(item.nums), item.want, item.ask === 'ang' ? { west: true, word: degw } : { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => it.ask === 'dir' ? 'c9DirWord' : it.ask === 'len' ? 'c9LenOff' : k === 180 - it.want ? 'c9AngSup' : 'c9AngOff' });
@@ -146,11 +163,12 @@ ITEM.c9Comp = cpItem({ H: 262, tLine: 'gen.c9.together.comp', hint: 'gen.c9.hint
     if (ask === 'order') return { ask, mid, img, back, want: img[0] === back[0] && img[1] === back[1] ? 'no' : 'yes', tag: 'c9-comp-order' };
     const cands = [img, mid, c9Ap(s.seq[1], s.p), back, [img[0], -img[1]], [-img[0], img[1]]].filter((q, i, X) => X.findIndex(r => r[0] === q[0] && r[1] === q[1]) === i && !(q[0] === s.p[0] && q[1] === s.p[1])).slice(0, 3);
     return { ask, mid, img, want: preKey(img), cands, tag: 'c9-comp-img' }; },
-  draw(svg, item, tries) { const pts = [item.p, item.mid, item.img].concat(item.back ? [item.back] : []), Pl = c4Plane(svg, { ...c4Ext(pts, 5), top: 40 });
-    c9Card(svg, labelText('c9Seq').replace('A', c9StepTxt(item.seq[0])).replace('B', c9StepTxt(item.seq[1])), { w: 330 });
+  draw(svg, item, tries) { const pts = [item.p, item.mid, item.img].concat(item.back ? [item.back] : []), Pl = c4Plane(svg, C9_PL(c4Ext(pts, 4)));
+    c9Card(svg, labelText('c9Seq').replace('A', c9StepTxt(item.seq[0])).replace('B', c9StepTxt(item.seq[1])), { w: 316 });
     c4Dot(svg, Pl, ...item.p, { pair: true, col: C9.org });
     if (tries >= 3) { const h = helpG(svg); c4Dot(h, Pl, ...item.mid, { pair: true, col: THINK_INK }); const A = Pl.P(...item.p), B = Pl.P(...item.mid); geoLine(h, A[0], A[1], B[0], B[1], { color: THINK_INK, w: 2, dash: '5 4' }); }
     return { Pl }; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), s = item.seq[item.ask === 'order' ? 1 : 0]; if (ctx.Pl) { if (!Array.isArray(s)) c9Mark(m, ctx.Pl, s); hlRing(m, ctx.Pl.P(...item.p), 11, H2C[0]); } c9H2Card(m, item.ask === 'order' ? 'order' : 'comp'); await sleep(FAST ? 10 : 250); },   /* أداة الخطوة الأولى (أو الثانية إن بدّلنا الترتيب)، وناتجها للثالث */
   sayQ: async it => { for (const [i, s] of it.seq.entries()) { await S(i ? 'gen.c9.then' : 'gen.c9.first', { append: true, noGap: true }); await S(Array.isArray(s) ? 'gen.c9.tr.' + s[1] : 'gen.c9.n.' + s, { append: true, noGap: true }); } await S('gen.c9.q.compEnd.' + it.ask, { append: true }); },
   show: async (item, ctx) => { if (ctx && ctx.Pl) { const h = helpG(ctx.svg); c4Dot(h, ctx.Pl, ...item.mid, { col: '#8a9aa8' }); c4Dot(h, ctx.Pl, ...item.img, { col: C9.ok, pair: item.ask === 'img' }); if (item.back) c4Dot(h, ctx.Pl, ...item.back, { col: C9.img, pair: true }); } },
   pick: item => item.ask === 'one' ? choosePick(['rot90', 'rot180', 'refV'].map(k => [k, labelText('c9S.' + k), '<i></i>', 'gen.c9.n.' + k]), item.want)
@@ -160,10 +178,10 @@ ITEM.c9Comp = cpItem({ H: 262, tLine: 'gen.c9.together.comp', hint: 'gen.c9.hint
 
 /* ================= صور التعليل ================= */
 function c9Pic(g, P) {
-  if (P.rot) { const F = c9RotFig(g, { th: P.rot[0], cw: !!P.rot[1], r: 5, a0: 10, M: [150, 150] }); arArc(g, F.M, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1), { r: 34, col: C9.arc, deg: P.rot[0], dl: 18, fs: 14, fill: true }); return; }
+  if (P.rot) { const F = c9RotFig(g, { th: P.rot[0], cw: !!P.rot[1], r: 5, a0: P.rot[1] ? 90 + P.rot[0] / 2 : 90 - P.rot[0] / 2, M: [150, 150] }); arArc(g, F.M, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1), { r: 34, col: C9.arc, deg: P.rot[0], dl: 18, fs: 14, fill: true }); return; }
   const p = P.p || [3, 1], seq = P.seq || [], ps = [p, ...seq.map((s, i) => c9Run(seq.slice(0, i + 1), p))];
   if (P.shape) { const sq = [p, [p[0] + 1, p[1]], [p[0] + 1, p[1] + 1], [p[0], p[1] + 1]], im = sq.map(q => c9Run(seq, q)), Pl = c4Plane(g, { ...c4Ext(sq.concat(im), 4), top: 12, H: 200 }); if (P.xf) c9Mark(g, Pl, P.xf);
-    xfPoly(g, Pl, sq, { col: C9.org, fill: 'rgba(47,127,193,.14)', names: false }); xfPoly(g, Pl, im, { col: C9.img, fill: 'rgba(217,130,43,.14)', names: false }); if (P.turn) c9TurnArc(g, Pl, p, im[0]); return; }
+    c9Poly(g, Pl, sq, { col: C9.org, fill: 'rgba(47,127,193,.14)', names: false }); c9Poly(g, Pl, im, { col: C9.img, fill: 'rgba(217,130,43,.14)', names: false }); if (P.turn) c9TurnArc(g, Pl, p, im[0]); return; }
   const Pl = c4Plane(g, { ...c4Ext(ps, 4), top: 12, H: 200 });
   if (P.xf) c9Mark(g, Pl, P.xf);
   ps.forEach((q, i) => c4Dot(g, Pl, ...q, { pair: true, col: i ? (i === ps.length - 1 ? C9.img : '#8a9aa8') : C9.org }));
@@ -177,7 +195,7 @@ SCENES.c9RefShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Pl
   for (const [i, [xf, q]] of [['refV', [-3, 2]], ['refH', [3, -2]]].entries()) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); c9Mark(g, Pl, xf); c4Dot(g, Pl, 3, 2, { pair: true, col: C9.org });
     const A = Pl.P(3, 2), B = Pl.P(...q), K = xf === 'refV' ? Pl.P(0, 2) : Pl.P(3, 0); geoLine(g, A[0], A[1], B[0], B[1], { color: C9.arc, w: 2, dash: '5 4' }); preTicks(g, A, K, 1, C9.ok); preTicks(g, K, B, 1, C9.ok); await c9Say(L, 2 * i);
     c4Dot(g, Pl, ...q, { pair: true, col: C9.img }); SFX.tick(); await c9Say(L, 2 * i + 1); }
-  g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); c9RuleCard(g, 180, 60, 'refV'); c9RuleCard(g, 180, 190, 'refH'); for (const l of L.slice(4)) await S(l); };
+  g.remove(); c9Clear(svg); g = el('g', { 'pointer-events': 'none' }, svg); c9RuleCard(g, 180, 90, 'refV'); c9RuleCard(g, 180, 180, 'refH'); for (const l of L.slice(4)) await S(l); };   /* القاعدتان وحدهما بعد المستوى (TXSTRICT) */
 /* د2: فوضى: «ربع الدورة يغيّر الإحداثيين بالإشارة نفسها!»؛ والدوران حول الأصل بالورق الشفّاف */
 SCENES.c9RotHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 4, ny: 4, top: 30 }); c9Mark(svg, Pl, 'rot90'); c4Dot(svg, Pl, 3, 1, { pair: true, col: C9.org }); await c9Say(L, 0);
   const w = c4Dot(svg, Pl, -3, -1, { pair: true, col: C9.q }); SFX.tick(); await c9Say(L, 1); w.remove(); for (const l of L.slice(2)) await S(l); };
@@ -185,7 +203,7 @@ SCENES.c9RotShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Pl
   const arm = el('g', { 'pointer-events': 'none' }, svg), A = Pl.P(3, 1); el('line', { x1: O[0], y1: O[1], x2: A[0], y2: A[1], stroke: C9.arc, 'stroke-width': 3, 'stroke-dasharray': '7 4' }, arm);
   const turn = async to => { for (let k = 1; k <= 12; k++) { arm.setAttribute('transform', `rotate(${-(to - 90) - 90 * k / 12} ${O[0]} ${O[1]})`); await sleep(FAST ? 1 : 45); } };
   for (const [i, q] of [[-1, 3], [-3, -1], [1, -3]].entries()) { await turn(90 * (i + 1)); c4Dot(svg, Pl, ...q, { pair: true, col: C9.img }); SFX.tick(); await c9Say(L, i); }
-  const g = el('g', { 'pointer-events': 'none' }, svg); c9RuleCard(g, 250, 212, 'rot90', { w: 200 }); for (const l of L.slice(3)) await S(l); };
+  c9Clear(svg); const g = el('g', { 'pointer-events': 'none' }, svg); c9RuleCard(g, 180, 130, 'rot90'); for (const l of L.slice(3)) await S(l); };
 /* د3: الدوران بالمنقلة والفرجار خطوةً خطوة، والانعكاسان على المحورين */
 SCENES.c9ProtHook = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), H = [120, 200], D = angP(H, 0, 150), D2 = angP(H, 40, 150);
   geoLine(g, H[0], H[1], D[0], D[1], { color: '#8a6a43', w: 8 }); pfDot(g, H); await c9Say(L, 0);
@@ -204,9 +222,9 @@ SCENES.c9TwoMirrorShow = async c => { const L = c.lines, svg = m3Stage(262), Pl 
 /* د4: مدينة المرايا: مبانٍ في الأرباع، ومبنى ينعكس ومبنى يدور */
 const C9_CITY = { a: [[3, 1], [5, 1], [5, 3], [4, 4], [3, 3]], b: [[4, -1], [5, -1], [5, -3], [4, -3]] };
 SCENES.c9CityShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5, ny: 5, top: 30 });
-  xfPoly(svg, Pl, C9_CITY.a, { col: C9.org, fill: 'rgba(47,127,193,.14)', names: false }); xfPoly(svg, Pl, C9_CITY.b, { col: '#4f9a6a', fill: 'rgba(79,154,106,.14)', names: false }); await c9Say(L, 0);
-  c9Mark(svg, Pl, 'refV'); xfPoly(svg, Pl, C9_CITY.a.map(C9_XF.refV), { col: C9.img, fill: 'rgba(217,130,43,.14)', names: false }); SFX.tick(); await c9Say(L, 1);
-  const r = C9_CITY.b.map(C9_XF.rot90); c9TurnArc(svg, Pl, C9_CITY.b[0], r[0]); xfPoly(svg, Pl, r, { col: C9.img, fill: 'rgba(217,130,43,.14)', names: false }); SFX.tick(); await c9Say(L, 2);
+  c9Poly(svg, Pl, C9_CITY.a, { col: C9.org, fill: 'rgba(47,127,193,.14)', names: false }); c9Poly(svg, Pl, C9_CITY.b, { col: '#4f9a6a', fill: 'rgba(79,154,106,.14)', names: false }); await c9Say(L, 0);
+  c9Mark(svg, Pl, 'refV'); c9Poly(svg, Pl, C9_CITY.a.map(C9_XF.refV), { col: C9.img, fill: 'rgba(217,130,43,.14)', names: false }); SFX.tick(); await c9Say(L, 1);
+  const r = C9_CITY.b.map(C9_XF.rot90); c9TurnArc(svg, Pl, C9_CITY.b[0], r[0]); c9Poly(svg, Pl, r, { col: C9.img, fill: 'rgba(217,130,43,.14)', names: false }); SFX.tick(); await c9Say(L, 2);
   for (const l of L.slice(3)) await S(l); };
-WRAP_ART.xf9Art = svg => { const Pl = c4Plane(svg, { n: 4, ny: 4, top: 40, H: 240, nums: false }); const T = [[1, 1], [3, 1], [1, 3]]; xfPoly(svg, Pl, T, { col: C9.org, fill: 'rgba(47,127,193,.16)', names: false });
-  for (const xf of ['refV', 'rot180', 'refH']) xfPoly(svg, Pl, T.map(C9_XF[xf]), { col: C9.img, fill: 'rgba(217,130,43,.14)', names: false }); };
+WRAP_ART.xf9Art = svg => { const Pl = c4Plane(svg, { n: 4, ny: 4, top: 40, H: 240, nums: false }); const T = [[1, 1], [3, 1], [1, 3]]; c9Poly(svg, Pl, T, { col: C9.org, fill: 'rgba(47,127,193,.16)', names: false });
+  for (const xf of ['refV', 'rot180', 'refH']) c9Poly(svg, Pl, T.map(C9_XF[xf]), { col: C9.img, fill: 'rgba(217,130,43,.14)', names: false }); };

@@ -74,13 +74,13 @@ HELP2 = {'decPointer', 'decConv', 'decOrder', 'decCalc', 'decCmp', 'decRuler', '
          'xfDraw', 'xfWhich', 'refLine', 'trVector', 'rotSym', 'congJudge', 'congPart', 'circPart', 'soKind', 'soOpp', 'soNetYN', 'soNetPick', 'soNetMatch', 'soView', 'voUnit', 'voDims', 'voSmart',
          'triDet', 'circScale', 'circCalc', 'discGrid', 'circString',
          'soCount', 'soEdgeHunt', 'soArea', 'voCount', 'voFill', 'voCalc',
-         'raTable', 'raEq', 'enDims', 'enArea', 'enDraw', 'enYN', 'scConv', 'scBig', 'scDraw', 'scRoom', 'arComp', 'arPair', 'arVert', 'arWhich', 'arTrCalc', 'arPar', 'arTurn', 'prChain', 'prReason', 'ineqYN', 'ineqRange', 'ineqPick', 'polyTri', 'polySum', 'polyReg', 'isoTrap', 'polyBuild', 'c4Quad', 'c4Read', 'c4Dist', 'c4Slope', 'c4Eq', 'c4On', 'c4FindB', 'c4Perp', 'ci4Chord', 'ci4Half', 'ci4Tan', 'ci4TanLen', 'ci4TanAng', 'ci4Ang', 'ci4Sector', 'c7Vol', 'c7SA', 'c7Conv', 'c8Half', 'c8EqDist', 'c8Pb', 'c8Which', 'c8Ratio', 'c8Table', 'c8Height'}   # M4-U1/U2 (المراجع A لبوابة M4-U1/U2، 22)   # S3-U10: المستوى الثاني رسمٌ يبقى (المراجع A لبوابة S3-U10، 10)   # المراجع B لبوابة S3-U8/U9، 11   # المراجع B لبوابة S3-U6/U7، 6
+         'raTable', 'raEq', 'enDims', 'enArea', 'enDraw', 'enYN', 'scConv', 'scBig', 'scDraw', 'scRoom', 'arComp', 'arPair', 'arVert', 'arWhich', 'arTrCalc', 'arPar', 'arTurn', 'prChain', 'prReason', 'ineqYN', 'ineqRange', 'ineqPick', 'polyTri', 'polySum', 'polyReg', 'isoTrap', 'polyBuild', 'c4Quad', 'c4Read', 'c4Dist', 'c4Slope', 'c4Eq', 'c4On', 'c4FindB', 'c4Perp', 'ci4Chord', 'ci4Half', 'ci4Tan', 'ci4TanLen', 'ci4TanAng', 'ci4Ang', 'ci4Sector', 'c7Vol', 'c7SA', 'c7Conv', 'c8Half', 'c8EqDist', 'c8Pb', 'c8Which', 'c8Ratio', 'c8Table', 'c8Height', 'c9Draw', 'c9Pick', 'c9Which', 'c9NameIt', 'c9Rot', 'c9Comp'}   # M4-U1/U2 (المراجع A لبوابة M4-U1/U2، 22)   # S3-U10: المستوى الثاني رسمٌ يبقى (المراجع A لبوابة S3-U10، 10)   # المراجع B لبوابة S3-U8/U9، 11   # المراجع B لبوابة S3-U6/U7، 6
 H2 = "() => !!document.querySelector('#stage [data-help], #stage .pick.tried, #stage .pick.mine')"
 # وفي M4-U1/U2 المستوى الثاني رسمٌ لا بطاقةٌ مكتوبة وحدها (D286 (3)؛ المراجع B لبوابة M4-U1/U2، 8): شكلٌ (قوس، خط، مضلّع…) داخل data-help
 HELP2_DRAW = {'arComp', 'arPair', 'arVert', 'arWhich', 'arTrCalc', 'arPar', 'arTurn', 'prChain', 'prReason', 'ineqYN', 'ineqRange', 'ineqPick', 'polyTri', 'polySum', 'polyReg', 'isoTrap', 'polyBuild',
               'cgCase', 'cgSides', 'cgPick', 'simYN', 'simMiss', 'quadDiag', 'perpArea', 'pySq', 'pyLeg', 'pyApprox', 'pyIsRight', 'pyHyp',   # وM4-U3/U4
               'c4Quad', 'c4Read', 'c4Dist', 'c4Slope', 'c4Eq', 'c4On', 'c4FindB', 'c4Perp', 'ci4Chord', 'ci4Half', 'ci4Tan', 'ci4TanLen', 'ci4TanAng', 'ci4Ang', 'ci4Sector',   # وM4-U5/U6 (المعروف (2) لبوابتهما)
-              'c7Vol', 'c7SA', 'c7Conv', 'c8Half', 'c8EqDist', 'c8Pb', 'c8Which', 'c8Ratio', 'c8Table', 'c8Height'}   # وM4-U7/U8
+              'c7Vol', 'c7SA', 'c7Conv', 'c8Half', 'c8EqDist', 'c8Pb', 'c8Which', 'c8Ratio', 'c8Table', 'c8Height', 'c9Draw', 'c9Pick', 'c9Which', 'c9NameIt', 'c9Rot', 'c9Comp'}   # وM4-U7/U8
 H2D = "() => !!document.querySelector(['path', 'line', 'circle', 'polygon', 'polyline'].map(t => '#stage [data-help] ' + t).join(', '))"
 # ما في المساعدة نصّاً وعدداً، ونصّ الخيار الصحيح (المراجع B لبوابة M4-U7/U8، 9 (د)): الحلّ المشترك لا يكتب الجواب، ولا يكرّر المستوى الثاني
 HSNAP = r"""() => { const P = s => s.replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/\s+/g, ' ').trim(), H = [...document.querySelectorAll('#stage [data-help] *')], b = document.querySelector('#stage [data-ok="true"], .choices [data-ok="true"]');
@@ -148,9 +148,9 @@ async def main():
       check(not miss, '%s: المستوى الثاني باقٍ على مسرح المحاولة الثالثة (%d%s)' % (typ, len(L), '' if not miss else '؛ بلا شيء: ' + ', '.join(miss[:3])))
     check(n3 > 0 or not ONLY, 'فحصا المستوى الثالث بلغا بنوداً (%d)' % n3)
     check(not l3ans, 'الحلّ المشترك لا يكتب نصّ الخيار الصحيح في المساعدة (%s)' % (', '.join(l3ans[:3]) or '%d بنداً بمستوى ثالث، %d منها بنصّ خيار صحيح يُقارن' % (n3, n3ok)))   # المراجع B لبوابة M4-U7/U8، 4
-    # يُلزَم في أنواع U7/U8 (c7، c8) التي بُني الفحص معها؛ وما قبلها يُطبع للعلم بأنواعه (مؤجّلٌ لمراجعة سلالمها: إغلاق بوابة M4-U7/U8، القسم 4)
-    l3new = [t for t in l3rep if re.search(r'\((c7|c8)[A-Z]', t)]; l3old = sorted({re.search(r'\(([^)]+)\)$', t).group(1) for t in l3rep if t not in l3new and re.search(r'\(([^)]+)\)$', t)})
-    check(not l3new, 'المستوى الثالث لا يكرّر الثاني بنصّه وشكله في U7/U8 (%s)' % (', '.join(l3new[:3]) or '%d بنداً' % n3))   # 6
+    # يُلزَم في أنواع U7–U9 (c7، c8، c9) التي بُني الفحص معها؛ وما قبلها يُطبع للعلم بأنواعه (مؤجّلٌ لمراجعة سلالمها: إغلاق بوابة M4-U7/U8، القسم 4)
+    l3new = [t for t in l3rep if re.search(r'\((c7|c8|c9)[A-Z]', t)]; l3old = sorted({re.search(r'\(([^)]+)\)$', t).group(1) for t in l3rep if t not in l3new and re.search(r'\(([^)]+)\)$', t)})
+    check(not l3new, 'المستوى الثالث لا يكرّر الثاني بنصّه وشكله في U7–U9 (%s)' % (', '.join(l3new[:3]) or '%d بنداً' % n3))   # 6
     if l3old: print('info المستوى الثالث يكرّر الثاني في أنواعٍ أقدم (%d بنداً): %s' % (len(l3rep) - len(l3new), '، '.join(l3old)))
     for typ, L in sorted(lvl2d.items()):
       miss = [t for h, t in L if not h]

@@ -157,7 +157,7 @@
      "q": "gen.c9.q.rot.ang",
      "twin": {
       "t": "c9Rot",
-      "th": 40,
+      "th": 80,
       "ask": "ang",
       "q": "gen.c9.q.rot.ang"
      }
