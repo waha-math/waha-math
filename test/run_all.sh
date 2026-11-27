@@ -68,17 +68,22 @@ mut_slices 2
 ONLY=X-03,N-01 LANDVP=844x390,412x860 timeout 7200 python3 test/adv_run.py > "$O/adv_land2.txt" 2>&1 || echo adv_land2 >> "$O/FAILED"
 SHOTS=0 CLIPS_OUT="$O/clips/auto_deep_mat_f.json" timeout 3600 python3 test/auto_run.py deep mat f        > "$O/auto_deep_mat_f.txt" 2>&1   # في الجزء n بمهلة ساعة: قُطع بنصف الساعة في الجزء b (EPIPE، بوابة ws56a)
 fi
+# أنماط السائق على ثلاثة أجزاء متوازية بمهلة ساعة لكلٍّ (قُطعت كلها بنصف الساعة في بوابة ws78a: EPIPE)
 if in_part b; then
-SHOTS=1 CLIPS_OUT="$O/clips/auto_ok_screen_f.json" timeout 1800 python3 test/auto_run.py ok screen f       > "$O/auto_ok_screen_f.txt" 2>&1
-SHOTS=0 CLIPS_OUT="$O/clips/auto_ok_mat_m.json" timeout 1800 python3 test/auto_run.py ok mat m          > "$O/auto_ok_mat_m.txt" 2>&1
-SHOTS=0 CLIPS_OUT="$O/clips/auto_mixed_screen_m.json" timeout 1800 python3 test/auto_run.py mixed screen m    > "$O/auto_mixed_screen_m.txt" 2>&1
-SHOTS=0 CLIPS_OUT="$O/clips/auto_failmastery_screen_f.json" timeout 1800 python3 test/auto_run.py failmastery screen f > "$O/auto_failmastery_screen_f.txt" 2>&1
-SHOTS=0 CLIPS_OUT="$O/clips/auto_failtest_mat_m.json" timeout 1800 python3 test/auto_run.py failtest mat m    > "$O/auto_failtest_mat_m.txt" 2>&1
-SHOTS=0 CLIPS_OUT="$O/clips/auto_replay_screen_f.json" timeout 1800 python3 test/auto_run.py replay screen f   > "$O/auto_replay_screen_f.txt" 2>&1
+SHOTS=1 CLIPS_OUT="$O/clips/auto_ok_screen_f.json" timeout 3600 python3 test/auto_run.py ok screen f       > "$O/auto_ok_screen_f.txt" 2>&1
+SHOTS=0 CLIPS_OUT="$O/clips/auto_ok_mat_m.json" timeout 3600 python3 test/auto_run.py ok mat m          > "$O/auto_ok_mat_m.txt" 2>&1
+SHOTS=0 CLIPS_OUT="$O/clips/auto_mixed_screen_m.json" timeout 3600 python3 test/auto_run.py mixed screen m    > "$O/auto_mixed_screen_m.txt" 2>&1
+SHOTS=0 CLIPS_OUT="$O/clips/auto_failmastery_screen_f.json" timeout 3600 python3 test/auto_run.py failmastery screen f > "$O/auto_failmastery_screen_f.txt" 2>&1
+fi
+if in_part b2; then
+SHOTS=0 CLIPS_OUT="$O/clips/auto_failtest_mat_m.json" timeout 3600 python3 test/auto_run.py failtest mat m    > "$O/auto_failtest_mat_m.txt" 2>&1
+SHOTS=0 CLIPS_OUT="$O/clips/auto_replay_screen_f.json" timeout 3600 python3 test/auto_run.py replay screen f   > "$O/auto_replay_screen_f.txt" 2>&1
+SHOTS=0 DARK=1 CLIPS_OUT="$O/clips/auto_dark_ok_mat_f.json" timeout 3600 python3 test/auto_run.py ok mat f   > "$O/auto_dark_ok_mat_f.txt" 2>&1            # الوضع الليلي
+SHOTS=0 DEVICE='Galaxy S5' CLIPS_OUT="$O/clips/auto_s5_mixed_screen_m.json" timeout 3600 python3 test/auto_run.py mixed screen m > "$O/auto_s5_mixed_screen_m.txt" 2>&1   # 360×640
+fi
+if in_part b3; then
 SHOTS=0 CLIPS_OUT="$O/clips/auto_failreview_screen_m.json" timeout 5400 python3 test/auto_run.py failreview screen m > "$O/auto_failreview_screen_m.txt" 2>&1   # المبدأ 14
-SHOTS=0 DARK=1 CLIPS_OUT="$O/clips/auto_dark_ok_mat_f.json" timeout 1800 python3 test/auto_run.py ok mat f   > "$O/auto_dark_ok_mat_f.txt" 2>&1            # الوضع الليلي
-SHOTS=0 DEVICE='Galaxy S5' CLIPS_OUT="$O/clips/auto_s5_mixed_screen_m.json" timeout 1800 python3 test/auto_run.py mixed screen m > "$O/auto_s5_mixed_screen_m.txt" 2>&1   # 360×640
-SHOTS=0 DEVICE='iPhone SE' CLIPS_OUT="$O/clips/auto_se_ok_screen_f.json" timeout 1800 python3 test/auto_run.py ok screen f > "$O/auto_se_ok_screen_f.txt" 2>&1        # 320×568، أضيق شاشة
+SHOTS=0 DEVICE='iPhone SE' CLIPS_OUT="$O/clips/auto_se_ok_screen_f.json" timeout 3600 python3 test/auto_run.py ok screen f > "$O/auto_se_ok_screen_f.txt" 2>&1        # 320×568، أضيق شاشة
 fi
 # وكل جزءٍ منفرد يخرج بـ 1 إن سُجّل إخفاق (مراجعة الخصم C-14: كانت الأجزاء a وm وn وb تخرج بـ 0 ولو امتلأ FAILED، فلا يرى الإخفاقَ إلا الجزء c)
 if [ "$P" != all ] && [ "$P" != c ]; then
@@ -87,8 +92,8 @@ if [ "$P" != all ] && [ "$P" != c ]; then
 fi
 # المهل: م2 بلغت 75 درساً فتجاوز اللمس الحقيقي بثلاثة أجهزة وdeepall نصف الساعة فقُطعا (EPIPE في Gate على 82d4da6)
 if in_part c; then
-SHOTS=0 CLIPS_OUT="$O/clips/auto_deepall_screen_f.json" timeout 3600 python3 test/auto_run.py deepall screen f > "$O/auto_deepall_screen_f.txt" 2>&1   # كل بند بمساعدة حتى الكشف، ثم توأمه (الفحص المستقل B)
-SHOTS=0 CHAL=1 CLIPS_OUT="$O/clips/auto_deepall_chal_mat_m.json" timeout 3600 python3 test/auto_run.py deepall mat m > "$O/auto_deepall_chal_mat_m.txt" 2>&1   # وفرع «التحدّي»
+SHOTS=0 CLIPS_OUT="$O/clips/auto_deepall_screen_f.json" timeout 5400 python3 test/auto_run.py deepall screen f > "$O/auto_deepall_screen_f.txt" 2>&1   # كل بند بمساعدة حتى الكشف، ثم توأمه (الفحص المستقل B)
+SHOTS=0 CHAL=1 CLIPS_OUT="$O/clips/auto_deepall_chal_mat_m.json" timeout 5400 python3 test/auto_run.py deepall mat m > "$O/auto_deepall_chal_mat_m.txt" 2>&1   # وفرع «التحدّي»
 SHOTS=0 CLIPS_OUT="$O/clips/auto_remedialdeep_screen_m.json" timeout 3600 python3 test/auto_run.py remedialdeep screen m > "$O/auto_remedialdeep_screen_m.txt" 2>&1   # وبنود العلاج
 SHOTS=0 DEVICE='iPhone SE' SEED=23 ONLY='m1.u3.d5,ws:m1.u3' CLIPS_OUT="$O/clips/auto_se_remedialdeep_d5ws.json" timeout 1800 python3 test/auto_run.py remedialdeep screen m > "$O/auto_se_remedialdeep_d5ws.txt" 2>&1   # أهداف اللمس حين تظهر الخيارات تحت المسرح على أضيق شاشة (الفحصان المستقلان C وD)
 timeout 1800 python3 test/unspoken.py "$O/clips" > "$O/unspoken.txt" 2>&1   # جمل في جدول التسجيل لم تُنطق في أي تشغيل (تقرير لا يوقف)
