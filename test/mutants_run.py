@@ -997,6 +997,13 @@ RUNTIME = [
   ('G عجلة الدوران: بلا تكافؤ', "if (k < 0 && k > -4 && ((k % 4) + 4) % 4 === item.k) return { ok: true, alt: true };", "", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G عجلة الدوران: ربعٌ مع العقارب لثلاثة أرباعٍ'),
   ('G الباب الدوّار: أيّ نقطةٍ مركز', "judge(item, k) { return k === 'O' ? { ok: true } :", "judge(item, k) { return true ? { ok: true } :", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: نقطةٌ تحرّكت مع الباب'),
   ('G الباب الدوّار: أيّ قراءةٍ صحيحة', "return +k === item.th ? { ok: true } : { ok: false, err: +k === 180 - item.th ? 'c9AngSup' : 'c9AngOff' }; },", "return true ? { ok: true } : { ok: false, err: +k === 180 - item.th ? 'c9AngSup' : 'c9AngOff' }; },", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: المنقلة تدور بالزرّين'),
+  # المراجع A لإغلاق ألعاب U9 (1 و2 و3 و8)
+  ('G مرآة الكنز: الصندوق ظاهرٌ قبل الوصول', "c9Clue(svg, item.goal); ctx.dot =", "c9Clue(svg, item.goal); c9Chest(svg, Pl.P(...item.goal)); ctx.dot =", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G مرآة الكنز: الكنز مدفونٌ'),
+  ('G عجلة الدوران: الحلّ المشترك لربعٍ واحد فارغ', "if (item.k === 1) { const h = helpG(svg)", "if (false) { const h = helpG(svg)", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G عجلة الدوران: لربعٍ واحد'),
+  ('G مرآتان: خطأ الاتجاه لبطاقةٍ بلا اتجاه', "    if (item.match) return { ok: false, err: 'c9WhMatch' };", "", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G مرآتان: ربعٌ واحد لا ينطبق'),
+  ('G نصف الدورة: خطأ الاتجاه', "if (item.k === 2) { const a = Math.abs(k);", "if (false) { const a = Math.abs(k);", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G عجلة الدوران: ربعٌ مع العقارب لنصف دورةٍ'),
+  ('G الباب الدوّار: الحلّ المشترك يجرّب ما لمسه الطفل', "const x = cand.find(c => c[0] !== 'O' && !(item.tried || []).includes(c[0])) || cand.find(c => c[0] !== 'O');", "const x = cand.find(c => c[0] !== 'O');", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: الحلّ المشترك يجرّب نقطةً'),
+  ('G الباب الدوّار: المنقلة تُعاد بعد خطأ القراءة', "item.zeroOk = true; }", "}", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: المنقلة الموضوعة صحيحاً'),
   ('G الباب الدوّار: الصفر الآخر مرفوض', "okB: [lo, lo + spec.th - 180]", "okB: [lo]", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: صفر التدريج الداخلي'),
   ('G الباب الدوّار: المنقلة بلا فحص الصفر', "if (!item.okB.includes(((beta % 360) + 540) % 360 - 180)) return { ans: 'zero|' + beta, ctx };", "", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: المنقلة وصفرها'),
   # D288 (5): مرحلة البدء يختارها الكبير (test/m4dec_run.py)
