@@ -234,7 +234,7 @@
     "t": "c7Vol",
     "fig": "cyl",
     "u": "cm",
-    "rk": 0,
+    "rk": 1,
     "q": "gen.c7.q.vol.cyl",
     "r": 3,
     "h": 6,
@@ -242,7 +242,7 @@
      "t": "c7Vol",
      "fig": "cyl",
      "u": "cm",
-     "rk": 1,
+     "rk": 2,
      "q": "gen.c7.q.vol.cyl",
      "r": 4,
      "h": 6
@@ -254,7 +254,7 @@
     "h": 6,
     "ask": "sa",
     "u": "cm",
-    "rk": 2,
+    "rk": 1,
     "q": "gen.c7.q.sa.sa",
     "twin": {
      "t": "c7SA",
@@ -262,7 +262,7 @@
      "h": 1,
      "ask": "lat",
      "u": "cm",
-     "rk": 0,
+     "rk": 2,
      "q": "gen.c7.q.sa.lat"
     }
    },
@@ -270,14 +270,14 @@
     "t": "c7Vol",
     "fig": "sph",
     "u": "cm",
-    "rk": 2,
+    "rk": 0,
     "q": "gen.c7.q.vol.sph",
     "r": 4,
     "twin": {
      "t": "c7Vol",
      "fig": "sph",
      "u": "cm",
-     "rk": 0,
+     "rk": 1,
      "q": "gen.c7.q.vol.sph",
      "r": 6
     }
@@ -288,7 +288,7 @@
     "t": "c7Vol",
     "fig": "cyl",
     "u": "cm",
-    "rk": 1,
+    "rk": 2,
     "q": "gen.c7.q.tank",
     "r": 20,
     "hm": 2,
@@ -297,7 +297,7 @@
      "t": "c7Vol",
      "fig": "cyl",
      "u": "cm",
-     "rk": 2,
+     "rk": 0,
      "q": "gen.c7.q.vol.h",
      "r": 6,
      "ask": "h",
@@ -329,7 +329,7 @@
      "t": "c7Vol",
      "fig": "cone",
      "u": "cm",
-     "rk": 0,
+     "rk": 1,
      "q": "gen.c7.q.vol.cone",
      "r": 3,
      "h": 5
@@ -352,7 +352,7 @@
      "t": "c7Vol",
      "fig": "cyl",
      "u": "cm",
-     "rk": 1,
+     "rk": 2,
      "q": "gen.c7.q.vol.cyl",
      "r": 3,
      "h": 10,
@@ -366,7 +366,7 @@
      "t": "c7Vol",
      "fig": "cyl",
      "u": "cm",
-     "rk": 2,
+     "rk": 0,
      "q": "gen.c7.q.vol.cyl",
      "d": 2,
      "h": 7
@@ -379,7 +379,7 @@
      "t": "c7Vol",
      "fig": "cyl",
      "u": "cm",
-     "rk": 0,
+     "rk": 1,
      "q": "gen.c7.q.vol.h",
      "r": 2,
      "ask": "h",
@@ -395,7 +395,7 @@
      "h": 8,
      "ask": "sa",
      "u": "cm",
-     "rk": 1,
+     "rk": 0,
      "q": "gen.c7.q.sa.sa"
     }
    },
@@ -408,7 +408,7 @@
      "h": 3,
      "ask": "len",
      "u": "cm",
-     "rk": 2,
+     "rk": 1,
      "q": "gen.c7.q.sa.len"
     }
    },
@@ -419,7 +419,7 @@
      "t": "c7Vol",
      "fig": "cone",
      "u": "cm",
-     "rk": 1,
+     "rk": 2,
      "q": "gen.c7.q.vol.cone",
      "B": 27,
      "h": 4
@@ -432,7 +432,7 @@
      "t": "c7Vol",
      "fig": "pyr",
      "u": "cm",
-     "rk": 2,
+     "rk": 0,
      "q": "gen.c7.q.vol.pyr",
      "s": 4,
      "h": 3,
@@ -446,7 +446,7 @@
      "t": "c7Vol",
      "fig": "sph",
      "u": "cm",
-     "rk": 0,
+     "rk": 1,
      "q": "gen.c7.q.vol.sph",
      "r": 5
     }
@@ -482,7 +482,7 @@
      "t": "c7Vol",
      "fig": "cyl",
      "u": "cm",
-     "rk": 1,
+     "rk": 2,
      "q": "gen.c7.q.tank",
      "r": 50,
      "hm": 2,

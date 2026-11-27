@@ -391,6 +391,10 @@ export const factOf = it => { const t = it.t;
   /* M4-U7/U8 دلالياً (المراجع A لبوابة M4-U7/U8، 3): الأسطوانة بنصف قطرها وارتفاعها بالسنتيمتر أياً كان المطلوب، والهرم والمخروط بحجمهما،
      والجانب بحاصل الضرب، والطول بنصف القطر، والتحويل بالكمّية بالاتجاهين، والزاوية كلها مع نصفها، والعمود بثلاثيّه، والنسبة بالكسر المختزل والمثلث المختزل، وجا س = جتا (90 − س) */
   if (t === 'c7Vol') return c7K(it);
+  if (t === 'c7Cup') return `c7cyl|${it.r ?? it.d / 2}|${it.h}`;   /* ألعاب U7 الحركية (D288 (2)): بمفاتيح بنود الحساب نفسها، فلا تعيد جولةٌ مسألةَ تمرينٍ أو تقييم */
+  if (t === 'c7Wrap') return `c7a|${it.lid === false ? 'sa0' : 'sa'}|${it.r}|${it.h}`;
+  if (t === 'c7Thirds') return `c7th|${it.fig}|${it.V ?? 'w' + it.v}`;
+  if (t === 'c7Tank') return it.to === 'm3' ? `c7c|m3|${it.a * it.b * it.c / 1e6}|L` : `c7c|L|${it.a * it.b * it.c / 1000}`;
   if (t === 'c7SA') return it.ask === 'len' ? `c7a|len|${it.r}` : it.ask === 'lat' ? `c7a|lat|${it.r * it.h}` : `c7a|sa|${it.r}|${it.h}`;
   if (t === 'c7Conv') return it.from === 'm3' ? `c7c|m3|${it.v}|${it.to}` : `c7c|L|${it.from === 'L' ? it.v : it.v / 1000}`;
   if (t === 'c8Half') return `c8h|${it.deg}`;

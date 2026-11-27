@@ -68,7 +68,7 @@ CENTER_OF = """(sel) => { const e = document.querySelector(sel); if (!e) return 
     r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) } : { l: b.left, t: b.top, r: b.right, b: b.bottom }; }
   if (!r) { const b = e.getBoundingClientRect(); r = { l: b.left, t: b.top, r: b.right, b: b.bottom }; } return [(r.l + r.r) / 2, (r.t + r.b) / 2]; }"""
 
-HTMLK = ('pick', 'card', 'num'); STEPK = {'dqBal': '__dqS', 'dqPerp': '__dqTh', 'htFoot': '__htAt', 'htTune': '__htH', 'kiteTune': '__a2R', 'c9Turn': '__c9K', 'c9Prot': ('__c9B', 'zero')}   # (المُحدِّد، وحقل الهدف في البند إن لم يكن want)   # وطائرة المعيّن (المراجع B لبوابة S3-U4/U5، 11)، وزرّا «عجلة الدوران» والمنقلة في «الباب الدوّار» (المراجع B لدفعة ألعاب U9، 7)
+HTMLK = ('pick', 'card', 'num'); STEPK = {'dqBal': '__dqS', 'dqPerp': '__dqTh', 'htFoot': '__htAt', 'htTune': '__htH', 'kiteTune': '__a2R', 'c9Turn': '__c9K', 'c9Prot': ('__c9B', 'zero'), 'c7Fill': ('__c7N', 'fillN'), 'c7Pour': ('__c7N', 'pourN'), 'c7Tank': ('__c7N', 'tankN')}   # (المُحدِّد، وحقل الهدف في البند إن لم يكن want)   # وطائرة المعيّن (المراجع B لبوابة S3-U4/U5، 11)، وزرّا «عجلة الدوران» والمنقلة في «الباب الدوّار» (المراجع B لدفعة ألعاب U9، 7)
 PICK_OK = """() => { const b = [...document.querySelectorAll('#stage .choices .pick')].filter(x => !x.disabled && x.offsetParent && !x.classList.contains('done')); const e = b.find(x => x.dataset.ok === 'true') || b[0]; if (!e) return null;
   e.scrollIntoView({ block: 'nearest' }); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"""
 STEP_BTN = "(i) => { const e = document.querySelectorAll('#stage .choices.icons .pick')[i]; if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
@@ -468,6 +468,9 @@ async def run(p, dev):
           if not await gone(st['n']):
             bad.append((dev, st['scene'], k + ' (html)')); await pg.screenshot(path=os.path.join(HERE, 'out', 'realtap_%s_%s.png' % (dev.replace(' ', ''), st['scene'].replace(':', '_').replace('.', '_'))))
             await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")
+          elif k in ('c7Fill', 'c7Pour', 'c7Tank'):   # والملء بالزرّين يمضي إلى الخطوة التالية (الكأس أو الحساب) لا إلى خطأ
+            await pg.wait_for_timeout(600); r2 = await pg.evaluate("() => [LOG.attempts.length ? LOG.attempts[LOG.attempts.length - 1].ok : null, window.__auto ? window.__auto.kind : null]")
+            if r2[1] not in ('num', 'pick') and r2[0] is not True: bad.append((dev, st['scene'], k + ' (not ok: %s)' % r2))
           elif k in ('c9Turn', 'c9Prot'):   # والزرّان أوصلا إلى الجواب حقاً: العجلة صحيحة في السجل، والمنقلة تمضي إلى القراءة (المراجع B لإغلاق ألعاب U9، 2)
             await pg.wait_for_timeout(500); r2 = await pg.evaluate("() => [LOG.attempts.length ? LOG.attempts[LOG.attempts.length - 1].ok : null, window.__auto ? window.__auto.kind : null]")
             if (k == 'c9Turn' and r2[0] is not True) or (k == 'c9Prot' and r2[1] != 'num'): bad.append((dev, st['scene'], k + ' (not ok: %s)' % r2))

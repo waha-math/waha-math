@@ -8,6 +8,7 @@
 #          وحين يمتلئ الإطار (والحافلة) تومض القطع الزرقاء كلها، ما دخله وما بقي خارجه.
 #   DRAW   «أيّ الجملتين تناسب الصورة؟»: السهم برأس؛ والمكعب الأبيض بحدٍّ غير أبيض.
 #   PFL    براهين السلسلة: المتوازيان بالارتفاع المتاح، وبطاقة المستوى الثاني بجانب الشكل لا عليه
+#   C7G    ألعاب M4-U7 الحركية (D288 (2)): يملأ ويصبّ ويغلّف ثم يحسب؛ الخطأ المقصود في كل خطوة، والخطوات تبقى، والحلّ المشترك من حيث وقف الطفل
 #   C8G    ألعاب M4-U8 الحركية (D288 (2)): الخطأ المقصود في كل خطوة، والخطوات المنجزة تبقى، والحلّ المشترك من حيث وقف الطفل، والقراءة بوسمها
 #   C9G    ألعاب M4-U9 الحركية (D288 (2)): جولاتها بنودٌ بسلّم D240؛ الخطأ المقصود في كل لعبة، والمرآتان بأيّ ترتيب، والزرّان والتكافؤ واللمستان،
 #          والمنقلة بصفريها، وكل جولةٍ من الدروس الثلاثة بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة (المراجع B لدفعة الألعاب، 2 و3 و4).
@@ -367,6 +368,96 @@ async def c8g(b):
       check('C8G', s2['res'] and not s2['err'] and sum(per.values()) == 4 * items, '%s (%d): كل جولةٍ بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
   check('C8G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
+# M4-U7 الألعاب الحركية (خطة ألعاب المرحلة 4): كوب الماء، وغلّف العلبة، وثلاثة مخاريط وأسطوانة، ومحوّل الخزان
+async def c7g(b):
+  """ألعاب M4-U7 الحركية (D288 (2)): يملأ ويصبّ ويغلّف ثم يحسب. الخطأ المقصود في كل خطوة، والخطوات المنجزة تبقى بعد الخطأ،
+  والمستوى الثاني منقول، والحلّ المشترك من حيث وقف الطفل، والدرجات الأربع حتى الكشف في كل جولةٍ من الدروس الأربعة بلا خطأ في الصفحة"""
+  ctx, pg, errs = await page(b)
+  async def run(lid, spec): await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, spec, 'practice'])
+  async def logs(): return await pg.evaluate("() => LOG.attempts.filter(x => /^c7-/.test(x.tag || '')).map(x => [x.tag, x.ok, x.firstTry === undefined ? null : x.firstTry, x.err || null])")
+  async def wk(kind, after=-1): return await until(pg, lambda s: s['res'] or (s['auto'] and s['auto']['kind'] == kind and s['auto']['n'] != after))
+  async def res(): return await until(pg, lambda s: s['res'] or s['err'], 30000)
+  nn = lambda st: st['auto']['n'] if st and st.get('auto') else -1
+  async def nxt(st): return await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['n'] != nn(st)), 20000)
+  async def press(i, k):
+    for _ in range(k): await pg.evaluate("(i) => { const b = document.querySelectorAll('#stage .choices.icons .pick')[i]; if (b) b.click(); }", i); await pg.wait_for_timeout(40)
+  async def done(): await pg.wait_for_timeout(200); await pg.evaluate("() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }"); await pg.wait_for_timeout(400)
+  async def pick(v): await pg.evaluate("(v) => { const b = [...document.querySelectorAll('#stage .choices .pick, #stage .choices.nums button')].find(b => b.dataset.k === v); if (b) b.click(); }", str(v)); await pg.wait_for_timeout(500)
+  async def face(*fs):
+    for f in fs: await pg.evaluate("(f) => { const g = document.querySelector('#stage svg [data-face=' + f + ']'); if (g) g.dispatchEvent(new MouseEvent('click', { bubbles: true })); }", f); await pg.wait_for_timeout(60)
+  helps = "() => document.querySelectorAll('#stage svg [data-help] *').length"
+  clip = lambda rx: "() => (window.__clips || []).filter(c => /%s/.test(c))" % rx
+  # ---- كوب الماء: يتوقّف قبل الحافّة، ثم الكأس يُقرأ بعيداً، ثم القانون، والخطوات تبقى
+  spec = {'t': 'c7Cup', 'r': 2, 'h': 7, 'q': 'cp.01'}; M = await pg.evaluate("(s) => ITEM.c7Cup.make(s)", spec); await run('m4.u7.d1', spec); st = await wk('c7Fill')
+  await press(1, 5); await done(); L = await logs()
+  check('C7G', L[:1] == [['c7-cup', False, True, 'c7FillShort']], 'كوب الماء: «تمّ» قبل الحافّة خطأ c7FillShort', L)
+  st = await wk('c7Fill', nn(st)); n0 = await pg.evaluate("() => window.__c7N()"); await press(1, 7); await done(); st = await wk('pick', nn(st))
+  jw = await pg.evaluate("() => [...document.querySelectorAll('#stage svg rect')].filter(r => r.getAttribute('fill') === C7.water && +r.getAttribute('x') > 200).length")
+  check('C7G', n0 == 0 and st['auto'] and st['auto']['kind'] == 'pick' and jw > 0, 'كوب الماء: يملأ من جديد، والماء في الكأس بعد الملء', [n0, st['auto'], jw])
+  bad = [v for v in M['reads'] if v != M['read']]; await pick(bad[0]); L = await logs()
+  check('C7G', L[1:] == [['c7-cup', False, False, 'c7JugRead']], 'كوب الماء: قراءة الكأس بعيداً عن سطح الماء خطأ c7JugRead', L)
+  st = await nxt(st); await pg.wait_for_timeout(300); hp = await pg.evaluate(helps)
+  check('C7G', st['auto'] and st['auto']['kind'] == 'pick' and hp > 0, 'كوب الماء: الملء باقٍ بعد الخطأ فالمحاولة تبدأ من الكأس، والمستوى الثاني منقول', [st['auto'], hp])
+  await pick(M['read']); st = await wk('pick', nn(st)); badl = [c for c in M['ch'] if c[0] != M['want']][0]; await pick(badl[0]); L = await logs()
+  check('C7G', L[-1] == ['c7-cup', False, False, badl[1]], 'كوب الماء: القانون الخاطئ بوسمه', [L, badl])
+  st = await nxt(st); await pg.wait_for_timeout(400); tg = await pg.evaluate("() => [document.querySelectorAll('#stage svg [data-help] text').length, (window.__clips || []).filter(c => /^gen\\.c7\\.together\\.vol/.test(c)).length]")
+  await pick(M['want']); r = await res(); L = await logs()
+  check('C7G', tg[0] > 0 and tg[1] == 1 and r['res'] and r['res']['ok'] and L[-1] == ['c7-cup', True, False, None], 'كوب الماء: الحلّ المشترك يكتب الحساب في خطوة القانون، ثم الصحيح', [tg, r['res'], L])
+  await run('m4.u7.d1', spec); st = await wk('c7Fill')
+  for _ in range(3): await press(1, 1); await done(); st = await wk('c7Fill', nn(st))
+  await pg.wait_for_timeout(300); tf = await pg.evaluate("() => [window.__c7N(), (window.__clips || []).filter(c => /^gen\\.c7\\.together\\.fill/.test(c)).length]")
+  check('C7G', tf == [6, 1], 'كوب الماء: الحلّ المشترك في الملء يقف قبل الحافّة بطبقة', tf)
+  await press(1, 1); await done(); st = await nxt(st); check('C7G', st['auto'] and st['auto']['kind'] == 'pick' and await pg.evaluate("() => (window.__clips || []).some(c => /^gen\\.c7\\.q\\.cupRead/.test(c))"), 'كوب الماء: ثم يُصبّ في الكأس ويُسأل عن قراءته', st['auto'])
+  # ---- غلّف العلبة: الجانب وحده، ثم بلا جانب، ثم الطول، والحلّ المشترك
+  spec = {'t': 'c7Wrap', 'r': 2, 'h': 6, 'q': 'wr.01'}; M = await pg.evaluate("(s) => ITEM.c7Wrap.make(s)", spec); await run('m4.u7.d2', spec); st = await wk('c7Wrap')
+  await face('side'); await done(); L = await logs()
+  check('C7G', L[:1] == [['c7-wrap', False, True, 'saOneBase']], 'غلّف العلبة: الجانب وحده ينسى القاعدتين (saOneBase)', L)
+  st = await wk('c7Wrap', nn(st)); await face('lid', 'base'); await done(); L = await logs()
+  check('C7G', L[1:] == [['c7-wrap', False, False, 'saNoSide']], 'غلّف العلبة: القاعدتان بلا الجانب خطأ saNoSide', L)
+  st = await wk('c7Wrap', nn(st)); await face('lid', 'side', 'base'); await done(); st = await wk('pick', nn(st)); bl = [c for c in M['lens'] if c[0] != M['len']][0]; await pick(bl[0]); L = await logs()
+  check('C7G', L[-1] == ['c7-wrap', False, False, bl[1]], 'غلّف العلبة: الوجوه الثلاثة ثم الطول الخاطئ بوسمه', [L, bl])
+  st = await nxt(st); await pg.wait_for_timeout(300); tg = await pg.evaluate("() => [document.querySelectorAll('#stage svg [data-face][role=button]').length, document.querySelectorAll('#stage svg [data-help] text').length]")
+  await pick(M['len']); st = await wk('pick', nn(st)); await pick(M['want']); r = await res(); L = await logs()
+  check('C7G', tg[0] == 0 and tg[1] > 0 and r['res'] and r['res']['ok'] and L[-1] == ['c7-wrap', True, False, None], 'غلّف العلبة: التغليف باقٍ بعد الخطأ، والحلّ المشترك في الطول، ثم الورق كله', [tg, r['res'], L])
+  spec = {'t': 'c7Wrap', 'r': 2, 'h': 7, 'lid': False, 'q': 'wr.03'}; M = await pg.evaluate("(s) => ITEM.c7Wrap.make(s)", spec); await run('m4.u7.d2', spec); st = await wk('c7Wrap')
+  fs = await pg.evaluate("() => [...document.querySelectorAll('#stage svg [data-face]')].map(g => g.dataset.face).sort()"); await face('side', 'base'); await done(); st = await wk('pick', nn(st)); await pick(M['len']); st = await wk('pick', nn(st))
+  lid = [c for c in M['ch'] if c[1] == 'saLidAdd']; await pick(lid[0][0] if lid else -1); L = await logs()
+  check('C7G', fs == ['base', 'side'] and bool(lid) and L == [['c7-wrap-open', False, True, 'saLidAdd']], 'غلّف العلبة: العلبة بلا غطاء وجهان، وإضافة الغطاء في الورق خطأ saLidAdd', [fs, M['ch'], L])
+  # ---- ثلاثة مخاريط وأسطوانة
+  spec = {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'th.01'}; M = await pg.evaluate("(s) => ITEM.c7Thirds.make(s)", spec); await run('m4.u7.d3', spec); st = await wk('c7Pour')
+  await press(1, 2); await done(); st = await wk('c7Pour', nn(st)); await press(1, 4); await done(); L = await logs()
+  check('C7G', [x[3] for x in L] == ['c7PourShort', 'c7PourOver'], 'ثلاثة مخاريط: تعبئتان قبل الامتلاء خطأ، وأربعٌ تفيض خطأ', L)
+  st = await wk('c7Pour', nn(st)); await press(1, 3); await done(); st = await wk('pick', nn(st)); bt = [c for c in M['ch'] if c[0] != M['want']][0]; await pick(bt[0])
+  st = await nxt(st); await pg.wait_for_timeout(300); k4 = st['auto']['kind'] if st['auto'] else None; await pick(M['want']); r = await res(); L = await logs()
+  check('C7G', L[2][3] == bt[1] and k4 == 'pick' and r['res'] and r['res']['ok'], 'ثلاثة مخاريط: ثلاث تعبئات ثم الحساب، والتعبئة باقيةٌ بعد خطأ الحساب', [L, bt, k4])
+  spec = {'t': 'c7Thirds', 'fig': 'cone', 'v': 14, 'q': 'th.03'}; await run('m4.u7.d3', spec); st = await wk('c7Pour'); await press(1, 3); await done(); st = await wk('pick', nn(st)); await pick(42); r = await res(); L = await logs()
+  check('C7G', L == [['c7-thirds-cone', True, True, None]], 'ثلاثة مخاريط: الكبير ثلاثة أمثال الصغير صحيحٌ من أول محاولة', L)
+  # ---- محوّل الخزان
+  spec = {'t': 'c7Tank', 'a': 30, 'b': 20, 'c': 40, 'to': 'cm3', 'q': 'tc.01'}; M = await pg.evaluate("(s) => ITEM.c7Tank.make(s)", spec); await run('m4.u7.d4', spec); st = await wk('c7Tank')
+  await press(1, 3); await done(); st = await wk('c7Tank', nn(st)); await press(1, 4); await done(); st = await wk('pick', nn(st)); bl = [c for c in M['lits'] if c[1] == 'c7TankLayers']; await pick(bl[0][0] if bl else -1); L = await logs()
+  check('C7G', [x[3] for x in L] == ['c7FillShort', 'c7TankLayers'], 'محوّل الخزان: طبقاتٌ ناقصة، ثم عدّ الطبقات لترات (c7TankLayers)', [L, M['lits']])
+  st = await nxt(st); k3 = st['auto']['kind'] if st['auto'] else None; await pick(24); st = await wk('pick', nn(st)); bc = [c for c in M['ch'] if c[0] != M['want']][0]; await pick(bc[0]); L = await logs()
+  check('C7G', k3 == 'pick' and L[-1] == ['c7-tank-cm3', False, False, bc[1]], 'محوّل الخزان: الملء باقٍ بعد الخطأ، والتحويل الخاطئ بوسمه', [k3, L, bc])
+  st = await nxt(st); await pick(M['want']); r = await res(); L = await logs()
+  check('C7G', r['res'] and r['res']['ok'] and L[-1] == ['c7-tank-cm3', True, False, None], 'محوّل الخزان: ثم بالسنتيمتر المكعب', [r['res'], L])
+  spec = {'t': 'c7Tank', 'a': 200, 'b': 500, 'c': 60, 'to': 'm3', 'q': 'tc.03'}; await run('m4.u7.d4', spec); st = await wk('c7Tank'); await press(1, 6); await done(); st = await wk('pick', nn(st)); await pick(6000); st = await wk('pick', nn(st)); await pick(6); r = await res(); L = await logs()
+  check('C7G', L == [['c7-tank-m3', True, True, None]], 'محوّل الخزان: ستّ طبقاتٍ من ألف لتر ستة أمتارٍ مكعبة', L)
+  # ---- الدروس الأربعة: كل جولةٍ بأربعة أخطاء ثم الكشف، والجولات كلها تنتهي
+  for lid in ('m4.u7.d1', 'm4.u7.d2', 'm4.u7.d3', 'm4.u7.d4'):
+    for i in await pg.evaluate("(lid) => LDATA[lid].flow.map((s, i) => s.scene === 'motion' ? i : -1).filter(i => i >= 0)", lid):
+      await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, i, 'game']); last = None
+      for _ in range(200):
+        s2 = await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['n'] != last), 20000)
+        if s2['res'] or s2['err'] or not s2['auto']: break
+        last = s2['auto']['n']; await pg.wait_for_timeout(120)
+        await pg.evaluate("() => { const a = window.__auto; if (a) (a.wrong || a.ok)(); }")
+      L = await logs(); per = {}
+      for x in L:
+        if x[1] is False: per[x[0]] = per.get(x[0], 0) + 1
+      items = await pg.evaluate("([lid, i]) => LDATA[lid].flow[i].items.length", [lid, i])
+      check('C7G', s2['res'] and not s2['err'] and sum(per.values()) == 4 * items, '%s (%d): كل جولةٍ بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
+  check('C7G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
+
 # براهين M4 في السلسلة: المتوازيان لا يُطبقان في الشريط فوق البطاقات، وبطاقة المستوى الثاني بجانب الشكل لا عليه
 async def pfl(b):
   """PFL: في «رتّب خطوات البرهان» (prChain) يُرسم المتوازيان بالارتفاع المتاح (كان بُعدهما 6 وحدات فتتراكب أعداد الزوايا)،
@@ -391,7 +482,7 @@ async def pfl(b):
 async def main():
   async with async_playwright() as p:
     b = await p.chromium.launch()
-    for k, f in (('STORY', story), ('MINUS', minus), ('OFFER', offer), ('FRAME', frame), ('TEN', ten), ('DRAW', draw), ('C9G', c9g), ('C8G', c8g), ('PFL', pfl)):
+    for k, f in (('STORY', story), ('MINUS', minus), ('OFFER', offer), ('FRAME', frame), ('TEN', ten), ('DRAW', draw), ('C9G', c9g), ('C8G', c8g), ('C7G', c7g), ('PFL', pfl)):
       if not on(k): continue
       try: await f(b)
       except Exception as e: check(k, False, 'توقّف القسم باستثناء', str(e)[:300])   # (على النسخة القديمة يمضي البند إلى «كم؟» فلا تُلمس أزرار البناء)
