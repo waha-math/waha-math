@@ -119,7 +119,7 @@ const c6Whole = s => s.C ?? s.A ?? (s.kind === 'arc' ? 2 * 3.14 * s.r : 3.14 * s
 const c6R = v => Math.round(v * 100) / 100;
 ITEM.ci4Sector = cpItem({ H: 262, tLine: 'gen.ci4.together.sector', hint: 'gen.ci4.hint.sector', rLine: it => 'gen.ci4.reveal.' + it.kind, rSay: it => S(ciLine(it.want, it.uk), { append: true }), praise: 'praiseThink',
   make: s => { const W = c6R(c6Whole(s)), want = c6R(W * s.ang / 360), uk = s.kind === 'area' ? s.u + '2' : s.u, C = [want];
-    const k = (s.ang / 15 + (s.C ?? s.A ?? s.r ?? 0)) % 2;   /* رتبة الجواب تتغيّر: والنصفُ خلطٌ بالمحيطية (المراجع A، 3) */
+    const k = (Math.floor(s.ang / 15) + Math.floor(s.C ?? s.A ?? s.r ?? 0)) % 2;   /* رتبة الجواب تتغيّر: والنصفُ خلطٌ بالمحيطية (المراجع A، 3) */
     for (const v of (k ? [c6R(want / 2), c6R(W * s.ang / 180), c6R(W - want)] : [c6R(W / 2), c6R(W - want), c6R(W * s.ang / 180), c6R(W / 4)])) if (C.length < 3 && !C.includes(v) && v > 0) C.push(v);
     return { W, want, uk, cands: C, tag: 'ci4-sector-' + s.kind + (s.r != null ? '-r' : '') }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), O = [180, 134], R = 82, a1 = 90, a2 = 90 + item.ang; item._g = { O, R, a1, a2 };
@@ -200,6 +200,7 @@ SCENES.ci4SectorShow = async c => { const L = c.lines, svg = m3Stage(250), O = [
 /* د4: حديقة القوس: نصف قطرها 5 م، وممرٌّ على قوس 90° */
 SCENES.ci4GardenShow = async c => { const L = c.lines, svg = m3Stage(250), O = [180, 136], R = 88, g = el('g', { 'pointer-events': 'none' }, svg);
   el('circle', { cx: O[0], cy: O[1], r: R, fill: '#bfe3a8', stroke: '#5c8f43', 'stroke-width': 3 }, g); c6Seg(g, O, angP(O, 0, R), C6.r, 3); c6Num(g, O[0] + R / 2, O[1] + 18, '5', { col: C6.r }); pfDot(g, O); await c6Say(L, 0);
+  if (c.mapOnly) { el('path', { d: angArc(O, R, 90, 180), fill: 'none', stroke: '#c99a5b', 'stroke-width': 10, 'stroke-linecap': 'round' }, g); c6SecPath(g, O, R, 90, 180); for (const l of L.slice(1)) await S(l); return; }   /* الحديقة والممرّ والقطاع بلا حساب: الحساب للطفل (المراجع A، 5) */
   el('path', { d: angArc(O, R, 90, 180), fill: 'none', stroke: '#c99a5b', 'stroke-width': 10, 'stroke-linecap': 'round' }, g); const e1 = ciEq(g, 180, 24, `31.4 ÷ 4 = 7.85`, C6.arc, 17); SFX.tick(); await c6Say(L, 1); e1.remove();
   el('path', { d: `M${O[0]} ${O[1]} L${angP(O, 90, R).join(' ')} ` + angArc(O, R, 90, 180).replace(/^M[^A]*/, '') + ' Z', fill: 'rgba(217,130,43,.3)' }, g); ciEq(g, 180, 24, `78.5 ÷ 4 = 19.625`, C6.ok, 17); SFX.tick(); await c6Say(L, 2); for (const l of L.slice(3)) await S(l); };
 WRAP_ART.circ4Art = svg => { const g = el('g', { 'pointer-events': 'none' }, svg), O = [214, 120], R = 70; c6Circle(g, O, R); const C = c6Chord(O, R, 30); c6Seg(g, C.A, C.B, C6.ch, 4); c6Seg(g, O, C.M, C6.ok, 3, '6 4');

@@ -25,17 +25,39 @@ def half(r,d,ask):
 def tan(kind,a): return {"t":"ci4Tan","kind":kind,"dir":a,"q":"gen.ci4.q.tan"}
 def tanlen(r,op,ask):
     l=math.isqrt(op*op-r*r); assert l*l==op*op-r*r, (r,op); return {"t":"ci4TanLen","r":r,"op":op,"ask":ask,"q":"gen.ci4.q.tanLen."+ask}
-def tanang(th): return {"t":"ci4TanAng","th":th,"q":"gen.ci4.q.tanAng"}
+DEGS=set([116,58,136,68,58,122,232,64,180,90,44])   # الزوايا المنطوقة: المعطاة والجواب (وبندا u8 والختامي)
+def tanang(th):
+    DEGS.update(v for v in [90-th, th, 180-th, (90-th)//2] if v>0); return {"t":"ci4TanAng","th":th,"q":"gen.ci4.q.tanAng"}
+
+F1={1:'إِحْدَى',2:'اثْنَتَانِ',3:'ثَلَاثٌ',4:'أَرْبَعٌ',5:'خَمْسٌ',6:'سِتٌّ',7:'سَبْعٌ',8:'ثَمَانٍ',9:'تِسْعٌ'}
+FF={3:'ثَلَاثُ',4:'أَرْبَعُ',5:'خَمْسُ',6:'سِتُّ',7:'سَبْعُ',8:'ثَمَانِي',9:'تِسْعُ',10:'عَشْرُ'}
+FT={11:'إِحْدَى عَشْرَةَ',12:'اثْنَتَا عَشْرَةَ',13:'ثَلَاثَ عَشْرَةَ',14:'أَرْبَعَ عَشْرَةَ',15:'خَمْسَ عَشْرَةَ',16:'سِتَّ عَشْرَةَ',17:'سَبْعَ عَشْرَةَ',18:'ثَمَانِيَ عَشْرَةَ',19:'تِسْعَ عَشْرَةَ'}
+TN={20:'عِشْرُونَ',30:'ثَلَاثُونَ',40:'أَرْبَعُونَ',50:'خَمْسُونَ',60:'سِتُّونَ',70:'سَبْعُونَ',80:'ثَمَانُونَ',90:'تِسْعُونَ'}
+HN={1:'مِئَةٌ',2:'مِئَتَانِ',3:'ثَلَاثُمِئَةٍ'}; HC={1:'مِئَةُ',2:'مِئَتَا',3:'ثَلَاثُمِئَةِ'}
+def deg_below(r):   # 1..99 مع «درجة» (مؤنّثة)
+    if r==1: return 'دَرَجَةٌ وَاحِدَةٌ'
+    if r==2: return 'دَرَجَتَانِ'
+    if r<=10: return FF[r]+' دَرَجَاتٍ'
+    if r<20: return FT[r]+' دَرَجَةً'
+    u,t=r%10,r-r%10
+    return (F1[u]+' وَ' if u else '')+TN[t]+' دَرَجَةً'
+def degphrase(n):
+    h,r=divmod(n,100)
+    if not h: return deg_below(r)
+    if not r: return HC[h]+' دَرَجَةٍ'
+    return HN[h]+' وَ'+deg_below(r)
 def ang(cen,ask,pAt=None):
-    d={"t":"ci4Ang","cen":cen,"ask":ask,"q":"gen.ci4.q.ang."+ask}
+    i=cen//2; DEGS.update(v for v in [cen, i, 180-i, min(2*cen,360), 90+i, 360-cen, 180-cen, 45] if 0<v<=360); d={"t":"ci4Ang","cen":cen,"ask":ask,"q":"gen.ci4.q.ang."+ask}
     if pAt is not None: d["pAt"]=pAt
     return d
+ang(116,'cen'); ang(136,'ins')   # بندا u8.d1 المشتبك والختامي f16: جمل زواياهما
 VALS=set()
 def jr(v): return math.floor(v*100+0.5+1e-9)/100   # كـ Math.round(v * 100) / 100
 def sector(kind,a,u,C=None,A=None,r=None):
     W=jr(C if C is not None else A if A is not None else (2*3.14*r if kind=='arc' else 3.14*r*r)); want=jr(W*a/360); uk=u+'2' if kind=='area' else u; cands=[want]
-    for v in [jr(W/2), jr(W-want), jr(W*a/180), jr(W/4)]:
-        if len(cands)<3 and v not in cands: cands.append(v)
+    k=(math.floor(a/15)+math.floor(C if C is not None else A if A is not None else r if r is not None else 0))%2   # كما في ITEM.ci4Sector (المراجع A لبوابة M4-U5/U6، 3)
+    for v in ([jr(want/2), jr(W*a/180), jr(W-want)] if k else [jr(W/2), jr(W-want), jr(W*a/180), jr(W/4)]):
+        if len(cands)<3 and v not in cands and v>0: cands.append(v)
     for v in cands: VALS.add((v,uk))
     VALS.add((W,uk))
     d={"t":"ci4Sector","kind":kind,"ang":a,"u":u,"q":"gen.ci4.q."+kind}
@@ -259,9 +281,8 @@ L4={
  "se.02":"مِسَاحَتُهُ بِالكَسْرِ نَفْسِهِ: قِطَاعُ تِسْعِينَ دَرَجَةً مِنْ قُرْصٍ مِسَاحَتُهُ مِئَةٌ، مِسَاحَتُهُ خَمْسَةٌ وَعِشْرُونَ.",
  "se.03":"القَاعِدَةُ: مِسَاحَةُ القِطَاعِ هِيَ الزَّاوِيَةُ عَلَى ثَلَاثِمِئَةٍ وَسِتِّينَ، فِي مِسَاحَةِ الدَّائِرَةِ.",
  "gd.01":"مَشْرُوعُ حَدِيقَةِ القَوْسِ: حَدِيقَةٌ مُسْتَدِيرَةٌ نِصْفُ قُطْرِهَا خَمْسَةُ أَمْتَارٍ.",
- "gd.02":"فِيهَا مَمَرٌّ عَلَى قَوْسِ تِسْعِينَ دَرَجَةً: رُبْعُ المُحِيطِ، سَبْعَةُ أَمْتَارٍ وَخَمْسَةٌ وَثَمَانُونَ جُزْءًا مِنْ مِئَةٍ، أَيْ سَبْعَةٌ وَتِسْعَةُ أَعْشَارٍ تَقْرِيبًا.",
- "gd.03":"وَقِطَاعُ الزِّرَاعَةِ رُبْعُ الحَدِيقَةِ: تِسْعَةَ عَشَرَ مِتْرًا مُرَبَّعًا وَسِتَّةُ أَعْشَارٍ تَقْرِيبًا.",
- "tb.01":"جَدْوَلُ المَشْرُوعِ: العُنْصُرُ، وَالحِسَابُ، وَالنَّاتِجُ، وَالوَحْدَةُ.",
+ "gd.04":"{اُحْسُبْ|اُحْسُبِي} {أَنْتَ|أَنْتِ}: طُولَ المَمَرِّ عَلَى قَوْسِ تِسْعِينَ دَرَجَةً، وَمِسَاحَةَ قِطَاعِ الزِّرَاعَةِ.",
+ "tb.01":"جَدْوَلُ المَشْرُوعِ: مَا {حَسَبْتَهُ|حَسَبْتِهِ}: طُولُ المَمَرِّ بِالأَمْتَارِ، وَمِسَاحَةُ القِطَاعِ بِالأَمْتَارِ المُرَبَّعَةِ.",
  "tb.02":"وَلِلْإِبْدَاعِ: {صَمِّمْ|صَمِّمِي} حَدِيقَةً بِمَمَرٍّ عَلَى قَوْسٍ آخَرَ، {وَاحْسُبْ|وَاحْسُبِي} طُولَهُ وَمِسَاحَةَ قِطَاعِهِ.",
  "mat.01":"{مُدَّ|مُدِّي} خَيْطًا عَلَى حَافَّةِ طَبَقٍ مُسْتَدِيرٍ، {وَقِسْ|وَقِيسِي} بِالمِسْطَرَةِ رُبْعَهَا، {وَقَارِنْهُ|وَقَارِنِيهِ} بِرُبْعِ المُحِيطِ المَحْسُوبِ. ثُمَّ {اِلْمِسْ|اِلْمِسِي} «تَمَّ».",
  "mat.02":"وَالآنَ عَلَى الشَّاشَةِ.",
@@ -296,9 +317,10 @@ d4={"id":"m4.u6.d4","title":"القِطَاعُ وَطُولُ القَوْسِ"
  "flow":[
   {"s":"explore","scene":"ci4ArcShow","mat":MAT(),"lines":["ar.00","ar.01","ar.02","ar.03","ar.04"]},
   {"s":"explore","scene":"ci4SectorShow","ang":90,"lines":["se.01","se.02","se.03"]},
-  {"s":"explore","scene":"ci4GardenShow","lines":["gd.01","gd.02","gd.03"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"prj.intro","items":[tw(sector('arc',90,'m',C=36),sector('arc',120,'m',C=24)), tw(sector('area',90,'m',A=100),sector('area',60,'m',A=72))]},
-  {"s":"explore","scene":"lines","table":True,"lines":["tb.01","tb.02"]},
+  # المشروع (المراجع A لبوابة M4-U5/U6، 5): الحديقة بمعطياتها، ثم يحسب الطفل ممرّها وقطاعها، ثم جدولٌ بما حسبه
+  {"s":"explore","scene":"ci4GardenShow","mapOnly":True,"lines":["gd.01","gd.04"]},
+  {"s":"game","scene":"items","mode":"practice","intro":"prj.intro","items":[tw(sector('arc',90,'m',r=5),sector('arc',120,'m',C=24)), tw(sector('area',90,'m',r=5),sector('area',60,'m',A=72))]},
+  {"s":"explore","scene":"projTable","cols":["ciTbItem","ciTbRes"],"rows":[["ciTbPath","7.85"],["ciTbSector","19.63"]],"rowLab":True,"lastCol":True,"lines":["tb.01","tb.02"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
   "normal":[tw(sector('arc',90,'cm',r=5),sector('arc',180,'cm',C=20)), tw(sector('area',45,'cm',A=80),sector('area',120,'cm',A=150)), tw(sector('arc',60,'cm',C=42),sector('arc',270,'cm',C=40))],
@@ -388,7 +410,7 @@ G={
 }
 def ckey(v): return (('%.2f'%v).rstrip('0').rstrip('.')).replace('.','_')
 for v,uk in VALS: G.setdefault('gen.ci.v.%s.%s'%(ckey(v),uk), decphrase(v,uk)+'.')
-LB={"ci4RuleChord":"الوَتَرُ يَصِلُ نُقْطَتَيْنِ عَلَى الدَّائِرَةِ","ci4RuleHalf":"العَمُودُ مِنَ المَرْكَزِ يُنَصِّفُ الوَتَرَ","ci4RulePy":"نِصْفُ القُطْرِ وَتَرٌ: نِصْفُ الوَتَرِ وَالعَمُودُ ضِلْعَاهُ",
+LB={"ciTbItem":"العُنْصُرُ","ciTbRes":"النَّاتِجُ","ciTbPath":"المَمَرُّ (م)","ciTbSector":"القِطَاعُ (م٢)","ci4RuleChord":"الوَتَرُ يَصِلُ نُقْطَتَيْنِ عَلَى الدَّائِرَةِ","ci4RuleHalf":"العَمُودُ مِنَ المَرْكَزِ يُنَصِّفُ الوَتَرَ","ci4RulePy":"نِصْفُ القُطْرِ وَتَرٌ: نِصْفُ الوَتَرِ وَالعَمُودُ ضِلْعَاهُ",
     "ci4RuleTan":"المُمَاسُّ: نُقْطَةٌ مُشْتَرَكَةٌ وَاحِدَةٌ","ci4RuleTanR":"نِصْفُ القُطْرِ عَمُودِيٌّ عَلَى المُمَاسِّ","ci4RuleInsc":"المُحِيطِيَّةُ نِصْفُ المَرْكَزِيَّةِ",
     "ci4RuleArc":"القَوْسُ = الزَّاوِيَةُ ÷ N × المُحِيطُ","ci4RuleArea":"القِطَاعُ = الزَّاوِيَةُ ÷ N × المِسَاحَةُ",
     "pf.rs.radii":"نِصْفَا قُطْرٍ","pf.rs.rhs":"وَتَرٌ وَضِلْعٌ قَائِمٌ","pf.rs.isoBase":"زَاوِيَتَا القَاعِدَةِ","pf.rs.ext":"الخَارِجِيَّةُ مَجْمُوعُ البَعِيدَتَيْنِ",
@@ -424,6 +446,7 @@ p=ROOT+'/content/strings/gen.json'; g=json.load(open(p,encoding='utf8'))
 for k,v in G.items():
     if k.startswith('gen.ci.v.') and k in g['lines']: continue
     g['lines'][k]=v
+for d in sorted(DEGS): g['lines'].setdefault('gen.deg.%d'%d, degphrase(d))   # الزوايا الجديدة بلا جملة (المراجع A لبوابة M4-U5/U6، 6)
 open(p,'w',encoding='utf8').write(json.dumps(g,ensure_ascii=False,indent=1)+'\n')
 p=ROOT+'/content/strings/labels.json'; raw=open(p,encoding='utf8').read(); l=json.loads(raw)
 for k,v in LB.items(): l['ui'][k]=E2W(v)

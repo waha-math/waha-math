@@ -284,6 +284,7 @@ SCENES.c4CheckShow = async c => { const L = c.lines, svg = m3Stage(250), [m, b] 
 /* د4: المدينة في الأرباع: مبانٍ، وطريقٌ بطوله وميله، وشارعٌ بمعادلته، وشارعان متعامدان */
 SCENES.c4CityShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5, top: 16 }), B = { a: [-3, 2], b: [1, -1], j: [-3, -2], d: [2, 3] };
   for (const [k, p] of Object.entries(B)) c4Dot(svg, Pl, ...p, { art: 'house', name: k, pair: true, fs: 11, col: C4.pt }); await c4Say(L, 0);
+  if (c.mapOnly) { for (const l of L.slice(1)) await S(l); return; }   /* المشروع: الخريطة بمعطياتها وحدها، والحساب للطفل في البنود (المراجع A لبوابة M4-U5/U6، 5) */
   let g = el('g', { 'pointer-events': 'none' }, svg); const A1 = Pl.P(...B.a), B1 = Pl.P(...B.b); geoLine(g, A1[0], A1[1], B1[0], B1[1], { color: C4.pt2, w: 4 }); c4RunRise(g, Pl, B.a, B.b, { abs: true }); SFX.tick(); await c4Say(L, 1);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); c4Line(g, Pl, 1, 1, { col: C4.ln, w: 4 }); c4EqText(g, 92, 32, 1, 1, { fs: 18 }); c4Dot(g, Pl, 0, 1, { col: C4.ok }); SFX.tick(); await c4Say(L, 2);
   c4Line(g, Pl, -1, 5, { col: C4.pt2, w: 4, dash: '8 6' }); preRight(g, Pl.P(2, 3), Pl.P(3, 4), Pl.P(3, 2), 10); SFX.tick(); await c4Say(L, 3); for (const l of L.slice(4)) await S(l); };
