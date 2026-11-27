@@ -62,7 +62,7 @@ const SUP_RX = /\u2063[٢٣]/;
 function supRaise(n) { if (!n || n.nodeType !== 3 || SET.digits !== 'east') return; const p = n.parentNode; if (!p || p.dataset && p.dataset.sup) return; const m = SUP_RX.exec(n.data); if (!m) return;
   const rest = n.splitText(m.index), after = rest.splitText(2), svg = p.namespaceURI === 'http://www.w3.org/2000/svg';
   const s = svg ? document.createElementNS(p.namespaceURI, 'tspan') : document.createElement('sup'); s.dataset.sup = 1;
-  if (svg) { s.setAttribute('baseline-shift', 'super'); s.setAttribute('font-size', '70%'); } else s.style.fontSize = '70%';
+  if (svg) { s.setAttribute('baseline-shift', 'super'); s.setAttribute('font-size', '80%'); } else s.style.fontSize = '80%';   /* ٨٠٪ من خطّ سطره: لا أسَّ دون ذلك على iPhone SE (المراجع B لبوابة M4-U3/U4، 7) */
   p.insertBefore(s, rest); s.appendChild(rest); supRaise(after); }
 function supScan(root) { if (!root) return; if (root.nodeType === 3) return supRaise(root); if (root.nodeType !== 1) return; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), L = []; while (w.nextNode()) L.push(w.currentNode); L.forEach(supRaise); }
 { const on = () => { new MutationObserver(ms => { if (SET.digits !== 'east') return; for (const m of ms) { if (m.type === 'characterData') supRaise(m.target); else m.addedNodes.forEach(supScan); } })

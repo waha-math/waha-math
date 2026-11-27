@@ -168,7 +168,7 @@ const DQ_MAKE = { para: { p: 10, r: 6, s: .5, u: .5, th: 60 }, rhom: { p: 10, r:
 const DQ_GEN = { square: ['rect', 'rhom', 'para', 'kite'], rect: ['para'], rhom: ['para', 'kite'] };
 ITEM.diagMake = {
   make(spec) { return { ...DQ_MAKE[spec.k], ...spec, want: spec.k, tag: 'dq-make' }; },
-  async ask(item, mode, tries) { const svg = m3Stage(236), R = dqDraw(svg, item, [180, 104, 220, 150], { parts: true, right: true, ticks: true, fill: tries >= 3 ? DQ.fill : 'none' });
+  async ask(item, mode, tries) { const svg = m3Stage(236), R = dqDraw(svg, item, [180, 120, 220, 116], { parts: true, right: true, ticks: true, fill: tries >= 3 ? DQ.fill : 'none' });   /* تحت سطر العون، فلا تغطّي البطاقةُ العودَ العلوي (المراجع B لبوابة M4-U3/U4، 4) */
     if (tries < 3) R.g.querySelector('polygon').setAttribute('stroke', 'none');   /* العودان وحدهما: الأضلاع تُرى في الحلّ المشترك */
     const t = el('text', { x: 180, y: 209, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, svg); t.textContent = labelText('dqSticks') + ' ' + lenTxt(dqLen(item.p)) + ' ' + labelText('dqAnd') + ' ' + lenTxt(dqLen(item.r));
     await S(tries >= 3 ? 'gen.dq.together.make' : item.q || 'gen.dq.q.make');

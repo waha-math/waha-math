@@ -16,7 +16,9 @@ const ciTxt = (v, u) => MS(String(ciR(v))) + (u && u !== 'n' ? ' ' + ciU(u) : ''
 /* وحدة الجواب: الطول للمحيط والقطر ونصفه، والمربعة للمساحة ونصفها */
 const ciUnitOf = (ask, u) => ['area', 'half'].includes(ask) ? u + '2' : ['ratio', 'times'].includes(ask) ? 'n' : u;
 /* حسابٌ بالأعداد وحدها: يُكتب من اليسار ويُعكس للأرقام العربية (MF)، فيُقرأ من اليمين «3.14 × 10 = 31.4» */
-function ciEq(parent, x, y, s, col = CI.ok, fs = 18) { const t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', 'pointer-events': 'none' }, parent); return mfSet(t, s); }
+function ciEq(parent, x, y, s, col = CI.ok, fs = 18) { { const sv = parent.ownerSVGElement || parent, fr = sv.querySelector && sv.querySelector('rect[x="20"][y="14"][width="320"]');   /* داخل الإطار الورقي كالبطاقة (المراجع B لبوابة M4-U3/U4، 5) */
+    if (fr) { const bot = 14 + (+fr.getAttribute('height') || 0); y = Math.min(Math.max(y, 14 + fs + 2), bot - 7); } }
+  const t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 800, fill: col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', 'pointer-events': 'none' }, parent); return mfSet(t, s); }
 /* قانونٌ بالكلمات (نصٌّ من اليمين) */
 function ciRule(parent, x, y, txt, col = CI.think, fs = 16) { const g = el('g', { 'pointer-events': 'none' }, parent);
   /* العرض بطول النصّ المقيس، والخطّ يُصغَّر حتى يسعه الإطار (حتى 12 وحدة) فلا يُطلب خطٌّ صغير لبطاقةٍ طويلة (المراجع B لبوابة M4-U1/U2، 11) */

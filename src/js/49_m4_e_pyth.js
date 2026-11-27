@@ -33,7 +33,7 @@ ITEM.pySq = cpItem({ H: 262, tLine: 'gen.py.together.sq', hint: 'gen.py.hint.sq'
   errOf: (it, k) => k === it.a + it.b ? 'pyAdd' : k === (it.a + it.b) ** 2 ? 'pySqSum' : 'pyOff' });
 
 /* ================= ② الضلع القائم (C407): hyp، a معلوم؛ ctx tri | perp (عمود من نقطة إلى طريق) | ladder (سلّم على جدار) ================= */
-function pyScene(g, ctx, hyp, a, want, o = {}) { const u = ctx === 'tri' ? Math.min(o.u || 34, 168 / Math.max(want, 1), 220 / Math.max(a, 1)) : Math.min(o.u || 14, 210 / Math.max(hyp, 1), 160 / Math.max(want, 1), 250 / Math.max(a, 1)), labs = {};   /* الارتفاع والعرض داخل الإطار */
+function pyScene(g, ctx, hyp, a, want, o = {}) { const u = ctx === 'tri' ? Math.min(o.u || 34, 168 / Math.max(want, 1), 220 / Math.max(a, 1)) : ctx === 'perp' ? Math.min(o.u || 14, 132 / Math.max(want, 1), 176 / Math.max(a, 1)) : Math.min(o.u || 14, 210 / Math.max(hyp, 1), 160 / Math.max(want, 1), 250 / Math.max(a, 1)), labs = {};   /* بالعمود: «ن» تحت سطر العون، و«ر» داخل الإطار (المراجع B لبوابة M4-U3/U4، 4 و5) */   /* الارتفاع والعرض داخل الإطار */
   if (ctx === 'perp') { const y = 196, N = [150, y - want * u], Qf = [150, y], R = [150 + a * u, y]; geoLine(g, 24, y, 336, y, { color: PY.road, w: 5 }); geoLine(g, N[0], N[1], Qf[0], Qf[1], { color: PY.a, w: 3.4, dash: '7 5' }); geoLine(g, N[0], N[1], R[0], R[1], { color: PY.c, w: 4 });
     preRight(g, Qf, N, R, 12); [N, Qf, R].forEach(P => pfDot(g, P)); pfLab(g, N[0] - 14, N[1] + 6, 'ن'); pfLab(g, Qf[0] - 10, y + 20, 'ق'); pfLab(g, R[0] + 10, y + 20, 'ر');
     labs.hyp = preLab(g, (N[0] + R[0]) / 2 + 16, (N[1] + R[1]) / 2 - 6, MS(String(hyp)), { col: PY.c, fs: 16, anchor: 'start' }); labs.a = preLab(g, (Qf[0] + R[0]) / 2, y + 22, MS(String(a)), { fs: 16 }); labs.q = preLab(g, N[0] - 12, (N[1] + y) / 2 + 6, '؟', { col: PY.q, fs: 18, anchor: 'end' }); labs.pts = { h: [N, R], k: [Qf, R], C: Qf }; return labs; }
@@ -61,7 +61,7 @@ ITEM.pyLeg = cpItem({ H: 250, tLine: 'gen.py.together.leg', hint: 'gen.py.hint.l
 ITEM.pyApprox = cpItem({ H: 236, tLine: 'gen.py.together.approx', hint: 'gen.py.hint.approx', rLine: 'gen.py.reveal.approx', rSay: it => S('gen.py.v.' + pyKey(it.r), { append: true }), praise: 'praiseThink',
   make: s => { const r = +pyRt(s.a, s.b).toFixed(1), cands = [r, +(r - .1).toFixed(1), +(r + .1).toFixed(1)]; return { r, cands, want: pyKey(r), tag: 'py-approx' }; },   /* ثلاثة أعداد عشرية متجاورة: أيّها مربعه أقرب إلى مربع الوتر؟ فلا يُعرف الجواب بشكله (المراجع A لبوابة M4-U3/U4، 3) */
   draw(svg, item, tries) { const g = el('g', {}, svg), u = Math.min(60, 150 / item.b, 200 / item.a);
-    if (item.rot) { const T = preRightTriPts(item.a, item.b, 60, { rot: item.rot, cen: [190, 150], box: [240, 120] }), cen = [(T.A[0] + T.B[0] + T.C[0]) / 3, (T.A[1] + T.B[1] + T.C[1]) / 3]; item._T = T;
+    if (item.rot) { const T = preRightTriPts(item.a, item.b, 60, { rot: item.rot, cen: [190, 136], box: [240, 104] }), cen = [(T.A[0] + T.B[0] + T.C[0]) / 3, (T.A[1] + T.B[1] + T.C[1]) / 3]; item._T = T;
       el('polygon', { points: polyStr([T.A, T.C, T.B]), fill: PY.fa, stroke: PY.ink, 'stroke-width': 3.2, 'stroke-linejoin': 'round', 'pointer-events': 'none' }, g); preRight(g, T.C, T.A, T.B, 12);
       preSegLab(g, T.A, T.C, cen, MS(String(item.a)), { fs: 16 }); preSegLab(g, T.C, T.B, cen, MS(String(item.b)), { fs: 16 }); preSegLab(g, T.A, T.B, cen, '؟', { col: PY.q, fs: 18 }); }
     else { const C = [250, 196], T = pyTri(g, C, item.a, item.b, u); item._T = T;
@@ -73,12 +73,15 @@ ITEM.pyApprox = cpItem({ H: 236, tLine: 'gen.py.together.approx', hint: 'gen.py.
   errOf: () => 'pyOff' });
 
 /* ليس بالقياس: الزاوية الكبرى مرسومةً ٨٣° أو ٩٨° في القائم وغيره، والضلع الأقصر نصف الأوسط على الأقل، فلا يُعرف القائم بالنظر ولا تتزاحم الأعداد (D254؛ المراجع A لبوابة M4-U3/U4، 20 و24) */
-function pyTriNS(g, s3, o = {}) { const [a, b, c] = [...s3].sort((x, y) => x - y), ad = Math.max(a, .5 * b), ang = (a + b + c) % 2 ? 83 : 98, cd = Math.sqrt(ad * ad + b * b - 2 * ad * b * Math.cos(ang * Math.PI / 180)), u = Math.min(o.uMax || 22, (o.w || 230) / Math.max(cd, b));
-  return cgTri(g, [cd, ad, b], { cx: o.cx ?? 180, y: o.y ?? 180, u, rot: o.rot || 0, vals: [c, a, b], fs: o.fs }); }
+function pyTriNS(g, s3, o = {}) { const [a, b, c] = [...s3].sort((x, y) => x - y), ad = Math.max(a, .5 * b), ang = (a + b + c) % 2 ? 83 : 98, cd = Math.sqrt(ad * ad + b * b - 2 * ad * b * Math.cos(ang * Math.PI / 180)), S = [cd, ad, b];
+  /* يُلاءَم مداراً في صندوق (bw × bh) حول (cx، cy)، فلا يخرج رأسٌ من الإطار (المراجع B لبوابة M4-U3/U4، 5) */
+  let u = Math.min(o.uMax || 22, (o.bw || 280) / Math.max(cd, b)); const bb = uu => { const P = cgTriPts(S, { cx: 0, y: 0, u: uu, rot: o.rot || 0 }), xs = P.map(p => p[0]), ys = P.map(p => p[1]); return [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]; };
+  let B = bb(u); u *= Math.min(1, (o.bw || 280) / (B[1] - B[0]), (o.bh || 130) / (B[3] - B[2])); B = bb(u);
+  return cgTri(g, S, { cx: (o.cx ?? 180) - (B[0] + B[1]) / 2, y: (o.cy ?? 126) - (B[2] + B[3]) / 2, u, rot: o.rot || 0, vals: [c, a, b], fs: o.fs }); }
 /* ================= ④ هل المثلث قائم؟ (C407 العكس): s ثلاثة أطوال ================= */
 ITEM.pyIsRight = cpItem({ H: 236, tLine: 'gen.py.together.isRight', hint: 'gen.py.hint.isRight', rLine: it => 'gen.py.reveal.isRight.' + it.want, praise: 'praiseThink',
   make: s => { const [a, b, c] = [...s.s].sort((x, y) => x - y); return { want: a * a + b * b === c * c ? 'yes' : 'no', sq: [a * a, b * b, c * c], tag: 'py-isright' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), P = pyTriNS(g, item.s, { cx: 180, y: 180, uMax: 22, w: 230, rot: item.rot || 0 }); item._P = P; cgNotScale(g, 180, 226);
+  draw(svg, item, tries) { const g = el('g', {}, svg), P = pyTriNS(g, item.s, { cx: 180, cy: 128, uMax: 22, bw: 270, bh: 120, rot: item.rot || 0 }); item._P = P; cgNotScale(g, 180, 212);
     if (tries >= 3) ciEq(helpG(svg), 180, 36, `${item.sq[0]} + ${item.sq[1]} ؟ ${item.sq[2]}`, PY.hl, 18); return {}; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), P = item._P; if (P) { hlSeg(m, P[0], P[1], H2C[2]); hlRing(m, P[2], 18); }   /* المستوى الثاني رسمٌ: الأطول، والزاوية المقابلة له: أهي قائمة؟ */
     ciRule(m, 180, 36, labelText('pyRuleConv'), PY.hl, 15); await sleep(FAST ? 10 : 250); },

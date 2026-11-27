@@ -32,16 +32,16 @@ ITEM.cgSides = cpItem({ H: 236, tLine: 'gen.cg.together.sides', hint: 'gen.cg.hi
   errOf: (it, k) => it.want === 'sim' && k === 'cong' ? 'cgSimAsCong' : it.want === 'cong' && k === 'sim' ? 'cgCongAsSim' : k === 'none' ? 'cgMissed' : 'cgFalse' });
 
 /* ================= ② القطع المتطابقة (C405): orig أضلاع الأصل، cands [ثلاث ثلاثيات، الأولى المطابقة]، rots ================= */
-ITEM.cgPick = cpItem({ H: 262, tLine: 'gen.cg.together.pick', hint: 'gen.cg.hint.pick', rLine: 'gen.cg.reveal.pick', praise: 'praiseThink',
+ITEM.cgPick = cpItem({ H: 284, tLine: 'gen.cg.together.pick', hint: 'gen.cg.hint.pick', rLine: 'gen.cg.reveal.pick', praise: 'praiseThink',
   make: s => { const order = shuffle([0, 1, 2]); /*T*/if (TESTHOOK && s.cands.filter(c => cgRel(s.orig, c) === 'cong').length !== 1) testBug('cgPick: ليست ثلاثية واحدة مطابقة');/*/T*/ return { order, want: String(order.indexOf(0)), tag: 'cg-pick' }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), mx = Math.max(...item.cands.flat()), u = Math.min(10, 80 / mx), uo = u, X = [284, 180, 76];   /* الأصل والمرشّحون بمقياسٍ واحد (المراجع A لبوابة M4-U3/U4، 7) */
     const Po = cgTri(g, item.orig, { cx: 196, y: 86, u: uo, col: CG.c, fill: CG.fc }), Pc = []; preLab(g, 318, 40, labelText('cgOrig'), { dir: 'rtl', fs: 15, anchor: 'start' });
     item.order.forEach((ci, pos) => { el('rect', { x: X[pos] - 50, y: 112, width: 100, height: 118, rx: 12, fill: CG.card, stroke: CG.edge, 'stroke-width': 2, 'pointer-events': 'none' }, g);
       preLab(g, X[pos], 130, labelText('pfSet.' + pos), { dir: 'rtl', fs: 13 }); Pc.push([cgTri(g, item.cands[ci], { cx: X[pos], y: 206, u, rot: (item.rots || [30, -20, 15])[pos], col: CG.a, fill: CG.fa, fs: 13, fit: [X[pos] - 40, X[pos] + 40] }), item.cands[ci]]); });
-    if (tries >= 3) { const m = helpG(svg), srt = s => cgSorted(s).map(v => MS(String(v))).join('، '); preLab(m, 196, 34, srt(item.orig), { col: CG.hl, fs: 15 }); item.order.forEach((ci, pos) => preLab(m, X[pos], 244, srt(item.cands[ci]), { col: CG.hl, fs: 14 })); }   /* الحلّ المشترك: الأطوال مرتّبة تحت كلٍّ، والمقارنة للطفل (5 (ب)) */
+    if (tries >= 3) { const m = helpG(svg), srt = s => cgSorted(s).map(v => MS(String(v))).join('، '); preLab(m, 196, 34, srt(item.orig), { col: CG.hl, fs: 15 }); item.order.forEach((ci, pos) => preLab(m, X[pos], 252, srt(item.cands[ci]), { col: CG.hl, fs: 14 })); }   /* الحلّ المشترك: الأطوال مرتّبة تحت كلٍّ، والمقارنة للطفل (5 (ب)) */
     return { Po, Pc }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Po) { rankSides(m, ctx.Po, item.orig); ctx.Pc.forEach(([P, s]) => rankSides(m, P, s)); }   /* المستوى الثاني رسمٌ: الأضلاع بألوان أطوالها */
-    ciRule(m, 180, 244, labelText('cgRuleSss'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, 250, labelText('cgRuleSss'), CG.hl, 15); await sleep(FAST ? 10 : 250); },   /* تحت بطاقات المرشّحين لا عليها (المراجع B لبوابة M4-U3/U4، 3) */
   pick: item => choosePick([0, 1, 2].map(p => [String(p), labelText('pfSet.' + p), '<i></i>', 'gen.pf.set.' + p]), item.want),
   errOf: (it, k) => cgRel(it.orig, it.cands[it.order[+k]]) === 'sim' ? 'cgSimAsCong' : 'cgSideOff' });
 
@@ -105,7 +105,7 @@ ITEM.perpArea = cpItem({ H: 268, tLine: 'gen.cg.together.perp', hint: 'gen.cg.hi
     el('polygon', { points: polyStr([L, T, R, B]), fill: CG.fc, stroke: CG.ink, 'stroke-width': 3.2, 'stroke-linejoin': 'round' }, g);
     geoLine(g, L[0], L[1], R[0], R[1], { color: CG.a, w: 3, dash: '7 4' }); geoLine(g, T[0], T[1], B[0], B[1], { color: CG.b, w: 3, dash: '7 4' }); preRight(g, M, R, T, 10);
     cgDim(g, L, R, Y.n1, item.p, CG.a); cgDim(g, T, B, Y.n2, item.r, CG.b);   /* القطران كلٌّ بطوله، لا جزءاً منه (المراجع A لبوابة M4-U3/U4، 14) */
-    if (tries >= 3) ciEq(helpG(svg), 180, 22, `${item.p} × ${item.r} ÷ 2 = ؟`, CG.hl, 17); return { Q: [L, T, R, B] }; },
+    if (tries >= 3) ciEq(helpG(svg), 180, 252, `${item.p} × ${item.r} ÷ 2 = ؟`, CG.hl, 17); return { Q: [L, T, R, B] }; },   /* مكان بطاقة القاعدة: في المحاولة الثالثة لا تُحمَل البطاقة */
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Q) { const [L, T, R, B] = ctx.Q; el('polygon', { points: polyStr([L, T, R]), fill: H2C[0], opacity: .22, 'pointer-events': 'none' }, m); el('polygon', { points: polyStr([L, B, R]), fill: H2C[1], opacity: .22, 'pointer-events': 'none' }, m); }   /* المستوى الثاني رسمٌ: مثلثان على القطر الأفقي */
     ciRule(m, 180, 250, labelText('cgRulePerp'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
@@ -123,7 +123,7 @@ function cgQuad(g, k, o = {}) { const y0 = o.y0 ?? 0, s = o.s || 1, P = CG_QUAD[
   if (k === 'paraDiag' || k === 'conv') { pfAng(g, A, B, M, { col: CG.a, r: 22 }); pfAng(g, C, D, M, { col: CG.a, r: 22 }); if (k === 'paraDiag') { pfAng(g, B, M, A, { col: CG.b, r: 20 }); pfAng(g, D, M, C, { col: CG.b, r: 20 }); } else { preTicks(g, A, M, 1); preTicks(g, M, C, 1); preTicks(g, B, M, 2); preTicks(g, M, D, 2); } }
   if (k === 'rectDiag') for (const [V, X, Y] of [[B, A, C], [C, B, D]]) preRight(g, V, X, Y, 12);
   if (k === 'rhombDiag') { preTicks(g, A, B, 1); preTicks(g, C, B, 1); preTicks(g, A, M, 2); preTicks(g, M, C, 2); preRight(g, M, C, D, 11); }
-  [['أ', A, [-14, 8]], ['ب', B, [14, 8]], ['ج', C, [14, -2]], ['د', D, [-14, -2]], ['م', M, [0, -10]]].forEach(([n, P, d]) => { if (n === 'م' && k === 'paraSide') return; pfLab(g, Math.min(330, Math.max(30, P[0] + d[0])), Math.max(30, P[1] + d[1]), n, { fs: 15 }); pfDot(g, P); });   /* الاسم داخل الورقة */
+  [['أ', A, [-14, 8]], ['ب', B, [14, 8]], ['ج', C, [14, -2]], ['د', D, [-14, -2]], ['م', M, k === 'rhombDiag' ? [-13, 18] : [0, -10]]].forEach(([n, P, d]) => { if (n === 'م' && k === 'paraSide') return; pfLab(g, Math.min(330, Math.max(30, P[0] + d[0])), Math.max(30, P[1] + d[1]), n, { fs: 15 }); pfDot(g, P); });   /* الاسم داخل الورقة */
   return { A, B, C, D, M }; }
 
 /* ================= المشاهد ================= */
@@ -159,7 +159,7 @@ SCENES.simShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g',
   ciEq(g, 100, 40, `× ${k}`, CG.ok, 20); await cgSay(L, 1); for (const l of L.slice(2)) await S(l); };
 /* د4 ود5: خطوات برهان رباعي تحت شكله */
 SCENES.quadProof = async c => { const L = c.lines, svg = m3Stage(262), pfs = c.pfs || [c.pf]; let g = null;
-  for (const [i, pf] of pfs.entries()) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); pfFig(g, pf, { y0: 2, s: .82 }); await cgSay(L, i * 4); await pfWrite(g, pf, L, i * 4 + 1); }
+  for (const [i, pf] of pfs.entries()) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); pfFitFig(g, pf, 16, 122, { sMax: .82, y0: 2, s: .82 }); await cgSay(L, i * 4); await pfWrite(g, pf, L, i * 4 + 1); }
   for (const l of L.slice(pfs.length * 4)) await S(l); };
 /* د5: تعميم نصف حاصل ضرب القطرين: المثلثان على القطر الأفقي وارتفاعاهما */
 SCENES.cgPerpShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), [a, b, cc, d] = c.dims || [3, 7, 4, 2], u = 20, Lp = [180 - (a + b) * u / 2, 112], M = [Lp[0] + a * u, 112], R = [Lp[0] + (a + b) * u, 112], T = [M[0], 112 - cc * u], B = [M[0], 112 + d * u];
