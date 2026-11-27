@@ -32,7 +32,8 @@ FAST = 'file://' + FILE + '#fast&seed=5'
 REAL = 'file://' + FILE + '#test&seed=5'   # الزمن الحقيقي: بلا #fast (المؤقتات والنطق كما عند الطفل)
 ONLY = {x for x in os.environ.get('ONLY', '').split(',') if x}
 FAILS = []
-def on(k): return not ONLY or k in ONLY
+SKIP = {x for x in os.environ.get('SKIP', '').split(',') if x}   # SKIP=X-03,N-01: الأقسام كلها إلا هذه (فحص الهاتف بالعرض في جزأين من البوابة، بوابة ws78a)
+def on(k): return (not ONLY or k in ONLY) and k not in SKIP
 def check(k, ok, what, info=''):
   print(('ok   ' if ok else 'FAIL ') + k + ' ' + what + ('' if ok else '  ' + json.dumps(info, ensure_ascii=False)[:900]), flush=True)
   if not ok: FAILS.append(k)
