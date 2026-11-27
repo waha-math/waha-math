@@ -12,7 +12,7 @@ const c4Same = (p, q) => p[0] === q[0] && p[1] === q[1];
 const c4Say = async (L, i) => { if (L[i]) await S(L[i]); };
 
 /* المستوى الكامل: n نصف المحور الأفقي، وny نصف الرأسي؛ الأصل في الوسط، والمحوران ذهبيان بسهمين واسميهما، والأعداد السالبة يساراً وإلى أسفل */
-function c4Plane(svg, o = {}) { const n = o.n || 5, m = o.ny || n, top = o.top ?? 42, H = o.H || 262, c = o.c || Math.min(22, 300 / (2 * n + 1.4), (H - top - 16) / (2 * m + .9)),
+function c4Plane(svg, o = {}) { const n = o.n || 5, m = o.ny || n, top = Math.max(26, o.top ?? 50), H = o.H || 262, c = o.c || Math.min(22, 142 / n, (H - 38 - top) / (2 * m)),   /* المستوى وسهماه داخل الإطار الورقي (المعروف (1) لبوابة M4-U5/U6) */
     C = [o.cx || 180, top + m * c + 4], g = el('g', { 'pointer-events': 'none', 'data-plane4': 1 }, svg), P = (x, y) => [C[0] + x * c, C[1] - y * c];
   el('rect', { x: C[0] - n * c - 16, y: C[1] - m * c - 8, width: 2 * n * c + 32, height: 2 * m * c + 26, rx: 10, fill: '#fffdf6', stroke: C4.grid, 'stroke-width': 2 }, g);
   if (o.quads) [[1, 1], [-1, 1], [-1, -1], [1, -1]].forEach(([sx, sy], i) => el('rect', { x: Math.min(C[0], C[0] + sx * n * c), y: Math.min(C[1], C[1] - sy * m * c), width: n * c, height: m * c, fill: C4.quad[i] }, g));
@@ -20,14 +20,15 @@ function c4Plane(svg, o = {}) { const n = o.n || 5, m = o.ny || n, top = o.top ?
   for (let j = -m; j <= m; j++) geoLine(g, C[0] - n * c, C[1] - j * c, C[0] + n * c, C[1] - j * c, { color: C4.grid, w: 1.1 });
   geoLine(g, C[0] - n * c - 6, C[1], C[0] + n * c + 6, C[1], { color: C4.ax, w: 3 }); geoArrow(g, C[0] + n * c + 9, C[1], 0, C4.ax, 7);
   geoLine(g, C[0], C[1] + m * c + 6, C[0], C[1] - m * c - 6, { color: C4.ax, w: 3 }); geoArrow(g, C[0], C[1] - m * c - 9, -90, C4.ax, 7);
-  preLab(g, C[0] + n * c + 9, C[1] + 16, labelText('coX'), { col: C4.ax, fs: 13, dir: 'rtl' }); preLab(g, C[0] + 13, C[1] - m * c + 2, labelText('coY'), { col: C4.ax, fs: 13, dir: 'rtl', anchor: 'start' });
-  const st = c >= 17 ? 1 : 2;
+  const tk = [], T = (t, B) => { tk.push({ t, B }); return t; };   /* أعداد المحورين واسماهما: تُخفى ما وقع عليها نقطةٌ أو اسمها (المعروف (1) لبوابة M4-U5/U6) */
+  T(preLab(g, C[0] + n * c + 9, C[1] + 16, labelText('coX'), { col: C4.ax, fs: 13, dir: 'rtl' }), [C[0] + n * c, C[1] + 4, C[0] + n * c + 18, C[1] + 18]); T(preLab(g, C[0] + 13, C[1] - m * c + 2, labelText('coY'), { col: C4.ax, fs: 13, dir: 'rtl', anchor: 'start' }), [C[0] + 12, C[1] - m * c - 10, C[0] + 26, C[1] - m * c + 4]);
+  const st = c >= 19 ? 1 : 2;
   if (o.nums !== false) for (let k = -Math.max(n, m); k <= Math.max(n, m); k++) { if (!k || k % st) continue;
-    if (Math.abs(k) <= n) preLab(g, C[0] + k * c, C[1] + 13, preNumV(k), { fs: 9.5, col: '#5b6b72' });
-    if (Math.abs(k) <= m) preLab(g, C[0] - 5, C[1] - k * c + 3.5, preNumV(k), { fs: 9.5, anchor: 'end', col: '#5b6b72' }); }
+    if (Math.abs(k) <= n) T(preLab(g, C[0] + k * c, C[1] + 13, preNumV(k), { fs: 9.5, col: '#5b6b72' }), [C[0] + k * c - 7, C[1] + 5, C[0] + k * c + 7, C[1] + 14]);
+    if (Math.abs(k) <= m) T(preLab(g, C[0] - 5, C[1] - k * c + 3.5, preNumV(k), { fs: 9.5, anchor: 'end', col: '#5b6b72' }), [C[0] - 17, C[1] - k * c - 4, C[0] - 4, C[1] - k * c + 5]); }
   el('circle', { cx: C[0], cy: C[1], r: 3.5, fill: C4.ink }, g);
   if (o.qlab) [['q1', 1, 1], ['q2', -1, 1], ['q3', -1, -1], ['q4', 1, -1]].forEach(([k, sx, sy]) => preLab(g, C[0] + sx * n * c / 2, C[1] - sy * m * c / 2 + 5, labelText('c4Q.' + k), { fs: 14, col: '#7d8a90', dir: 'rtl' }));
-  return { g, P, C, c, n, m, inside: q => q[0] > C[0] - n * c - 16 && q[0] < C[0] + n * c + 16 && q[1] > C[1] - m * c - 14 && q[1] < C[1] + m * c + 14,
+  return { g, P, C, c, n, m, tk, inside: q => q[0] > C[0] - n * c - 16 && q[0] < C[0] + n * c + 16 && q[1] > C[1] - m * c - 14 && q[1] < C[1] + m * c + 14,
     snap: q => [Math.max(-n, Math.min(n, Math.round((q[0] - C[0]) / c))), Math.max(-m, Math.min(m, Math.round((C[1] - q[1]) / c)))] }; }
 /* امتداد المستوى ليتّسع للنقاط (أربعٌ على الأقل وثمانٍ على الأكثر) */
 const c4Ext = (pts, lo = 4) => ({ n: Math.min(8, Math.max(lo, ...pts.map(p => Math.abs(p[0]) + 1))), ny: Math.min(8, Math.max(lo, ...pts.map(p => Math.abs(p[1]) + 1))) });
@@ -36,10 +37,12 @@ function c4Dot(parent, Pl, x, y, o = {}) { const [px, py] = Pl.P(x, y), g = el('
   if (o.art === 'treasure') el('path', { d: `M${px - 8} ${py - 8} L${px + 8} ${py + 8} M${px + 8} ${py - 8} L${px - 8} ${py + 8}`, stroke: C4.q, 'stroke-width': 4, 'stroke-linecap': 'round' }, g);
   else if (o.art === 'house') { el('path', { d: `M${px - 9} ${py + 6} L${px - 9} ${py - 3} L${px} ${py - 11} L${px + 9} ${py - 3} L${px + 9} ${py + 6} Z`, fill: '#f6e3b8', stroke: col, 'stroke-width': 2.2, 'stroke-linejoin': 'round' }, g); el('circle', { cx: px, cy: py, r: 2.6, fill: col }, g); }
   else el('circle', { cx: px, cy: py, r: o.r || 6, fill: col, stroke: '#fff', 'stroke-width': 2 }, g);
-  const right = o.side ? o.side > 0 : x >= 0, below = o.below ?? (y < 0 ? y > -Pl.m : y >= Pl.m), dx = right ? 9 : -9, yy = below ? py + 19 : py - 10;
+  const right = o.side ? o.side > 0 : x >= 0 ? x < Pl.n - 1.5 : x <= -Pl.n + 1.5, below = o.below ?? (y < 0 ? y > -Pl.m : y >= Pl.m), dx = right ? 9 : -9, yy = below ? py + 19 : py - 10;
   if (o.name) preLab(g, px + (right ? -12 : 12), yy, LTR[o.name], { col, fs: 14, dir: 'rtl', anchor: right ? 'end' : 'start' });
   if (o.pair) coPairText(g, px + dx, yy, preNum(x), preNum(y), right ? 'start' : 'end', o.fs || 12, o.pcol || C4.ink);
+  c4Hide(Pl, [[px - 8, py - 8, px + 8, py + 8], ...[...g.querySelectorAll('text')].map(t => { try { const b = t.getBBox(); return b.width ? [b.x, b.y, b.x + b.width, b.y + b.height] : null; } catch (e) { return null; } }).filter(Boolean)]);
   return g; }
+function c4Hide(Pl, boxes) { if (!Pl || !Pl.tk) return; for (const { t, B } of Pl.tk) if (boxes.some(b => b[0] < B[2] && b[2] > B[0] && b[1] < B[3] && b[3] > B[1])) t.setAttribute('visibility', 'hidden'); }
 /* السير من الأصل: قفزات أفقية (يميناً أو يساراً) ثم رأسية (لأعلى أو لأسفل) */
 async function c4Walk(svg, Pl, x, y, o = {}) { const m = helpG(svg); let last = Pl.P(0, 0); const sx = Math.sign(x), sy = Math.sign(y);
   for (let i = 1; i <= Math.abs(x); i++) { const q = Pl.P(sx * i, 0); el('path', { d: `M${last[0]} ${last[1]} Q${(last[0] + q[0]) / 2} ${last[1] - 12} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--compass'), 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
@@ -47,7 +50,7 @@ async function c4Walk(svg, Pl, x, y, o = {}) { const m = helpG(svg); let last = 
   for (let j = 1; j <= Math.abs(y); j++) { const q = Pl.P(x, sy * j); el('path', { d: `M${last[0]} ${last[1]} Q${last[0] + 12} ${(last[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
   return m; }
 function c4Card(svg, x, y, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 116, col = o.col || C4.pt, cx = o.cx || 180;
-  el('rect', { x: cx - w / 2, y: 4, width: w, height: 30, rx: 10, fill: '#fff', stroke: col, 'stroke-width': 2 }, g); coPairText(g, cx, 25, preNum(x), preNum(y), 'middle', 17, col); return g; }
+  el('rect', { x: cx - w / 2, y: 15, width: w, height: 28, rx: 10, fill: '#fff', stroke: col, 'stroke-width': 2 }, g); coPairText(g, cx, 35, preNum(x), preNum(y), 'middle', 17, col); return g; }   /* البطاقة داخل الإطار، والمستوى تحتها */
 
 /* ---------- المعادلة ص = م س + ب جملةً (D190، D280): ذرّاتٌ بترتيب القراءة، تُعكس دائماً فتُقرأ من اليمين لأن فيها س وص ---------- */
 function c4EqAtoms(m, b) { const A = [labelText('coY'), ' ', '=', ' '], d = v => String(Math.abs(v)), x = labelText('coX');
@@ -56,8 +59,8 @@ function c4EqAtoms(m, b) { const A = [labelText('coY'), ' ', '=', ' '], d = v =>
   return A; }
 const c4EqVis = (m, b) => c4EqAtoms(m, b).map(t => /\d/.test(t) ? MS(t) : t).reverse().join('');   /* فيها س وص: من اليمين بالكتابتين (D280)، والذرّات معكوسة تحت ltr مع bidi-override */
 function c4EqText(parent, x, y, m, b, o = {}) { const t = el('text', { x, y, 'text-anchor': o.anchor || 'middle', 'font-size': o.fs || 20, 'font-weight': 800, fill: o.col || C4.ln, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'ltr', 'unicode-bidi': 'bidi-override', 'pointer-events': 'none' }, parent); t.textContent = c4EqVis(m, b); return t; }
-function c4EqCard(svg, m, b, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 156, cx = o.cx || 180, y = o.y ?? 4;
-  el('rect', { x: cx - w / 2, y, width: w, height: 30, rx: 10, fill: '#fff', stroke: C4.ln, 'stroke-width': 2 }, g); c4EqText(g, cx, y + 22, m, b, { fs: 19 }); return g; }
+function c4EqCard(svg, m, b, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 156, cx = o.cx || 180, y = o.y ?? 15;
+  el('rect', { x: cx - w / 2, y, width: w, height: 28, rx: 10, fill: '#fff', stroke: C4.ln, 'stroke-width': 2 }, g); c4EqText(g, cx, y + 21, m, b, { fs: 19 }); return g; }
 const c4LKey = ([m, b]) => preKey([m, b]);
 /* المستقيم ص = م س + ب داخل حدود المستوى، أو الرأسي س = vx */
 function c4Line(parent, Pl, m, b, o = {}) { if (o.vx != null) { const A = Pl.P(o.vx, -Pl.m), B = Pl.P(o.vx, Pl.m); return geoLine(parent, A[0], A[1], B[0], B[1], { color: o.col || C4.ln, w: o.w || 3.2, dash: o.dash }); }
@@ -202,7 +205,7 @@ ITEM.c4FindB = cpItem({ H: 262, tLine: 'gen.c4.together.findB', hint: 'gen.c4.hi
   make: s => { const m = s.sl, [x, y] = s.p, b = y - m * x; /*T*/if (TESTHOOK && (m < 0 || x < 0 || y < 0)) testBug('c4FindB: عدد سالب في جملة التعويض');/*/T*/
     return { b, want: c4LKey([m, b]), cands: c4EqCands(m, b, [[m, y], [m, y + m * x]]), ext: c4Ext([[x, y], [0, b]], 5), tag: 'c4-findb' }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, { ...item.ext, H: 236 }), g = el('g', { 'pointer-events': 'none' }, svg); c4Dot(svg, Pl, ...item.p, { pair: true, col: C4.pt2 });
-    el('rect', { x: 104, y: 4, width: 152, height: 30, rx: 10, fill: '#fff', stroke: C4.ln, 'stroke-width': 2 }, g); preLab(g, 214, 25, labelText('c4SlopeIs'), { col: C4.ln, fs: 16, dir: 'rtl', anchor: 'middle' }); c4MDraw(g, 140, 18, [item.sl, 1], { col: C4.ln });
+    el('rect', { x: 104, y: 15, width: 152, height: 28, rx: 10, fill: '#fff', stroke: C4.ln, 'stroke-width': 2 }, g); preLab(g, 214, 34, labelText('c4SlopeIs'), { col: C4.ln, fs: 16, dir: 'rtl', anchor: 'middle' }); c4MDraw(g, 140, 28, [item.sl, 1], { col: C4.ln });
     if (tries >= 3) { const h = helpG(svg); c4Line(h, Pl, item.sl, item.b, { col: 'rgba(122,79,176,.4)', w: 2.4, dash: '6 5' }); ciEq(h, 180, 252, `${item.p[1]} = ${item.sl} × ${item.p[0]} + ${labelText('c4B')}`, C4.hl, 17); } return { Pl }; },
   sayQ: async it => { await S('gen.c4.slope.' + (it.sl < 0 ? 'm' + -it.sl : it.sl), { append: true }); await S('gen.c4.q.findBPt', { append: true }); await S('gen.c4.pt.' + preKey(it.p), { append: true }); },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) { const P = ctx.Pl.P(...item.p), Y = ctx.Pl.P(0, item.p[1]); geoLine(m, P[0], P[1], Y[0], Y[1], { color: H2C[0], w: 3, dash: '6 5' }); hlRing(m, P, 13, H2C[1]); } ciRule(m, 180, 252, labelText('c4RuleFindB'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* من النقطة إلى المحور الرأسي: كم خطوةً نرجع؟ */
@@ -213,7 +216,7 @@ ITEM.c4FindB = cpItem({ H: 262, tLine: 'gen.c4.together.findB', hint: 'gen.c4.hi
 ITEM.c4Perp = cpItem({ H: 262, tLine: 'gen.c4.together.perp', hint: 'gen.c4.hint.perp', rLine: 'gen.c4.reveal.perp', rSay: it => S('gen.c4.m.' + it.want, { append: true }), praise: 'praiseThink',
   make: s => { const w = c4Frac(-1, s.sl), C = [w, c4Frac(1, s.sl), [-s.sl, 1], [s.sl, 1]].filter((v, i, X) => X.findIndex(u => c4MKey(u) === c4MKey(v)) === i); return { want: c4MKey(w), cands: C, tag: 'c4-perp' }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, { n: 5, H: 232 }), g = el('g', { 'pointer-events': 'none' }, svg); c4Line(svg, Pl, item.sl, 0, { col: C4.pt, w: 4 }); c4Line(svg, Pl, -1 / item.sl, 0, { col: C4.pt2, w: 4, dash: '8 6' }); preRight(svg, Pl.P(0, 0), Pl.P(1, item.sl), Pl.P(-item.sl, 1), 11);
-    el('rect', { x: 104, y: 4, width: 152, height: 30, rx: 10, fill: '#fff', stroke: C4.pt, 'stroke-width': 2 }, g); preLab(g, 214, 25, labelText('c4SlopeIs'), { col: C4.pt, fs: 16, dir: 'rtl', anchor: 'middle' }); c4MDraw(g, 140, 18, [item.sl, 1], { col: C4.pt });
+    el('rect', { x: 104, y: 15, width: 152, height: 28, rx: 10, fill: '#fff', stroke: C4.pt, 'stroke-width': 2 }, g); preLab(g, 214, 34, labelText('c4SlopeIs'), { col: C4.pt, fs: 16, dir: 'rtl', anchor: 'middle' }); c4MDraw(g, 140, 28, [item.sl, 1], { col: C4.pt });
     if (tries >= 3) ciRule(helpG(svg), 180, 246, labelText('c4RulePerp'), C4.hl, 15); return { Pl }; },
   sayQ: async it => { await S('gen.c4.slope.' + (it.sl < 0 ? 'm' + -it.sl : it.sl), { append: true }); await S('gen.c4.q.perpEnd', { append: true }); },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) { const P = ctx.Pl.P, s = item.sl, k = Math.abs(s) > 2 ? 1 / Math.abs(s) : 1; c4Legs(m, ctx.Pl, [0, 0], [k, s * k]); const R1 = P(0, k), R2 = P(-s * k, k), O = P(0, 0); geoLine(m, O[0], O[1], R1[0], R1[1], { color: H2C[0], w: 3, dash: '3 4' }); geoLine(m, R1[0], R1[1], R2[0], R2[1], { color: H2C[1], w: 3, dash: '3 4' }); } ciRule(m, 180, 246, labelText('c4RulePerp'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* مثلث الميل ومثلثه مداراً ربع دورة */
@@ -246,7 +249,7 @@ SCENES.c4SignShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4P
   for (const l of L.slice(2)) await S(l); };
 /* د2: من (1 ، 1) إلى (4 ، 5): الجمع سبعة، والوتر خمسة */
 SCENES.c4DistShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5 }), a = c.a || [1, 1], b = c.b || [4, 5], A = Pl.P(...a), B = Pl.P(...b);
-  geoLine(svg, A[0], A[1], B[0], B[1], { color: C4.ln, w: 3.6 }); c4Dot(svg, Pl, ...a, { pair: true, col: C4.pt2 }); c4Dot(svg, Pl, ...b, { pair: true, col: C4.pt2, side: -1 }); await c4Say(L, 0);
+  geoLine(svg, A[0], A[1], B[0], B[1], { color: C4.ln, w: 3.6 }); c4Dot(svg, Pl, ...a, { pair: true, col: C4.pt2 }); c4Dot(svg, Pl, ...b, { pair: true, col: C4.pt2, side: 1 }); await c4Say(L, 0);   /* اسم النقطة يمينها، والطول يسار القطعة (المعروف (1)) */
   const h = el('g', { 'pointer-events': 'none' }, svg); c4RunRise(h, Pl, a, b, { abs: true }); SFX.tick(); await c4Say(L, 1);
   const dx = Math.abs(b[0] - a[0]), dy = Math.abs(b[1] - a[1]), d = Math.round(Math.hypot(dx, dy)); ciEq(h, 180, 26, `${dx} × ${dx} + ${dy} × ${dy} = ${d * d}`, C4.ok, 18);
   preLab(h, (A[0] + B[0]) / 2 - 12, (A[1] + B[1]) / 2 - 4, MS(String(d)), { col: C4.ok, fs: 19, anchor: 'end' }); SFX.tick(); await c4Say(L, 2); for (const l of L.slice(3)) await S(l); };
@@ -257,20 +260,20 @@ SCENES.c4SlopeShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); seg([-3, -4], [-3, 3]); preLab(g, Pl.P(-3, 4)[0], Pl.P(-3, 4)[1], labelText('c4NoSlope'), { col: C4.ln, fs: 15, dir: 'rtl' }); seg([0, -2], [4, -2], C4.pt); preLab(g, Pl.P(2, -3)[0], Pl.P(2, -3)[1] + 6, labelText('c4ZeroSlope'), { col: C4.pt, fs: 15, dir: 'rtl' }); SFX.tick(); await c4Say(L, 2);
   for (const l of L.slice(3)) await S(l); };
 /* د3: كل مستقيمٍ يمرّ بالأصل معادلته ص = 0؟ */
-SCENES.c4LineHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5, top: 46 }); c4EqCard(svg, 0, 0); const A = Pl.P(-5, 0), B = Pl.P(5, 0); geoLine(svg, A[0], A[1], B[0], B[1], { color: C4.ln, w: 4 }); await c4Say(L, 0);
+SCENES.c4LineHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5, top: 50 }); c4EqCard(svg, 0, 0); const A = Pl.P(-5, 0), B = Pl.P(5, 0); geoLine(svg, A[0], A[1], B[0], B[1], { color: C4.ln, w: 4 }); await c4Say(L, 0);
   c4Line(svg, Pl, 2, 0, { col: C4.q, w: 4 }); SFX.tick(); await c4Say(L, 1); for (const l of L.slice(2)) await S(l); };
 /* د3: الميل 2 والمقطع 1: النقاط على المستقيم كلها تحقّق ص = 2 س + 1 */
-SCENES.c4LineShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5, top: 46 }), [m, b] = c.ln || [2, 1];
-  const pts = [[0, b], [1, m + b], [2, 2 * m + b], [-1, b - m], [-2, b - 2 * m]].filter(p => Math.abs(p[1]) <= 5); c4Dot(svg, Pl, 0, b, { pair: true, col: C4.pt2, side: 1 }); await c4Say(L, 0);
-  for (const p of pts.slice(1)) { c4Dot(svg, Pl, ...p, { pair: true, col: C4.pt2, fs: 11 }); SFX.tick(); await sleep(FAST ? 10 : 450); }
+SCENES.c4LineShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5, top: 50 }), [m, b] = c.ln || [2, 1];
+  const pts = [[0, b], [1, m + b], [2, 2 * m + b], [-1, b - m], [-2, b - 2 * m]].filter(p => Math.abs(p[1]) < 5);   /* لا نقطة على حافّة المستوى تحت بطاقة المعادلة */ c4Dot(svg, Pl, 0, b, { pair: true, col: C4.pt2, side: 1 }); await c4Say(L, 0);
+  for (const p of pts.slice(1)) { c4Dot(svg, Pl, ...p, { pair: true, col: C4.pt2, fs: 11, below: p[1] >= Pl.m ? false : undefined }); SFX.tick(); await sleep(FAST ? 10 : 450); }
   c4Line(svg, Pl, m, b, {}); c4EqCard(svg, m, b); await c4Say(L, 1);
-  const lat = preLab(svg, 312, 24, '(y = m x + b)', { col: '#7d8a90', fs: 12 });   /* الرمز اللاتيني عند أول ظهور فقط (D190) */ lat.style.opacity = 0;
+  const lat = preLab(svg, 286, 24, '(y = m x + b)', { col: '#7d8a90', fs: 12 });   /* الرمز اللاتيني عند أول ظهور فقط (D190) */ lat.style.opacity = 0;
   const I = Pl.P(0, b), h = el('g', { 'pointer-events': 'none' }, svg); el('circle', { cx: I[0], cy: I[1], r: 11, fill: 'none', stroke: C4.hl, 'stroke-width': 3 }, h); preLab(h, I[0] - 14, I[1] + 5, labelText('c4B'), { col: C4.hl, fs: 17, anchor: 'end', dir: 'rtl' }); SFX.tick(); await c4Say(L, 2);
   lat.style.opacity = 1; for (const l of L.slice(3)) await S(l); };
 /* د3: التحقق بالتعويض: (2 ، 5) على المستقيم، و(2 ، 2) ليست عليه */
-SCENES.c4CheckShow = async c => { const L = c.lines, svg = m3Stage(250), [m, b] = c.ln || [2, 1]; c4EqCard(svg, m, b, { y: 14, w: 200 });
+SCENES.c4CheckShow = async c => { const L = c.lines, svg = m3Stage(250), [m, b] = c.ln || [2, 1]; c4EqCard(svg, m, b, { y: 16, w: 200 });
   for (const [i, [x, y]] of (c.pts || [[2, 5], [2, 2]]).entries()) { const yy = 84 + i * 84, ok = m * x + b === y, g = el('g', { 'pointer-events': 'none' }, svg);
-    el('rect', { x: 236, y: yy - 22, width: 112, height: 32, rx: 10, fill: '#fff', stroke: C4.pt2, 'stroke-width': 2 }, g); coPairText(g, 292, yy, preNum(x), preNum(y), 'middle', 17, C4.pt2);
+    el('rect', { x: 222, y: yy - 22, width: 112, height: 32, rx: 10, fill: '#fff', stroke: C4.pt2, 'stroke-width': 2 }, g); coPairText(g, 278, yy, preNum(x), preNum(y), 'middle', 17, C4.pt2);
     ciEq(g, 116, yy, `${m} × ${x} + ${b} = ${m * x + b}`, ok ? C4.ok : C4.q, 18); preLab(g, 180, yy + 34, labelText(ok ? 'c4OnYes' : 'c4OnNo'), { col: ok ? C4.ok : C4.q, fs: 15, dir: 'rtl' }); SFX.tick(); await c4Say(L, i); }
   for (const l of L.slice(2)) await S(l); };
 /* د4: المدينة في الأرباع: مبانٍ، وطريقٌ بطوله وميله، وشارعٌ بمعادلته، وشارعان متعامدان */

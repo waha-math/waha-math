@@ -167,7 +167,7 @@ async function masteryStage(L) {
   if (P.mastered) { SFX.win(); starBurst(); await S(M.ok || 'gen.ms.ok'); }
 }
 /* نجمة الإتقان (D239: النجوم للإتقان والمراجعة لا لكل تمرين) */
-function starBurst() { const svg = $('#stage svg'); if (!svg) return; const g = el('g', { transform: 'translate(180 110)', 'pointer-events': 'none' }, svg);
+function starBurst() { const svg = $('#stage svg'); if (!svg) return; const g = el('g', { class: 'starburst', transform: 'translate(180 110)', 'pointer-events': 'none' }, svg);
   el('path', { d: 'M0 -46 L13 -14 L46 -12 L20 9 L28 42 L0 24 L-28 42 L-20 9 L-46 -12 L-13 -14 Z', fill: '#f2b33d', stroke: '#fff', 'stroke-width': 4 }, g);
   anim(g, [{ transform: 'translate(180px,110px) scale(0) rotate(-60deg)' }, { transform: 'translate(180px,110px) scale(1.15) rotate(8deg)' }, { transform: 'translate(180px,110px) scale(1) rotate(0)' }], { duration: 800, fill: 'forwards', easing: 'ease-out' }); confetti(18); }
 

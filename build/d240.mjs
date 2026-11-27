@@ -677,7 +677,7 @@ export function d240(lessons, code, MAKERS) {
     c4DistShow: c => { const a = c.a || [1, 1], b = c.b || [4, 5]; return [`c4d|${c4PP(a, b)}`, `c4s|${c4PP(a, b)}`]; },
     c4SlopeShow: () => [[[1, 1], [4, 5]], [[-3, -4], [-3, 3]], [[0, -2], [4, -2]]].map(([a, b]) => `c4s|${c4PP(a, b)}`),
     c4LineHook: () => ['c4e|2,0', 'c4e|0,0'],
-    c4LineShow: c => { const [m, b] = c.ln || [2, 1], P = [[0, b], [1, m + b], [2, 2 * m + b], [-1, b - m], [-2, b - 2 * m]].filter(p => Math.abs(p[1]) <= 5); return [`c4e|${m},${b}`, ...P.flatMap(p => [`c4o|${m},${b}|${p}`, `c4b|${m}|${p}`])]; },
+    c4LineShow: c => { const [m, b] = c.ln || [2, 1], P = [[0, b], [1, m + b], [2, 2 * m + b], [-1, b - m], [-2, b - 2 * m]].filter(p => Math.abs(p[1]) < 5); return [`c4e|${m},${b}`, ...P.flatMap(p => [`c4o|${m},${b}|${p}`, `c4b|${m}|${p}`])]; },
     c4CheckShow: c => { const [m, b] = c.ln || [2, 1]; return (c.pts || [[2, 5], [2, 2]]).map(p => `c4o|${m},${b}|${p}`); },
     c4CityShow: () => [...[[-3, 2], [1, -1], [-3, -2], [2, 3]].flatMap(c4Pt), `c4d|${c4PP([-3, 2], [1, -1])}`, `c4s|${c4PP([-3, 2], [1, -1])}`, 'c4e|1,1', 'c4e|-1,5', 'c4pp|1', 'c4pp|-1'],
     ci4ChordHook: () => ['c6c|chord|200', 'c6c|diam|200'], ci4TanHook: () => ['c6t|sec|90'], ci4TanShow: () => ['c6t|sec|90', 'c6t|tan|90', 'c6t|out|90'],
