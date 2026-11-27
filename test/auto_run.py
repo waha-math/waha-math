@@ -122,7 +122,9 @@ CLIPT = """() => { const s = document.querySelector('#stage svg'); if (!s) retur
     .filter(([t, b]) => { if (!b.width) return false; const fs = parseFloat(getComputedStyle(t).fontSize) * (s.getScreenCTM() ? s.getScreenCTM().a : 1);   /* إطار الخطّ أعلى من الحروف (الحركات): يُتسامح بثلثه أعلى وربعه أسفل */
     return b.left < R.left - 2 || b.right > R.right + 2 || b.top < R.top - .35 * fs || b.bottom > R.bottom + .25 * fs; }).map(([t, b]) => t.textContent.trim().slice(0, 24))
     /* وحلقة الجواب (okRing) داخل المسرح كلها (الفحص المستقل D2 لبوابة S1-U4 (10)) */
-    .concat([...s.querySelectorAll('[data-ring]')].filter(g => { const b = g.getBoundingClientRect(); return b.width && (b.left < R.left - 1 || b.right > R.right + 1 || b.top < R.top - 1 || b.bottom > R.bottom + 1); }).map(() => 'حلقة الجواب')); }"""
+    .concat([...s.querySelectorAll('[data-ring]')].filter(g => { const b = g.getBoundingClientRect(); return b.width && (b.left < R.left - 1 || b.right > R.right + 1 || b.top < R.top - 1 || b.bottom > R.bottom + 1); }).map(() => 'حلقة الجواب'))
+    /* ونصّ خيارٍ مقصوصٌ داخل زرّه (المراجع B لبوابة M4-U5/U6، 2 و11 (ب)): المعادلات بلا التفاف */
+    .concat([...document.querySelectorAll('#stage .choices .pick span, #stage .choices .pick b')].filter(e => { if (!e.textContent.trim() || getComputedStyle(e).whiteSpace !== 'nowrap') return false; const b = e.getBoundingClientRect(), P = e.closest('.pick').getBoundingClientRect(); return b.width && (b.left < P.left - 1 || b.right > P.right + 1); }).map(e => 'خيارٌ مقصوص: ' + e.textContent.trim().slice(0, 20))); }"""
 # ولا يتراكب نصّان على المسرح، ولا يخرج نصٌّ عن الإطار الورقي (x 20..340) في م3 وم4 (المراجع B لبوابة S3-U4/U5، 11): صندوق الحروف لا صندوق السطر،
 # فخطّ النسخ سطره أطول كثيراً من حروفه؛ والنسختان المتطابقتان في موضعٍ واحد (ظلٌّ) ليستا تراكباً
 def fail_test_wrong(ft, les, tn):

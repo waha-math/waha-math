@@ -157,7 +157,7 @@ function rulNudges(svg, y, step, labels = ['rulLeft', 'rulRight'], o = {}) { ret
     el('circle', { cx, cy: y, r: 39, fill: '#fffdf6', stroke: css('--compass'), 'stroke-width': 3 }, b); el('path', { d: o.vert ? `M${cx - 11} ${y + s * 5} l11 ${-s * 11} l11 ${s * 11}` : `M${cx - s * 5} ${y - 10} l${s * 11} 10 l${-s * 11} 10`, fill: 'none', stroke: css('--compass'), 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, b);   /* vert: سهما الأعلى والأسفل لحركة رأسية */
     const go = (e, k = 1) => { if (e) e.stopPropagation(); for (let i = 0; i < k; i++) step(s); SFX.tick(); }; b.onclick = e => go(e); b.onpointerdown = e => e.stopPropagation();
     b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); go(); } else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(null, 10); } }; return b; }); }   /* بلوحة المفاتيح: مفتاح الفعل خطوة، والسهم الأعلى عشر خطوات (سنتيمتر في الرسم) فلا يحتاج الرسم إلى عشرات الضغطات */
-async function rulDone(clean) { const d = doneBtn(); let fin = false; await gate(new Promise(res => d.b.onclick = () => { if (fin) return; fin = true; AUTO_CLEAR(); hush(); clean(); d.bar.remove(); res(); })); }
+async function rulDone(clean, guard) { const d = doneBtn(); let fin = false; await gate(new Promise(res => d.b.onclick = () => { if (fin) return; if (guard && !guard()) return; fin = true;   /* guard: «تمّ» لا يُحسب جواباً قبل أن يكون جوابٌ (المراجع B لبوابة M4-U5/U6، 13) */ AUTO_CLEAR(); hush(); clean(); d.bar.remove(); res(); })); }
 const rulDoneBtn = () => document.querySelector('#stage .pick.done');
 
 /* ================= ④ ضع الصفر عند بداية الشيء (C182، إنتاج): len طول الشيء (سم)، start: edge (حافة المسطرة عند البداية) أو one (الواحد عند البداية) ================= */

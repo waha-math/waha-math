@@ -227,6 +227,7 @@
     "d": 9,
     "ask": "half",
     "q": "gen.ci4.q.half.half",
+    "rot": 300,
     "twin": {
      "t": "ci4TanLen",
      "r": 7,
@@ -273,7 +274,7 @@
     "q": "gen.ci4.q.half.r",
     "twin": {
      "t": "ci4TanAng",
-     "th": 45,
+     "th": 35,
      "q": "gen.ci4.q.tanAng"
     }
    }
@@ -295,7 +296,8 @@
      "r": 20,
      "d": 12,
      "ask": "half",
-     "q": "gen.ci4.q.half.half"
+     "q": "gen.ci4.q.half.half",
+     "rot": 70
     }
    },
    {
@@ -327,7 +329,8 @@
      "r": 20,
      "op": 25,
      "ask": "len",
-     "q": "gen.ci4.q.tanLen.len"
+     "q": "gen.ci4.q.tanLen.len",
+     "rot": 180
     }
    },
    {
@@ -337,7 +340,8 @@
      "t": "ci4Ang",
      "cen": 84,
      "ask": "ins",
-     "q": "gen.ci4.q.ang.ins"
+     "q": "gen.ci4.q.ang.ins",
+     "rot": 180
     }
    },
    {
@@ -371,7 +375,8 @@
      "ang": 120,
      "u": "cm",
      "q": "gen.ci4.q.area",
-     "A": 96
+     "A": 96,
+     "rot": 240
     }
    },
    {

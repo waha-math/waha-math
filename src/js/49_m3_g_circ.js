@@ -26,8 +26,13 @@ function ciRule(parent, x, y, txt, col = CI.think, fs = 16) { const g = el('g', 
   let tw = 0; try { tw = t.getComputedTextLength(); } catch (e) {} if (!tw) tw = 9.4 * plain(txt).length * fs / 16;
   if (tw > 290) { const f2 = Math.max(12, fs * 290 / tw); tw *= f2 / fs; fs = f2; t.setAttribute('font-size', Math.round(fs * 10) / 10); }
   const w = Math.min(312, Math.max(120, tw + 26));
-  /* البطاقة داخل الإطار الورقي أياً كان موضعها المطلوب (المراجع B لبوابة S3-U8/U9، 4) */
-  { const sv = parent.ownerSVGElement || parent, vb = sv.viewBox && sv.viewBox.baseVal, H = vb && vb.height ? vb.height : 250; y = Math.min(Math.max(y, 14 + 22), H - 14 - 20); x = Math.min(Math.max(x, 20 + w / 2 + 2), 340 - w / 2 - 2); }
+  /* البطاقة داخل الإطار الورقي أياً كان موضعها المطلوب (المراجع B لبوابة S3-U8/U9، 4)؛ وy مصفوفةٌ: أقلّ المواضع تغطيةً للمعطى المرسوم (المراجع B لبوابة M4-U5/U6، 4) */
+  { const sv = parent.ownerSVGElement || parent, vb = sv.viewBox && sv.viewBox.baseVal, H = vb && vb.height ? vb.height : 250, fit = v => Math.min(Math.max(v, 14 + 22), H - 14 - 20);
+    x = Math.min(Math.max(x, 20 + w / 2 + 2), 340 - w / 2 - 2);
+    if (Array.isArray(y)) { const B = []; for (const e of sv.querySelectorAll('text, circle, path, line')) { if (e.closest('[data-help]') || g.contains(e)) continue; const sw = +e.getAttribute('stroke-width') || 0; if ((e.tagName === 'path' || e.tagName === 'line') && sw < 3.5) continue; if (e.tagName === 'circle' && +e.getAttribute('r') > 12) continue;   /* النقاط لا قرص الدائرة */ try { const b = e.getBBox(); if (b.width * b.height < 40000) B.push(b); } catch (er) {} }
+      const cost = v => { const x0 = x - w / 2, y0 = v - 19; return B.reduce((a, b) => a + Math.max(0, Math.min(x0 + w, b.x + b.width) - Math.max(x0, b.x)) * Math.max(0, Math.min(y0 + 36, b.y + b.height) - Math.max(y0, b.y)), 0); };
+      y = y.map(fit).reduce((best, v) => cost(v) < cost(best) - 1 ? v : best); }
+    else y = fit(y); }
   t.setAttribute('x', x); t.setAttribute('y', y + 6);
   g.insertBefore(el('rect', { x: x - w / 2, y: y - 19, width: w, height: 36, rx: 12, fill: '#fff', stroke: col, 'stroke-width': 2.4 }), t); return g; }
 /* الحرف π مرسوماً (لا يحمله خط القراءة) */

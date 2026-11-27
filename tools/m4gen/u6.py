@@ -22,12 +22,13 @@ def chord(seg,rot=None):
     return d
 def half(r,d,ask):
     h=math.isqrt(r*r-d*d); assert h*h==r*r-d*d, (r,d); return {"t":"ci4Half","r":r,"d":d,"ask":ask,"q":"gen.ci4.q.half."+ask}
+def R(it,rot): return {**it,"rot":rot}   # الوضع غير النمطي: الشكل يدور rot درجةً (المراجع A لبوابة M4-U5/U6، 19)
 def tan(kind,a): return {"t":"ci4Tan","kind":kind,"dir":a,"q":"gen.ci4.q.tan"}
 def tanlen(r,op,ask):
     l=math.isqrt(op*op-r*r); assert l*l==op*op-r*r, (r,op); return {"t":"ci4TanLen","r":r,"op":op,"ask":ask,"q":"gen.ci4.q.tanLen."+ask}
 DEGS=set([116,58,136,68,58,122,232,64,180,90,44])   # الزوايا المنطوقة: المعطاة والجواب (وبندا u8 والختامي)
 def tanang(th):
-    DEGS.update(v for v in [90-th, th, 180-th, (90-th)//2] if v>0); return {"t":"ci4TanAng","th":th,"q":"gen.ci4.q.tanAng"}
+    DEGS.update(v for v in [90-th, th, 180-th, (90-th)//2, 90, 180-2*th] if v>0); return {"t":"ci4TanAng","th":th,"q":"gen.ci4.q.tanAng"}
 
 F1={1:'إِحْدَى',2:'اثْنَتَانِ',3:'ثَلَاثٌ',4:'أَرْبَعٌ',5:'خَمْسٌ',6:'سِتٌّ',7:'سَبْعٌ',8:'ثَمَانٍ',9:'تِسْعٌ'}
 FF={3:'ثَلَاثُ',4:'أَرْبَعُ',5:'خَمْسُ',6:'سِتُّ',7:'سَبْعُ',8:'ثَمَانِي',9:'تِسْعُ',10:'عَشْرُ'}
@@ -80,13 +81,13 @@ L1={
  "hk.01":["chaos","رَسَمْتُ قُطْرًا، لِأَنَّهُ قِطْعَةٌ فِي الدَّائِرَةِ!"],
  "hk.02":"القُطْرُ يَمُرُّ بِالمَرْكَزِ. هَلْ تَمُرُّ هَذِهِ القِطْعَةُ بِهِ؟",
  "hk.03":"هَذَا هُوَ القُطْرُ. وَقِطْعَةُ فَوْضَى وَتَرٌ، فَهَلْ كُلُّ وَتَرٍ قُطْرٌ؟",
- "ch.01":"الوَتَرُ قِطْعَةٌ تَصِلُ نُقْطَتَيْنِ عَلَى الدَّائِرَةِ، فَيَقْسِمُهَا قَوْسَيْنِ. وَالقُطْرُ وَتَرٌ يَمُرُّ بِالمَرْكَزِ، وَهُوَ أَطْوَلُ الأَوْتَارِ.",
+ "ch.01":"الوَتَرُ قِطْعَةٌ تَصِلُ نُقْطَتَيْنِ عَلَى الدَّائِرَةِ، فَيَقْسِمُهَا قَوْسَيْنِ. وَالقُطْرُ وَتَرٌ يَمُرُّ بِالمَرْكَزِ، وَهُوَ أَطْوَلُ الأَوْتَارِ. وَوَتَرُ الدَّائِرَةِ غَيْرُ وَتَرِ المُثَلَّثِ القَائِمِ: الكَلِمَةُ نَفْسُهَا بِمَعْنَيَيْنِ.",
  "ch.02":"نَرْسُمُ مِنَ المَرْكَزِ عَمُودًا عَلَى الوَتَرِ.",
  "ch.03":"نَقِيسُ جُزْأَيِ الوَتَرِ عِنْدَ قَدَمِ العَمُودِ: مُتَسَاوِيَانِ.",
  "ch.04":"القَاعِدَةُ: الوَتَرُ الَّذِي لَا يَمُرُّ بِالمَرْكَزِ، يُنَصِّفُهُ العَمُودُ عَلَيْهِ مِنَ المَرْكَزِ.",
  "pp.00":"وَلِمَاذَا يُنَصِّفُهُ دَائِمًا؟ نَصِلُ المَرْكَزَ بِطَرَفَيِ الوَتَرِ.",
  "pp.01":"مِيمْ أَلِفْ يُسَاوِي مِيمْ بَاءْ، لِأَنَّهُمَا نِصْفَا قُطْرٍ.",
- "pp.02":"فَالمُثَلَّثَانِ القَائِمَانِ عِنْدَ جِيمْ وَتَرَاهُمَا مُتَسَاوِيَانِ، وَالعَمُودُ ضِلْعٌ مُشْتَرَكٌ: هُمَا مُتَطَابِقَانِ.",
+ "pp.02":"فَالمُثَلَّثَانِ القَائِمَانِ عِنْدَ جِيمْ وَتَرَا المُثَلَّثَيْنِ فِيهِمَا مُتَسَاوِيَانِ، وَالعَمُودُ ضِلْعٌ مُشْتَرَكٌ: هُمَا مُتَطَابِقَانِ.",
  "pp.03":"فَجِيمْ أَلِفْ يُسَاوِي جِيمْ بَاءْ: العَمُودُ يُنَصِّفُ الوَتَرَ.",
  "pp.04":"هَذَا بُرْهَانٌ لِكُلِّ وَتَرٍ، وَالقِيَاسُ يُؤَكِّدُهُ فَقَطْ.",
  "mat.01":"{اُرْسُمْ|اُرْسُمِي} بِالفِرْجَارِ دَائِرَةً، {وَارْسُمْ|وَارْسُمِي} فِيهَا وَتَرًا بِالمِسْطَرَةِ، ثُمَّ عَمُودًا عَلَيْهِ مِنَ المَرْكَزِ، {وَقِسْ|وَقِيسِي} جُزْأَيْهِ. ثُمَّ {اِلْمِسْ|اِلْمِسِي} «تَمَّ».",
@@ -125,16 +126,16 @@ d1={"id":"m4.u6.d1","title":"الأَوْتَارُ وَالأَقْوَاسُ",
   {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(chord('chord'),chord('in')), tw(chord('diam',150),chord('rad'))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(half(5,4,'half'),half(10,6,'half')), tw(half(5,3,'r'),half(13,5,'r')), tw(half(10,8,'chord'),half(13,12,'chord'))],
+  "normal":[tw(half(5,4,'half'),half(10,6,'half')), tw(half(5,3,'r'),R(half(13,5,'r'),140)), tw(half(10,8,'chord'),half(13,12,'chord'))],
   "challenge":[tw(reason("pr.r1",cip(k='chord'),["pr.r1a","pr.r1b","pr.r1c"]),chain('chordPf')), tw(why('chordPf',1,['rhs','sss','looks']),half(10,6,'d'))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":chord('rad',30),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C403":[half(13,5,'half'), chord('diam',60), reason("ms.1",cip(k='chord',rot=330,perp=1),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C403":[half(25,7,'half'), chord('rad',120), reason("ms.x1",cip(k='chord',rot=120,perp=1),["ms.x1a","ms.x1b","ms.x1c"])]},
+ "mastery":{"concepts":{"C403":[R(half(13,5,'half'),50), chord('diam',60), reason("ms.1",cip(k='chord',rot=330,perp=1),["ms.1a","ms.1b","ms.1c"])]},
+  "alt":{"C403":[R(half(25,7,'half'),230), chord('rad',120), reason("ms.x1",cip(k='chord',rot=120,perp=1),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C403":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C403":[tw(chord('chord',240),half(5,4,'chord'))]},
   "mixed":{"lesson":"m4.u5.d2","concept":"C410","item":{"t":"c4Dist","a":[-3,-1],"b":[4,5],"q":"gen.c4.q.dist"}},
   "ok":"ms.ok"},
- "review":[half(17,8,'half')|{"c":"C403"}, chord('in',300)|{"c":"C403"}, half(20,16,'r')|{"c":"C403"}],
+ "review":[half(17,8,'half')|{"c":"C403"}, chord('in',300)|{"c":"C403"}, R(half(20,16,'r'),120)|{"c":"C403"}],
  "wrap":{"art":"circ4Art","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"ارسموا دائرة بالفرجار، واطلبوا منه أن يرسم وتراً ويجد منتصفه. واسألوه: هل كل وتر قطر؟ ولماذا ينصّف العمود من المركز الوتر؟"}
 dump(U+'/d1.json', d1)
@@ -190,16 +191,16 @@ d2={"id":"m4.u6.d2","title":"المُمَاسُّ","icon":["c6icon"],
   {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(tan('tan',30),tan('sec',120)), tw(tan('out',200),tan('tan',250))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(tanlen(3,5,'len'),tanlen(5,13,'len')), tw(tanang(60),tanang(55)), tw(tanlen(6,10,'op'),tanlen(8,17,'r'))],
+  "normal":[tw(tanlen(3,5,'len'),tanlen(5,13,'len')), tw(tanang(60),R(tanang(55),150)), tw(tanlen(6,10,'op'),R(tanlen(8,17,'r'),200))],
   "challenge":[tw(reason("pr.r1",cip(k='sec'),["pr.r1a","pr.r1b","pr.r1c"]),tan('sec',330)), tw(reason("pr.r2",cip(k='tan',radius=True),["pr.r2a","pr.r2b","pr.r2c"]),tanang(50))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":tan('sec',300),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C403":[tanlen(9,15,'len'), tan('tan',150), reason("ms.1",cip(k='tan',radius=True,dir=120),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C403":[tanlen(8,10,'len'), tan('sec',60), reason("ms.x1",cip(k='tan',radius=True,dir=300),["ms.x1a","ms.x1b","ms.x1c"])]},
+ "mastery":{"concepts":{"C403":[R(tanlen(9,15,'len'),160), tan('tan',150), reason("ms.1",cip(k='tan',radius=True,dir=120),["ms.1a","ms.1b","ms.1c"])]},
+  "alt":{"C403":[R(tanlen(8,10,'len'),30), tan('sec',60), reason("ms.x1",cip(k='tan',radius=True,dir=300),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C403":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C403":[tw(tan('out',45),tanang(70))]},
   "mixed":{"lesson":"m4.u6.d1","concept":"C403","item":half(25,24,'half')},
   "ok":"ms.ok"},
- "review":[tanlen(12,20,'len')|{"c":"C403"}, tanang(65)|{"c":"C403"}, tan('sec',200)|{"c":"C403"}],
+ "review":[tanlen(12,20,'len')|{"c":"C403"}, R(tanang(65),210)|{"c":"C403"}, tan('sec',200)|{"c":"C403"}],
  "wrap":{"art":"circ4Art","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"ضعوا مسطرة على طبق مستدير حتى تلمسه في نقطة واحدة، واسألوه: كم نقطة مشتركة؟ وما الزاوية بين المسطرة ونصف القطر؟"}
 dump(U+'/d2.json', d2)
@@ -255,16 +256,16 @@ d3={"id":"m4.u6.d3","title":"الزَّوَايَا المُحِيطِيَّةُ
   {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(ang(80,'ins'),ang(140,'ins')), tw(ang(70,'cen'),ang(110,'cen'))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(ang(100,'ins'),ang(60,'ins')), tw(ang(180,'ins'),ang(64,'ins',60)), tw(ang(120,'cen'),ang(90,'cen'))],
+  "normal":[tw(ang(100,'ins'),R(ang(60,'ins'),135)), tw(ang(180,'ins'),ang(64,'ins',60)), tw(ang(120,'cen'),R(ang(90,'cen'),180))],
   "challenge":[tw(reason("pr.r1",cip(k='insc',cen=100),["pr.r1a","pr.r1b","pr.r1c"]),chain('inscPf')), tw(why('inscPf',2,['ext','isoBase','measure']),ang(160,'ins'))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":ang(120,'ins'),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C412":[ang(130,'ins'), ang(50,'cen'), reason("ms.1",cip(k='insc',cen=180,pAt=40),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C412":[ang(170,'ins'), ang(76,'cen'), reason("ms.x1",cip(k='insc',cen=120),["ms.x1a","ms.x1b","ms.x1c"])]},
+ "mastery":{"concepts":{"C412":[R(ang(130,'ins'),180), ang(50,'cen'), reason("ms.1",cip(k='insc',cen=180,pAt=40),["ms.1a","ms.1b","ms.1c"])]},
+  "alt":{"C412":[R(ang(170,'ins'),200), ang(76,'cen'), reason("ms.x1",cip(k='insc',cen=120),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C412":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C412":[tw(ang(40,'ins'),ang(88,'ins'))]},
   "mixed":{"lesson":"m4.u6.d2","concept":"C403","item":tanlen(15,25,'len')},
   "ok":"ms.ok"},
- "review":[ang(150,'ins')|{"c":"C412"}, ang(146,'cen')|{"c":"C412"}, ang(104,'ins')|{"c":"C412"}],
+ "review":[ang(150,'ins')|{"c":"C412"}, ang(146,'cen')|{"c":"C412"}, R(ang(104,'ins'),180)|{"c":"C412"}],
  "wrap":{"art":"circ4Art","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اسألوه: هل الزاوية المحيطية أكبر أم أصغر من المركزية؟ ولماذا تكون الزاوية على القطر قائمة؟"}
 dump(U+'/d3.json', d3)
@@ -323,16 +324,16 @@ d4={"id":"m4.u6.d4","title":"القِطَاعُ وَطُولُ القَوْسِ"
   {"s":"explore","scene":"projTable","cols":["ciTbItem","ciTbRes"],"rows":[["ciTbPath","7.85"],["ciTbSector","19.63"]],"rowLab":True,"lastCol":True,"lines":["tb.01","tb.02"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(sector('arc',90,'cm',r=5),sector('arc',180,'cm',C=20)), tw(sector('area',45,'cm',A=80),sector('area',120,'cm',A=150)), tw(sector('arc',60,'cm',C=42),sector('arc',270,'cm',C=40))],
+  "normal":[tw(sector('arc',90,'cm',r=5),sector('arc',180,'cm',C=20)), tw(sector('area',45,'cm',A=80),R(sector('area',120,'cm',A=150),200)), tw(sector('arc',60,'cm',C=42),R(sector('arc',270,'cm',C=40),45))],
   "challenge":[tw(reason("pr.r1",cip(k='arc',ang=90),["pr.r1a","pr.r1b","pr.r1c"]),sector('area',90,'cm',r=10)), tw(sector('arc',45,'cm',r=4),sector('area',180,'m',r=2))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":sector('arc',90,'cm',C=48),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C418":[sector('arc',120,'m',C=30), sector('area',90,'m',A=64), reason("ms.1",cip(k='arc',ang=150),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C418":[sector('arc',60,'m',C=36), sector('area',120,'m',A=90), reason("ms.x1",cip(k='arc',ang=120),["ms.x1a","ms.x1b","ms.x1c"])]},
+ "mastery":{"concepts":{"C418":[R(sector('arc',120,'m',C=30),210), sector('area',90,'m',A=64), reason("ms.1",cip(k='arc',ang=150),["ms.1a","ms.1b","ms.1c"])]},
+  "alt":{"C418":[R(sector('arc',60,'m',C=36),150), sector('area',120,'m',A=90), reason("ms.x1",cip(k='arc',ang=120),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C418":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C418":[tw(sector('arc',180,'cm',C=16),sector('area',180,'cm',A=50))]},
   "mixed":{"lesson":"m4.u6.d3","concept":"C412","item":ang(96,'cen')},
   "ok":"ms.ok"},
- "review":[sector('arc',90,'m',C=28)|{"c":"C418"}, sector('area',60,'m',A=90)|{"c":"C418"}],
+ "review":[sector('arc',90,'m',C=28)|{"c":"C418"}, R(sector('area',60,'m',A=90),120)|{"c":"C418"}],
  "wrap":{"art":"circ4Art","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اطلبوا منه أن يحسب طول ربع محيط علبة دائرية ثم يقيسه بالخيط، ومساحة ربع قرصها. واسألوه: لماذا نقسم على 360؟"}
 dump(U+'/d4.json', d4)
@@ -379,13 +380,13 @@ d5={"id":"m4.u6.d5","title":"بَوَّابَةُ حَيِّ الدَّائِر�
   {"s":"game","scene":"items","mode":"practice","stage":"game","intro":"gm.intro","items":[tw(chord('diam',100),tan('out',300)), tw(tan('tan',100),chord('rad',260)), tw(reason("gm.r1",cip(k='tan',dir=150,radius=1),["gm.r1a","gm.r1b","gm.r1c"]),reason("gm.r2",cip(k='rad',rot=320),["gm.r2a","gm.r2b","gm.r2c"]))]},   # المحكمة: حكمٌ ثم «لماذا؟» (المراجع A لبوابة M4-U5/U6، 14)
   {"s":"practice"},{"s":"test"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(half(15,9,'half'),tanlen(7,25,'len')), tw(ang(90,'ins'),ang(100,'cen')), tw(sector('arc',72,'cm',C=50),sector('area',36,'cm',A=120))],
-  "challenge":[tw(half(15,12,'r'),tanang(45))]},
+  "normal":[tw(R(half(15,9,'half'),300),tanlen(7,25,'len')), tw(ang(90,'ins'),ang(100,'cen')), tw(sector('arc',72,'cm',C=50),sector('area',36,'cm',A=120))],
+  "challenge":[tw(half(15,12,'r'),tanang(35))]},
  "test":{"remedial":"ts.rem","stoneLine":"ts.stone","winLines":["ts.win1","ts.win2"],"items":[   # أقسام المرجع: 2 الوتر والعمود، 2 المماس، 2 المحيطية والمركزية، 3 القوس والقطاع، 2 مسائل تطبيقية، 1 اكتشاف خطأ
-   T5(1,1,half(20,12,'half')), T5(2,1,half(17,15,'chord')),
-   T5(3,2,tan('tan',320)), T5(4,2,tanlen(20,25,'len')),
-   T5(5,3,ang(84,'ins')), T5(6,3,ang(124,'cen')),
-   T5(7,4,sector('arc',90,'cm',r=2)), T5(8,4,sector('area',120,'cm',A=96)), T5(9,4,sector('arc',30,'cm',C=60)),
+   T5(1,1,R(half(20,12,'half'),70)), T5(2,1,half(17,15,'chord')),
+   T5(3,2,tan('tan',320)), T5(4,2,R(tanlen(20,25,'len'),180)),
+   T5(5,3,R(ang(84,'ins'),180)), T5(6,3,ang(124,'cen')),
+   T5(7,4,sector('arc',90,'cm',r=2)), T5(8,4,R(sector('area',120,'cm',A=96),240)), T5(9,4,sector('arc',30,'cm',C=60)),
    T5(10,4,{**sector('arc',60,'m',r=6),"q":"ts.10"}), T5(11,2,{**tanang(62),"q":"ts.11"}),   # مسألتان تطبيقيتان بسياقٍ وأعدادٍ لم تُرَ (المراجع A لبوابة M4-U5/U6، 15)
    T5(12,3,reason("ts.12",cip(k='insc',cen=180,pAt=125),["ts.12a","ts.12b","ts.12c"]))]},
  "wrap":{"art":"medal","lines":["wrap.01"],"home":"wrap.home"},
@@ -400,13 +401,13 @@ G={
  "gen.ci4.reveal.chord.rad":"لَا: طَرَفُهَا الأَوَّلُ المَرْكَزُ، فَهِيَ نِصْفُ قُطْرٍ.","gen.ci4.reveal.chord.in":"لَا: أَحَدُ طَرَفَيْهَا دَاخِلَ الدَّائِرَةِ.",
  "gen.ci4.q.half.half":"العَمُودُ مِنَ المَرْكَزِ عَلَى الوَتَرِ. كَمْ نِصْفُ الوَتَرِ؟","gen.ci4.q.half.chord":"نِصْفُ القُطْرِ وَبُعْدُ الوَتَرِ عَنِ المَرْكَزِ مَعْلُومَانِ. كَمْ طُولُ الوَتَرِ كُلِّهِ؟",
  "gen.ci4.q.half.r":"الوَتَرُ وَبُعْدُهُ عَنِ المَرْكَزِ مَعْلُومَانِ. كَمْ نِصْفُ القُطْرِ؟","gen.ci4.q.half.d":"نِصْفُ القُطْرِ وَالوَتَرُ مَعْلُومَانِ. كَمْ بُعْدُ الوَتَرِ عَنِ المَرْكَزِ؟",
- "gen.ci4.together.half":"هَيَّا مَعًا: كَتَبْنَا الحِسَابَ تَحْتُ. {وَتَذَكَّرْ|وَتَذَكَّرِي} أَنَّ العَمُودَ يُنَصِّفُ الوَتَرَ.","gen.ci4.hint.half":"العَمُودُ مِنَ المَرْكَزِ يُنَصِّفُ الوَتَرَ، وَنِصْفُ القُطْرِ وَتَرُ مُثَلَّثٍ قَائِمٍ ضِلْعَاهُ نِصْفُ الوَتَرِ وَالعَمُودُ.",
+ "gen.ci4.together.half":"هَيَّا مَعًا: كَتَبْنَا الحِسَابَ تَحْتُ. {وَتَذَكَّرْ|وَتَذَكَّرِي} أَنَّ العَمُودَ يُنَصِّفُ الوَتَرَ.","gen.ci4.hint.half":"العَمُودُ مِنَ المَرْكَزِ يُنَصِّفُ الوَتَرَ، وَنِصْفُ القُطْرِ وَتَرُ مُثَلَّثٍ قَائِمٍ ضِلْعَاهُ نِصْفُ وَتَرِ الدَّائِرَةِ وَالعَمُودُ.",
  "gen.ci4.reveal.half":"الطُّولُ:",
  "gen.ci4.q.tan":"هَلْ هَذَا المُسْتَقِيمُ مُمَاسٌّ لِلدَّائِرَةِ؟","gen.ci4.together.tan":"هَيَّا مَعًا: عَلَّمْنَا النُّقَطَ المُشْتَرَكَةَ. كَمْ هِيَ؟",
  "gen.ci4.hint.tan":"المُمَاسُّ لَهُ مَعَ الدَّائِرَةِ نُقْطَةٌ مُشْتَرَكَةٌ وَاحِدَةٌ فَقَطْ.",
  "gen.ci4.reveal.tan.tan":"نَعَمْ: يَلْمِسُهَا فِي نُقْطَةٍ وَاحِدَةٍ.","gen.ci4.reveal.tan.sec":"لَا: يَقْطَعُهَا فِي نُقْطَتَيْنِ.","gen.ci4.reveal.tan.out":"لَا: لَا يَلْمِسُهَا أَبَدًا.",
  "gen.ci4.q.tanLen.len":"مِنْ نُقْطَةٍ خَارِجَ الدَّائِرَةِ مُمَاسٌّ. كَمْ طُولُهُ؟","gen.ci4.q.tanLen.op":"كَمْ بُعْدُ النُّقْطَةِ نُونْ عَنِ المَرْكَزِ؟","gen.ci4.q.tanLen.r":"كَمْ نِصْفُ قُطْرِ الدَّائِرَةِ؟",
- "gen.ci4.together.tanLen":"هَيَّا مَعًا: الزَّاوِيَةُ عِنْدَ نُقْطَةِ التَّمَاسِّ قَائِمَةٌ، وَكَتَبْنَا الحِسَابَ تَحْتُ.","gen.ci4.hint.tanLen":"نِصْفُ القُطْرِ عَمُودِيٌّ عَلَى المُمَاسِّ، فَالمُثَلَّثُ قَائِمٌ، وَبُعْدُ النُّقْطَةِ عَنِ المَرْكَزِ وَتَرُهُ.",
+ "gen.ci4.together.tanLen":"هَيَّا مَعًا: الزَّاوِيَةُ عِنْدَ نُقْطَةِ التَّمَاسِّ قَائِمَةٌ، وَكَتَبْنَا الحِسَابَ تَحْتُ.","gen.ci4.hint.tanLen":"نِصْفُ القُطْرِ عَمُودِيٌّ عَلَى المُمَاسِّ، فَالمُثَلَّثُ قَائِمٌ، وَبُعْدُ النُّقْطَةِ عَنِ المَرْكَزِ وَتَرُ المُثَلَّثِ.",
  "gen.ci4.q.tanAng":"الزَّاوِيَةُ عِنْدَ المَرْكَزِ","gen.ci4.q.tanAngEnd":"كَمِ الزَّاوِيَةُ عِنْدَ النُّقْطَةِ نُونْ؟",
  "gen.ci4.together.tanAng":"هَيَّا مَعًا: الزَّاوِيَةُ عِنْدَ نُقْطَةِ التَّمَاسِّ قَائِمَةٌ، وَمَجْمُوعُ المُثَلَّثِ مِئَةٌ وَثَمَانُونَ. كَتَبْنَا الطَّرْحَ تَحْتُ.","gen.ci4.hint.tanAng":"فِي المُثَلَّثِ زَاوِيَةٌ قَائِمَةٌ عِنْدَ نُقْطَةِ التَّمَاسِّ، وَمَجْمُوعُ زَوَايَاهُ مِئَةٌ وَثَمَانُونَ.",
  "gen.ci4.reveal.ang":"الزَّاوِيَةُ:",
@@ -415,15 +416,15 @@ G={
  "gen.ci4.q.arc":"كَمْ طُولُ القَوْسِ المُلَوَّنِ؟","gen.ci4.q.area":"كَمْ مِسَاحَةُ القِطَاعِ المُلَوَّنِ؟",
  "gen.ci4.together.sector":"هَيَّا مَعًا: كَتَبْنَا الكَسْرَ وَالكُلَّ تَحْتُ. كَمْ يَكُونُ الجُزْءُ؟","gen.ci4.hint.sector":"{اُنْظُرْ|اُنْظُرِي} إِلَى الشَّرَائِحِ: كَمْ شَرِيحَةً تَمْلَأُ الدَّائِرَةَ؟ وَكَمْ شَرِيحَةً فِي القِطَاعِ؟",
  "gen.ci4.reveal.arc":"طُولُ القَوْسِ:","gen.ci4.reveal.area":"مِسَاحَةُ القِطَاعِ:",
- "gen.pf.rs.radii":"نِصْفَا قُطْرٍ فِي الدَّائِرَةِ نَفْسِهَا مُتَسَاوِيَانِ.","gen.pf.rs.rhs":"قَائِمَانِ وَتَرَاهُمَا مُتَسَاوِيَانِ وَضِلْعٌ قَائِمٌ مُشْتَرَكٌ: هُمَا مُتَطَابِقَانِ.",
+ "gen.pf.rs.radii":"نِصْفَا قُطْرٍ فِي الدَّائِرَةِ نَفْسِهَا مُتَسَاوِيَانِ.","gen.pf.rs.rhs":"قَائِمَانِ وَتَرَا المُثَلَّثَيْنِ فِيهِمَا مُتَسَاوِيَانِ وَضِلْعٌ قَائِمٌ مُشْتَرَكٌ: هُمَا مُتَطَابِقَانِ.",
  "gen.pf.rs.isoBase":"زَاوِيَتَا قَاعِدَةِ المُتَسَاوِي السَّاقَيْنِ مُتَسَاوِيَتَانِ.","gen.pf.rs.ext":"الزَّاوِيَةُ الخَارِجِيَّةُ تُسَاوِي مَجْمُوعَ الدَّاخِلِيَّتَيْنِ البَعِيدَتَيْنِ.",
 }
 def ckey(v): return (('%.2f'%v).rstrip('0').rstrip('.')).replace('.','_')
 for v,uk in VALS: G.setdefault('gen.ci.v.%s.%s'%(ckey(v),uk), decphrase(v,uk)+'.')
-LB={"ciTbItem":"العُنْصُرُ","ciTbRes":"النَّاتِجُ","ciTbPath":"المَمَرُّ (م)","ciTbSector":"القِطَاعُ (م٢)","ci4RuleChord":"الوَتَرُ يَصِلُ نُقْطَتَيْنِ عَلَى الدَّائِرَةِ","ci4RuleHalf":"العَمُودُ مِنَ المَرْكَزِ يُنَصِّفُ الوَتَرَ","ci4RulePy":"نِصْفُ القُطْرِ وَتَرٌ: نِصْفُ الوَتَرِ وَالعَمُودُ ضِلْعَاهُ",
+LB={"ciTbItem":"العُنْصُرُ","ciTbRes":"النَّاتِجُ","ciTbPath":"المَمَرُّ (م)","ciTbSector":"القِطَاعُ (م٢)","ci4RuleChord":"الوَتَرُ يَصِلُ نُقْطَتَيْنِ عَلَى الدَّائِرَةِ","ci4RuleHalf":"العَمُودُ مِنَ المَرْكَزِ يُنَصِّفُ الوَتَرَ","ci4RulePy":"نِصْفُ القُطْرِ وَتَرُ المُثَلَّثِ: ضِلْعَاهُ العَمُودُ وَنِصْفُ وَتَرِ الدَّائِرَةِ",
     "ci4AskInsc":"أَيُّ الزَّاوِيَتَيْنِ أَكْبَرُ؟ وَكَمْ مَرَّةً؟","ci4AskSector":"كَمْ شَرِيحَةً تَمْلَأُ الدَّائِرَةَ؟","ci4RuleTan":"المُمَاسُّ: نُقْطَةٌ مُشْتَرَكَةٌ وَاحِدَةٌ","ci4RuleTanR":"نِصْفُ القُطْرِ عَمُودِيٌّ عَلَى المُمَاسِّ",
     
-    "pf.rs.radii":"نِصْفَا قُطْرٍ","pf.rs.rhs":"وَتَرٌ وَضِلْعٌ قَائِمٌ","pf.rs.isoBase":"زَاوِيَتَا القَاعِدَةِ","pf.rs.ext":"الخَارِجِيَّةُ مَجْمُوعُ البَعِيدَتَيْنِ",
+    "pf.rs.radii":"نِصْفَا قُطْرٍ","pf.rs.rhs":"وَتَرُ المُثَلَّثِ وَضِلْعٌ","pf.rs.isoBase":"زَاوِيَتَا القَاعِدَةِ","pf.rs.ext":"الخَارِجِيَّةُ مَجْمُوعُ البَعِيدَتَيْنِ",
     "pf.chordPf.1":"م أ = م ب","pf.chordPf.2":"المُثَلَّثَانِ القَائِمَانِ عِنْدَ ج مُتَطَابِقَانِ","pf.chordPf.3":"ج أ = ج ب: العَمُودُ يُنَصِّفُ الوَتَرَ",
     "pf.inscPf.1":"م ن = م أ","pf.inscPf.2":"زَاوِيَتَا ن وَأ فِي المُثَلَّثِ مُتَسَاوِيَتَانِ","pf.inscPf.3":"المَرْكَزِيَّةُ = ن + أ = ضِعْفُ المُحِيطِيَّةِ"}
 E={
@@ -449,6 +450,7 @@ E={
  "ciInsDouble":("يضاعف بدل أن ينصّف",["أَيُّهُمَا أَكْبَرُ: المُحِيطِيَّةُ أَمِ المَرْكَزِيَّةُ؟","أَيُّهُمَا رَأْسُهُ أَقْرَبُ إِلَى القَوْسِ؟"]),
  "ciInsOff":("يخطئ الزاوية المحيطية",["كَمِ المَرْكَزِيَّةُ؟","أَيُّهُمَا أَصْغَرُ عَلَى القَوْسِ نَفْسِهِ: المُحِيطِيَّةُ أَمِ المَرْكَزِيَّةُ؟"]),
  "ciCenOff":("يخطئ الزاوية المركزية",["كَمِ المُحِيطِيَّةُ؟","أَيُّهُمَا أَكْبَرُ عَلَى القَوْسِ نَفْسِهِ: المَرْكَزِيَّةُ أَمِ المُحِيطِيَّةُ؟"]),
+ "ciInsOther":("يحسب المحيطية على القوس الآخر",["عَلَى أَيِّ القَوْسَيْنِ تَقِفُ الزَّاوِيَةُ المَرْسُومَةُ؟","أَيْنَ رَأْسُهَا: عَلَى القَوْسِ المُلَوَّنِ أَمْ مُقَابِلَهُ؟"]),
  "ciArcHalf":("يجعل كل قوس نصف المحيط",["كَمْ دَرَجَةً هَذِهِ الزَّاوِيَةُ؟","هَلْ هِيَ نِصْفُ الدَّوْرَةِ؟"]),
  "ciArcOther":("يحسب القوس الآخر",["أَيُّ القَوْسَيْنِ مُلَوَّنٌ؟","كَمْ دَرَجَةً زَاوِيَتُهُ؟"]),
  "ciAreaHalf":("يجعل كل قطاع نصف المساحة",["كَمْ دَرَجَةً زَاوِيَةُ القِطَاعِ؟","هَلْ هُوَ نِصْفُ الدَّائِرَةِ؟"]),

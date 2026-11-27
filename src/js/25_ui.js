@@ -243,7 +243,7 @@ function doneBtn(onClick) { const b = document.createElement('button'); b.classN
 /* الشبكات بلوحة المفاتيح (role=grid): خانةٌ واحدة في ترتيب Tab والأسهم تنقل التركيز بين الخانات (roving tabindex)، فلا تمرّ Tab على مئة خانة،
    وrole=grid يفي بما يَعِد به قارئَ الشاشة (المراجع B لبوابتي S3-U4/U5، 12 وS3-U6/U7، 14). تُهيَّأ كل شبكةٍ تُضاف إلى المسرح، والبدء من خانة الأصل (أوّل الصفّ الأخير) */
 function gridRoveInit(kg) { if (kg.__rove) return; const rows = [...kg.querySelectorAll('[role=row]')].map(r => [...r.querySelectorAll('[role=gridcell]')]).filter(r => r.length); if (!rows.length) return; kg.__rove = rows;
-  const start = rows[rows.length - 1][0]; rows.flat().forEach(c => c.setAttribute('tabindex', c === start ? 0 : -1));
+  const start = kg.querySelector('[role=gridcell][data-origin]') || rows[rows.length - 1][0];   /* المستوى الكامل يبدأ من خانة الأصل (المراجع B لبوابة M4-U5/U6، 12) */ rows.flat().forEach(c => c.setAttribute('tabindex', c === start ? 0 : -1));
   kg.addEventListener('focusin', e => { const c = e.target.closest && e.target.closest('[role=gridcell]'); if (c) rows.flat().forEach(x => x.setAttribute('tabindex', x === c ? 0 : -1)); }); }
 document.addEventListener('keydown', e => { const c = e.target && e.target.closest && e.target.closest('[role=gridcell]'), kg = c && c.closest('[role=grid]'), rows = kg && kg.__rove; if (!rows) return;
   const d = e.key === 'ArrowUp' ? [-1, 0] : e.key === 'ArrowDown' ? [1, 0] : e.key === 'ArrowRight' ? [0, 1] : e.key === 'ArrowLeft' ? [0, -1] : e.key === 'Home' ? [0, -1e9] : e.key === 'End' ? [0, 1e9] : null; if (!d) return;

@@ -192,7 +192,8 @@
     "twin": {
      "t": "ci4TanAng",
      "th": 55,
-     "q": "gen.ci4.q.tanAng"
+     "q": "gen.ci4.q.tanAng",
+     "rot": 150
     }
    },
    {
@@ -206,7 +207,8 @@
      "r": 8,
      "op": 17,
      "ask": "r",
-     "q": "gen.ci4.q.tanLen.r"
+     "q": "gen.ci4.q.tanLen.r",
+     "rot": 200
     }
    }
   ],
@@ -291,7 +293,8 @@
      "r": 9,
      "op": 15,
      "ask": "len",
-     "q": "gen.ci4.q.tanLen.len"
+     "q": "gen.ci4.q.tanLen.len",
+     "rot": 160
     },
     {
      "t": "ci4Tan",
@@ -332,7 +335,8 @@
      "r": 8,
      "op": 10,
      "ask": "len",
-     "q": "gen.ci4.q.tanLen.len"
+     "q": "gen.ci4.q.tanLen.len",
+     "rot": 30
     },
     {
      "t": "ci4Tan",
@@ -415,6 +419,7 @@
    "t": "ci4TanAng",
    "th": 65,
    "q": "gen.ci4.q.tanAng",
+   "rot": 210,
    "c": "C403"
   },
   {

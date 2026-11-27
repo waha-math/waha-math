@@ -10,6 +10,11 @@ const c6Say = async (L, i) => { if (L[i]) await S(L[i]); };
 function c6Circle(g, O, R, o = {}) { el('circle', { cx: O[0], cy: O[1], r: R, fill: o.fill || C6.disc, stroke: C6.ink, 'stroke-width': o.w || 3, 'pointer-events': 'none' }, g); if (o.center !== false) pfDot(g, O); if (o.lab) pfLab(g, O[0] + 12, O[1] - 8, o.lab, { fs: 15 }); }
 const c6Seg = (g, P, Q, col, w = 3.4, dash) => geoLine(g, P[0], P[1], Q[0], Q[1], { color: col, w, dash });
 /* نصّ عددٍ عند موضع (بـ«أرقامي») */
+/* الوضع غير النمطي (D284 (7)؛ المراجع A لبوابة M4-U5/U6، 19): الشكل كلّه يدور rot درجةً عكس عقارب الساعة حول C، والنصوص قائمةً في مواضعها المدارة؛ وrotPt لنقاط الشكل في item._g (المستوى الثاني يُرسم خارج المجموعة) */
+const c6RotPt = (P, C, rot) => { const r = rot * Math.PI / 180, u = P[0] - C[0], v = C[1] - P[1]; return [C[0] + u * Math.cos(r) - v * Math.sin(r), C[1] - (u * Math.sin(r) + v * Math.cos(r))]; };
+function c6Rot(g, C, rot) { if (!rot) return; g.setAttribute('transform', `rotate(${-rot} ${C[0]} ${C[1]})`); const cs = Math.cos(rot * Math.PI / 180), sn = Math.sin(rot * Math.PI / 180); for (const t of g.querySelectorAll('text')) { const h = .35 * (+t.getAttribute('font-size') || 16), x = +t.getAttribute('x') - h * sn, y = +t.getAttribute('y') - h + h * cs, a = t.getAttribute('text-anchor') || 'start'; t.setAttribute('x', x); t.setAttribute('y', y); t.setAttribute('transform', `rotate(${rot} ${x} ${y})`);   /* مركز الحروف لا خطّ أساسها يدور مع الشكل */
+    if (a !== 'middle') t.setAttribute('text-anchor', Math.abs(cs) < .5 ? 'middle' : cs < 0 ? (a === 'start' ? 'end' : 'start') : a); } }   /* النصّ الممتدّ من مرساته يمتدّ بعد الدوران بعيداً عن الشكل كما كان */
+const c6RotG = (F, C, rot) => { if (!rot) return F; const R = {}; for (const [k, v] of Object.entries(F)) R[k] = Array.isArray(v) && v.length === 2 && typeof v[0] === 'number' ? c6RotPt(v, C, rot) : v && typeof v === 'object' && !Array.isArray(v) && 'A' in v ? c6RotG(v, C, rot) : (k === 'a1' || k === 'a2') ? v + rot : v; return R; };   /* والزاويتان a1 وa2 تُزادان */
 const c6Num = (g, x, y, v, o = {}) => preLab(g, x, y, v === '؟' ? '؟' : MS(String(v)), { col: o.col || C6.ink, fs: o.fs || 16, anchor: o.anchor || 'middle' });
 /* الوتر الأفقي على بعد d تحت المركز: يعيد طرفيه ومنتصفه */
 function c6Chord(O, R, d) { const h = Math.sqrt(Math.max(0, R * R - d * d)), y = O[1] + d; return { A: [O[0] - h, y], B: [O[0] + h, y], M: [O[0], y], h }; }
@@ -21,7 +26,7 @@ ITEM.ci4Chord = cpItem({ H: 236, tLine: 'gen.ci4.together.chord', hint: 'gen.ci4
   draw(svg, item, tries) { const g = el('g', {}, svg), O = [180, 118], R = 88, [P, Q] = C6_SEG(O, R, item.seg, item.rot ?? 200); item._g = { O, P, Q }; c6Circle(g, O, R); c6Seg(g, P, Q, C6.ch, 4.4); [P, Q].forEach(X => pfDot(g, X));
     if (tries >= 3) { const h = helpG(svg); [P, Q].forEach(X => el('circle', { cx: X[0], cy: X[1], r: 11, fill: 'none', stroke: C6.hl, 'stroke-width': 3, 'stroke-dasharray': '4 3' }, h)); } return {}; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), G = item._g; if (G) { [G.P, G.Q].forEach(X => { geoLine(m, G.O[0], G.O[1], X[0], X[1], { color: H2C[1], w: 2.6, dash: '6 5' }); hlRing(m, X, 13, H2C[0]); }); }   /* المستوى الثاني رسمٌ: نصفا قطرٍ إلى الطرفين: أهما على الدائرة؟ (المعروف (2) لبوابة M4-U5/U6) */
-    ciRule(m, 180, 18, labelText('ci4RuleChord'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, [18, 248], labelText('ci4RuleChord'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.seg === 'diam' ? 'ciDiamNotChord' : it.seg === 'chord' ? 'ciChordNo' : it.seg === 'rad' ? 'ciRadChord' : 'ciInsideChord' });
 
@@ -38,11 +43,12 @@ ITEM.ci4Half = cpItem({ H: 262, tLine: 'gen.ci4.together.half', hint: 'gen.ci4.h
     L.full = ['half', 'r', 'd'].includes(ask) ? c6Num(g, 180, fy, 2 * item.h, { col: C6.ch }) : c6Num(g, 180, fy, q, { col: C6.q, fs: 18 });
     if (ask !== 'half') { L.r = c6Num(g, (O[0] + C.A[0]) / 2 - 12, (O[1] + C.A[1]) / 2, ask === 'r' ? q : item.r, { col: red('r') || C6.r, anchor: 'end' });
       L.d = c6Num(g, O[0] + 10, (O[1] + C.M[1]) / 2 + 6, ask === 'd' ? q : item.d, { col: red('d') || C6.ok, anchor: 'start' }); }
+    c6Rot(g, O, item.rot); item._g = c6RotG(item._g, O, item.rot);
     if (tries >= 3) { const h = helpG(svg);
       const s = { half: `${2 * item.h} ÷ 2 = ؟`, chord: `${item.r} × ${item.r} − ${item.d} × ${item.d} = ${item.h * item.h}`, r: `${item.h} × ${item.h} + ${item.d} × ${item.d} = ${item.r * item.r}`, d: `${item.r} × ${item.r} − ${item.h} × ${item.h} = ${item.d * item.d}` }[ask];
       ciEq(h, 180, 248, s, C6.hl, 16); } return { L }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), G = item._g; if (G) { hlSeg(m, G.O, G.C.M, H2C[1]); hlSeg(m, G.C.M, G.C.A, H2C[0]); hlSeg(m, G.O, G.C.A, H2C[2]); hlRing(m, G.C.M, 16); }   /* المثلث القائم: البعد ونصف الوتر ونصف القطر */
-    ciRule(m, 180, 18, labelText(item.ask === 'half' ? 'ci4RuleHalf' : 'ci4RulePy'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, [18, 248], labelText(item.ask === 'half' ? 'ci4RuleHalf' : 'ci4RulePy'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => ({ half: { [2 * it.h]: 'ciNoHalf', [4 * it.h]: 'ciHalfDouble', [it.r - it.d]: 'pySub' }, chord: { [it.h]: 'ciChordHalfOnly', [it.r + it.d]: 'pyAdd', [2 * (it.r - it.d)]: 'pySub' }, r: { [it.h + it.d]: 'pyAdd', [2 * it.h]: 'ciChordAsR', [Math.abs(it.h - it.d)]: 'pySub' }, d: { [it.r - it.h]: 'pySub', [it.h]: 'ciDOff', [it.r + it.h]: 'pyAdd' } }[it.ask][k] || 'ciHalfOff') });
 
@@ -59,38 +65,39 @@ ITEM.ci4Tan = cpItem({ H: 236, tLine: 'gen.ci4.together.tan', hint: 'gen.ci4.hin
   draw(svg, item, tries) { const g = el('g', {}, svg), O = [180, 120], R = 74; c6Circle(g, O, R); const X = c6LineAt(g, O, R, item.dir ?? 60, { tan: R, sec: R * .62, out: R * 1.22 }[item.kind]); item._g = { O, R, dir: item.dir ?? 60, N: X.N };
     if (tries >= 3) { const h = helpG(svg); X.pts.forEach(P => el('circle', { cx: P[0], cy: P[1], r: 9, fill: 'none', stroke: C6.hl, 'stroke-width': 3 }, h)); } return { X }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), G = item._g; if (G) { const E = angP(G.O, G.dir, G.R); geoLine(m, G.O[0], G.O[1], G.N[0], G.N[1], { color: H2C[1], w: 3, dash: '6 5' }); hlSeg(m, G.O, E, H2C[0], { w: 7 }); hlRing(m, G.N, 12); }   /* بُعد المستقيم عن المركز ونصف القطر على الاتجاه نفسه */
-    ciRule(m, 180, 18, labelText('ci4RuleTan'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, [18, 248], labelText('ci4RuleTan'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => yesNo(item.want),
   errOf: (it, k) => it.kind === 'tan' ? 'ciTanNo' : it.kind === 'sec' ? 'ciSecTan' : 'ciOutTan' });
 
 /* ================= ④ طول المماس من نقطة خارجية (C403 ب): r، op؛ ask len | op | r (نصف القطر عمودي على المماس) ================= */
-function c6TanFig(g, r, op, o = {}) { const u = Math.min(62 / r, 236 / op), R = r * u, O = [64 + R * .4, o.y || 132], P = [O[0] + op * u, O[1]], th = Math.acos(r / op) * 180 / Math.PI, T = angP(O, th, R);
+function c6TanFig(g, r, op, o = {}) { const u = Math.min(62 / r, (o.rot ? 196 : 236) / op), R = r * u, O = [o.rot ? 180 - (op * u - R) / 2 : 64 + R * .4, o.y || 132],   /* المدار أصغر قليلاً ومتوسَّط، فتبقى «ن» داخل الإطار */ P = [O[0] + op * u, O[1]], th = Math.acos(r / op) * 180 / Math.PI, T = angP(O, th, R);
   c6Circle(g, O, R, { lab: 'م' }); c6Seg(g, T, P, C6.tan, 4); c6Seg(g, O, T, C6.r, 3.4); c6Seg(g, O, P, C6.ink, 2.6, '7 5'); preRight(g, T, O, P, 10); [T, P].forEach(X => pfDot(g, X));
-  pfLab(g, T[0], T[1] - 10, 'ت', { fs: 15 }); pfLab(g, P[0] + 12, P[1] + 5, 'ن', { fs: 15 }); return { O, P, T, R, th }; }
+  pfLab(g, T[0], T[1] - 10, 'ت', { fs: 15 }); pfLab(g, P[0] + 12, P[1] + 5, 'ن', { fs: 15 }); return { O, P, T, R, th, C: [(O[0] - R + P[0] + 12) / 2, O[1]] }; }
 ITEM.ci4TanLen = cpItem({ H: 250, tLine: 'gen.ci4.together.tanLen', hint: 'gen.ci4.hint.tanLen', rLine: 'gen.ci4.reveal.half', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const len = Math.round(Math.sqrt(s.op * s.op - s.r * s.r)); /*T*/if (TESTHOOK && len * len !== s.op * s.op - s.r * s.r) testBug('ci4TanLen: طول المماس ليس عدداً صحيحاً');/*/T*/
     const k = (s.op + s.r) % 2, want = { len, op: s.op, r: s.r }[s.ask], alt = (k ? { len: [s.op, s.op + s.r], op: [len + s.r, len + s.op], r: [s.op - len, s.op] } : { len: [s.op - s.r, s.op + s.r], op: [len + s.r, len], r: [s.op - len, len] })[s.ask];   /* رتبة الجواب تتغيّر (المراجع A، 3) */
     const nums = [want, ...alt].filter((v, i, X) => X.indexOf(v) === i && v > 0); while (nums.length < 3) nums.push(want + nums.length); return { len, want, nums, tag: 'ci4-tanlen-' + s.ask }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), F = c6TanFig(g, item.r, item.op), a = item.ask, q = '؟'; item._g = F;
+  draw(svg, item, tries) { const g = el('g', {}, svg), F = c6TanFig(g, item.r, item.op, { rot: item.rot }), a = item.ask, q = '؟'; item._g = F;
     const sn = Math.sin(F.th * Math.PI / 180), cs = Math.cos(F.th * Math.PI / 180), lr = c6Num(g, (F.O[0] + F.T[0]) / 2 + 10 * sn + 2, (F.O[1] + F.T[1]) / 2 + 10 * cs + 4, a === 'r' ? q : item.r, { col: a === 'r' ? C6.q : C6.r, anchor: 'start' });   /* تحت نصف القطر لا على «م» */
     const ll = c6Num(g, (F.T[0] + F.P[0]) / 2 + 8, (F.T[1] + F.P[1]) / 2 - 8, a === 'len' ? q : item.len, { col: a === 'len' ? C6.q : C6.tan, anchor: 'start' });
     const lo = c6Num(g, (F.O[0] + F.P[0]) / 2 + 20, F.O[1] + 22, a === 'op' ? q : item.op, { col: a === 'op' ? C6.q : C6.ink });
+    c6Rot(g, F.C, item.rot); item._g = c6RotG(F, F.C, item.rot);
     if (tries >= 3) { const s = { len: `${item.op} × ${item.op} − ${item.r} × ${item.r} = ${item.len * item.len}`, op: `${item.len} × ${item.len} + ${item.r} × ${item.r} = ${item.op * item.op}`, r: `${item.op} × ${item.op} − ${item.len} × ${item.len} = ${item.r * item.r}` }[a]; ciEq(helpG(svg), 180, 238, s, C6.hl, 16); }
     return { L: { r: lr, len: ll, op: lo } }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), F = item._g; if (F) { hlSeg(m, F.O, F.T, H2C[0]); hlSeg(m, F.T, F.P, H2C[1]); hlSeg(m, F.O, F.P, H2C[2]); hlRing(m, F.T, 15); }   /* المثلث القائم عند نقطة التماس */
-    ciRule(m, 180, 22, labelText('ci4RuleTanR'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, [22, 248], labelText('ci4RuleTanR'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => ({ len: { [it.op - it.r]: 'pySub', [it.op + it.r]: 'pyAdd' }, op: { [it.len + it.r]: 'pyAdd', [it.len]: 'ciTanOff' }, r: { [it.op - it.len]: 'pySub', [it.len]: 'ciTanOff' } }[it.ask][k] || 'ciTanOff') });   /* وop والطول معاً للضلعين: ciTanOff */
 
 /* ================= ⑤ زاوية عند النقطة الخارجية (C403 ب): th الزاوية عند المركز؛ الزاوية عند ن = 90 − th ================= */
 ITEM.ci4TanAng = cpItem({ H: 250, tLine: 'gen.ci4.together.tanAng', hint: 'gen.ci4.hint.tanAng', rLine: 'gen.ci4.reveal.ang', rSay: it => sayDeg(it.want), num: true, praise: 'praiseThink',
-  make: s => ({ want: 90 - s.th, nums: (s.th % 20 === 0 && (90 - s.th) % 2 === 0 ? [90 - s.th, (90 - s.th) / 2, 180 - s.th] : [90 - s.th, s.th, 180 - s.th]), tag: 'ci4-tanang' }),   /* والنصف (خلطٌ بالمحيطية) فلا يكون الجواب أصغرها دائماً (المراجع A، 3) */
-  draw(svg, item, tries) { const g = el('g', {}, svg), op = 1 / Math.cos(item.th * Math.PI / 180), F = c6TanFig(g, 1, op); item._g = F;
-    arArc(g, F.O, 0, item.th, { r: 26, col: C6.r, deg: item.th, dl: 18, fs: 14, fill: true }); const q = arArc(g, F.P, 180 - (90 - item.th), 180, { r: 34, col: C6.q, lab: '؟', dl: 16, fs: 15, fill: true });
+  make: s => { const n = [...new Set(s.th % 20 === 0 && (90 - s.th) % 2 === 0 ? [90 - s.th, (90 - s.th) / 2, 180 - s.th] : [90 - s.th, s.th, 180 - s.th])]; for (const v of [90, 180 - 2 * s.th]) if (n.length < 3 && v > 0 && !n.includes(v)) n.push(v); return { want: 90 - s.th, nums: n, tag: 'ci4-tanang' }; },   /* ثلاثة خياراتٍ مختلفة دائماً: 45 لا تتكرّر (المراجع B، 9) */   /* والنصف (خلطٌ بالمحيطية) فلا يكون الجواب أصغرها دائماً (المراجع A، 3) */
+  draw(svg, item, tries) { const g = el('g', {}, svg), op = 1 / Math.cos(item.th * Math.PI / 180), F = c6TanFig(g, 1, op, { rot: item.rot }); item._g = F;
+    arArc(g, F.O, 0, item.th, { r: 26, col: C6.r, deg: item.th, dl: 18, fs: 14, fill: true }); const q = arArc(g, F.P, 180 - (90 - item.th), 180, { r: 34, col: C6.q, lab: '؟', dl: 16, fs: 15, fill: true }); c6Rot(g, F.C, item.rot); item._g = c6RotG(F, F.C, item.rot);
     if (tries >= 3) ciEq(helpG(svg), 180, 238, `180 − 90 − ${item.th} = ؟`, C6.hl, 16); return { q }; },
   sayQ: async it => { await sayDeg(it.th); await S('gen.ci4.q.tanAngEnd', { append: true, sep: '، ' }); },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), F = item._g; if (F) { hlSeg(m, F.O, F.T, H2C[0]); hlRing(m, F.T, 15); }   /* نصف القطر إلى نقطة التماس، والقائمة عندها */
-    ciRule(m, 180, 22, labelText('ci4RuleTanR'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, [22, 248], labelText('ci4RuleTanR'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) arSetDeg(ctx.q, item.want, C6.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.th ? 'ciTanAngSame' : k === 180 - it.th ? 'ciTanAng180' : k === (90 - it.th) / 2 ? 'ciInsDouble' : 'ciTanAngOff' });
@@ -101,18 +108,19 @@ function c6Insc(g, cen, o = {}) { const O = o.O || [180, 126], R = o.R || 80, a1
   if (cen < 180) for (const X of [A, B]) c6Seg(g, O, X, C6.r, 3); else c6Seg(g, A, B, C6.r, 3);
   for (const X of [A, B]) c6Seg(g, P, X, C6.ch, 3); [O, A, B, P].forEach(X => pfDot(g, X)); return { O, R, A, B, P, a1, a2 }; }
 ITEM.ci4Ang = cpItem({ H: 250, tLine: 'gen.ci4.together.ang', hint: 'gen.ci4.hint.ang', rLine: 'gen.ci4.reveal.ang', rSay: it => sayDeg(it.want), num: true, praise: 'praiseThink',
-  make: s => { const ins = s.cen / 2, want = s.ask === 'cen' ? s.cen : ins, k = (s.cen / 10 + (s.pAt ?? 90) / 10) % 2, nums = s.ask === 'cen' ? (k ? [s.cen, ins, 360 - s.cen] : [s.cen, ins, 180 - ins, 2 * s.cen]) : (k && s.cen < 180 ? [ins, 180 - ins, 180 - s.cen].filter(v => v > 0) : [ins, s.cen, s.cen === 180 ? 45 : Math.min(2 * s.cen, 360), 90 + ins]);   /* رتبة الجواب تتغيّر (المراجع A، 3) */ return { ins, want, nums: nums.filter((v, i, X) => X.indexOf(v) === i).slice(0, 3), tag: 'ci4-ang-' + s.ask + (s.cen === 180 ? '-diam' : '') }; },
+  make: s => { const ins = s.cen / 2, want = s.ask === 'cen' ? s.cen : ins, k = (s.cen / 10 + (s.pAt ?? 90) / 10) % 2, nums = s.ask === 'cen' ? (k ? [s.cen, ins, 360 - s.cen] : [s.cen, ins, 180 - ins, 2 * s.cen]) : (k && s.cen < 180 ? [ins, 180 - ins, 180 - s.cen].filter(v => v > 0) : [ins, s.cen, s.cen === 180 ? 45 : 2 * s.cen < 180 ? 2 * s.cen : 180 - ins, 90 + ins]);   /* رتبة الجواب تتغيّر (المراجع A، 3) */ const N = nums.filter((v, i, X) => X.indexOf(v) === i); for (const v of [s.cen, 2 * s.cen < 180 ? 2 * s.cen : 180 - ins, 90 + ins]) if (N.length < 3 && v > 0 && !N.includes(v)) N.push(v);   /* ثلاثة مختلفة دائماً (مركزية 120: 60 و120 و60) */ return { ins, want, nums: N.slice(0, 3), tag: 'ci4-ang-' + s.ask + (s.cen === 180 ? '-diam' : '') }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), F = c6Insc(g, item.cen, { pAt: item.pAt }), cq = item.ask === 'cen'; item._g = F;
     const c = item.cen < 180 ? arArc(g, F.O, F.a1, F.a2, { r: 24, col: C6.r, ...(cq ? { lab: '؟' } : { deg: item.cen }), dl: 18, fs: 15, fill: true }) : null;
     const pd = (a => (a + 360) % 360)(Math.atan2(F.P[1] - F.A[1], F.A[0] - F.P[0]) * 180 / Math.PI), pe = (a => (a + 360) % 360)(Math.atan2(F.P[1] - F.B[1], F.B[0] - F.P[0]) * 180 / Math.PI);
     const i = arArc(g, F.P, Math.min(pd, pe), Math.max(pd, pe), { r: 30, col: C6.ch, ...(cq ? { deg: item.ins } : { lab: '؟' }), dl: 16, fs: 15, fill: true });
+    c6Rot(g, F.O, item.rot); item._g = c6RotG(F, F.O, item.rot);
     if (tries >= 3) ciEq(helpG(svg), 180, 238, cq ? `${item.ins} × 2 = ؟` : item.cen === 180 ? `180 ÷ 2 = ؟` : `${item.cen} ÷ 2 = ؟`, C6.hl, 16); return { q: cq ? c : i }; },
   sayQ: async it => { await sayDeg(it.ask === 'cen' ? it.ins : it.cen); await S('gen.ci4.q.ang.' + it.ask + 'End', { append: true, sep: '، ' }); },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), F = item._g; if (F) el('path', { d: angArc(F.O, F.R, F.a1, F.a2), fill: 'none', stroke: H2C[0], 'stroke-width': 8, opacity: .5, 'stroke-linecap': 'round', 'pointer-events': 'none' }, m);   /* القوس الذي تقف عليه الزاويتان */
-    ciRule(m, 180, 238, labelText('ci4AskInsc'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, [238, 22], labelText('ci4AskInsc'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) arSetDeg(ctx.q, item.want, C6.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
-  errOf: (it, k) => it.ask === 'cen' ? (k === it.ins ? 'ciInsEqCen' : 'ciCenOff') : k === it.cen ? 'ciInsEqCen' : k === 2 * it.cen ? 'ciInsDouble' : 'ciInsOff' });
+  errOf: (it, k) => it.ask === 'cen' ? (k === it.ins ? 'ciInsEqCen' : 'ciCenOff') : k === it.cen ? 'ciInsEqCen' : k === 2 * it.cen ? 'ciInsDouble' : k === 180 - it.ins && it.cen < 180 ? 'ciInsOther' : 'ciInsOff' });
 
 /* ================= ⑦ طول القوس ومساحة القطاع (C418): kind arc | area، ang، والمعطى C (المحيط) أو A (المساحة) أو r (بـ 3.14)، u cm | m ================= */
 const c6Whole = s => s.C ?? s.A ?? (s.kind === 'arc' ? 2 * 3.14 * s.r : 3.14 * s.r * s.r);
@@ -126,11 +134,12 @@ ITEM.ci4Sector = cpItem({ H: 262, tLine: 'gen.ci4.together.sector', hint: 'gen.c
     c6Circle(g, O, R); if (item.kind === 'area') c6SecPath(g, O, R, a1, a2); const P1 = angP(O, a1, R), P2 = angP(O, a2, R); c6Seg(g, O, P1, C6.r, 3); c6Seg(g, O, P2, C6.r, 3);
     if (item.kind === 'arc') el('path', { d: angArc(O, R, a1, a2), fill: 'none', stroke: C6.arc, 'stroke-width': 6, 'stroke-linecap': 'round', 'pointer-events': 'none' }, g);
     arArc(g, O, a1, a2, { r: 22, col: C6.r, deg: item.ang, dl: 20, fs: 14, fill: true });
+    c6Rot(g, O, item.rot); item._g = c6RotG(item._g, O, item.rot);
     if (item.r != null) ciTop(svg, 'r', item.r, item.u, 36); else ciTop(svg, item.C != null ? 'C' : 'A', item.C ?? item.A, item.u, 36);
     if (tries >= 3) ciEq(helpG(svg), 180, 252, `${item.ang} ÷ 360 × ${item.W} = ؟`, C6.hl, 15); return {}; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), G = item._g; if (G) { el('circle', { cx: G.O[0], cy: G.O[1], r: G.R + 7, fill: 'none', stroke: H2C[1], 'stroke-width': 3, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m); el('path', { d: `M${G.O[0]} ${G.O[1]} L${angP(G.O, G.a1, G.R).join(' ')} ` + angArc(G.O, G.R, G.a1, G.a2).replace(/^M[^A]*/, '') + ' Z', fill: H2C[0], opacity: .25, 'pointer-events': 'none' }, m);
       const gcd = (a, b) => b ? gcd(b, a % b) : a, st = gcd(item.ang, 360); for (let a = 0; a < 360; a += st) { const Q = angP(G.O, G.a1 + a, G.R); geoLine(m, G.O[0], G.O[1], Q[0], Q[1], { color: H2C[1], w: 2, dash: '4 4' }); } }   /* الجزء من الكلّ شرائحَ مثله (المراجع A، 10 ب) */
-    ciRule(m, 180, 252, labelText('ci4AskSector'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, [252, 22], labelText('ci4AskSector'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.cands.map(v => [String(v), ciTxt(v, item.uk), '<i></i>', ciLine(v, item.uk)])), String(item.want)),
   errOf: (it, k) => +k === c6R(it.W / 2) ? (it.kind === 'area' ? 'ciAreaHalf' : 'ciArcHalf') : +k === c6R(it.W - it.want) ? (it.kind === 'area' ? 'ciAreaOther' : 'ciArcOther') : +k === c6R(it.W * it.ang / 180) ? 'ciArcDouble' : 'ciArcOff' });
 { const j0 = ITEM.ci4Sector.judge; ITEM.ci4Sector.judge = (item, k) => k === String(item.want) ? { ok: true } : j0(item, k); }   /* مفاتيح الاختيار نصوص والجواب عدد */

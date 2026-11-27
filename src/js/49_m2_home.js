@@ -151,7 +151,7 @@ const HOME_SAY = {
     return S(Math.abs(v.dc - d) > 2 ? 'gen.home.doorDCalc' : Math.abs(v.dm - v.dc) <= 3 ? 'gen.home.doorDOk' : 'gen.home.doorDFar'); },
   tvSay: async (r, v) => { const d = Math.hypot(v.w, v.h); return S(Math.abs(v.dc - d) > 2 ? 'gen.home.tvCalc' : Math.abs(v.dm - v.dc) <= 3 ? 'gen.home.tvOk' : 'gen.home.tvFar'); },
   cornerAgain: async (r, v) => S(Math.abs(v.m - 50) <= 1 ? 'gen.home.cornerRight' : v.m > 50 ? 'gen.home.cornerWide' : 'gen.home.cornerNarrow'),
-  stepSay: async (r, v) => { if (Math.abs(v.m - v.r / v.t) > .015) return S('gen.home.stepSlope'); return S(Math.abs(v.X - v.n * v.t) <= 2 && Math.abs(v.Y - v.n * v.r) <= 2 ? 'gen.home.stepOk' : 'gen.home.stepPair'); },   /* الميل بمنزلتين، وزوج أعلى السلّم: عدد الدرجات × العمق، × الارتفاع (المراجع A لبوابة M4-U5/U6، 13) */
+  stepSay: async (r, v) => { if (Math.abs(v.m / 100 - v.r / v.t) > .015) return S('gen.home.stepSlope'); return S(Math.abs(v.tx - v.n * v.t) <= 2 && Math.abs(v.ty - v.n * v.r) <= 2 ? 'gen.home.stepOk' : 'gen.home.stepPair'); },   /* الميل بمنزلتين، وزوج أعلى السلّم: عدد الدرجات × العمق، × الارتفاع (المراجع A لبوابة M4-U5/U6، 13) */
   slopeAgain: async (r, v) => { const n = r && r.n; if (!n || !n.t || !v.t2) return S('gen.home.slopeNo'); const m1 = n.r / n.t, m2 = v.r2 / v.t2;
     return S(Math.abs(m1 - m2) < .03 ? 'gen.home.slopeEq' : (v.st === 0) === (m1 > m2) ? 'gen.home.slopeOk' : 'gen.home.slopeNo'); },
   arcSay: async (r, v) => { const a = 2 * 3.14 * v.r / 4; return S(Math.abs(v.ac - a) > 1 ? 'gen.home.arcCalc' : Math.abs(v.am - v.ac) <= Math.max(1, .02 * v.ac) ? 'gen.home.arcOk' : 'gen.home.arcFar'); },   /* بفرق 2% كالمرجع، وأقلّه سنتيمتر لأن الإدخال بالسنتيمتر */
@@ -192,7 +192,6 @@ SCENES.homeNums = async c => { const unit = c.unit, H = PROG.home = isObj(PROG.h
   if (pick.k === 'no') { logAttempt({ scene: c.s || 'hook', tag: 'homeLater', ok: true }); await S('gen.home.later'); return; }   /* خطّاف العودة يفترض المهمة: لا يُقال بعد «ليس بعد» (المراجع A لبوابة S3-U10، 25) */
   const vals = {}; for (const f of again ? c.again : c.fields) { stage0(); if (f.pick) { await S(f.q); const k = await choosePick(f.pick.map(([k2, line]) => [k2, T(line), '<i></i>', line]), null); vals[f.key] = f.pick.findIndex(x => x[0] === k); }
     else if (f.photo) vals[f.key] = await homePhoto(f, unit);
-    else if (f.dec) { S(f.q, { free: true }); const v = await stepperAsk([{ key: 'i', min: 0, max: f.max ?? 3, val: 0, unit: 'homeInt' }, { key: 'h', min: 0, max: 99, val: f.val ?? 50, unit: 'homeHund' }]); vals[f.key] = v.i + v.h / 100; }   /* عددٌ بمنزلتين: الصحيح والأجزاء من مئة */
     else { S(f.q, { free: true }); const v = await stepperAsk([{ key: f.key, min: f.min ?? 0, max: f.max ?? 99, val: f.val ?? 1, unit: f.unit || 'rulCm', step: f.step || 1 }]); vals[f.key] = v[f.key]; } }
   if (again) rec.an = vals; else rec = H[unit] = { at: Date.now(), items: [], n: vals }; saveProg();
   logAttempt({ scene: c.s || 'hook', tag: again ? 'homeAgain' : 'homeNums', ok: true }); SFX.good(); const say = again ? c.sayAgain : c.say; if (say && HOME_SAY[say]) await HOME_SAY[say](rec, vals);

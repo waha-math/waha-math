@@ -151,7 +151,7 @@
     "gen.pr.m4u6d3.0",
     [
      100,
-     200
+     90
     ]
    ]
   },
@@ -226,7 +226,8 @@
      "t": "ci4Ang",
      "cen": 60,
      "ask": "ins",
-     "q": "gen.ci4.q.ang.ins"
+     "q": "gen.ci4.q.ang.ins",
+     "rot": 135
     }
    },
    {
@@ -251,7 +252,8 @@
      "t": "ci4Ang",
      "cen": 90,
      "ask": "cen",
-     "q": "gen.ci4.q.ang.cen"
+     "q": "gen.ci4.q.ang.cen",
+     "rot": 180
     }
    }
   ],
@@ -325,7 +327,8 @@
      "t": "ci4Ang",
      "cen": 130,
      "ask": "ins",
-     "q": "gen.ci4.q.ang.ins"
+     "q": "gen.ci4.q.ang.ins",
+     "rot": 180
     },
     {
      "t": "ci4Ang",
@@ -365,7 +368,8 @@
      "t": "ci4Ang",
      "cen": 170,
      "ask": "ins",
-     "q": "gen.ci4.q.ang.ins"
+     "q": "gen.ci4.q.ang.ins",
+     "rot": 200
     },
     {
      "t": "ci4Ang",
@@ -455,6 +459,7 @@
    "cen": 104,
    "ask": "ins",
    "q": "gen.ci4.q.ang.ins",
+   "rot": 180,
    "c": "C412"
   }
  ],

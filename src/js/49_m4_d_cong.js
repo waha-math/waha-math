@@ -128,7 +128,7 @@ function cgQuad(g, k, o = {}) { const y0 = o.y0 ?? 0, s = o.s || 1, P = CG_QUAD[
 
 /* ================= المشاهد ================= */
 /* جدول المشروع (U3 د6، U4 د4): ما حسبه الطفل في لعبة المشروع، صفوفاً تحت رؤوس (cols مفاتيح تسميات، rows أعداد)، ثم الجمل (المراجع A لبوابة M4-U3/U4، 4) */
-SCENES.projTable = async c => { const L = c.lines, cols = c.cols || [], rows = c.rows || [], svg = m3Stage(Math.max(200, 76 + rows.length * 40)), g = el('g', { 'pointer-events': 'none' }, svg), n = cols.length, W = 300 / n;
+SCENES.projTable = async c => { const L = c.lines, cols = c.cols || [], rows = c.rows || [], svg = m3Stage(Math.max(200, 90 + rows.length * 40)), g = el('g', { 'pointer-events': 'none' }, svg), n = cols.length, W = 300 / n;
   cols.forEach((k, j) => { const x = 330 - W * (j + .5); el('rect', { x: 330 - W * (j + 1) + 2, y: 30, width: W - 4, height: 34, rx: 8, fill: CG.card, stroke: CG.edge, 'stroke-width': 2 }, g); preLab(g, x, 52, labelText(k), { dir: 'rtl', fs: 14 }); });
   for (const [i, r] of rows.entries()) { const y = 72 + i * 40; for (const [j, v] of r.entries()) { const x = 330 - W * (j + .5); el('rect', { x: 330 - W * (j + 1) + 2, y, width: W - 4, height: 34, rx: 8, fill: '#fffdf6', stroke: CG.edge, 'stroke-width': 1.5 }, g);
       if (c.rowLab && j === 0) preLab(g, x, y + 23, labelText(v), { fs: 14, dir: 'rtl' }); else preLab(g, x, y + 23, MS(String(v)), { fs: 16, col: j === r.length - 1 && c.lastCol ? CG.ok : CG.ink, dir: SET.digits === 'east' ? 'rtl' : 'ltr' }); } SFX.tick(); await sleep(FAST ? 1 : 260); }   /* rowLab: العمود الأول تسميات؛ والسالب على يمين العدد بالمشرقية (D280) */
