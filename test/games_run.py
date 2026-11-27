@@ -7,6 +7,8 @@
 #   TEN    قصص «نكوّن العشرة أولاً» و«نرجع إلى العشرة» باقية في الفقاعة وقت العمل ووقت السؤال؛ و«…عددها ستة. ابدئي…» بفاصلٍ بعد العدد؛
 #          وحين يمتلئ الإطار (والحافلة) تومض القطع الزرقاء كلها، ما دخله وما بقي خارجه.
 #   DRAW   «أيّ الجملتين تناسب الصورة؟»: السهم برأس؛ والمكعب الأبيض بحدٍّ غير أبيض.
+#   C9G    ألعاب M4-U9 الحركية (D288 (2)): جولاتها بنودٌ بسلّم D240؛ الخطأ المقصود في كل لعبة، والمرآتان بأيّ ترتيب، والزرّان والتكافؤ واللمستان،
+#          والمنقلة بصفريها، وكل جولةٍ من الدروس الثلاثة بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة (المراجع B لدفعة الألعاب، 2 و3 و4).
 # والضوابط (تنجح على 6e2e386 أيضاً): «الصحيح من أول محاولة»، والجولة الأولى في «أكمل الإطار» وانتهاء اللعبة، و«بلا خطأ في الصفحة».
 # الاستعمال: python3 test/games_run.py [ملف نسخة الفحص]   (ONLY=STORY,MINUS لبعضها؛ يخرج بـ 1 مع أي إخفاق)
 import asyncio, json, os, re, sys
@@ -83,7 +85,7 @@ async def story(b):
     await ok_now(pg); st = await until(pg, lambda s: s['res']); check('STORY', st['res'] == {'ok': True, 'first': False}, '%s: ولا يُحسب من أول محاولة' % spec['op'], st['res'])
   # (4) بعد خطأ العدّ يبقى البرج مبنياً كما في القصة، والقصة في الفقاعة
   await pg.evaluate(START, ['m1.u2.d5', S01, 'practice']); st = await until(pg, wait_kind('story')); a0 = st['auto']['n']; await ok_now(pg)
-  st = await until(pg, wait_kind('num', a0)); a1 = st['auto']['n']; await pg.evaluate("() => window.__auto.wrong()")
+  st = await until(pg, wait_kind('num', a0)); a1 = st['auto']['n']; await pg.evaluate("() => { const a = window.__auto; if (a) (a.wrong || a.ok)(); }")
   st = await until(pg, wait_kind('num', a1), 30000)
   check('STORY', st['cubes'] == 5 and 'ثَلَاثُ تَمَرَاتٍ' in st['say'] and 'كَمْ مَعَنَا الآنَ؟' in st['say'], 'بعد خطأ العدّ: البرج خمسة كما في القصة، والقصة والسؤال في الفقاعة', [st['cubes'], st['say']])
   await ok_now(pg); await until(pg, lambda s: s['res']); check('STORY', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
@@ -152,45 +154,79 @@ async def draw(b):
   check('DRAW', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
 # M4-U9 الألعاب الحركية (خطة ألعاب المرحلة 4): مرآة الكنز (المرآة الخاطئة تُبعد، والنقطة على المرآة لا تتحرّك)، وعجلة الدوران («تمّ» بربعٍ ناقص خطأ)، والباب الدوّار (مركزٌ خاطئ يُسجَّل) ثم المرآتان
-C9LOG = "(tag) => LOG.attempts.filter(x => (x.tag || '').startsWith(tag)).map(x => [x.tag, x.ok, x.firstTry === undefined ? null : x.firstTry])"
-C9FLOW = "([lid, sc]) => LDATA[lid].flow.findIndex(s => s.scene === sc)"
 async def c9g(b):
+  """ألعاب M4-U9 الحركية (D288 (2)): كل جولةٍ بندٌ حركيّ بنمط التمرين. الخطأ المقصود في كل لعبة، ومن أيّ مرآةٍ بدأ، والزرّان والتكافؤ واللمستان،
+  والمنقلة بتدريجيها، والدرجات الأربع حتى الكشف في كل جولةٍ من الدروس الثلاثة بلا خطأ في الصفحة (المراجع B لدفعة الألعاب، 2 و3 و4)"""
   ctx, pg, errs = await page(b)
-  async def pick(k): await pg.evaluate("(k) => document.querySelector('#stage .choices .pick[data-k=\"' + k + '\"]').click()", k)
-  async def auto_until_res():
-    for _ in range(40):
-      st = await pg.evaluate(ST)
-      if st['res'] or st['err']: return st
-      if st['auto']: await ok_now(pg)
-      await pg.wait_for_timeout(150)
-    return await pg.evaluate(ST)
-  i = await pg.evaluate(C9FLOW, ['m4.u9.d1', 'c9Treasure']); await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, ['m4.u9.d1', i, 'game'])
-  await until(pg, wait_kind('pick')); await pick('refH'); await pg.wait_for_timeout(500)
-  far = await pg.evaluate(C9LOG, 'c9Treasure-far'); check('C9G', far == [['c9Treasure-far', False, None]], 'مرآة الكنز: المرآة الأخرى تُبعد النقطة ويُسجَّل خطأ', far)
-  for _ in range(6):   # إكمال الجولة الأولى والثانية بالحلّ، حتى تظهر جولة النقطة على المرآة
-    st = await until(pg, lambda s: s['auto'] and s['auto']['kind'] == 'pick'); n = len(await pg.evaluate(C9LOG, 'c9Treasure'))
-    if await pg.evaluate("() => { const a = [...document.querySelectorAll('#stage .choices .pick')]; return a.length === 2 && a.find(b => b.dataset.k === 'refV').dataset.ok === 'false' && a.find(b => b.dataset.k === 'refH').dataset.ok === 'true'; }") and len([x for x in await pg.evaluate(C9LOG, 'c9Treasure') if x[0] == 'c9Treasure']) == 2: break
-    await ok_now(pg); await pg.wait_for_timeout(500)
-  await pick('refV'); await pg.wait_for_timeout(500); stay = await pg.evaluate(C9LOG, 'c9Treasure-stay')
-  check('C9G', stay == [['c9Treasure-stay', False, None]], 'مرآة الكنز: النقطة على المرآة الرأسية لا تتحرّك بها، ويُسجَّل', stay)
-  st = await auto_until_res(); L = [x for x in await pg.evaluate(C9LOG, 'c9Treasure') if x[0] == 'c9Treasure']
-  check('C9G', L == [['c9Treasure', True, False], ['c9Treasure', True, True], ['c9Treasure', True, False]] and not st['err'], 'مرآة الكنز: ثلاث جولات، والأولى والثالثة لا تُحسبان من أول محاولة', [L, st['err']])
-  i = await pg.evaluate(C9FLOW, ['m4.u9.d2', 'c9Wheel']); await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, ['m4.u9.d2', i, 'game'])
-  await until(pg, wait_kind('pick')); await ok_now(pg); await until(pg, wait_kind('c9Wheel'))
-  await pg.evaluate("() => { const t = [...document.querySelectorAll('#stage svg [role=button]')]; t[t.length - 1].dispatchEvent(new MouseEvent('click', { bubbles: true })); }"); await pg.wait_for_timeout(600)
-  await pg.evaluate("() => document.querySelector('#stage .pick.done').click()"); await pg.wait_for_timeout(500); w1 = await pg.evaluate(C9LOG, 'c9Wheel')
-  check('C9G', w1 == [['c9Wheel-predict', True, None], ['c9Wheel', True, True]], 'عجلة الدوران: التوقّع، ثم ربعٌ واحد بالزرّ و«تمّ» صحيح في جولة الربع', w1)
-  await until(pg, wait_kind('pick')); await ok_now(pg); await until(pg, wait_kind('c9Wheel'))
-  await pg.evaluate("() => { const t = [...document.querySelectorAll('#stage svg [role=button]')]; t[t.length - 1].dispatchEvent(new MouseEvent('click', { bubbles: true })); }"); await pg.wait_for_timeout(600)
-  await pg.evaluate("() => document.querySelector('#stage .pick.done').click()"); await pg.wait_for_timeout(800); w2 = (await pg.evaluate(C9LOG, 'c9Wheel'))[2:]
-  check('C9G', w2[:2] == [['c9Wheel-predict', True, None], ['c9Wheel', False, True]], 'عجلة الدوران: ربعٌ واحد في جولة النصف خطأ', w2)
-  st = await auto_until_res(); w3 = [x for x in await pg.evaluate(C9LOG, 'c9Wheel') if x[0] == 'c9Wheel' and x[1]]
-  check('C9G', len(w3) == 3 and not st['err'], 'عجلة الدوران: ثلاث جولات تنتهي', [w3, st['err']])
-  i = await pg.evaluate(C9FLOW, ['m4.u9.d3', 'c9Door']); await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, ['m4.u9.d3', i, 'game'])
-  await until(pg, wait_kind('tap')); await pg.evaluate("() => [...document.querySelectorAll('#stage svg [role=button]')].find(g => g.dataset.ok === 'false').dispatchEvent(new MouseEvent('click', { bubbles: true }))"); await pg.wait_for_timeout(600)
-  d1 = await pg.evaluate(C9LOG, 'c9Door-centre'); check('C9G', d1[:1] == [['c9Door-centre', False, True]], 'الباب الدوّار: نقطةٌ غير المفصّلة خطأ', d1)
-  st = await auto_until_res(); d = await pg.evaluate(C9LOG, 'c9Door')
-  check('C9G', [x[0] for x in d if x[1]] == ['c9Door-centre', 'c9Door-angle', 'c9Door-centre', 'c9Door-angle', 'c9Door-mirror', 'c9Door-mirror', 'c9Door-two'] and not st['err'], 'الباب الدوّار ثم المرآتان: المركز والزاوية في جولتين، ثم المرآتان ونصف الدورة', [d, st['err']])
+  async def run(lid, spec): await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, spec, 'practice'])
+  async def logs(): return await pg.evaluate("() => LOG.attempts.filter(x => /^c9-/.test(x.tag || '')).map(x => [x.tag, x.ok, x.firstTry === undefined ? null : x.firstTry, x.err || null])")
+  async def wk(kind, after=-1): return await until(pg, lambda s: s['res'] or (s['auto'] and s['auto']['kind'] == kind and s['auto']['n'] != after))
+  async def click(sel, i=0): await pg.evaluate("([sel, i]) => { const e = [...document.querySelectorAll(sel)][i]; if (e) e.dispatchEvent(new MouseEvent('click', { bubbles: true })); }", [sel, i])
+  async def done(): await pg.wait_for_timeout(450); await pg.evaluate("() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }"); await pg.wait_for_timeout(600)
+  async def res(): return await until(pg, lambda s: s['res'] or s['err'], 30000)
+  helps = "() => document.querySelectorAll('#stage svg [data-help]').length"
+  nn = lambda st: st['auto']['n'] if st and st.get('auto') else -1   # وبعد خطأٍ في الصفحة يمضي الفحص إلى رسالته لا إلى استثناء
+  # ---- مرآة الكنز
+  await run('m4.u9.d1', {'t': 'c9Trs', 'p': [-4, 2], 'goal': [-4, -2], 'q': 'tr.01'}); st = await wk('tap')
+  await click('#stage svg [data-mirror="refV"]'); await pg.wait_for_timeout(900); L = await logs()
+  check('C9G', L[:1] == [['c9-treasure', False, True, 'c9TrFar']], 'مرآة الكنز: المرآة التي تُبعد النقطة خطأ c9TrFar من أول محاولة', L)
+  st = await wk('tap', nn(st)); await click('#stage svg [data-mirror="refH"]'); st = await wk('axPts'); await pg.evaluate("() => { const a = window.__auto; if (a) (a.wrong || a.ok)(); }"); await pg.wait_for_timeout(900); L = await logs()
+  check('C9G', len(L) == 2 and L[1][1] is False and L[1][3] not in (None, 'c9TrFar', 'c9TrStay'), 'مرآة الكنز: المرآة الصحيحة والخانة الخاطئة خطأ الخانة', L)
+  st = await wk('tap', nn(st)); h2 = await pg.evaluate(helps); await click('#stage svg [data-mirror="refV"]')
+  st = await wk('axPts', nn(st)); h3 = await pg.evaluate("() => { const m = document.querySelector('#stage svg [data-mirror=refV]'); return [document.querySelectorAll('#stage svg [data-help]').length, m ? +m.getAttribute('opacity') : 1]; }")
+  check('C9G', h2 > 0 and h3[0] > 0 and h3[1] < .5, 'مرآة الكنز: المستوى الثاني مرسوم، والثالث يختار المرآة ويرسم نصف الطريق', [h2, h3])
+  await pg.evaluate("() => { const a = window.__auto; if (a) (a.wrong || a.ok)(); }"); r = await res(); L = await logs()
+  check('C9G', r['res'] and r['res']['ok'] is False and len([x for x in L if x[1] is False]) == 4 and not r['err'], 'مرآة الكنز: أربعة أخطاء ثم الكشف بلا خطأ', [r['res'], r['err'], L])
+  await run('m4.u9.d1', {'t': 'c9Trs', 'p': [3, 0], 'goal': [-3, 0], 'q': 'tr.02'}); await wk('tap'); await click('#stage svg [data-mirror="refH"]'); await pg.wait_for_timeout(900); L = await logs()
+  check('C9G', L[:1] == [['c9-treasure', False, True, 'c9TrStay']], 'مرآة الكنز: النقطة على المرآة لا تتحرّك بها، ويُسجَّل c9TrStay', L)
+  await run('m4.u9.d1', {'t': 'c9Trs', 'p': [-5, 4], 'goal': [5, -4], 'q': 'tr.03'}); st = await wk('tap'); await click('#stage svg [data-mirror="refH"]')
+  st = await wk('axPts'); await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }"); st = await wk('tap', nn(st)); await click('#stage svg [data-mirror="refV"]'); st = await wk('axPts', nn(st)); await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")
+  r = await res(); L = await logs()
+  check('C9G', L == [['c9-treasure', True, True, None]] and r['res'] and r['res']['ok'], 'مرآة الكنز: مرآتان بدءاً بالأفقية صحيحٌ من أول محاولة', [L, r['res']])
+  # ---- عجلة الدوران
+  await run('m4.u9.d2', {'t': 'c9Whl', 'p': [3, -1], 'k': 1, 'q': 'wh.01'}); await wk('tap')
+  pr = await pg.evaluate("() => { const ok = [...document.querySelectorAll('#stage svg [role=button]')].filter(g => g.dataset.ok === 'true').map(g => g.getAttribute('aria-label')); return [ok, plain(G(labelText('c4Q.' + c4QuadOf(...c9RotK([3, -1], 1)))))]; }")
+  check('C9G', len(pr[0]) == 1 and pr[0][0] == pr[1], 'عجلة الدوران: مفتاح التوقّع ربع الصورة', pr)
+  await click('#stage svg [role=button][data-ok=true]'); st = await wk('c9Turn'); await click('#stage .choices.icons .pick', 0); await done(); L = await logs()
+  check('C9G', L[:2] == [['c9-wheel-predict', True, True, None], ['c9-wheel', False, True, 'c9WhDir']], 'عجلة الدوران: زرّ «مع العقارب» في جولة الربع خطأ الاتجاه', L)
+  st = await wk('c9Turn', nn(st)); await click('#stage .choices.icons .pick', 1); await done(); r = await res(); L = await logs()
+  check('C9G', L[2:] == [['c9-wheel', True, False, None]] and r['res'] and r['res']['ok'], 'عجلة الدوران: ثم ربعٌ عكس العقارب صحيح', L)
+  await run('m4.u9.d2', {'t': 'c9Whl', 'p': [-3, -2], 'k': 3, 'q': 'wh.03'}); await wk('tap'); await click('#stage svg [role=button][data-ok=true]'); await wk('c9Turn'); await click('#stage .choices.icons .pick', 0); await done(); r = await res(); L = await logs()
+  check('C9G', L[1:] == [['c9-wheel', True, True, None]], 'عجلة الدوران: ربعٌ مع العقارب لثلاثة أرباعٍ عكسها صحيح بالتكافؤ', L)
+  await run('m4.u9.d2', {'t': 'c9Whl', 'p': [0, 2], 'k': 2, 'q': 'wh.02'}); await wk('c9Turn')
+  await pg.evaluate("() => { const b = document.querySelectorAll('#stage .choices.icons .pick')[1]; b.click(); b.click(); }"); await pg.wait_for_timeout(900); kk = await pg.evaluate("() => window.__c9K()"); await done(); L = await logs()
+  check('C9G', kk == 2 and L == [['c9-wheel', True, True, None]], 'عجلة الدوران: لمستان متتاليتان تديران ربعين', [kk, L])
+  await run('m4.u9.d3', {'t': 'c9Whl', 'p': [-1, -3], 'k': 2, 'q': 'mr.03', 'match': True}); await wk('c9Turn'); await click('#stage .choices.icons .pick', 0); await pg.wait_for_timeout(500); await click('#stage .choices.icons .pick', 0); await done(); L = await logs()
+  check('C9G', L == [['c9-wheel-match', True, True, None]], 'مرآتان: نصف دورةٍ مع العقارب ينطبق على الصورة', L)
+  # ---- الباب الدوّار
+  await run('m4.u9.d3', {'t': 'c9DrC', 'kind': 'door', 'th': 60, 'b': 10, 'q': 'dr.01'}); await wk('tap'); await click('#stage svg [role=button][data-ok=false]'); await pg.wait_for_timeout(1500); L = await logs()
+  check('C9G', L[:1] == [['c9-door-centre-door', False, True, 'c9CtrMoved']], 'الباب الدوّار: نقطةٌ تحرّكت مع الباب ليست المركز', L)
+  await run('m4.u9.d3', {'t': 'c9DrC', 'kind': 'flag', 'th': 150, 'cw': True, 'b': 10, 'q': 'dr.03'}); await wk('tap'); await click('#stage svg [role=button][data-ok=false]'); await pg.wait_for_timeout(1500); L = await logs()
+  check('C9G', L[:1] == [['c9-door-centre-flag', False, True, 'c9CtrOff']], 'الباب الدوّار: مركزٌ لا ينطبق حوله الشفّاف خطأ', L)
+  await run('m4.u9.d3', {'t': 'c9DrA', 'kind': 'door', 'th': 60, 'b': 10, 'b0': -20, 'q': 'dr.02'}); st = await wk('c9Prot'); await done(); L = await logs()
+  check('C9G', L[:1] == [['c9-door-angle-door', False, True, 'c9ProtZero']], 'الباب الدوّار: المنقلة وصفرها على غير الخطّين خطأ', L)
+  st = await wk('c9Prot', nn(st))
+  for _ in range(3): await click('#stage .choices.icons .pick', 1); await pg.wait_for_timeout(120)
+  bb = await pg.evaluate("() => window.__c9B()"); await done(); st = await wk('num'); await pg.evaluate("() => { const b = [...document.querySelectorAll('#stage .choices.nums button')].find(b => +b.dataset.k === 120); if (b) b.click(); }"); await pg.wait_for_timeout(900); L = await logs()
+  check('C9G', bb == 10 and L[1:] == [['c9-door-angle-door', False, False, 'c9AngSup']], 'الباب الدوّار: المنقلة تدور بالزرّين، وقراءة التدريج الآخر خطأ c9AngSup', [bb, L])
+  await run('m4.u9.d3', {'t': 'c9DrA', 'kind': 'flag', 'th': 150, 'cw': True, 'b': 10, 'b0': 40, 'q': 'dr.04'}); st = await wk('c9Prot')
+  for _ in range(6): await click('#stage .choices.icons .pick', 0); await pg.wait_for_timeout(120)
+  bb = await pg.evaluate("() => window.__c9B()"); await done(); st = await wk('num'); await pg.evaluate("() => { const b = [...document.querySelectorAll('#stage .choices.nums button')].find(b => +b.dataset.k === 150); if (b) b.click(); }"); r = await res(); L = await logs()
+  check('C9G', bb == -20 and L == [['c9-door-angle-flag', True, True, None]], 'الباب الدوّار: صفر التدريج الداخلي على الخطّ الآخر صحيح', [bb, L])
+  # ---- الدروس الثلاثة: كل جولةٍ بأربعة أخطاء ثم الكشف، والجولات كلها تنتهي (الدرجات الثانية والثالثة والكشف تُرسم بلا استثناء)
+  for lid in ('m4.u9.d1', 'm4.u9.d2', 'm4.u9.d3'):
+    for i in await pg.evaluate("(lid) => LDATA[lid].flow.map((s, i) => s.scene === 'motion' ? i : -1).filter(i => i >= 0)", lid):
+      await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, i, 'game']); last = None
+      for _ in range(200):
+        s2 = await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['n'] != last), 20000)
+        if s2['res'] or s2['err'] or not s2['auto']: break
+        last = s2['auto']['n']; await pg.wait_for_timeout(120)
+        await pg.evaluate("() => { const a = window.__auto; if (a) (a.wrong || a.ok)(); }")
+      L = await logs(); per = {}
+      for x in L:
+        if x[0] != 'c9-wheel-predict' and x[1] is False: per[x[0]] = per.get(x[0], 0) + 1
+      items = await pg.evaluate("([lid, i]) => LDATA[lid].flow[i].items.length", [lid, i])
+      check('C9G', s2['res'] and not s2['err'] and sum(per.values()) == 4 * items, '%s (%d): كل جولةٍ بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
   check('C9G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
 async def main():

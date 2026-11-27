@@ -6,6 +6,8 @@ const SCENES = {};
 /* ---------- عامّة ---------- */
 /* بنود داخل الاكتشاف أو اللعبة: {items:[...], mode:'explore'|'practice', intro} */
 SCENES.items = async c => { introOnStage(c.intro); for (const it of c.items) await runItem(it, c.mode || 'explore', { scene: c.stage || 'explore' }); if (c.after) await S(c.after); };
+/* لعبةٌ حركية (D288 (2)): جولاتها بنودٌ حركية بنمط التمرين، فلكلٍّ سلّم D240 والسجلّ بـ firstTry والفانوس و«أعد الجملة» وأخطاء السائقين، ومشهدها «game» (المراجعان A وB لدفعة ألعاب U9) */
+SCENES.motion = async c => { introOnStage(c.intro); for (const it of c.items) await runItem(it, 'practice', { scene: 'game' }); if (c.after) await S(c.after); };
 /* مسار المواد (D238): يظهر في مسار «معي» وحده؛ صورة الأشياء وتعليمة وزرّ «تمّ» */
 SCENES.material = async c => {
   if (!PATH_MAT()) return; MAT_AVOID = new Set(c.avoid || []); const svg = newStage(260, { oasis: false, ground: 0 });   /* أعداد مسائلها لا تكون مشتّتاً في الشاشة التي تخدمها (H1 (10أ)) */

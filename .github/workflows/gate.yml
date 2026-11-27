@@ -1,4 +1,4 @@
-# بوابة الوحدة: المجموعة الكاملة test/run_all.sh على أجزائها (نحو ثماني ساعات متتابعةً؛ هنا أربعة أجزاء متوازية ثم الخلاصة).
+# بوابة الوحدة: المجموعة الكاملة test/run_all.sh على أجزائها (نحو ثماني ساعات متتابعةً؛ هنا ثمانية أجزاء متوازية ثم الخلاصة).
 # تُشغَّل يدوياً (workflow_dispatch) عند كل بوابة، أو بالدفع إلى فرع feature/studio-gate*. لا تبني شيئاً ولا تنشر.
 # لماذا: «Build all» يشغّل الفحوص السريعة وحدها، فعطلٌ في درس قديم يمرّ منها (S1-U6 محا مشهداً من S1-U1 د2، وكشفه فحص الاستوديو لا هي).
 name: Gate
@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [a, m, n, b, b2, b3]
+        part: [a, m, n, l1, l2, b, b2, b3]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -33,7 +33,7 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Part ${{ matrix.part }}
         run: |
-          MUT_UNTIL=$(( $(date +%s) + 19200 )) PART=${{ matrix.part }} sh test/run_all.sh test/out/all || true
+          MUT_UNTIL=$(( $(date +%s) + 18000 )) PART=${{ matrix.part }} sh test/run_all.sh test/out/all || true
           echo "--- FAILED (part ${{ matrix.part }}) ---"; cat test/out/all/FAILED 2>/dev/null || echo "(none)"
           echo "--- DETAILS ---"; for f in test/out/all/*.txt test/out/all/mutslices/*.txt; do [ -f "$f" ] || continue; case "$f" in */SUMMARY.txt) continue;; esac; if grep -q -E '^(FAIL[^S]|Traceback)' "$f" || ! grep -q -E '^(FAILS: 0|errors: 0)$' "$f"; then echo "== $f"; grep -E '^(FAIL[^S]|Traceback|[A-Za-z]*Error)' "$f" | cut -c1-400 | head -25; tail -n 4 "$f" | cut -c1-300; fi; done || true
           echo "--- COUNTERS ---"; for f in test/out/all/auto_*.txt; do [ -f "$f" ] || continue; grep -q -E '^[a-zA-Z. ]+: [1-9]' "$f" || continue; echo "== $f"; awk '/^(lessons not done|blocked lessons|twins|clips spoken|storage invalid|mat distractors)/{p=0; next} /^[a-zA-Z.][a-zA-Z. ]*: [1-9]/{p=1; print; next} /^  /{ if (p) print; next } { p=0 }' "$f" | cut -c1-300 | head -40; done || true
@@ -70,8 +70,11 @@ jobs:
           rm -f test/out/all/FAILED; [ -f test/out/all/FAILED.merged ] && sort -u test/out/all/FAILED.merged > test/out/all/FAILED || true; rm -f test/out/all/FAILED.merged
           ls test/out/all | head -80
       - name: Part c and the verdict
+        env:
+          PARTS: ${{ needs.part.result }}
         run: |
           rc=0; PART=c sh test/run_all.sh test/out/all || rc=$?
+          echo "--- PARTS: $PARTS ---"; [ "$PARTS" = success ] || rc=1   # جزءٌ قُطع أو أُلغي إخفاقٌ وإن سلمت ملفاته (المراجع B لدفعة ألعاب U9، 8)
           echo "--- SUMMARY ---"; cat test/out/all/SUMMARY.txt || true
           echo "--- DETAILS ---"; for f in test/out/all/*.txt test/out/all/mutslices/*.txt; do [ -f "$f" ] || continue; case "$f" in */SUMMARY.txt) continue;; esac; if grep -q -E '^(FAIL[^S]|Traceback)' "$f" || ! grep -q -E '^(FAILS: 0|errors: 0)$' "$f"; then echo "== $f"; grep -E '^(FAIL[^S]|Traceback|[A-Za-z]*Error)' "$f" | cut -c1-400 | head -25; tail -n 4 "$f" | cut -c1-300; fi; done || true
           echo "--- COUNTERS ---"; for f in test/out/all/auto_*.txt; do [ -f "$f" ] || continue; grep -q -E '^[a-zA-Z. ]+: [1-9]' "$f" || continue; echo "== $f"; awk '/^(lessons not done|blocked lessons|twins|clips spoken|storage invalid|mat distractors)/{p=0; next} /^[a-zA-Z.][a-zA-Z. ]*: [1-9]/{p=1; print; next} /^  /{ if (p) print; next } { p=0 }' "$f" | cut -c1-300 | head -40; done || true

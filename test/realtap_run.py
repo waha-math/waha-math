@@ -68,7 +68,7 @@ CENTER_OF = """(sel) => { const e = document.querySelector(sel); if (!e) return 
     r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) } : { l: b.left, t: b.top, r: b.right, b: b.bottom }; }
   if (!r) { const b = e.getBoundingClientRect(); r = { l: b.left, t: b.top, r: b.right, b: b.bottom }; } return [(r.l + r.r) / 2, (r.t + r.b) / 2]; }"""
 
-HTMLK = ('pick', 'card', 'num'); STEPK = {'dqBal': '__dqS', 'dqPerp': '__dqTh', 'htFoot': '__htAt', 'htTune': '__htH', 'kiteTune': '__a2R'}   # وطائرة المعيّن (المراجع B لبوابة S3-U4/U5، 11)
+HTMLK = ('pick', 'card', 'num'); STEPK = {'dqBal': '__dqS', 'dqPerp': '__dqTh', 'htFoot': '__htAt', 'htTune': '__htH', 'kiteTune': '__a2R', 'c9Turn': '__c9K', 'c9Prot': ('__c9B', 'zero')}   # (المُحدِّد، وحقل الهدف في البند إن لم يكن want)   # وطائرة المعيّن (المراجع B لبوابة S3-U4/U5، 11)، وزرّا «عجلة الدوران» والمنقلة في «الباب الدوّار» (المراجع B لدفعة ألعاب U9، 7)
 PICK_OK = """() => { const b = [...document.querySelectorAll('#stage .choices .pick')].filter(x => !x.disabled && x.offsetParent && !x.classList.contains('done')); const e = b.find(x => x.dataset.ok === 'true') || b[0]; if (!e) return null;
   e.scrollIntoView({ block: 'nearest' }); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"""
 STEP_BTN = "(i) => { const e = document.querySelectorAll('#stage .choices.icons .pick')[i]; if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
@@ -457,7 +457,8 @@ async def run(p, dev):
             if xy: await tap(*xy)
           else:
             for _ in range(40):
-              v, w = await pg.evaluate("(g) => [window[g](), window.__item && window.__item.want]", STEPK[k])
+              g, wf = STEPK[k] if isinstance(STEPK[k], tuple) else (STEPK[k], 'want')
+              v, w = await pg.evaluate("([g, wf]) => [window[g](), window.__item && window.__item[wf]]", [g, wf])
               if v == w: break
               xy = await pg.evaluate(STEP_BTN, 0 if v > w else 1)
               if not xy: break

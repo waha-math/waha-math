@@ -385,7 +385,7 @@ async def main():
     print('assessment misses:', len(bad)); [print(' ', *x) for x in bad[:40]]
     # التوأم (الفحص المستقل B، المبدأ 5): في deepall وremedialdeep لكل بند بلغ الكشف (أربعة أخطاء) توأمٌ يُحلّ من أول محاولة، في درسه
     want = {}
-    for key in {k[:3] for k, n in deep.items() if isinstance(k, tuple) and deep_n(n) >= 4}: want[key[0]] = want.get(key[0], 0) + 1   # البند بمرحلتين (لوّن ثم المس) يُعدّ مرة
+    for key in {k[:3] for k, n in deep.items() if isinstance(k, tuple) and deep_n(n) >= 4 and ':game:motion' not in str(k[1])}: want[key[0]] = want.get(key[0], 0) + 1   # البند بمرحلتين (لوّن ثم المس) يُعدّ مرة؛ وجولات الألعاب الحركية بلا توأم (الجولة لا تتسلسل، D288 (2))
     missing = sum(max(0, n - tw_seen.get(t, 0)) for t, n in want.items()) if MODE in ('deepall', 'remedialdeep') else 0
     print('twins: %d twin items in %d lessons; items revealed: %d' % (sum(tw_seen.values()), len(tw_seen), sum(want.values())))
     if os.environ.get('DEBUG_TW'): print('deep keys:', sorted([k for k, n in deep.items() if isinstance(k, tuple) and deep_n(n) >= 4]))

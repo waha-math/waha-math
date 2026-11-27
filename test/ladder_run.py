@@ -15,7 +15,7 @@ LIST = """(only) => { const out = []; for (const id of UNITS.flatMap(u => u.less
   const add = (it, k) => { if (it && typeof it.t === 'string') out.push([id, k, it]); };
   (P.normal || []).forEach((it, i) => add(it, 'pr' + i)); (P.challenge || []).forEach((it, i) => add(it, 'prc' + i));
   for (const [c, a] of Object.entries(M.remedial || {})) a.forEach((it, i) => add(it, 'rm.' + c + i));
-  L.flow.forEach((s, j) => { if (s.scene === 'items' && ['practice', 'remedial'].includes(s.mode)) (s.items || []).forEach((it, i) => add(it, 'fl' + j + '.' + i)); }); }
+  L.flow.forEach((s, j) => { if ((s.scene === 'items' && ['practice', 'remedial'].includes(s.mode)) || s.scene === 'motion') (s.items || []).forEach((it, i) => add(it, 'fl' + j + '.' + i)); }); }   /* وجولات الألعاب الحركية بسلّمها (D288 (2)) */
   /* وبنود من صنع الفحص لمسارات في الكود لا يبلغها محتوى اليوم (الفحص المستقل E: شارات «٥ − ١» على أربع أصابع متجاورة تراكبت، ولا بند بمساعدة في المحتوى بها) */
   for (const [id, k, it] of [['m1.u2.d5', 'synth.fact5-1', { t: 'fact', op: '-', a: 5, b: 1 }], ['m1.u2.d5', 'synth.fact4+1', { t: 'fact', op: '+', a: 4, b: 1 }]]) if (!only.length || only.includes(id)) out.push([id, k, it]);
   window.__LAD = out; return out.map(([id, k, it], n) => [id, k, itemType(it), n, !!(it.row && (it.row.kind === 'train' || it.ask === 'ord')), it.side || null, it.t === 'makeTen' ? (it.ask === 'moved' ? 10 - it.a : null) : it.n ?? null, it.ask || null]); }"""
