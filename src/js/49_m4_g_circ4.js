@@ -28,7 +28,7 @@ ITEM.ci4Chord = cpItem({ H: 236, tLine: 'gen.ci4.together.chord', hint: 'gen.ci4
 /* ================= ② العمود من المركز ينصّف الوتر (C403 أ): r، d (بعد الوتر عن المركز)، ask half | chord | r | d ================= */
 ITEM.ci4Half = cpItem({ H: 262, tLine: 'gen.ci4.together.half', hint: 'gen.ci4.hint.half', rLine: 'gen.ci4.reveal.half', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const h = Math.round(Math.sqrt(s.r * s.r - s.d * s.d)); /*T*/if (TESTHOOK && h * h !== s.r * s.r - s.d * s.d) testBug('ci4Half: نصف الوتر ليس عدداً صحيحاً');/*/T*/
-    const k = (s.r + s.d) % 2, want = { half: h, chord: 2 * h, r: s.r, d: s.d }[s.ask], alt = (k ? { half: [s.r - s.d, 2 * h], chord: [h, 2 * (s.r - s.d)], r: [Math.abs(h - s.d), h + s.d], d: [s.r - h, s.r + h] } : { half: [2 * h, s.r], chord: [h, s.r + s.d], r: [h + s.d, 2 * h], d: [s.r - h, h] })[s.ask];   /* رتبة الجواب تتغيّر (المراجع A، 3) */
+    const k = (s.r + s.d) % 2, want = { half: h, chord: 2 * h, r: s.r, d: s.d }[s.ask], alt = (k ? { half: [s.r - s.d, 2 * h], chord: [h, 2 * (s.r - s.d)], r: [Math.abs(h - s.d), h + s.d], d: [s.r - h, s.r + h] } : { half: [2 * h, 4 * h], chord: [h, s.r + s.d], r: [h + s.d, 2 * h], d: [s.r - h, h] })[s.ask];   /* رتبة الجواب تتغيّر (المراجع A، 3) */
     const nums = [want, ...alt].filter((v, i, X) => X.indexOf(v) === i && v > 0); while (nums.length < 3) nums.push(want + nums.length);
     return { h, want, alt, nums, tag: 'ci4-half-' + s.ask }; },
   draw(svg, item, tries) { const g = el('g', {}, svg), O = [180, 118], R = 92, k = R / item.r, C = c6Chord(O, R, item.d * k); item._g = { O, C }; c6Circle(g, O, R, { lab: 'م' });
@@ -44,7 +44,7 @@ ITEM.ci4Half = cpItem({ H: 262, tLine: 'gen.ci4.together.half', hint: 'gen.ci4.h
   h2: async (item, ctx) => { const m = helpG(ctx.svg), G = item._g; if (G) { hlSeg(m, G.O, G.C.M, H2C[1]); hlSeg(m, G.C.M, G.C.A, H2C[0]); hlSeg(m, G.O, G.C.A, H2C[2]); hlRing(m, G.C.M, 16); }   /* المثلث القائم: البعد ونصف الوتر ونصف القطر */
     ciRule(m, 180, 18, labelText(item.ask === 'half' ? 'ci4RuleHalf' : 'ci4RulePy'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
-  errOf: (it, k) => ({ half: { [2 * it.h]: 'ciNoHalf', [it.r - it.d]: 'pySub' }, chord: { [it.h]: 'ciChordHalfOnly', [it.r + it.d]: 'pyAdd', [2 * (it.r - it.d)]: 'pySub' }, r: { [it.h + it.d]: 'pyAdd', [2 * it.h]: 'ciFullChord', [Math.abs(it.h - it.d)]: 'pySub' }, d: { [it.r - it.h]: 'pySub', [it.h]: 'ciDOff', [it.r + it.h]: 'pyAdd' } }[it.ask][k] || 'ciHalfOff') });
+  errOf: (it, k) => ({ half: { [2 * it.h]: 'ciNoHalf', [4 * it.h]: 'ciHalfDouble', [it.r - it.d]: 'pySub' }, chord: { [it.h]: 'ciChordHalfOnly', [it.r + it.d]: 'pyAdd', [2 * (it.r - it.d)]: 'pySub' }, r: { [it.h + it.d]: 'pyAdd', [2 * it.h]: 'ciChordAsR', [Math.abs(it.h - it.d)]: 'pySub' }, d: { [it.r - it.h]: 'pySub', [it.h]: 'ciDOff', [it.r + it.h]: 'pyAdd' } }[it.ask][k] || 'ciHalfOff') });
 
 /* ================= ③ هل المستقيم مماس؟ (C403 ب): kind tan | sec | out، dir اتجاه العمود عليه من المركز ================= */
 function c6LineAt(g, O, R, a, dist, col = C6.tan) { const N = angP(O, a, dist), u = [Math.cos((a + 90) * Math.PI / 180), -Math.sin((a + 90) * Math.PI / 180)], L = 150;
@@ -132,7 +132,7 @@ ITEM.ci4Sector = cpItem({ H: 262, tLine: 'gen.ci4.together.sector', hint: 'gen.c
       const gcd = (a, b) => b ? gcd(b, a % b) : a, st = gcd(item.ang, 360); for (let a = 0; a < 360; a += st) { const Q = angP(G.O, G.a1 + a, G.R); geoLine(m, G.O[0], G.O[1], Q[0], Q[1], { color: H2C[1], w: 2, dash: '4 4' }); } }   /* الجزء من الكلّ شرائحَ مثله (المراجع A، 10 ب) */
     ciRule(m, 180, 252, labelText('ci4AskSector'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.cands.map(v => [String(v), ciTxt(v, item.uk), '<i></i>', ciLine(v, item.uk)])), String(item.want)),
-  errOf: (it, k) => +k === c6R(it.W / 2) ? 'ciArcHalf' : +k === c6R(it.W - it.want) ? 'ciArcOther' : +k === c6R(it.W * it.ang / 180) ? 'ciArcDouble' : 'ciArcOff' });
+  errOf: (it, k) => +k === c6R(it.W / 2) ? (it.kind === 'area' ? 'ciAreaHalf' : 'ciArcHalf') : +k === c6R(it.W - it.want) ? (it.kind === 'area' ? 'ciAreaOther' : 'ciArcOther') : +k === c6R(it.W * it.ang / 180) ? 'ciArcDouble' : 'ciArcOff' });
 { const j0 = ITEM.ci4Sector.judge; ITEM.ci4Sector.judge = (item, k) => k === String(item.want) ? { ok: true } : j0(item, k); }   /* مفاتيح الاختيار نصوص والجواب عدد */
 
 /* ---------- البرهانان (D242) ورسماهما في pfFig ---------- */

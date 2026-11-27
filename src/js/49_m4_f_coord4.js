@@ -181,7 +181,7 @@ ITEM.c4Slope = cpItem({ H: 262, tLine: 'gen.c4.together.slope', hint: 'gen.c4.hi
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl && item.a[0] !== item.b[0] && item.a[1] !== item.b[1]) c4Legs(m, ctx.Pl, item.a, item.b); else if (ctx.Pl) [item.a, item.b].forEach(p => hlRing(m, ctx.Pl.P(...p), 12, H2C[0])); ciRule(m, 180, 22, labelText('c4AskSlope'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.Pl) c4RunRise(helpG(ctx.svg), ctx.Pl, item.a, item.b, { right: false }); },
   pick: item => choosePick(shuffle(item.cands.map(v => [c4MKey(v), labelText('c4m.' + c4MKey(v)), c4MIcon(v), 'gen.c4.m.' + c4MKey(v)])), item.want, { cls: 'symonly' }),
-  errOf: (it, k) => it.want === 'none' ? (k === '0' ? 'slopeVert0' : 'slopeNoDiv') : it.want === '0' ? (k === 'none' ? 'slopeHorNone' : 'slopeNoDiv')
+  errOf: (it, k) => it.want === 'none' ? (k === '0' ? 'slopeVert0' : 'slopeNoDiv') : it.want === '0' ? (k === 'none' ? 'slopeHorNone' : 'slopeRun')
     : k === c4MKey(c4Frac(it.dx, it.dy)) ? 'slopeFlip' : k === c4MKey(c4Frac(-it.dy, it.dx)) ? 'slopeSign' : k === c4MKey([it.dy, 1]) ? 'slopeNoDiv' : 'slopeOff' });
 
 /* ================= ⑥ معادلة المستقيم المرسوم (C417): ln [م، ب]؛ الخيارات: الصحيحة، وتبديل م وب، وعكس إشارة ================= */
