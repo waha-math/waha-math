@@ -87,7 +87,7 @@ function shadowRows(svg, rows) { rows.forEach(([lab, a, b], i) => { const y = 70
 const shClose = (p, q) => Math.abs(p - q) <= .12 * Math.max(p, q);
 const HOME_SAY = {
   shadowSay: async (r, v) => { const svg = homeStage(); homeArt(svg, 'shadow'); shadowRows(svg, [['homeShMe', v.mes, v.me], ['homeShPa', v.pas, v.pa]]); await S(shClose(v.mes / v.me, v.pas / v.pa) ? 'gen.home.shEq' : 'gen.home.shFar');
-    const want = v.poleS * v.me / v.mes; await S(Math.abs(v.pole - want) <= Math.max(1, .2 * want) ? 'gen.home.poleOk' : 'gen.home.poleFar'); },
+    const want = v.poles * v.me / v.mes;   /* مفتاح الحقل بحروفٍ صغيرة: «poleS» كان يُرفض في التخزين فيُمحى بالإصلاح */ await S(Math.abs(v.pole - want) <= Math.max(1, .2 * want) ? 'gen.home.poleOk' : 'gen.home.poleFar'); },
   shadowAgain: async (r, v) => { const n = r.n || {}; if (!n.me || !n.pa) return; const svg = homeStage(); homeArt(svg, 'shadow'); shadowRows(svg, [['homeShShadows', v.mes2, v.pas2], ['homeShHeights', n.me, n.pa]]);
     await S(shClose(v.mes2 / v.pas2, n.me / n.pa) ? 'gen.home.sh2Eq' : 'gen.home.sh2Far'); },
   par: async (r, v) => S(Math.abs(v.d1 - v.d2) <= 1 ? 'gen.home.parEq' : 'gen.home.parNe'),

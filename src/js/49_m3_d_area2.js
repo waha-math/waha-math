@@ -328,7 +328,7 @@ SCENES.trapCopies = async c => { const L = c.lines, svg = m3Stage(250), G = a2Gr
   const Mm = M([9, 2]), cp = a2Poly(svg, Q, A2.p1, { op: .85, w: 2 }); SFX.tick();
   await anim(cp, [{ transform: 'rotate(0deg)', transformOrigin: `${Mm[0]}px ${Mm[1]}px` }, { transform: 'rotate(180deg)', transformOrigin: `${Mm[0]}px ${Mm[1]}px` }], { duration: FAST ? 10 : 1400, fill: 'forwards' }).done; SFX.good();
   const t = a2Formula(svg, '(10 + 6) × 4 = 64'); await S(L[1]); t.textContent = '64 ÷ 2 = 32'; await S(L[2]);
-  cp.remove(); t.textContent = ''; const d = M([8, 4]); geoLine(g, Q[0][0], Q[0][1], d[0], d[1], { color: A2.mid, w: 3 }); a2Poly(g, [Q[0], Q[1], Q[2]], A2.p2, { op: .55, w: 1 }); a2Poly(g, [Q[0], Q[2], Q[3]], A2.p3, { op: .55, w: 1 });
+  cp.remove(); t.textContent = ''; const d = M([8, 4]); geoLine(g, Q[0][0], Q[0][1], d[0], d[1], { color: A2.mid, w: 3 }); { const p2 = a2Poly(g, [Q[0], Q[1], Q[2]], A2.p2, { op: .55, w: 1 }), p3 = a2Poly(g, [Q[0], Q[2], Q[3]], A2.p3, { op: .55, w: 1 }); g.insertBefore(p3, g.children[1]); g.insertBefore(p2, g.children[1]); }   /* المثلثان فوق الشكل وتحت أطواله */
   t.textContent = '20 + 12 = 32'; SFX.tick(); await S(L[3]); t.textContent = '(6 + 10) × 4 ÷ 2 = 32'; for (const l of L.slice(4)) await S(l); };
 /* الإشعال (د2): معيّن قطراه 8 و6؛ فوضى تضرب القطرين، والمستطيل حوله 48 والمعيّن نصفه */
 SCENES.diagHook = async c => { const L = c.lines, svg = m3Stage(250), it = { k: 'rhom', p: 8, r: 6 }, D = a2Diag(svg, it), fz = chaosAt(svg, 318, 38, .4); chaosGiggle(fz);

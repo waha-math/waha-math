@@ -16,17 +16,20 @@ function xfApply(xf, [x, y]) {
   return [xf.c[0] + u, xf.c[1] + v]; }
 const xfKey = pts => pts.map(p => p.join(',')).join(' ');
 /* مضلّع على المستوى بأسماء رؤوسه */
+/* أسماء الشكلين فوق تعبئتيهما (فحص الشكل المعتم، بوابة M4-U5/U6): تُنقل نصوص المجموعة إلى مجموعةٍ في الأعلى */
+const xfUnder = svg => { const top = svg.querySelector('[data-xftop]'), g = el('g', { 'pointer-events': 'none' }, svg); if (top) svg.insertBefore(g, top); return g; };   /* ما يُرسم في الكشف تحت الأسماء */
+const xfRaise = (from, to) => { for (const t of [...from.querySelectorAll('text')]) to.appendChild(t); };
 function xfPoly(parent, Pl, pts, o = {}) { const Q = pts.map(p => Pl.P(...p)), g = el('g', { 'pointer-events': 'none' }, parent);
   if (Q.length > 2) el('polygon', { points: polyStr(Q), fill: o.fill || XF.orgF, stroke: o.col || XF.org, 'stroke-width': 3, 'stroke-linejoin': 'round', 'stroke-dasharray': o.dash || null, opacity: o.op ?? 1 }, g);
   else if (Q.length === 2) geoLine(g, Q[0][0], Q[0][1], Q[1][0], Q[1][1], { color: o.col || XF.org, w: 3 });
   const cen = [Q.reduce((a, q) => a + q[0], 0) / Q.length, Q.reduce((a, q) => a + q[1], 0) / Q.length];
   const own = parent.ownerSVGElement || parent, ct = own.querySelector ? own.querySelector('[data-ctr]') : null, cc = ct && ct.getAttribute('data-ctr').split(',').map(Number), ci = cc ? Q.findIndex(q => Math.hypot(cc[0] - q[0], cc[1] - q[1]) < 3) : -1;
   /* مركز الدوران رأسٌ من الشكل: يُسمّى «م» وحده (المرجع S3-U6 د3 (ج): المثلث م أ ب)، فيُبدأ «أ» من الرأس التالي (المراجع B لبوابة S3-U6/U7، 11) */
+  pts.forEach(p => { const q = Pl.P(...p); el('circle', { cx: q[0], cy: q[1], r: 4.2, fill: o.col || XF.org }, g); });   /* النقاط قبل الأسماء: لا تغطّي النقطةُ حرفها (فحص الشكل المعتم، بوابة M4-U5/U6) */
   if (o.names !== false) pts.forEach((p, i) => { const q = Q[i], d = [q[0] - cen[0], q[1] - cen[1]], L = Math.hypot(...d) || 1;
     if (i === ci && !o.label) { if (!o.img) { ct.setAttribute('x', q[0] + d[0] / L * 13); ct.setAttribute('y', q[1] + d[1] / L * 13 + 5); } return; }
-    let lx = q[0] + d[0] / L * 13, ly = q[1] + d[1] / L * 13 + 5; if (Pl.ax && ly > Pl.y0 + 6) ly = q[1] - 8; if (Pl.ax && lx < Pl.x0 - 4) lx = q[0] + 12;   /* لا على أعداد المحورين (فحص التراكب) */
+    let lx = q[0] + d[0] / L * 13, ly = q[1] + d[1] / L * 13 + 5; if (Pl.ax && ly > Pl.y0 + 6) ly = q[1] - 8; if (Pl.ax && lx < Pl.x0 - 4) lx = q[0] + 12;   /* لا على أعداد المحورين (فحص التراكب) */ if (ly < (Pl.top ?? 16) + 30 && lx > 150) ly = q[1] + 19;   /* ولا تحت عنوان الحركة أعلى اليمين (xfMark) */
     const j = ci >= 0 && i > ci && !o.label ? i - 1 : i, t = el('text', { x: lx, y: ly, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 800, fill: o.col || XF.org, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', direction: 'rtl' }, g); t.textContent = o.label ? o.label(i) : xfName(j, o.img); });
-  pts.forEach(p => { const q = Pl.P(...p); el('circle', { cx: q[0], cy: q[1], r: 4.2, fill: o.col || XF.org }, g); });
   if (ct && ci < 0 && !o.img && o.names !== false) labAvoid(ct, [[0, 0], [22, 0], [0, -26], [22, -26], [-6, -30], [26, -14]]);   /* «م» لا على اسم رأسٍ قريب */
   return { g, Q }; }
 /* المستوى الثاني (المراجع B: فعلٌ على المسرح): رأسٌ واحد يُنقل مرسوماً، والباقي للطفل؛ وحلقة على رأسٍ ونظيره */
@@ -81,8 +84,8 @@ ITEM.xfDraw = {
     /*T*/if (TESTHOOK && xfSame(xfWrongImg({ ...spec, img: want }), want)) testBug('xfDraw: الصورة الخاطئة المؤتمتة هي الصورة الصحيحة مجموعةً');/*/T*/
     return { ...spec, want: xfKey(want), img: want, tag: 'xf-' + spec.xf.k + (spec.pts.length === 1 ? '-pt' : '') }; },
   async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m }), placed = [], lay = el('g', { 'pointer-events': 'none' }, svg); let prev = null, lastQ = null;
-    xfMark(svg, Pl, item.xf); xfPoly(svg, Pl, item.pts);
-    const redraw = () => { lay.innerHTML = ''; if (placed.length > 1) xfPoly(lay, Pl, placed, { col: XF.img, fill: placed.length === item.pts.length ? XF.imgF : 'none', img: true }); else if (placed.length) xfPoly(lay, Pl, placed, { col: XF.img, img: true });
+    xfMark(svg, Pl, item.xf); xfPoly(svg, Pl, item.pts); const tg = el('g', { 'pointer-events': 'none', 'data-xftop': '' }, svg);
+    const redraw = () => { lay.innerHTML = ''; tg.innerHTML = ''; if (placed.length > 1) xfPoly(lay, Pl, placed, { col: XF.img, fill: placed.length === item.pts.length ? XF.imgF : 'none', img: true }); else if (placed.length) xfPoly(lay, Pl, placed, { col: XF.img, img: true }); xfRaise(lay, tg);
       /*T*/window.__axPlaced = placed.length;/*/T*/ };
     const preview = q => { if (prev) prev.remove(); prev = null; if (!q || placed.length >= item.pts.length) return; const p = Pl.snap(q), P = Pl.P(...p); prev = el('circle', { cx: P[0], cy: P[1], r: 7, fill: 'none', stroke: XF.img, 'stroke-width': 2.5, 'stroke-dasharray': '3 3', 'pointer-events': 'none' }, svg); };
     let tAt = 0; const tapAt = q => { const p = Pl.snap(q), L = placed[placed.length - 1], now = performance.now(); if (L && L[0] === p[0] && L[1] === p[1]) { if (now - tAt < 400) return; placed.pop(); } else if (placed.length < item.pts.length) { placed.push(p); tAt = now; } SFX.tick(); redraw(); };   /* لمستان سريعتان على النقطة نفسها: الثانية لا تمحو الأولى (المراجع B لبوابة S3-U6/U7، 15) */
@@ -122,7 +125,7 @@ function xfWrongImg(item) { const xf = item.xf, P = item.pts;
 /* ================= ② أيّ تحويل؟ (C312، C313، C338): pts الأصل، xf التحويل؛ يختار الطفل الاسم ================= */
 ITEM.xfWhich = {
   make(spec) { return { ...spec, img: spec.pts.map(p => xfApply(spec.xf, p)), want: spec.is ? (spec.xf.k === spec.is ? 'yes' : 'no') : spec.xf.k, tag: 'xf-which' + (spec.is ? '-is-' + spec.is : '') }; },
-  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m, nums: false }); if (item.line) xfMark(svg, Pl, item.line); xfPoly(svg, Pl, item.pts); xfPoly(svg, Pl, item.img, { col: XF.img, fill: XF.imgF, img: true });
+  async ask(item, mode, tries) { const svg = m3Stage(262), Pl = coPlane(svg, { n: item.n, m: item.m, nums: false }); if (item.line) xfMark(svg, Pl, item.line); { const a = xfPoly(svg, Pl, item.pts), b = xfPoly(svg, Pl, item.img, { col: XF.img, fill: XF.imgF, img: true }), tg = el('g', { 'pointer-events': 'none', 'data-xftop': '' }, svg); xfRaise(a.g, tg); xfRaise(b.g, tg); }
     if (item.is) { if (tries >= 3) { const m = helpG(svg); item.pts.forEach((p, i) => { const a = Pl.P(...p), b = Pl.P(...item.img[i]); geoLine(m, a[0], a[1], b[0], b[1], { color: THINK_INK, w: 2, dash: '5 4' }); }); await S('gen.xf.together.is.' + item.is); } else await S(item.q || 'gen.xf.q.is.' + item.is);
       return { ans: await yesNo(item.want), ctx: { svg, Pl } }; }
     if (tries >= 3) { const m = helpG(svg); item.pts.forEach((p, i) => { const a = Pl.P(...p), b = Pl.P(...item.img[i]); geoLine(m, a[0], a[1], b[0], b[1], { color: THINK_INK, w: 2, dash: '5 4' }); }); await S('gen.xf.together.which'); } else await S(item.q || 'gen.xf.q.which');
@@ -130,7 +133,7 @@ ITEM.xfWhich = {
   judge(item, k) { if (k === item.want) return { ok: true }; if (item.is) return { ok: false, err: item.want === 'no' ? 'xfIsNot' : 'xfIsYes' }; return { ok: false, err: (k === 'ref' && item.want === 'rot') || (k === 'rot' && item.want === 'ref') ? 'xfRefRot' : 'xfWhich' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) { const m = helpG(r.ctx.svg); xfRing(m, r.ctx.Pl, [item.pts[0], item.img[0]]); xfRing(m, r.ctx.Pl, [item.pts[1], item.img[1]], '4 3'); } await S('gen.xf.hint.which'); }, async together() {},
-  async reveal(item, r) { xfMark(r.ctx.svg, r.ctx.Pl, item.xf); await S(item.is ? 'gen.xf.is.' + item.is + '.' + item.want : 'gen.xf.n.' + item.want); },
+  async reveal(item, r) { xfMark(xfUnder(r.ctx.svg), r.ctx.Pl, item.xf); await S(item.is ? 'gen.xf.is.' + item.is + '.' + item.want : 'gen.xf.n.' + item.want); },
   praise: () => 'praiseLook', twin(item) { return item.twin || null; },
 };
 
@@ -143,7 +146,7 @@ ITEM.refLine = {
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: 'refLineMid' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.Pl) xfRing(helpG(r.ctx.svg), r.ctx.Pl, [item.pts[0], xfApply(item.xf, item.pts[0])]); await S('gen.xf.hint.line'); }, async together() {},
-  async reveal(item, r) { xfMark(r.ctx.svg, r.ctx.Pl, item.xf); await S(`gen.xf.${item.axis}line.${item.k}`); },
+  async reveal(item, r) { xfMark(xfUnder(r.ctx.svg), r.ctx.Pl, item.xf); await S(`gen.xf.${item.axis}line.${item.k}`); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 
@@ -337,9 +340,9 @@ SCENES.rotHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlan
   const m = helpG(svg), A = Pl.P(8, 4), A2 = Pl.P(5, 7); el('path', { d: `M${C[0] + 12} ${C[1]} L${C[0] + 12} ${C[1] - 12} L${C[0]} ${C[1] - 12}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.4 }, m); geoLine(m, C[0], C[1], A[0], A[1], { color: THINK_INK, w: 2 }); geoLine(m, C[0], C[1], A2[0], A2[1], { color: THINK_INK, w: 2 }); SFX.tick(); for (const l of L.slice(1)) await S(l); };
 /* الاكتشاف (د3): المركز م (5 ، 4) والمثلث م (5 ، 4) أ (8 ، 4) ب (8 ، 6): ربع ونصف وثلاثة أرباع دورة عكس عقارب الساعة؛ ثم نصف الدورة: المركز منتصف الواصل */
 SCENES.rotShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = coPlane(svg, {}); const P = [[5, 4], [8, 4], [8, 6]], lab = i => i ? xfName(i - 1, false) : labelText('xfCenter');
-  xfPoly(svg, Pl, P, { label: lab }); let g = el('g', {}, svg);
-  for (const [q, li] of [[1, 0], [2, 1], [3, 2]]) { g.remove(); g = el('g', {}, svg); const X = { k: 'rot', c: [5, 4], q }; xfMark(g, Pl, X); const I = P.map(p => xfApply(X, p)); await sleep(FAST ? 2 : 300); xfPoly(g, Pl, I, { col: XF.img, fill: XF.imgF, label: i => i ? xfName(i - 1, true) : '' }); SFX.tick(); await S(L[li]); }
-  g.remove(); g = el('g', {}, svg); const A = Pl.P(8, 4), A2 = Pl.P(2, 4), C = Pl.P(5, 4); geoLine(g, A[0], A[1], A2[0], A2[1], { color: THINK_INK, w: 2.4, dash: '6 4' }); badge(g, (A[0] + C[0]) / 2, A[1] - 14, 3, THINK_INK); badge(g, (A2[0] + C[0]) / 2, A[1] - 14, 3, THINK_INK); xfPoly(g, Pl, P.map(p => xfApply({ k: 'rot', c: [5, 4], q: 2 }, p)), { col: XF.img, fill: XF.imgF, label: i => i ? xfName(i - 1, true) : '' });
+  const og = xfPoly(svg, Pl, P, { label: lab }); let g = el('g', {}, svg); svg.insertBefore(g, og.g);   /* الصور تحت الأصل: لا تغطّي «م» */
+  for (const [q, li] of [[1, 0], [2, 1], [3, 2]]) { g.remove(); g = el('g', {}, svg); svg.insertBefore(g, og.g); const X = { k: 'rot', c: [5, 4], q }; xfMark(g, Pl, X); const I = P.map(p => xfApply(X, p)); await sleep(FAST ? 2 : 300); xfPoly(g, Pl, I, { col: XF.img, fill: XF.imgF, label: i => i ? xfName(i - 1, true) : '' }); SFX.tick(); await S(L[li]); }
+  g.remove(); g = el('g', {}, svg); svg.insertBefore(g, og.g); const A = Pl.P(8, 4), A2 = Pl.P(2, 4), C = Pl.P(5, 4); geoLine(g, A[0], A[1], A2[0], A2[1], { color: THINK_INK, w: 2.4, dash: '6 4' }); { const bg = el('g', { 'pointer-events': 'none' }, svg); badge(bg, (A[0] + C[0]) / 2, A[1] - 14, 3, THINK_INK); badge(bg, (A2[0] + C[0]) / 2, A[1] - 14, 3, THINK_INK); }   /* الشارتان فوق الأصل */ xfPoly(g, Pl, P.map(p => xfApply({ k: 'rot', c: [5, 4], q: 2 }, p)), { col: XF.img, fill: XF.imgF, label: i => i ? xfName(i - 1, true) : '' });
   for (const l of L.slice(3)) await S(l); };
 /* الإشعال (د4): «متوازي الأضلاع لا تماثل فيه!»، ثم ينطبق بنصف دورة */
 SCENES.rsHook = async c => { const L = c.lines, svg = m3Stage(250); rsDraw(svg, 'para', 180, 118, 82); const fz = chaosAt(svg, 318, 40, .4); chaosGiggle(fz); await S(L[0]); const m = await rsSpin(svg, 'para', 180, 118, 82); void m; for (const l of L.slice(1)) await S(l); };

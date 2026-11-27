@@ -219,7 +219,7 @@ M4H={
 HOMES['m3.u10']={'at':'m3.u11.d1','again':['m3.u11.d2','m3.u11.d3','m3.u11.d4','m4.u1.d1'],'art':'shadow',
    'ask':['gen.home.askShadow','هَلْ {قِسْتَ|قِسْتِ} الظِّلَالَ فِي شَمْسِ العَصْرِ مَعَ {أَهْلِكَ|أَهْلِكِ}؟'],
    'fields':[F('me','gen.home.meH',80,200,140,'rulCm',5),F('mes','gen.home.meS',10,400,140,'rulCm',5),F('pa','gen.home.paH',120,220,170,'rulCm',5),F('pas','gen.home.paS',10,440,170,'rulCm',5),
-     F('poleS','gen.home.poleS',1,40,5,'lenM'),F('pole','gen.home.poleH',1,40,5,'lenM')],'say':'shadowSay',
+     F('poles','gen.home.poleS',1,40,5,'lenM'),F('pole','gen.home.poleH',1,40,5,'lenM')],'say':'shadowSay',
    'again_fields':[F('mes2','gen.home.meS2',10,400,100,'rulCm',5),F('pas2','gen.home.paS2',10,440,120,'rulCm',5),{"key":"same","q":"gen.home.sameQ","pick":[["yes","gen.home.sameYes"],["no","gen.home.sameNo"]]}],
    'askAgain':['gen.home.askShadow2','مَضَى أُسْبُوعٌ: هَلْ {قِسْتَ|قِسْتِ} {ظِلَّكَ|ظِلَّكِ} وَظِلَّ مَنْ قَاسَ {مَعَكَ|مَعَكِ} مَرَّةً أُخْرَى فِي سَاعَةٍ مُخْتَلِفَةٍ؟'],'sayAgain':'shadowAgain',
    'back':'{ظِلُّكَ|ظِلُّكِ} وَظِلُّ مَنْ قَاسَ {مَعَكَ|مَعَكِ} بِنِسْبَةٍ وَاحِدَةٍ، لِأَنَّ أَشِعَّةَ الشَّمْسِ تَصِلُ مُتَوَازِيَةً بِالزَّاوِيَةِ نَفْسِهَا. وَفِي المَرْحَلَةِ الرَّابِعَةِ نَسْأَلُ: مَاذَا يَحْدُثُ لِلزَّوَايَا حِينَ يَقْطَعُ مُسْتَقِيمٌ مُسْتَقِيمَيْنِ مُتَوَازِيَيْنِ؟',
