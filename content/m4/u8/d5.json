@@ -239,13 +239,13 @@
     "t": "c8Half",
     "deg": 170,
     "ask": "half",
-    "rk": 1,
+    "rk": 0,
     "q": "gen.c8.q.half.half",
     "twin": {
      "t": "c8Half",
      "deg": 44,
      "ask": "whole",
-     "rk": 2,
+     "rk": 1,
      "q": "gen.c8.q.half.whole",
      "rot": 40
     }
@@ -254,14 +254,14 @@
     "t": "c8Pb",
     "half": 10,
     "ask": "nb",
-    "rk": 2,
+    "rk": 1,
     "q": "gen.c8.q.pb.nb",
     "h": 24,
     "twin": {
      "t": "c8Pb",
      "half": 5,
      "ask": "nb",
-     "rk": 0,
+     "rk": 2,
      "q": "gen.c8.q.pb.nb",
      "rot": 30,
      "h": 12

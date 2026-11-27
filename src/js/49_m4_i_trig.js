@@ -152,7 +152,7 @@ function c8Fig(g, k, o = {}) { const y0 = o.y0 ?? 0, s = o.s || 1, T = (x, y) =>
       for (const P of [P1, P2]) { const a = Math.atan2(P[1] - X[1], X[0] - P[0]) * 180 / Math.PI; el('path', { d: angArc(P, 80 * s, a - 16, a + 16), fill: 'none', stroke: C8.arc, 'stroke-width': 2.2 }, g); pfDot(g, P); } pfDot(g, X); return { V, X }; }   /* القوسان يتقاطعان عند X (كانا في الجهة المقابلة) */
     const N = c8Ray(V, d / 2, 150 * s), F1 = [N[0], V[1]], u = [Math.cos(d * Math.PI / 180), -Math.sin(d * Math.PI / 180)], t = (N[0] - V[0]) * u[0] + (N[1] - V[1]) * u[1], F2 = [V[0] + u[0] * t, V[1] + u[1] * t];
     for (const F of [F1, F2]) { geoLine(g, N[0], N[1], F[0], F[1], { color: C8.opp, w: 2.6 }); preRight(g, F, N, V, 8); pfDot(g, F); } pfDot(g, N); pfLab(g, N[0] + 11, N[1] + 15, 'ن', { fs: 15 });   /* تحت المنصّف لا عليه */
-    pfLab(g, F1[0], F1[1] + 17, 'هـ', { fs: 14 }); pfLab(g, F2[0] - 14, F2[1] + 1, 'و', { fs: 14 });   /* يسار القدم لا فوق طرف الشعاع (المراجعة البصرية للبوابة) */ return { V, N }; }
+    pfLab(g, F1[0], F1[1] + 21, 'هـ', { fs: 14 }); pfLab(g, F2[0] - 14, F2[1] + 1, 'و', { fs: 14 });   /* يسار القدم لا فوق طرف الشعاع (المراجعة البصرية للبوابة) */ return { V, N }; }
   const M = T(180, 130), h = 96 * s, A = [M[0] - 110 * s, M[1]], B = [M[0] + 110 * s, M[1]];
   geoLine(g, A[0], A[1], B[0], B[1], { color: C8.ink, w: 3.2 }); [A, B].forEach(X => pfDot(g, X)); pfLab(g, A[0] - 10, A[1] + 6, 'أ', { fs: 15 }); pfLab(g, B[0] + 10, B[1] + 6, 'ب', { fs: 15 });
   if (k === 'perpCon') { const r = 140 * s, dy = Math.sqrt(r * r - (110 * s) ** 2), X1 = [M[0], M[1] - dy], X2 = [M[0], M[1] + dy];
@@ -176,6 +176,130 @@ function c8Pic(g, P) { if (P.fig) return c8Fig(g, P.fig, { y0: 20, s: .9 }); if 
   if (P.bis) { const V = [70, 170]; c8Angle(g, V, P.bis, { L: 200 }); arArc(g, V, 0, P.bis / 2, { r: 60, col: C8.bis, deg: P.bis / 2, dl: 18, fs: 14, fill: true }); arArc(g, V, P.bis / 2, P.bis, { r: 60, col: C8.ray, deg: P.bis / 2, dl: 18, fs: 14, fill: true }); return; }
   const T = c8Tri(g, P.tri[0], P.tri[1], { y0: 176, x0: 80, u: Math.min(190 / P.tri[0], 130 / P.tri[1]) }); arArc(g, T.A, 0, T.ang, { r: 30, col: C8.bis, ...(P.deg ? { deg: P.deg, dl: 20, fs: 13 } : {}), fill: true });
   if (P.labs) c8Sides(g, T, { adj: MS(String(P.tri[0])), opp: MS(String(P.tri[1])), hyp: P.tri[2] != null ? MS(String(P.tri[2])) : null }); }
+
+/* ================= الألعاب الحركية (خطة ألعاب المرحلة 4؛ D288 (2)): «صائد المنصّف» و«أين المنتصف؟» و«صائد الوتر» =================
+   كل جولةٍ بندٌ حركيّ في SCENES.motion (كما في U9): يضع الطفل الفرجار بلمس النقطة فيرسم قوسه، ثم يلمس التقاطع فيُرسم الخطّ، ثم يقيس ويتحقّق.
+   والخطوة الصحيحة تبقى (item.step) فالمحاولة التالية تكمل من حيث أخطأ، ولكلّ خطوةٍ وسم خطئها في سلّم D240 */
+/* الفرجار: رأسه على P وقلمه على طرف القوس، ومفصله فوقهما */
+function c8Glyph(g, P, E) { g.innerHTML = ''; const d = Math.hypot(E[0] - P[0], E[1] - P[1]) || 1; let n = [-(E[1] - P[1]) / d, (E[0] - P[0]) / d]; if (n[1] > 0) n = [-n[0], -n[1]];
+  const H = [(P[0] + E[0]) / 2 + n[0] * d * .42, (P[1] + E[1]) / 2 + n[1] * d * .42]; geoLine(g, P[0], P[1], H[0], H[1], { color: '#5b6b72', w: 3 }); geoLine(g, H[0], H[1], E[0], E[1], { color: C8.arc, w: 3 }); el('circle', { cx: H[0], cy: H[1], r: 5, fill: '#5b6b72' }, g); }
+/* قوسٌ يرسمه الفرجار أمام الطفل (anim)، أو مرسومٌ ساكناً على مسرح المحاولة التالية */
+async function c8Sweep(svg, P, r, a0, a1, anim) { const arc = el('path', { fill: 'none', stroke: C8.arc, 'stroke-width': 2.6, 'pointer-events': 'none', 'data-arc': '' }, svg);
+  const at = u => arc.setAttribute('d', angArc(P, r, a0, a0 + (a1 - a0) * u + .01)); if (!anim) { at(1); return arc; }
+  const cg = el('g', { 'pointer-events': 'none' }, svg); await symTween(FAST ? 20 : 650, u => { at(u); c8Glyph(cg, P, angP(P, a0 + (a1 - a0) * u, r)); }); cg.remove(); SFX.tick(); return arc; }
+const c8Dir = (P, X) => Math.atan2(P[1] - X[1], X[0] - P[0]) * 180 / Math.PI;
+/* نقاطٌ يُلمس منها واحدة (tapOne): دوائر 12 وحدة؛ ok مفتاحٌ أو قائمة */
+function c8Spots(svg, cand, ok) { const T = cand.map(([k, P]) => { const t = el('g', {}, svg); el('circle', { cx: P[0], cy: P[1], r: 12, fill: 'rgba(255,255,255,.85)', stroke: C8.ink, 'stroke-width': 2.4 }, t); return { g: t, k, label: labelText('c9Spot') }; });
+  return tapOne(T, { ok, pad: 56 }).then(k => { T.forEach(t => t.g.remove()); return k; }); }
+/* سؤال الانتظار الجاري يُعاد بـ «أعد الجملة» */
+function c8Ask(id, live) { const f = () => S(id); f(); REPLAY_HOOK = f; REPLAY_HOOK.live = live; }
+
+/* ---------- د1 «صائد المنصّف» (c8BisMake): deg، rot؛ الخطوات: الفرجار على الرأس، ثم من نقطتي التقاطع، ثم التقاطع فالمنصّف، ثم قراءة النصف بالمنقلة ---------- */
+function c8BisGeo(item) { const d = item.deg, r0 = item.rot || 0, V = [Math.max(136, c8HalfV(d, r0)[0]), r0 > 0 ? 150 : 196], r1 = 80, s = Math.sin(d / 2 * Math.PI / 180), r2 = Math.max(70, r1 * s + 16), t = r1 * Math.cos(d / 2 * Math.PI / 180) + Math.sqrt(r2 * r2 - (r1 * s) ** 2);
+  const L1 = c8Fit(V, r0, 250), L2 = c8Fit(V, r0 + d, 250);
+  const dl = Math.max(32, 2 * Math.asin(Math.min(1, 34 / t)) * 180 / Math.PI);   /* شبيها التقاطع على بعد 60 وحدةً منه على الأقل (لمسٌ لا يختلط) */
+  return { d, r0, V, r1, r2, t, A: c8Ray(V, r0, r1), B: c8Ray(V, r0 + d, r1), X: c8Ray(V, r0 + d / 2, t), Y: c8Ray(V, r0 + d / 2 - dl, t * .9), W: c8Ray(V, r0 + d / 2 + dl, t * .9), F1: c8Ray(V, r0, Math.min(170, L1 * .9)), F2: c8Ray(V, r0 + d / 2, 60), E2: c8Ray(V, r0 + d, Math.min(150, L2 * .9)) }; }   /* F2: نقطةٌ داخل الزاوية (الفرجار في وسطها)، بعيدةٌ عن نقطتي التقاطع */
+async function c8BisStep(svg, G, item, i, anim) {   /* الخطوة i من الإنشاء: 1 القوس من الرأس، 2 و3 القوسان، 4 المنصّف */
+  if (i === 1) { await c8Sweep(svg, G.V, G.r1, G.r0 - 8, G.r0 + G.d + 8, anim); pfDot(svg, G.A); pfDot(svg, G.B); }
+  else if (i < 4) { const P = G[i === 2 ? item.first || 'A' : item.first === 'B' ? 'A' : 'B'], a = c8Dir(P, G.X); await c8Sweep(svg, P, G.r2, a - 14, a + 14, anim); }
+  else { const Q = c8Ray(G.V, G.r0 + G.d / 2, c8Fit(G.V, G.r0 + G.d / 2, 230)); geoLine(svg, G.V[0], G.V[1], Q[0], Q[1], { color: C8.bis, w: 3.2 }); pfDot(svg, G.X); if (anim) SFX.tick(); } }
+const c8BisArcs = async (svg, G, item, upto) => { for (let i = 1; i <= upto; i++) await c8BisStep(svg, G, item, i, false); };
+ITEM.c8BisMake = {
+  make(spec) { const ch = c8HalfCh({ deg: spec.deg, ask: 'half', rk: spec.rk ?? 0 }); return { ...spec, step: 0, want: spec.deg / 2, nums: ch.map(c => c[0]), ch, tag: 'c8-bis-make' }; },
+  async ask(item, mode, tries) { item.__try = tries; const svg = m3Stage(250), pg = el('g', {}, svg), G = c8BisGeo(item), ctx = { svg, G }; let live = true; const isLive = () => live && svg.isConnected;   /* pg: المنقلة تحت الإنشاء */
+    c8Angle(el('g', { 'pointer-events': 'none' }, svg), G.V, G.d, { rot: G.r0, bis: false }); const wl = el('g', { 'pointer-events': 'none' }, svg); arArc(wl, G.V, G.r0, G.r0 + G.d, { r: 34, col: C8.ray, deg: G.d, dl: 20, fs: 14, lt: .82 });   /* وسم الزاوية قرب ضلعها الثاني، فلا يقطعه المنصّف */
+    const tgB = tries >= 3 && item.step < 4; if (tgB) { item.step = Math.max(item.step, 3); item.first = item.first || 'A'; }   /* الحلّ المشترك: القوس من الرأس والقوسان، والتقاطع والقراءة للطفل */
+    await c8BisArcs(svg, G, item, item.step); if (tgB) await S('gen.c8.together.bisMake');
+    const Q = { 0: ['gen.c8.q.bisV', [['V', G.V], ['F1', G.F1], ['F2', G.F2]], 'V'], 1: ['gen.c8.q.bisArc1', [['A', G.A], ['B', G.B], ['V', G.V], ['F1', G.F1]], ['A', 'B']], 2: ['gen.c8.q.bisArc2', null, null], 3: ['gen.c8.q.bisX', [['X', G.X], ['Y', G.Y], ['W', G.W]], 'X'] };
+    while (item.step < 4) { const st = item.step; let [q, cand, ok] = Q[st]; if (st === 2) { const o = item.first === 'A' ? 'B' : 'A'; cand = [[o, G[o]], ['V', G.V], ['F1', G.F1]]; ok = o; }   /* الشبيه على الضلع الآخر بعيداً عن نقطة التقاطع */
+      if (!(tries >= 3 && st === 3)) c8Ask(st === 0 && tries === 0 ? item.q || q : q, isLive); else c8Ask('gen.c8.q.bisX', isLive);
+      const k = await c8Spots(svg, cand, ok); hush(); if (![].concat(ok).includes(k)) { live = false; return { ans: `e|${st}|${k}`, ctx }; }
+      if (st === 1) item.first = k; item.step = st + 1; await c8BisStep(svg, G, item, item.step, true); }   /* الفرجار يرسم الخطوة الجديدة أمامه */
+    /* التحقّق بالمنقلة: النصف */
+    wl.remove(); svg.appendChild(protAt(pg, G.V, G.r0, { R: 96, step: 30 }).lab); arArc(svg, G.V, G.r0, G.r0 + G.d / 2, { r: 24, col: C8.bis, lab: '؟', dl: 14, fs: 15, fill: true });   /* وسم الزاوية يُرفع فلا يقع على أعداد المنقلة، و«؟» داخل تدريجها */
+    if (tries >= 3 && !tgB) { el('path', { d: angArc(G.V, 96 - 19, G.r0, G.r0 + G.d / 2), fill: 'none', stroke: THINK_INK, 'stroke-width': 4, opacity: .8, 'pointer-events': 'none' }, helpG(svg)); await S('gen.c8.together.bisRead'); }   /* والخطأ في القراءة وحدها: النصف معلَّمٌ على التدريج من صفره، والعدد للطفل */
+    else c8Ask('gen.c8.q.bisRead', isLive); const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); const k = await np.p; live = false; document.querySelectorAll('#stage .choices').forEach(x => x.remove()); return { ans: 'read|' + k, ctx }; },
+  judge(item, a) { const [w, st, k] = String(a).split('|'); if (w === 'read') return +st === item.want ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => v === +st) || [])[1] || 'bisOff' };
+    return { ok: false, err: +st === 0 ? 'c8BisNotV' : +st === 3 ? 'c8BisCross' : k === 'V' ? 'c8BisArcV' : 'c8BisArcFar' }; },
+  onOk(item, r) { SFX.good(); const c = r && r.ctx; if (c && c.svg.isConnected) { c.svg.querySelectorAll('[data-prot], [data-prot-lab]').forEach(e => e.remove()); for (const [a0, a1] of [[c.G.r0, c.G.r0 + c.G.d / 2], [c.G.r0 + c.G.d / 2, c.G.r0 + c.G.d]]) arArc(c.svg, c.G.V, a0, a1, { r: 44, col: C8.bis, deg: item.want, dl: 18, fs: 14, fill: true }); } },   /* المنقلة تُرفع، والنصفان متساويان */
+  onWrong() { SFX.soft(); },
+  async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), G = c.G;
+      if (err === 'c8BisNotV') { hlRing(m, G.V, 14); for (const P of [G.F1, G.E2]) hlSeg(m, G.V, P, H2C[0]); }   /* القوس الأول يقطع الضلعين على البعد نفسه من الرأس */
+      else if (err === 'c8BisArcV' || err === 'c8BisArcFar') { hlRing(m, G.A, 12, H2C[0]); hlRing(m, G.B, 12, H2C[1]); }   /* نقطتا التقاطع */
+      else if (err === 'c8BisCross') { for (const P of [G.A, G.B]) { const a = c8Dir(P, G.X); el('path', { d: angArc(P, G.r2, a - 18, a + 18), fill: 'none', stroke: THINK_INK, 'stroke-width': 5, opacity: .55 }, m); } }   /* القوسان بارزان: أين يلتقيان؟ */
+      else for (const [i, [a0, a1]] of [[G.r0, G.r0 + G.d / 2], [G.r0 + G.d / 2, G.r0 + G.d]].entries()) el('path', { d: angArc(G.V, 58, a0, a1), fill: 'none', stroke: H2C[i], 'stroke-width': 6, opacity: .7 }, m); }   /* القسمان المتساويان */
+    await S({ c8BisNotV: 'gen.c8.hint.bisV', c8BisArcV: 'gen.c8.hint.bisArc', c8BisArcFar: 'gen.c8.hint.bisArc', c8BisCross: 'gen.c8.hint.bisX' }[err] || 'gen.c8.hint.half.half'); },
+  async together() {},
+  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { item.first = item.first || 'A'; c.svg.querySelectorAll('[data-prot], [data-prot-lab]').forEach(e => e.remove()); for (let i = item.step + 1; i <= 4; i++) await c8BisStep(c.svg, c.G, item, i, false); arArc(c.svg, c.G.V, c.G.r0, c.G.r0 + c.G.d / 2, { r: 44, col: C8.ok, deg: item.want, dl: 18, fs: 14 }); }
+    item.step = 4; await S('gen.ci4.reveal.ang'); await sayDeg(item.want); },
+  praise: () => 'praisePlace', twin(item) { return item.twin || null; },
+};
+
+/* ---------- د2 «أين المنتصف؟» (c8PbMake): half، h؛ الفرجار من الطرفين بالفتحة نفسها، ثم التقاطعان فالعمود، ثم البعد عن الطرف الآخر ---------- */
+function c8PbGeo(item) { const u = Math.min(100 / item.half, 50 / item.h), M = [180, 150], hw = item.half * u, dy = 64, r = Math.hypot(hw, dy);   /* التقاطعان داخل الإطار، ون تحت الأعلى منهما */
+  return { u, M, A: [M[0] - hw, M[1]], B: [M[0] + hw, M[1]], r, X1: [M[0], M[1] - dy], X2: [M[0], M[1] + dy], N: [M[0], M[1] - item.h * u], Qa: [M[0] + hw * .5, M[1] - 56], Z: [M[0] + Math.max(64, hw * .7), M[1] - dy * .75], na: Math.round(Math.hypot(item.half, item.h)) }; }
+async function c8PbStep(svg, G, item, i, anim) {   /* 1 و2 القوسان من الطرفين (والتقاطعان بعد الثاني)، 3 التقاطع الأول مُعلَّماً، 4 العمود */
+  if (i <= 2) { const P = G[i === 1 ? item.first || 'A' : item.first === 'B' ? 'A' : 'B']; for (const X of [G.X1, G.X2]) { const a = c8Dir(P, X); await c8Sweep(svg, P, G.r, a - 9, a + 9, anim); } if (i === 2) [G.X1, G.X2].forEach(X => pfDot(svg, X)); }
+  else if (i === 3) hlRing(svg, G[item.x1 || 'X1'], 14, C8.ok);
+  else { geoLine(svg, G.X1[0], G.X1[1] - 8, G.X2[0], G.X2[1] + 8, { color: C8.bis, w: 3.2 }); preRight(svg, G.M, G.B, G.X1, 10); if (anim) SFX.tick(); } }
+const c8PbArcs = async (svg, G, item, upto) => { for (let i = 1; i <= upto; i++) await c8PbStep(svg, G, item, i, false); };
+ITEM.c8PbMake = {
+  make(spec) { const G = c8PbGeo(spec); /*T*/if (TESTHOOK && G.na * G.na !== spec.half * spec.half + spec.h * spec.h) testBug('c8PbMake: ن أ ليس عدداً صحيحاً');/*/T*/
+    const ch = rkPick(G.na, [[spec.half + spec.h, 'pyAdd'], [spec.half, 'pbHalf'], [spec.h, 'pbLeg'], [2 * spec.half, 'pbWhole']], spec.rk ?? 0); return { ...spec, step: 0, na: G.na, want: G.na, nums: ch.map(c => c[0]), ch, tag: 'c8-pb-make' }; },
+  async ask(item, mode, tries) { item.__try = tries; const svg = m3Stage(250), G = c8PbGeo(item), ctx = { svg, G }; let live = true; const isLive = () => live && svg.isConnected;
+    geoLine(svg, G.A[0], G.A[1], G.B[0], G.B[1], { color: C8.ink, w: 3.4 }); [G.A, G.B].forEach(X => pfDot(svg, X)); pfLab(svg, G.A[0] - 12, G.A[1] + 6, 'أ', { fs: 15 }); pfLab(svg, G.B[0] + 12, G.B[1] + 6, 'ب', { fs: 15 });
+    const tgP = tries >= 3 && item.step < 4; if (tgP) { item.step = Math.max(item.step, 2); item.first = item.first || 'A'; }   /* الحلّ المشترك: القوسان من الطرفين، والتقاطعان والقياس للطفل */
+    await c8PbArcs(svg, G, item, item.step); if (tgP) await S('gen.c8.together.pbMake');
+    while (item.step < 4) { const st = item.step; let q, cand, ok;
+      if (st === 0) { q = 'gen.c8.q.pbEnd1'; cand = [['A', G.A], ['B', G.B], ['M', G.M], ['Q', G.Qa]]; ok = ['A', 'B']; }
+      else if (st === 1) { const o = item.first === 'A' ? 'B' : 'A'; q = 'gen.c8.q.pbEnd2'; cand = [[o, G[o]], ['M', G.M], ['Q', G.Qa]]; ok = o; }
+      else if (st === 2) { q = 'gen.c8.q.pbX1'; cand = [['X1', G.X1], ['X2', G.X2], ['Z', G.Z]]; ok = ['X1', 'X2']; }
+      else { const o = item.x1 === 'X1' ? 'X2' : 'X1'; q = 'gen.c8.q.pbX2'; cand = [[o, G[o]], ['Z', G.Z], ['M', G.M]]; ok = o; }
+      c8Ask(st === 0 && tries === 0 ? item.q || q : q, isLive); const k = await c8Spots(svg, cand, ok); hush();
+      if (![].concat(ok).includes(k)) { live = false; return { ans: `e|${st}|${k}`, ctx }; }
+      if (st === 0) item.first = k; if (st === 2) item.x1 = k; item.step = st + 1; await c8PbStep(svg, G, item, item.step, true); }
+    /* البعدان: ن على العمود، ون أ مقيسٌ، فكم ن ب؟ */
+    geoLine(svg, G.N[0], G.N[1], G.A[0], G.A[1], { color: C8.opp, w: 2.6 }); geoLine(svg, G.N[0], G.N[1], G.B[0], G.B[1], { color: C8.opp, w: 2.6, dash: '6 4' }); pfDot(svg, G.N); pfLab(svg, G.N[0] - 14, G.N[1] + 4, 'ن', { fs: 15 });   /* يسار العمود، بعيداً عن أقواس التقاطع */
+    { const P = [(G.N[0] + G.A[0]) / 2 - 14, (G.N[1] + G.A[1]) / 2 - 6]; preLab(svg, P[0], P[1], MS(String(item.na)), { fs: 16, col: C8.opp }); const Q = [(G.N[0] + G.B[0]) / 2 + 14, (G.N[1] + G.B[1]) / 2 - 6]; preLab(svg, Q[0], Q[1], '؟', { fs: 18, col: C8.q }); }
+    if (tries >= 3 && !tgP) { const h = helpG(svg); preTicks(h, G.N, G.A, 1, THINK_INK); preTicks(h, G.N, G.B, 1, THINK_INK); await S('gen.c8.together.pbRead'); }   /* والخطأ في القراءة وحدها: البعدان معلَّمان متساويين */
+    else c8Ask('gen.c8.q.pbRead', isLive); const np = numberPick(shuffle(item.nums), item.want, { west: true }); const k = await np.p; live = false; document.querySelectorAll('#stage .choices').forEach(x => x.remove()); return { ans: 'read|' + k, ctx }; },
+  judge(item, a) { const [w, st, k] = String(a).split('|'); if (w === 'read') return +st === item.want ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => v === +st) || [])[1] || 'pbOff' };
+    return { ok: false, err: +st < 2 ? 'c8PbNotEnd' : 'c8PbCross' }; },
+  onOk(item, r) { SFX.good(); const c = r && r.ctx; if (c && c.svg.isConnected) { preTicks(c.svg, c.G.N, c.G.A, 1, C8.ok); preTicks(c.svg, c.G.N, c.G.B, 1, C8.ok); } },   /* البعدان متساويان */
+  onWrong() { SFX.soft(); },
+  async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), G = c.G;
+      if (err === 'c8PbNotEnd') { hlRing(m, G.A, 13, H2C[0]); hlRing(m, G.B, 13, H2C[1]); }   /* الطرفان */
+      else if (err === 'c8PbCross') { for (const P of [G.A, G.B]) for (const X of [G.X1, G.X2]) { const a = c8Dir(P, X); el('path', { d: angArc(P, G.r, a - 16, a + 16), fill: 'none', stroke: THINK_INK, 'stroke-width': 5, opacity: .55 }, m); } }   /* الأقواس بارزة */
+      else { hlSeg(m, G.M, G.A, H2C[0]); hlSeg(m, G.M, G.N, H2C[1]); hlSeg(m, G.N, G.A, H2C[2]); } }   /* نصف القطعة والارتفاع والبعد */
+    await S({ c8PbNotEnd: 'gen.c8.hint.pbEnd', c8PbCross: 'gen.c8.hint.pbX' }[err] || 'gen.c8.hint.pb.nb'); },
+  async together() {},
+  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { item.first = item.first || 'A'; for (let i = item.step + 1; i <= 4; i++) await c8PbStep(c.svg, c.G, item, i, false); preLab(c.svg, (c.G.N[0] + c.G.B[0]) / 2 + 30, (c.G.N[1] + c.G.B[1]) / 2 + 8, MS(String(item.na)), { fs: 16, col: C8.ok }); }
+    item.step = 4; await S('gen.ci4.reveal.half', { noGap: true }); await S(numw(item.na), { append: true }); },
+  praise: () => 'praisePlace', twin(item) { return item.twin || null; },
+};
+
+/* ---------- د3 «صائد الوتر» (c8HypHunt): a، b، hy، fn، flip؛ يلمس الوتر على المثلث، ثم النسبة ---------- */
+ITEM.c8HypHunt = {
+  make(spec) { const ch = c8RatioCh(spec); return { ...spec, step: 0, want: ch[0][0], ch, tag: 'c8-hyp-' + spec.fn }; },
+  async ask(item, mode, tries) { item.__try = tries; const svg = m3Stage(250), g = el('g', {}, svg), u = Math.min(200 / item.a, 132 / item.b), T = c8Tri(g, item.a, item.b, { y0: 204, x0: item.flip ? 266 - item.a * u : 70, u }), ctx = { svg, T }; let live = true; const isLive = () => live && svg.isConnected;
+    const V = item.flip ? T.B : T.A, ra = Math.max(14, Math.min(34, .6 * (T.C[0] - T.A[0]), .6 * (T.C[1] - T.B[1]))); if (item.flip) arArc(g, T.B, 180 + T.ang, 270, { r: ra, col: C8.bis, fill: true }); else arArc(g, T.A, 0, T.ang, { r: ra, col: C8.bis, fill: true }); pfDot(g, V);
+    const sides = { hyp: [T.A, T.B], adj: [T.A, T.C], opp: [T.C, T.B] };
+    if (tries >= 3 && item.step < 1) item.step = 1;   /* الحلّ المشترك: الوتر مُعلَّم، والنسبة للطفل */
+    if (item.step < 1) { const S3 = Object.entries(sides).map(([k, [P, Q]]) => { const t = el('g', {}, svg); geoLine(t, P[0], P[1], Q[0], Q[1], { color: 'rgba(47,127,193,.001)', w: 16 }); return { g: t, k, label: labelText('c8S.' + (item.flip && k !== 'hyp' ? (k === 'opp' ? 'adj' : 'opp') : k)) }; });
+      c8Ask(tries === 0 ? item.q || 'gen.c8.q.hypTap' : 'gen.c8.q.hypTap', isLive); const k = await tapOne(S3, { ok: 'hyp', pad: 44 }); hush(); if (k !== 'hyp') { live = false; ctx.side = k; return { ans: 'side|' + k, ctx }; } item.step = 1; SFX.tick(); }
+    geoLine(svg, T.A[0], T.A[1], T.B[0], T.B[1], { color: C8.hyp, w: 7 }); c8Sides(svg, T, { adj: MS(String(item.a)), opp: MS(String(item.b)), hyp: MS(String(item.hy)) }, { flip: item.flip }); c8FnLabel(svg, 270, 40, item.fn, null, { tail: '؟ =' });
+    if (tries >= 3) { const o = item.flip ? item.a : item.b, j = item.flip ? item.b : item.a, rr = { sin: [o, item.hy], cos: [j, item.hy], tan: [o, j] }[item.fn]; ciEq(helpG(svg), 110, 40, `${rr[0]} ÷ ${rr[1]} = ؟`, C8.hl, 17); await S('gen.c8.together.ratio'); }
+    else c8Ask('gen.c8.q.hypRatio', isLive);
+    const k = await choosePick(shuffle(item.ch.map(([v]) => [String(v), MS(String(v)), '<i></i>', 'gen.c8.v.' + c8Key(v)])), String(item.want)); live = false; document.querySelectorAll('#stage .choices').forEach(x => x.remove()); return { ans: 'ratio|' + k, ctx }; },
+  judge(item, a) { const [w, k] = String(a).split('|'); if (w === 'side') return { ok: false, err: 'c8HypLeg' }; return k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(v) === k) || [])[1] || 'trigOff' }; },
+  onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
+  async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), T = c.T; hlRing(m, T.C, 14); hlRing(m, item.flip ? T.B : T.A, 14, H2C[1]);   /* القائمة: الوتر يقابلها */
+      ciRule(m, 180, [24, 236, [0, 24], [400, 24]], labelText(err === 'c8HypLeg' ? 'c8AskSides' : 'c8AskRatio'), C8.hl, 15); }
+    await S(err === 'c8HypLeg' ? 'gen.c8.hint.which' : 'gen.c8.hint.ratio.' + item.fn); },
+  async together() {},
+  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) geoLine(c.svg, c.T.A[0], c.T.A[1], c.T.B[0], c.T.B[1], { color: C8.ok, w: 7 }); item.step = 1; await S('gen.c8.reveal.ratio', { noGap: true }); await S('gen.c8.v.' + c8Key(item.want), { append: true }); },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
+};
 
 /* ================= المشاهد ================= */
 /* د1: فوضى تنصّف بالمسطرة والنظر؛ والإنشاء بالفرجار خطوةً خطوة */

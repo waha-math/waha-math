@@ -398,6 +398,9 @@ export const factOf = it => { const t = it.t;
   if (t === 'c8Pb') return it.ask === 'mid' ? `c8p|mid|${it.half}` : `c8p|${[it.half, it.h].sort((x, y) => x - y)}`;
   if (t === 'c8Which') return `c8w|${it.a}|${it.b}|${it.side}|${it.flip ? 1 : 0}`;
   if (t === 'c8Ratio') return c8rK(it.a, it.b, it.hy, it.fn, it.flip);
+  if (t === 'c8BisMake') return `c8h|${it.deg}`;   /* جولات U8 الحركية بمفاتيح بنودها (D288 (2)) */
+  if (t === 'c8PbMake') return `c8p|${[it.half, it.h].sort((x, y) => x - y)}`;
+  if (t === 'c8HypHunt') return c8rK(it.a, it.b, it.hy, it.fn, it.flip);
   if (t === 'c8Table') return it.fn === 'tan' ? `c8t|tan|${it.deg}` : `c8t|sc|${it.fn === 'cos' ? 90 - it.deg : it.deg}`;
   if (t === 'c8Height') return `c8y|${it.dist}|${it.deg}`;
   if (t === 'c9Draw') return `c9d|${JSON.stringify(it.pts)}|${it.xf}`;
