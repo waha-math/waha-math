@@ -386,6 +386,9 @@ export const factOf = it => { const t = it.t;
   if (t === 'ci4Tan') return `c6t|${it.kind}|${it.dir ?? 60}`;
   if (t === 'ci4TanLen') return `c6l|${it.r}|${it.op}|${it.ask}`;
   if (t === 'ci4TanAng') return `c6a|${it.th}`;
+  if (t === 'c6ChordGame') return it.L == null ? `c6diam|${it.r}` : `c6h|${it.r}|${Math.round(Math.sqrt(it.r * it.r - it.L * it.L / 4))}`;   /* ألعاب U6 الحركية (D288 (2)) بمفاتيح بنودها */
+  if (t === 'c6TanGame') return it.mode === 'pivot' ? `c6l|6|${it.op}|len` : `c6tg|${it.a ?? 270}`;
+  if (t === 'c6CenGame') return it.cen === 180 ? 'c6g|180' : `c6g|${it.cen}|${it.pAt ?? 90}`;
   if (t === 'ci4Ang') return it.cen === 180 ? 'c6g|180' : `c6g|${it.cen}|${it.pAt ?? 90}`;   /* والمحيطية على القطر حقيقةٌ واحدة أينما كان رأسها */   /* الشكل نفسه أياً كان المسؤول عنه */
   if (t === 'ci4Sector') return `c6s|${it.kind}|${it.ang}|${it.C ?? ''}|${it.A ?? ''}|${it.r ?? ''}`;
   /* M4-U7/U8 دلالياً (المراجع A لبوابة M4-U7/U8، 3): الأسطوانة بنصف قطرها وارتفاعها بالسنتيمتر أياً كان المطلوب، والهرم والمخروط بحجمهما،
