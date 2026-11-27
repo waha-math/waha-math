@@ -20,7 +20,7 @@ function c4Plane(svg, o = {}) { const n = o.n || 5, m = o.ny || n, top = Math.ma
   for (let j = -m; j <= m; j++) geoLine(g, C[0] - n * c, C[1] - j * c, C[0] + n * c, C[1] - j * c, { color: C4.grid, w: 1.1 });
   geoLine(g, C[0] - n * c - 6, C[1], C[0] + n * c + 6, C[1], { color: C4.ax, w: 3 }); geoArrow(g, C[0] + n * c + 9, C[1], 0, C4.ax, 7);
   geoLine(g, C[0], C[1] + m * c + 6, C[0], C[1] - m * c - 6, { color: C4.ax, w: 3 }); geoArrow(g, C[0], C[1] - m * c - 9, -90, C4.ax, 7);
-  const tk = [], T = (t, B) => { tk.push({ t, B }); return t; };   /* أعداد المحورين واسماهما: تُخفى ما وقع عليها نقطةٌ أو اسمها (المعروف (1) لبوابة M4-U5/U6) */
+  const tk = [], T = (t, B) => { tk.push({ t, B }); t.setAttribute('data-tk', ''); return t; };   /* أعداد المحورين واسماهما: تُخفى ما وقع عليها نقطةٌ أو اسمها (المعروف (1) لبوابة M4-U5/U6) */
   T(preLab(g, C[0] + n * c + 9, C[1] + 16, labelText('coX'), { col: C4.ax, fs: 13, dir: 'rtl' }), [C[0] + n * c, C[1] + 4, C[0] + n * c + 18, C[1] + 18]); T(preLab(g, C[0] + 13, C[1] - m * c + 2, labelText('coY'), { col: C4.ax, fs: 13, dir: 'rtl', anchor: 'start' }), [C[0] + 1, C[1] - m * c - 10, C[0] + 15, C[1] - m * c + 4]);
   const tf = o.tfs || 12, st = o.st || [1, 2, 4, 5].find(s => s * c >= tf * 1.8) || 8;   /* «−١» على المحورين لا تتراكبان عند الأصل */   /* أعداد المحورين 12 (كانت 9.5 فتصير 7.6 بكسلاً على iPhone SE؛ المراجع B لبوابة M4-U5/U6، 7) */
   if (o.nums !== false) for (let k = -Math.max(n, m); k <= Math.max(n, m); k++) { if (!k || k % st) continue;
@@ -72,9 +72,18 @@ function c4Line(parent, Pl, m, b, o = {}) { if (o.vx != null) { const A = Pl.P(o
   const A = Pl.P(x1, m * x1 + b), B = Pl.P(x2, m * x2 + b); return geoLine(parent, A[0], A[1], B[0], B[1], { color: o.col || C4.ln, w: o.w || 3.2, dash: o.dash }); }
 const c4Through = (parent, Pl, a, b, o = {}) => a[0] === b[0] ? c4Line(parent, Pl, 0, 0, { ...o, vx: a[0] }) : c4Line(parent, Pl, (b[1] - a[1]) / (b[0] - a[0]), a[1] - (b[1] - a[1]) / (b[0] - a[0]) * a[0], o);
 /* الفرق الأفقي ثم الرأسي بين نقطتين (الحلّ المشترك والمشاهد) */
+/* التعويض بالسالب (المراجع A لبوابة M4-U5/U6، 29): السالب بعلامته، والعامل السالب بين قوسين، والجزء المقطوع السالب طرحاً */
+/* r: الجملة تُعكس (المشرقية، أو فيها حرفٌ عربي): السالب يمين أرقامه، والقوسان رمزان مستقلّان يقلبهما MF */
+const c4N = (v, r) => v < 0 ? (r ? -v + '−' : '−' + -v) : String(v), c4P = (v, r) => v < 0 ? (r ? '( ' + c4N(v, r) + ' )' : '(' + c4N(v, r) + ')') : String(v);
+const c4Sub = (m, x, b) => { const r = SET.digits === 'east'; return `${c4N(m, r)} × ${c4P(x, r)}` + (b > 0 ? ` + ${b}` : b < 0 ? ` − ${-b}` : ''); };
+/* تسميةٌ في أوّل موضعٍ لا يقع على نصٍّ مرسوم (زوج نقطةٍ أو عدد محور ظاهر)؛ وإلا فالأول (المراجع B لبوابة M4-U5/U6، 4) */
+function c4Free(t, alts, Pl) { const sv = t.ownerSVGElement; if (!sv) return t; const B = [...sv.querySelectorAll('text')].filter(e => e !== t && !e.hasAttribute('data-tk') && e.getAttribute('visibility') !== 'hidden' && !e.closest('[visibility=hidden]')).map(e => { try { return e.getBBox(); } catch (er) { return null; } }).filter(b => b && b.width);
+  const hit = () => { const b = t.getBBox(); return B.some(c => b.x < c.x + c.width - 1 && b.x + b.width > c.x + 1 && b.y < c.y + c.height - 1 && b.y + b.height > c.y + 1); };
+  for (const [x, y, an] of alts) { if (!hit()) break; t.setAttribute('x', x); t.setAttribute('y', y); if (an) t.setAttribute('text-anchor', an); }
+  if (Pl) { const b = t.getBBox(); c4Hide(Pl, [[b.x, b.y, b.x + b.width, b.y + b.height]]); } return t; }   /* وعددُ محورٍ تحتها يُخفى كما تحت أسماء النقاط */
 function c4RunRise(parent, Pl, a, b, o = {}) { const A = Pl.P(...a), K = Pl.P(b[0], a[1]), B = Pl.P(...b), dx = b[0] - a[0], dy = b[1] - a[1];
-  if (dx) { geoLine(parent, A[0], A[1], K[0], K[1], { color: C4.pt, w: 3, dash: '5 4' }); preLab(parent, (A[0] + K[0]) / 2, A[1] + (dy > 0 ? 18 : -9), o.abs ? MS(String(Math.abs(dx))) : preNumV(dx), { col: C4.pt, fs: 14 }); }
-  if (dy) { geoLine(parent, K[0], K[1], B[0], B[1], { color: C4.pt2, w: 3, dash: '5 4' }); preLab(parent, K[0] + (dx >= 0 ? 8 : -8), (K[1] + B[1]) / 2 + 5, o.abs ? MS(String(Math.abs(dy))) : preNumV(dy), { col: C4.pt2, fs: 14, anchor: dx >= 0 ? 'start' : 'end' }); }
+  if (dx) { geoLine(parent, A[0], A[1], K[0], K[1], { color: C4.pt, w: 3, dash: '5 4' }); const mx = (A[0] + K[0]) / 2, y1 = A[1] + (dy > 0 ? 18 : -9), y2 = A[1] + (dy > 0 ? -9 : 18); c4Free(preLab(parent, mx, y1, o.abs ? MS(String(Math.abs(dx))) : preNumV(dx), { col: C4.pt, fs: 14 }), [[mx, y2], [mx + (K[0] - A[0]) / 4, y1], [mx - (K[0] - A[0]) / 4, y1], [K[0] + 12 * Math.sign(dx), A[1] + 5, dx > 0 ? 'start' : 'end'], [A[0] - 12 * Math.sign(dx), A[1] + 5, dx > 0 ? 'end' : 'start'], [mx, y1 + (dy > 0 ? 14 : -14)], [mx, y2 + (dy > 0 ? -14 : 14)]], Pl); }
+  if (dy) { geoLine(parent, K[0], K[1], B[0], B[1], { color: C4.pt2, w: 3, dash: '5 4' }); const my = (K[1] + B[1]) / 2 + 5, s = dx >= 0 ? 1 : -1; c4Free(preLab(parent, K[0] + 8 * s, my, o.abs ? MS(String(Math.abs(dy))) : preNumV(dy), { col: C4.pt2, fs: 14, anchor: s > 0 ? 'start' : 'end' }), [[K[0] - 8 * s, my, s > 0 ? 'end' : 'start'], [K[0] + 8 * s, my + (B[1] - K[1]) / 4, s > 0 ? 'start' : 'end'], [K[0] + 8 * s, my - (B[1] - K[1]) / 4, s > 0 ? 'start' : 'end'], [K[0], K[1] + (B[1] > K[1] ? -10 : 22)], [K[0] + 20 * s, my, s > 0 ? 'start' : 'end'], [K[0] - 20 * s, my, s > 0 ? 'end' : 'start']], Pl); }
   if (dx && dy && o.right !== false) preRight(parent, K, A, B, 9); }
 
 /* ---------- الميل: كسرٌ مختزل [بسط، مقام موجب] أو none للرأسي ---------- */
@@ -133,7 +142,7 @@ ITEM.c4Quad = cpItem({ H: 262, tLine: 'gen.c4.together.quad', hint: 'gen.c4.hint
   make: s => { const want = c4QuadOf(s.x, s.y), cands = want === 'axis' ? ['axis', ...(s.x ? [c4QuadOf(s.x, 1), c4QuadOf(s.x, -1), c4QuadOf(-s.x, 1)] : [c4QuadOf(1, s.y), c4QuadOf(-1, s.y), c4QuadOf(1, -s.y)])] : [want, c4QuadOf(-s.x, s.y), c4QuadOf(s.x, -s.y), 'axis'];   /* «على محور» خيارٌ دائماً، فظهوره ليس الجواب (المراجع A، 2) */
     return { want, cands: [...C4_QS, 'axis'].filter(k => cands.includes(k)), ext: c4Ext([[s.x, s.y]], 5), tag: 'c4-quad' + (want === 'axis' ? '-axis' : '') }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, item.ext); c4Card(svg, item.x, item.y); if (tries >= 3) c4Walk(svg, Pl, item.x, item.y, { ms: 60 }); return { Pl }; },
-  h2: async (item, ctx) => { const m = helpG(ctx.svg), Pl = ctx.Pl; if (Pl) { [[Pl.n, 0, '+', 0], [-Pl.n, 0, '−', 0], [0, Pl.m, '+', 1], [0, -Pl.m, '−', 1]].forEach(([x, y, t, i]) => { const P = Pl.P(x, y); preLab(m, P[0] + (x > 0 ? -9 : x < 0 ? 9 : 15), P[1] + (y > 0 ? 14 : y < 0 ? -6 : -8), t, { col: H2C[i], fs: 20 }); }); hlRing(m, Pl.P(0, 0), 12); } await sleep(FAST ? 10 : 250); },   /* إشارتا كل محور عند طرفيه */
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), Pl = ctx.Pl; if (Pl) { [[Pl.n, 0, '+', 0], [-Pl.n, 0, '−', 0], [0, Pl.m, '+', 1], [0, -Pl.m, '−', 1]].forEach(([x, y, t, i]) => { const P = Pl.P(x, y); preLab(m, P[0] + (x > 0 ? -9 : x < 0 ? 9 : 15), P[1] + (y > 0 ? 26 : y < 0 ? -6 : -8), t, { col: H2C[i], fs: 20 }); }); hlRing(m, Pl.P(0, 0), 12); } await sleep(FAST ? 10 : 250); },   /* إشارتا كل محور عند طرفيه */
   sayQ: it => S('gen.c4.pt.' + preKey([it.x, it.y]), { append: true }),
   show: async (item, ctx) => { if (ctx && ctx.Pl) c4Dot(helpG(ctx.svg), ctx.Pl, item.x, item.y, { col: C4.ok }); },
   pick: item => choosePick(item.cands.map(k => [k, labelText('c4Q.' + k), '<i></i>', 'gen.c4.quad.' + k]), item.want, { cls: item.cands.length > 3 ? 'four' : '' }),
@@ -192,17 +201,18 @@ ITEM.c4Eq = cpItem({ H: 262, tLine: 'gen.c4.together.eq', hint: 'gen.c4.hint.eq'
   make: s => { const [m, b] = s.ln, p2 = Math.abs(m + b) <= 5 ? [1, m + b] : [-1, b - m]; return { want: c4LKey(s.ln), cands: c4EqCands(m, b), p2, ext: c4Ext([[0, b], p2], 5), tag: 'c4-eq' }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, { ...item.ext, top: 26, H: 226 }), [m, b] = item.ln; c4Line(svg, Pl, m, b, {});
     c4Dot(svg, Pl, 0, b, { pair: true, col: C4.pt2, side: 1 }); c4Dot(svg, Pl, ...item.p2, { pair: true, col: C4.pt2 });
-    if (tries >= 3) { const h = helpG(svg); c4RunRise(h, Pl, [0, b], item.p2, { right: false }); const I = Pl.P(0, b); preLab(h, I[0] - 10, I[1] + 5, labelText('c4B'), { col: C4.hl, fs: 16, anchor: 'end', dir: 'rtl' }); } return { Pl }; },
+    if (tries >= 3) { const h = helpG(svg), I = Pl.P(0, b), sg = item.p2[0] < 0 ? 1 : -1, k = Math.abs(m) <= 2 && Math.abs(b + 2 * sg * m) <= Pl.m - 1 && Pl.n >= 3 ? 2 : 1;   /* المثلث في الجهة الخالية من النقطة الثانية وزوجها، و«ب» في الجهة الأخرى */
+      preLab(h, I[0] - 10 * sg, I[1] + (sg < 0 ? 20 : 5), labelText('c4B'), { col: C4.hl, fs: 16, anchor: sg < 0 ? 'start' : 'end', dir: 'rtl' }); c4RunRise(h, Pl, [0, b], [sg * k, b + sg * k * m], { right: false }); }   /* «ب» أولاً فيتفاداها طولا الفرقين، والمثلث خطوتان إن اتّسع فلا تتزاحم التسميات عند الأصل */ return { Pl }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) hlRing(m, ctx.Pl.P(0, item.ln[1]), 14, H2C[0]); ciRule(m, 180, [22, 248], labelText('c4RuleEq'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* أين يقطع المحور الرأسي؟ */
   pick: item => c4EqPick(item.cands, item.want),
   errOf: (it, k) => { const [m, b] = it.ln; return k === c4LKey([b, m]) ? 'eqSwapMB' : k === c4LKey([m, -b]) ? 'eqSignB' : k === c4LKey([-m, b]) ? 'eqSignM' : 'eqOff'; } });
 
 /* ================= ⑦ هل النقطة على المستقيم؟ (C417، التحقق بالتعويض): ln [م، ب]، p [س، ص] — أعدادٌ غير سالبة في جملة التعويض ================= */
 ITEM.c4On = cpItem({ H: 236, tLine: 'gen.c4.together.on', hint: 'gen.c4.hint.on', rLine: it => 'gen.c4.reveal.on.' + it.want, praise: 'praiseThink',
-  make: s => { const [m, b] = s.ln, [x, y] = s.p; /*T*/if (TESTHOOK && (m < 0 || b < 0 || x < 0 || y < 0)) testBug('c4On: عدد سالب في جملة التعويض');/*/T*/ return { want: m * x + b === y ? 'yes' : 'no', v: m * x + b, tag: 'c4-on' }; },
+  make: s => { const [m, b] = s.ln, [x, y] = s.p; return { want: m * x + b === y ? 'yes' : 'no', v: m * x + b, tag: 'c4-on' }; },
   draw(svg, item, tries) { const [m, b] = item.ln; c4EqCard(svg, m, b, { y: 30, w: 200 }); const g = el('g', { 'pointer-events': 'none' }, svg);
     el('rect', { x: 110, y: 82, width: 140, height: 34, rx: 10, fill: '#fff', stroke: C4.pt2, 'stroke-width': 2 }, g); coPairText(g, 180, 106, preNum(item.p[0]), preNum(item.p[1]), 'middle', 19, C4.pt2);
-    if (tries >= 3) ciEq(helpG(svg), 180, 168, `${m} × ${item.p[0]} + ${b}`, C4.hl, 20); return {}; },   /* الطرف الأيسر بلا ناتج (المراجع A، 10 ج) */
+    if (tries >= 3) ciEq(helpG(svg), 180, 168, c4Sub(m, item.p[0], b), C4.hl, 20); return {}; },   /* الطرف الأيسر بلا ناتج (المراجع A، 10 ج) */
   sayQ: async it => { await S('gen.c4.eq.' + c4LKey(it.ln), { append: true }); await S('gen.c4.q.onPt', { append: true }); await S('gen.c4.pt.' + preKey(it.p), { append: true }); },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); el('rect', { x: 102, y: 75, width: 156, height: 48, rx: 12, fill: 'none', stroke: H2C[0], 'stroke-width': 3, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m); cpArrow(m, [180, 74], [180, 62], { color: H2C[0] }); ciRule(m, 180, [210, 22], labelText('c4RuleOn'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* النقطة إلى المعادلة: نعوّض */
   pick: item => yesNo(item.want),
@@ -210,12 +220,12 @@ ITEM.c4On = cpItem({ H: 236, tLine: 'gen.c4.together.on', hint: 'gen.c4.hint.on'
 
 /* ================= ⑧ المعادلة من ميلٍ ونقطة (C417): sl الميل، p نقطة؛ ب = ص − م س ================= */
 ITEM.c4FindB = cpItem({ H: 262, tLine: 'gen.c4.together.findB', hint: 'gen.c4.hint.findB', rLine: 'gen.c4.reveal.eq', rSay: it => S('gen.c4.eq.' + it.want, { append: true }), praise: 'praiseThink',
-  make: s => { const m = s.sl, [x, y] = s.p, b = y - m * x; /*T*/if (TESTHOOK && (m < 0 || x < 0 || y < 0)) testBug('c4FindB: عدد سالب في جملة التعويض');/*/T*/
-    const k = (m + x + y) % 3, ex = [[[m, y], [m, y + m * x]], [[m, -b], [m, y]], [[m, -b], [m, b - m]]][k];   /* ب الصحيحة ليست أصغر الخيارات دائماً (المراجع A، 3)؛ ومثله في u5.py */
+  make: s => { const m = s.sl, [x, y] = s.p, b = y - m * x;
+    const k = ((m + x + y) % 3 + 3) % 3, ex = [[[m, y], [m, y + m * x]], [[m, -b], [m, y]], [[m, -b], [m, b - m]]][k];   /* ب الصحيحة ليست أصغر الخيارات دائماً (المراجع A، 3)؛ ومثله في u5.py */
     return { b, want: c4LKey([m, b]), cands: c4EqCands(m, b, ex), ext: c4Ext([[x, y], [0, b]], 5), tag: 'c4-findb' }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, { ...item.ext, H: 224 }), g = el('g', { 'pointer-events': 'none' }, svg); c4Dot(svg, Pl, ...item.p, { pair: true, col: C4.pt2 });
     el('rect', { x: 104, y: 15, width: 152, height: 28, rx: 10, fill: '#fff', stroke: C4.ln, 'stroke-width': 2 }, g); preLab(g, 214, 34, labelText('c4SlopeIs'), { col: C4.ln, fs: 16, dir: 'rtl', anchor: 'middle' }); c4MDraw(g, 140, 28, [item.sl, 1], { col: C4.ln });
-    if (tries >= 3) { const h = helpG(svg), [x, y] = item.p, Q = [x - 1, y - item.sl], A = Pl.P(x, y), B = Pl.P(...Q); c4Legs(h, Pl, item.p, Q); geoLine(h, A[0], A[1], B[0], B[1], { color: 'rgba(122,79,176,.55)', w: 2.6, dash: '6 5' }); ciEq(h, 180, 252, `${item.p[1]} = ${item.sl} × ${item.p[0]} + ${labelText('c4B')}`, C4.hl, 17); } return { Pl }; },
+    if (tries >= 3) { const h = helpG(svg), [x, y] = item.p, Q = [x - 1, y - item.sl], A = Pl.P(x, y), B = Pl.P(...Q); c4Legs(h, Pl, item.p, Q); geoLine(h, A[0], A[1], B[0], B[1], { color: 'rgba(122,79,176,.55)', w: 2.6, dash: '6 5' }); ciEq(h, 180, 252, `${c4N(item.p[1], 1)} = ${c4N(item.sl, 1)} × ${c4P(item.p[0], 1)} + ${labelText('c4B')}`, C4.hl, 17); } return { Pl }; },
   sayQ: async it => { await S('gen.c4.slope.' + (it.sl < 0 ? 'm' + -it.sl : it.sl), { append: true }); await S('gen.c4.q.findBPt', { append: true }); await S('gen.c4.pt.' + preKey(it.p), { append: true }); },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) { const P = ctx.Pl.P(...item.p), Y = ctx.Pl.P(0, item.p[1]); geoLine(m, P[0], P[1], Y[0], Y[1], { color: H2C[0], w: 3, dash: '6 5' }); hlRing(m, P, 13, H2C[1]); } ciRule(m, 180, [252, 22], labelText('c4AskFindB'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* من النقطة إلى المحور الرأسي: كم خطوةً نرجع؟ */
   pick: item => c4EqPick(item.cands, item.want),
