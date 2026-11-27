@@ -7,6 +7,7 @@
 #   TEN    قصص «نكوّن العشرة أولاً» و«نرجع إلى العشرة» باقية في الفقاعة وقت العمل ووقت السؤال؛ و«…عددها ستة. ابدئي…» بفاصلٍ بعد العدد؛
 #          وحين يمتلئ الإطار (والحافلة) تومض القطع الزرقاء كلها، ما دخله وما بقي خارجه.
 #   DRAW   «أيّ الجملتين تناسب الصورة؟»: السهم برأس؛ والمكعب الأبيض بحدٍّ غير أبيض.
+#   PFL    براهين السلسلة: المتوازيان بالارتفاع المتاح، وبطاقة المستوى الثاني بجانب الشكل لا عليه
 #   C9G    ألعاب M4-U9 الحركية (D288 (2)): جولاتها بنودٌ بسلّم D240؛ الخطأ المقصود في كل لعبة، والمرآتان بأيّ ترتيب، والزرّان والتكافؤ واللمستان،
 #          والمنقلة بصفريها، وكل جولةٍ من الدروس الثلاثة بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة (المراجع B لدفعة الألعاب، 2 و3 و4).
 # والضوابط (تنجح على 6e2e386 أيضاً): «الصحيح من أول محاولة»، والجولة الأولى في «أكمل الإطار» وانتهاء اللعبة، و«بلا خطأ في الصفحة».
@@ -170,7 +171,9 @@ async def c9g(b):
   await run('m4.u9.d1', {'t': 'c9Trs', 'p': [-4, 2], 'goal': [-4, -2], 'q': 'tr.01'}); st = await wk('tap')
   cl = await pg.evaluate("() => [[...document.querySelectorAll('#stage svg [data-clue]')].map(g => g.dataset.clue), document.querySelectorAll('#stage svg [data-chest]').length]")
   check('C9G', cl == [['m4_m2'], 0], 'مرآة الكنز: الكنز مدفونٌ عند زوجه المكتوب، ولا صندوق على الخانة قبل الوصول (المراجع A لإغلاق ألعاب U9، 3)', cl)
-  await click('#stage svg [data-mirror="refV"]'); await pg.wait_for_timeout(900); L = await logs()
+  HID = "() => { const f = () => document.querySelectorAll('#stage svg [data-tk][visibility=hidden]').length; window.__hid = 0; window.__hid0 = f(); if (window.__hidMo) window.__hidMo.disconnect(); window.__hidMo = new MutationObserver(() => { window.__hid = Math.max(window.__hid, f()); }); window.__hidMo.observe(document.querySelector('#stage'), { subtree: true, attributes: true, attributeFilter: ['visibility'] }); window.__hidIv = 0; }"   # أقصى ما أُخفي في أي لحظة (بمراقب التغيّرات، فلا يفوته إطارٌ في السرعة)
+  await pg.evaluate(HID); await click('#stage svg [data-mirror="refV"]'); await pg.wait_for_timeout(900); L = await logs(); hd = await pg.evaluate("() => { clearInterval(window.__hidIv); return [window.__hid0, window.__hid]; }")
+  check('C9G', hd[1] > hd[0], 'مرآة الكنز: أعداد المحورين على طريق الانقلاب تُخفى مدّته (المراجع B لإغلاق ألعاب U9، 2)', hd)
   check('C9G', L[:1] == [['c9-treasure', False, True, 'c9TrFar']], 'مرآة الكنز: المرآة التي تُبعد النقطة خطأ c9TrFar من أول محاولة', L)
   st = await wk('tap', nn(st)); await click('#stage svg [data-mirror="refH"]'); st = await wk('axPts'); await pg.evaluate("() => { const a = window.__auto; if (a) (a.wrong || a.ok)(); }"); await pg.wait_for_timeout(900); L = await logs()
   check('C9G', len(L) == 2 and L[1][1] is False and L[1][3] not in (None, 'c9TrFar', 'c9TrStay'), 'مرآة الكنز: المرآة الصحيحة والخانة الخاطئة خطأ الخانة', L)
@@ -181,6 +184,23 @@ async def c9g(b):
   check('C9G', r['res'] and r['res']['ok'] is False and len([x for x in L if x[1] is False]) == 4 and not r['err'], 'مرآة الكنز: أربعة أخطاء ثم الكشف بلا خطأ', [r['res'], r['err'], L])
   await run('m4.u9.d1', {'t': 'c9Trs', 'p': [3, 0], 'goal': [-3, 0], 'q': 'tr.02'}); await wk('tap'); await click('#stage svg [data-mirror="refH"]'); await pg.wait_for_timeout(900); L = await logs()
   check('C9G', L[:1] == [['c9-treasure', False, True, 'c9TrStay']], 'مرآة الكنز: النقطة على المرآة لا تتحرّك بها، ويُسجَّل c9TrStay', L)
+  await run('m4.u9.d1', {'t': 'c9Trs', 'p': [-5, 4], 'goal': [5, -4], 'q': 'tr.03'}); st = await wk('tap')
+  for _ in range(2): await click('#stage svg [data-mirror="refH"]'); st = await wk('axPts', nn(st)); await pg.evaluate("() => { const a = window.__auto; if (a) a.wrong(); }"); st = await wk('tap', nn(st))
+  await click('#stage svg [data-mirror="refH"]'); st = await wk('axPts', nn(st)); await pg.wait_for_timeout(300); h0 = await pg.evaluate(helps); await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }"); st = await wk('tap', nn(st)); await pg.wait_for_timeout(400); h1 = await pg.evaluate(helps)
+  check('C9G', h0 > 0 and h1 == 0, 'مرآة الكنز: المستوى الثاني للموضع الذي أخطأ فيه، ولا يبقى بعد الخطوة الصحيحة (المراجع B لإغلاق ألعاب U9، 2)', [h0, h1])
+  # والفقاعة بارتفاعٍ ثابت في هذا الفحص: يُقاس أثر شريط «تمّ» وحده
+  i0 = await pg.evaluate("() => LDATA['m4.u9.d1'].flow.findIndex(s => s.scene === 'motion')"); await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, ['m4.u9.d1', i0, 'game']); st = await wk('tap')   # في مشهد اللعبة نفسه (الفقاعة بأسطرها الثلاثة)
+  y0 = await pg.evaluate("() => { const b = document.querySelector('#bubble'); b.style.height = '170px'; b.style.overflow = 'hidden'; const r = document.querySelector('#stage svg').getBoundingClientRect(); return [Math.round(r.top), Math.round(r.height)]; }"); xy = await pg.evaluate("() => { const r = document.querySelector('#stage svg [data-mirror=refH] line').getBoundingClientRect(); return [r.left + r.width * .3, r.top + r.height / 2]; }")
+  await pg.mouse.click(*xy); await pg.wait_for_timeout(150); await pg.mouse.click(*xy); await pg.wait_for_timeout(500)
+  dd = await pg.evaluate("() => { const r = document.querySelector('#stage svg').getBoundingClientRect(), b = document.querySelector('#bubble'); b.style.height = ''; b.style.overflow = ''; return [window.__axPlaced, [Math.round(r.top), Math.round(r.height)], !!document.querySelector('#stage .pick.done:not([disabled])')]; }")
+  await pg.evaluate("() => { hush(); FLOW++; }")
+  check('C9G', dd[0] == 0 and dd[1] == y0 and dd[2], 'مرآة الكنز: لمستان سريعتان على المرآة تختارانها ولا تضعان نقطة، والمسرح لا يصغر حين يظهر «تمّ» (مكانه محجوز فلا يتحرّك المستوى؛ المراجع B لإغلاق ألعاب U9، 3)', [y0, dd])
+  await run('m4.u9.d1', {'t': 'c9Trs', 'p': [3, 0], 'goal': [-3, 0], 'q': 'tr.02'}); st = await wk('tap'); await click('#stage svg [data-mirror="refV"]'); st = await wk('axPts', nn(st))
+  mt = await pg.evaluate("() => document.querySelectorAll('#stage svg [data-mirror][role=button], #stage svg [data-mirror][tabindex]').length")
+  check('C9G', mt == 0, 'مرآة الكنز: المرآتان بعد الاختيار ليستا هدفين (المراجع B لإغلاق ألعاب U9، 6)', mt)
+  await pg.evaluate("() => { const q = window.__axAt(3, 0); const e = document.elementFromPoint(q.x, q.y); for (const t of ['pointerdown', 'pointerup']) document.querySelector('#stage svg').dispatchEvent(new PointerEvent(t, { bubbles: true, clientX: q.x, clientY: q.y, pointerId: 1, isPrimary: true, pointerType: 'mouse' })); }"); await pg.wait_for_timeout(200)
+  await pg.evaluate("() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }"); await pg.wait_for_timeout(900); L = await logs()
+  check('C9G', L[:1] == [['c9-treasure', False, True, 'c9Keep']], 'مرآة الكنز: لمس خانة النقطة نفسها إبقاءٌ ولو كانت على المحور الآخر (المراجع B لإغلاق ألعاب U9، 5)', L)
   await run('m4.u9.d1', {'t': 'c9Trs', 'p': [-5, 4], 'goal': [5, -4], 'q': 'tr.03'}); st = await wk('tap'); await click('#stage svg [data-mirror="refH"]')
   st = await wk('axPts'); await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }"); st = await wk('tap', nn(st)); await click('#stage svg [data-mirror="refV"]'); st = await wk('axPts', nn(st)); await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")
   r = await res(); L = await logs()
@@ -195,6 +215,11 @@ async def c9g(b):
   check('C9G', L[:2] == [['c9-wheel-predict', True, True, None], ['c9-wheel', False, True, 'c9WhDir']], 'عجلة الدوران: زرّ «مع العقارب» في جولة الربع خطأ الاتجاه', L)
   st = await wk('c9Turn', nn(st)); await click('#stage .choices.icons .pick', 1); await done(); r = await res(); L = await logs()
   check('C9G', L[2:] == [['c9-wheel', True, False, None]] and r['res'] and r['res']['ok'], 'عجلة الدوران: ثم ربعٌ عكس العقارب صحيح', L)
+  await run('m4.u9.d2', {'t': 'c9Whl', 'p': [3, -1], 'k': 1, 'q': 'wh.01'}); await wk('tap'); await click('#stage svg [role=button][data-ok=false]', 0); st = await wk('c9Turn')
+  b0 = await pg.evaluate("() => document.querySelectorAll('#stage svg [data-tk][visibility=hidden]').length"); await pg.evaluate(HID); await click('#stage .choices.icons .pick', 1); await pg.wait_for_timeout(700)
+  hd = await pg.evaluate("() => { clearInterval(window.__hidIv); return window.__hid; }"); await done(); r = await res(); cl = await pg.evaluate("() => (window.__clips || []).filter(c => /^gen\\.c9\\.wh\\.pred/.test(c))")
+  check('C9G', hd >= b0 + 4, 'عجلة الدوران: أعداد المحورين في قرص الذراع تُخفى مدّة الدوران (المراجع B لإغلاق ألعاب U9، 2)', [b0, hd])
+  check('C9G', len(cl) == 1 and cl[0].startswith('gen.c9.wh.predNo'), 'عجلة الدوران: التوقّع الخاطئ يقال «لا كما توقّعت» (المراجع B لإغلاق ألعاب U9، 2)', cl)
   # ربعٌ واحد بثلاثة أخطاء: الحلّ المشترك يرسم نصف الطريق ولا يكشفه (المراجع A لإغلاق ألعاب U9، 1)
   await run('m4.u9.d2', {'t': 'c9Whl', 'p': [3, -1], 'k': 1, 'q': 'wh.01'}); await wk('tap'); await click('#stage svg [role=button][data-ok=true]'); st = None
   for _ in range(3): st = await wk('c9Turn', nn(st)); await click('#stage .choices.icons .pick', 0); await done()
@@ -208,20 +233,25 @@ async def c9g(b):
   await run('m4.u9.d2', {'t': 'c9Whl', 'p': [-3, -2], 'k': 3, 'q': 'wh.03'}); await wk('tap'); await click('#stage svg [role=button][data-ok=true]'); await wk('c9Turn'); await click('#stage .choices.icons .pick', 0); await done(); r = await res(); L = await logs()
   check('C9G', L[1:] == [['c9-wheel', True, True, None]], 'عجلة الدوران: ربعٌ مع العقارب لثلاثة أرباعٍ عكسها صحيح بالتكافؤ', L)
   await run('m4.u9.d2', {'t': 'c9Whl', 'p': [0, 2], 'k': 2, 'q': 'wh.02'}); await wk('c9Turn')
-  await pg.evaluate("() => { const b = document.querySelectorAll('#stage .choices.icons .pick')[1]; b.click(); b.click(); }"); await pg.wait_for_timeout(900); kk = await pg.evaluate("() => window.__c9K()"); await done(); L = await logs()
-  check('C9G', kk == 2 and L == [['c9-wheel', True, True, None]], 'عجلة الدوران: لمستان متتاليتان تديران ربعين', [kk, L])
+  await pg.evaluate("() => { window.__ticks = 0; if (!SFX.__w) { const o = SFX.tick; SFX.tick = (...a) => { window.__ticks++; return o.apply(SFX, a); }; SFX.__w = 1; } }")
+  await pg.evaluate("() => { const b = document.querySelectorAll('#stage .choices.icons .pick')[1]; b.click(); b.click(); }"); await pg.wait_for_timeout(900); kk = await pg.evaluate("() => [window.__c9K(), window.__ticks]"); await done(); L = await logs()
+  check('C9G', kk == [2, 2] and L == [['c9-wheel', True, True, None]], 'عجلة الدوران: لمستان متتاليتان تديران ربعين بنقرتين', [kk, L])
   await run('m4.u9.d3', {'t': 'c9Whl', 'p': [-1, -3], 'k': 2, 'q': 'mr.03', 'match': True}); await wk('c9Turn'); await click('#stage .choices.icons .pick', 0); await pg.wait_for_timeout(500); await click('#stage .choices.icons .pick', 0); await done(); L = await logs()
   check('C9G', L == [['c9-wheel-match', True, True, None]], 'مرآتان: نصف دورةٍ مع العقارب ينطبق على الصورة', L)
   # ---- الباب الدوّار
   await run('m4.u9.d3', {'t': 'c9DrC', 'kind': 'door', 'th': 60, 'b': 10, 'q': 'dr.01'}); await wk('tap'); await click('#stage svg [role=button][data-ok=false]'); await pg.wait_for_timeout(1500); L = await logs()
   check('C9G', L[:1] == [['c9-door-centre-door', False, True, 'c9CtrMoved']], 'الباب الدوّار: نقطةٌ تحرّكت مع الباب ليست المركز', L)
-  await run('m4.u9.d3', {'t': 'c9DrC', 'kind': 'flag', 'th': 150, 'cw': True, 'b': 10, 'q': 'dr.03'}); st = await wk('tap'); await click('#stage svg [role=button][data-ok=false]'); await pg.wait_for_timeout(1500); L = await logs()
+  await run('m4.u9.d3', {'t': 'c9DrC', 'kind': 'flag', 'th': 150, 'cw': True, 'b': 10, 'q': 'dr.03'}); st = await wk('tap'); await pg.evaluate("() => { window.__nc0 = (window.__clips || []).length; }"); await click('#stage svg [role=button][data-ok=false]'); await pg.wait_for_timeout(1500); L = await logs()
   check('C9G', L[:1] == [['c9-door-centre-flag', False, True, 'c9CtrOff']], 'الباب الدوّار: مركزٌ لا ينطبق حوله الشفّاف خطأ', L)
-  for _ in range(2): st = await wk('tap', nn(st)); await pg.wait_for_timeout(300); await click('#stage svg [role=button][data-ok=false]', 0); await pg.wait_for_timeout(1500)
+  st = await wk('tap', nn(st)); await pg.wait_for_timeout(300); qc = await pg.evaluate("() => [(window.__clips || []).slice(window.__nc0 || 0), Math.min(...[...document.querySelectorAll('#stage svg [role=button] circle')].map(c => c.getBoundingClientRect().width))]")
+  check('C9G', any(re.match(r'^gen\.c9\.q\.ctr(_[mf])?$', c) for c in qc[0]) and qc[1] >= 16, 'الباب الدوّار: السؤال يعاد بعد الخطأ، ونقاط المركز 16 بكسلاً فأكثر (المراجع B لإغلاق ألعاب U9، 2)', qc)
+  await click('#stage svg [role=button][data-ok=false]', 0); await pg.wait_for_timeout(1500)
+  st = await wk('tap', nn(st)); await pg.wait_for_timeout(300); await click('#stage svg [role=button][data-ok=false]', 0); await pg.wait_for_timeout(1500)
   st = await wk('tap', nn(st)); await pg.wait_for_timeout(600)
   lf = await pg.evaluate("() => { const c = b => { const e = document.querySelector('#stage svg [role=button][data-ok=' + b + '] circle'); return e ? +e.getAttribute('cx') : null; }; return [document.querySelectorAll('#stage svg [role=button][data-ok=false]').length, c('false'), c('true')]; }")
   check('C9G', lf[0] == 1 and lf[1] is not None and lf[2] is not None and lf[1] < lf[2], 'الباب الدوّار: الحلّ المشترك يجرّب نقطةً لم يلمسها الطفل ويُبقي التي لمسها (المراجع A لإغلاق ألعاب U9، 8)', lf)
-  await run('m4.u9.d3', {'t': 'c9DrA', 'kind': 'door', 'th': 60, 'b': 10, 'b0': -20, 'q': 'dr.02'}); st = await wk('c9Prot'); await done(); L = await logs()
+  TOP = "() => { const sv = document.querySelector('#stage svg'), l = sv && sv.lastElementChild, p = sv && sv.querySelector('[data-prot]'), d = sv && sv.querySelector('[data-door]'); return [!!(l && l.matches('[data-prot-lab]')) && !!p && !!d && !!(p.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING), sv ? sv.querySelectorAll('[data-help]').length : -1]; }"   # الأعداد آخر ما على المسرح، وجسم المنقلة تحت الشكل
+  await run('m4.u9.d3', {'t': 'c9DrA', 'kind': 'door', 'th': 60, 'b': 10, 'b0': -20, 'q': 'dr.02'}); st = await wk('c9Prot'); tp = [await pg.evaluate(TOP)]; await done(); L = await logs()
   check('C9G', L[:1] == [['c9-door-angle-door', False, True, 'c9ProtZero']], 'الباب الدوّار: المنقلة وصفرها على غير الخطّين خطأ', L)
   st = await wk('c9Prot', nn(st))
   for _ in range(3): await click('#stage .choices.icons .pick', 1); await pg.wait_for_timeout(120)
@@ -229,6 +259,10 @@ async def c9g(b):
   check('C9G', bb == 10 and L[1:] == [['c9-door-angle-door', False, False, 'c9AngSup']], 'الباب الدوّار: المنقلة تدور بالزرّين، وقراءة التدريج الآخر خطأ c9AngSup', [bb, L])
   la = st['auto']['n']; s3 = await until(pg, lambda s: s['res'] or (s['auto'] and s['auto']['n'] != la))
   check('C9G', s3['auto'] and s3['auto']['kind'] == 'num', 'الباب الدوّار: المنقلة الموضوعة صحيحاً تبقى، فالمحاولة التالية قراءةٌ فقط (المراجع A لإغلاق ألعاب U9، 8)', s3['auto'])
+  await pg.wait_for_timeout(400); tp.append(await pg.evaluate(TOP)); await pg.evaluate("() => { const b = [...document.querySelectorAll('#stage .choices.nums button')].find(b => +b.dataset.k === 120); if (b) b.click(); }")
+  s4 = await until(pg, lambda s: s['res'] or (s['auto'] and s['auto']['n'] != s3['auto']['n'])); await pg.wait_for_timeout(400); tp.append(await pg.evaluate(TOP))
+  await pg.evaluate("() => { const b = [...document.querySelectorAll('#stage .choices.nums button')].find(b => +b.dataset.k === 120); if (b) b.click(); }"); r = await res(); await pg.wait_for_timeout(300); tp.append(await pg.evaluate(TOP))
+  check('C9G', [t[0] for t in tp] == [True] * 4 and tp[1][1] > 0 and tp[2][1] > 0 and r['res'] and r['res']['ok'] is False, 'الباب الدوّار: أعداد المنقلة فوق كل رسمٍ في المحاولة الأولى والدرجتين الثانية والثالثة والكشف (المراجع B لإغلاق ألعاب U9، 1)', [tp, r['res']])
   await run('m4.u9.d3', {'t': 'c9DrA', 'kind': 'flag', 'th': 150, 'cw': True, 'b': 10, 'b0': 40, 'q': 'dr.04'}); st = await wk('c9Prot')
   for _ in range(6): await click('#stage .choices.icons .pick', 0); await pg.wait_for_timeout(120)
   bb = await pg.evaluate("() => window.__c9B()"); await done(); st = await wk('num'); await pg.evaluate("() => { const b = [...document.querySelectorAll('#stage .choices.nums button')].find(b => +b.dataset.k === 150); if (b) b.click(); }"); r = await res(); L = await logs()
@@ -249,10 +283,31 @@ async def c9g(b):
       check('C9G', s2['res'] and not s2['err'] and sum(per.values()) == 4 * items, '%s (%d): كل جولةٍ بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
   check('C9G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
+# براهين M4 في السلسلة: المتوازيان لا يُطبقان في الشريط فوق البطاقات، وبطاقة المستوى الثاني بجانب الشكل لا عليه
+async def pfl(b):
+  """PFL: في «رتّب خطوات البرهان» (prChain) يُرسم المتوازيان بالارتفاع المتاح (كان بُعدهما 6 وحدات فتتراكب أعداد الزوايا)،
+  وبطاقة «المعلوم أولاً» في المستوى الثاني لا تقطع الشكل (كانت فوق رؤوسه منذ صار الشكل فوق البطاقات)"""
+  ctx, pg, errs = await page(b)
+  for pf, vs, lid in (('alt', (0, 1, 2), 'm4.u2.d2'), ('coint', (0, 1), 'm4.u2.d2'), ('pbPf', (0, 1), 'm4.u8.d2'), ('paraSide', (0,), 'm4.u3.d4')):
+    for v in vs:
+      await pg.evaluate(START, [lid, {'t': 'prChain', 'pf': pf, 'q': 'gen.pf.q.chain', 'v': v}, 'practice']); st = await until(pg, lambda s: s['auto'] is not None)
+      for _ in range(2):
+        n0 = st['auto']['n'] if st['auto'] else -1; await pg.wait_for_timeout(150); await pg.evaluate("() => { const a = window.__auto; if (a) a.wrong(); }")
+        st = await until(pg, lambda s: s['res'] or (s['auto'] and s['auto']['n'] != n0))
+      await pg.wait_for_timeout(500)
+      m = await pg.evaluate("""() => { const sv = document.querySelector('#stage svg'), fig = sv.querySelector(':scope > g[pointer-events=none]'), fb = fig.getBBox();
+        const ys = [...fig.querySelectorAll('line')].filter(l => Math.abs(+l.getAttribute('y1') - +l.getAttribute('y2')) < .5 && Math.abs(+l.getAttribute('x2') - +l.getAttribute('x1')) > 200).map(l => +l.getAttribute('y1'));
+        const T = [...sv.querySelectorAll('[data-help] text')].map(t => t.getBBox()), hit = T.filter(r => r.x < fb.x + fb.width - 2 && r.x + r.width > fb.x + 2 && r.y < fb.y + fb.height - 2 && r.y + r.height > fb.y + 2).length;
+        const mn = Math.min(...[...sv.querySelectorAll('[data-help] text')].map(t => +t.getAttribute('font-size') || 99), 99);
+        return [ys.length >= 2 ? Math.max(...ys) - Math.min(...ys) : null, hit, mn]; }""")
+      if pf in ('alt', 'coint'): check('PFL', m[0] is not None and m[0] >= 30, '%s/%d: المتوازيان متباعدان في الشريط فوق البطاقات' % (pf, v), m)
+      check('PFL', m[1] == 0 and m[2] >= 13, '%s/%d: نصّ المستوى الثاني لا يقطع الشكل، وخطّه 13 فأكثر' % (pf, v), m)
+  check('PFL', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
+
 async def main():
   async with async_playwright() as p:
     b = await p.chromium.launch()
-    for k, f in (('STORY', story), ('MINUS', minus), ('OFFER', offer), ('FRAME', frame), ('TEN', ten), ('DRAW', draw), ('C9G', c9g)):
+    for k, f in (('STORY', story), ('MINUS', minus), ('OFFER', offer), ('FRAME', frame), ('TEN', ten), ('DRAW', draw), ('C9G', c9g), ('PFL', pfl)):
       if not on(k): continue
       try: await f(b)
       except Exception as e: check(k, False, 'توقّف القسم باستثناء', str(e)[:300])   # (على النسخة القديمة يمضي البند إلى «كم؟» فلا تُلمس أزرار البناء)

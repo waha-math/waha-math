@@ -51,8 +51,10 @@ function pfFig0(g, k, o = {}) { if (['paraSide', 'paraDiag', 'rectDiag', 'rhombD
     pfLab(g, A[0], A[1] - 9, nA); pfLab(g, B[0] - 12, B[1] + 14, nB); pfLab(g, C[0] + 12, C[1] + 14, nC); [A, B, C].forEach(P => pfDot(g, P)); return { A, B, C }; }
   if (k === 'vert') { const [th, mk] = PF_MK.vert[v], V = T(180, 62), X = arCross(g, V, th, { L: 96 * s });
     mk.forEach((i, j) => arArc(g, V, X[i][0], X[i][1], { r: 24, col: [PF.a, PF.b, PF.a][j], lab: arNum(i + 1), dl: 13, fs: 14, fill: true })); return { V }; }
-  if (k === 'alt' || k === 'coint') { const R = arTrans(g, 60, { y1: y0 + 22 * s, y2: y0 + 96 * s, ext: 22 });
-    PF_MK[k][v].forEach((n, j) => { const { V, a1, a2 } = R.at(n); arArc(g, V, a1, a2, { r: 15, col: [PF.a, PF.b, k === 'alt' ? PF.a : PF.c][j], lab: arNum(n), dl: 10, fs: 13, fill: true }); }); return R; }
+  if (k === 'alt' || k === 'coint') { const M = PF_MK[k][v], sm = !!o.fit; let y1 = y0 + 22 * s, y2 = y0 + 96 * s;
+    if (sm) { const [t, b] = o.fit; y1 = t + (M.some(n => n <= 2) ? 22 : 10); y2 = b - (M.some(n => n >= 7) ? 22 : 6); }   /* في الشريط الضيّق فوق البطاقات: المستقيمان على أبعد ما يسمح به الهامش الذي تحتاجه الزوايا المعلَّمة وحدها، لا بتصغير الشكل كله (كان بُعدهما 6 وحدات) */
+    const R = arTrans(g, 60, sm ? { y1, y2, extT: Math.max(6, (y1 - o.fit[0]) / .87), extB: Math.max(6, (o.fit[1] - y2) / .87) } : { y1, y2, ext: 22 });   /* القاطع لا يدخل بطاقة المعطى ولا البطاقات */
+    M.forEach((n, j) => { const { V, a1, a2 } = R.at(n); arArc(g, V, a1, a2, { r: sm ? 12 : 15, col: [PF.a, PF.b, k === 'alt' ? PF.a : PF.c][j], lab: arNum(n), dl: sm ? 8 : 10, fs: sm ? 12 : 13, fill: true }); }); return R; }
   if (k === 'ineq') { const V = PF_INEQ[v], [A, B, C] = V.P.map(p => T(...p)), [nA, nB, nC] = V.L;
     geoLine(g, A[0], A[1], B[0], B[1], { color: PF.b, w: 4 }); geoLine(g, B[0], B[1], C[0], C[1], { color: PF.b, w: 4 }); geoLine(g, A[0], A[1], C[0], C[1], { color: PF.a, w: 4.4 });
     pfLab(g, A[0] - 12, A[1] + 6, nA); pfLab(g, B[0], B[1] - 9, nB); pfLab(g, C[0] + 12, C[1] + 6, nC); [A, B, C].forEach(P => pfDot(g, P)); return { A, B, C }; }
@@ -87,7 +89,9 @@ const PF_SPAN = { tri: [38, -21, 112, 18], ineq: [38, -21, 106, 10], vert: [62, 
   chordPf: [8, -2, 136, 4], inscPf: [8, -2, 136, 20],
   bisPf: [16, -4, 130, 22], bisCon: [16, -2, 130, 10], pbPf: [34, -16, 130, 20], perpCon: [27, -2, 233, 4] };   /* وأشكال U8 (المعروف (1) لبوابة M4-U7/U8) */   /* وبرهانا الدائرة في U6 (المعروف (1) لبوابة M4-U5/U6) */   /* وبراهين الرباعيات (المراجع B لبوابة M4-U3/U4، 6) */   /* براهين U4 تملأ مكانها في السلسلة والتعليل (المراجع A لبوابة M4-U3/U4، 24) */
 function pfFitFig(g, k, T, B, o = {}) { const S = PF_SPAN[k]; if (!S) return pfFig(g, k, { y0: o.y0 ?? 2, s: o.s ?? .7, v: o.v });
-  const [a, b, c, d] = S, s = Math.min(o.sMax || .72, c > a ? (B - T - (d - b)) / (c - a) : 1), y0 = T - (a * s + b); return pfFig(g, k, { y0, s, v: o.v }); }
+  const [a, b, c, d] = S, s = Math.min(o.sMax || .72, c > a ? (B - T - (d - b)) / (c - a) : 1), y0 = T - (a * s + b);
+  if ((k === 'alt' || k === 'coint') && s < .5) return pfFig(g, k, { v: o.v, fit: [T - 4, B + 2] });   /* المتوازيان في الشريط الضيّق: بالارتفاع كله لا بمقياسٍ يطبقهما */
+  return pfFig(g, k, { y0, s, v: o.v }); }
 const PF_CY = i => 152 + i * 74;   /* تحت بطاقة المعطى والشكل (D288 (1)) */
 /* ما تعتمد عليه كل خطوة: [] الرسم نفسه (المعلوم)، أو أرقام الخطوات قبلها (المستوى الثاني في سلسلة السبب وأغلق البرهان: المراجع B لبوابة M4-U1/U2، 8) */
 const PF_DEP = k => k === 'tri' || k === 'poly' ? [[], [0], [0, 1]] : [[], [], [0, 1]];
@@ -104,6 +108,17 @@ function pfRows(k, v, ask) { const box = document.createElement('div'); box.clas
   const given = k === 'tri' ? row('given', pfGivenLines(k, v).join(' ')) : null, steps = [0, 1, 2].map(n => row(n === ask ? 'ask' : '', pfText(k, v, n), labelText('pfBecause') + ' ' + (n === ask ? '؟' : labelText('pf.rs.' + PF_PROOFS[k].rs[n])))), rule = row('rule', labelText('pfRuleReason')); rule.hidden = true;
   return { box, given, steps, rule }; }   /* المعطى سطراً رابعاً في برهان المثلث وحده (D288 (1))، فتبقى الأسباب الثلاثة ظاهرةً على أضيق شاشة */
 const pfUpArrow = (m, x, y0, y1) => { geoLine(m, x, y0, x, y1, { color: PF.hl, w: 2.6, dash: '5 4' }); geoArrow(m, x, y1, -90, PF.hl, 8); };   /* بطاقات 70 وحدة: 56 بكسلاً على أضيق شاشة (0.8 بكسل للوحدة، كـ ORD_XY؛ المراجع B لبوابة M4-U1/U2، 1) */   /* البطاقات تحت الشكل كله، لا على رأسيه (المراجع B لبوابة M4-U1/U2) */
+/* بطاقة المستوى الثاني بسطرين أو ثلاثة في الجهة الأوسع بجانب الشكل، بخطٍّ لا يصغر عن 13 */
+function pfSideCard(svg, fig, txt) { let bb = null; try { bb = fig && fig.getBBox(); } catch (e) {} const P = String(txt).split(/(?<=،)\s+/);
+  if (!bb || !bb.width || P.length !== 2) return null;
+  const lft = bb.x - 22, rgt = 338 - (bb.x + bb.width), room = Math.max(lft, rgt) - 10, cy = bb.y + bb.height / 2, m = helpG(svg);
+  for (const L of [P, [P[0], ...P[1].split(/\s+/)]]) {   /* سطران، وإلا فثلاثة بخطٍّ لا يصغر عن 13 */
+    const g = el('g', { 'pointer-events': 'none' }, m), T = L.map(l => { const t = el('text', { 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: THINK_INK, direction: 'rtl' }, g); t.textContent = l; return t; });
+    let tw = Math.max(...T.map(t => { try { return t.getComputedTextLength(); } catch (e) { return 0; } })) || 90, fs = 15; if (tw + 16 > room) { fs = 15 * (room - 16) / tw; tw = room - 16; }
+    if (fs < 13) { g.remove(); continue; } T.forEach(t => t.setAttribute('font-size', fs.toFixed(1)));
+    const w = tw + 16, h = L.length * (fs + 4) + 14, cx = rgt >= lft ? bb.x + bb.width + 10 + room / 2 : bb.x - 10 - room / 2; T.forEach((t, i) => { t.setAttribute('x', cx); t.setAttribute('y', cy - h / 2 + 7 + fs * .85 + i * (fs + 4)); });
+    g.insertBefore(el('rect', { x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx: 10, fill: '#fff', stroke: THINK_INK, 'stroke-width': 2.2 }, g), T[0]); return g; }
+  return null; }   /* لا مكان بجانب الشكل العريض: يكفي توهّجه والجملة المسموعة المكتوبة في الفقاعة، ولا تُغطّى رؤوسه ولا البطاقات */
 ITEM.prChain = {
   make(spec) { const P = PF_PROOFS[spec.pf], order = shuffle([0, 1, 2]); const ok = ['0,1,2', ...(P.alt || [])].map(s => s.split(',').map(i => order.indexOf(+i)).join(','));
     return { ...spec, order, okSet: ok, want: ok[0], tag: 'pf-chain-' + spec.pf }; },
@@ -116,7 +131,7 @@ ITEM.prChain = {
   judge(item, k) { if (item.okSet.includes(k)) return { ok: true }; const first = +k.split(',')[0]; return { ok: false, err: item.order[first] === 2 ? 'pfJump' : 'pfOrder' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { if (r.ctx.fig) pfFigGlow(helpG(r.ctx.svg), r.ctx.fig);   /* المستوى الثاني رسمٌ: المعلوم في الرسم أولاً (المراجع B، 8) */
-      hintCard(r.ctx.svg, 180, 110, labelText('pfRuleChain')); } await S('gen.pf.hint.chain'); }   /* تحت البطاقات، لا على الشكل (المراجع B لبوابة M4-U1/U2، 6) */, async together() {},
+      pfSideCard(r.ctx.svg, r.ctx.fig, labelText('pfRuleChain')); } await S('gen.pf.hint.chain'); }   /* بجانب الشكل لا عليه، فلا تغطّي البطاقة أسماء رؤوسه (منذ صار الشكل فوق البطاقات، D288 (1)) */, async together() {},
   async reveal(item, r) { const m = helpG(r.ctx.svg); item.want.split(',').forEach((i, n) => badge(m, 38, PF_CY(+i) + 35, n + 1, PF.ok)); await S('gen.pf.reveal.chain'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; } };
 

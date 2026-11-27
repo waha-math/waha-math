@@ -37,8 +37,8 @@ function arTrans(g, phi, o = {}) { const y1 = o.y1 ?? 76, y2 = o.y2 ?? 160, cx =
   ln([28, y1], [332, y1], { color: o.parCol || AR.par, w: 4 });
   let B; if (!tilt) { B = [xAt(y2), y2]; ln([28, y2], [332, y2], { color: o.parCol || AR.par, w: 4 }); }
   else { const t = Math.tan(tilt * Math.PI / 180); let x = cx; for (let i = 0; i < 30; i++) { const y = y2 - (x - cx) * t; x = xAt(y); } B = [x, y2 - (x - cx) * t]; ln([28, lineY(28, y2, tilt)], [332, lineY(332, y2, tilt)], { color: o.parCol || AR.par, w: 4 }); }
-  const Tr = R(T), Br = R(B), reach = (V, d) => frameReach(g, V, d + rr, o.ext || 52);   /* والقاطع المدار يُقصّ بالورقة بعد دورانه */
-  const P = angP(Tr, phi + rr, reach(Tr, phi)), Q = angP(Br, phi + rr + 180, reach(Br, phi + 180)); geoLine(g, P[0], P[1], Q[0], Q[1], { color: AR.tr, w: 4 });
+  const Tr = R(T), Br = R(B), reach = (V, d, e) => frameReach(g, V, d + rr, e ?? (o.ext || 52));   /* والقاطع المدار يُقصّ بالورقة بعد دورانه */
+  const P = angP(Tr, phi + rr, reach(Tr, phi, o.extT)), Q = angP(Br, phi + rr + 180, reach(Br, phi + 180, o.extB));   /* extT وextB: طرفا القاطع كلٌّ بقدره (الشريط الضيّق في السلسلة) */ geoLine(g, P[0], P[1], Q[0], Q[1], { color: AR.tr, w: 4 });
   if (!tilt && o.marks !== false) for (const y of [y1, y2]) { const [a, b, c] = [[300, y - 7], [309, y], [300, y + 7]].map(R); el('path', { d: `M${a[0]} ${a[1]} L${b[0]} ${b[1]} L${c[0]} ${c[1]}`, fill: 'none', stroke: o.parCol || AR.par, 'stroke-width': 3, 'pointer-events': 'none' }, g); }
   for (const V of [Tr, Br]) el('circle', { cx: V[0], cy: V[1], r: 4.5, fill: ANG.v, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, g);
   const t2 = tilt || 0, sec = (V, base) => [[base, phi], [phi, 180 + base], [180 + base, 180 + phi], [180 + phi, 360 + base]];   /* A فوق يمين، B فوق يسار، C تحت يسار، D تحت يمين */

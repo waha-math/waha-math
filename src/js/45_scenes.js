@@ -7,7 +7,11 @@ const SCENES = {};
 /* بنود داخل الاكتشاف أو اللعبة: {items:[...], mode:'explore'|'practice', intro} */
 SCENES.items = async c => { introOnStage(c.intro); for (const it of c.items) await runItem(it, c.mode || 'explore', { scene: c.stage || 'explore' }); if (c.after) await S(c.after); };
 /* لعبةٌ حركية (D288 (2)): جولاتها بنودٌ حركية بنمط التمرين، فلكلٍّ سلّم D240 والسجلّ بـ firstTry والفانوس و«أعد الجملة» وأخطاء السائقين، ومشهدها «game» (المراجعان A وB لدفعة ألعاب U9) */
-SCENES.motion = async c => { introOnStage(c.intro); for (const it of c.items) await runItem(it, 'practice', { scene: 'game' }); if (c.after) await S(c.after); };
+SCENES.motion = async c => { const un = bubbleHold3(); try { introOnStage(c.intro); for (const it of c.items) await runItem(it, 'practice', { scene: 'game' }); if (c.after) await S(c.after); } finally { un(); } };
+/* في اللعبة الحركية تتبدّل الجملة مع كل خطوة: الفقاعة بثلاثة أسطر على الشاشة الطويلة (القصيرة ثابتةٌ بقاعدتها)، فلا يتحرّك المسرح تحت إصبع الطفل بين خطوة وأخرى (المراجع B لإغلاق ألعاب U9، 3) */
+function bubbleHold3() { const b = $('#bubble'), sy = $('#say'); if (!b || !sy || matchMedia('(max-height: 700px), (max-width: 380px)').matches) return () => {};
+  const cs = getComputedStyle(b), lh = parseFloat(getComputedStyle(sy).lineHeight) || 0, old = b.style.minHeight; if (!lh) return () => {};
+  b.style.minHeight = Math.ceil(3 * lh + (cs.boxSizing === 'border-box' ? parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) : 0)) + 'px'; return () => { b.style.minHeight = old; }; }
 /* مسار المواد (D238): يظهر في مسار «معي» وحده؛ صورة الأشياء وتعليمة وزرّ «تمّ» */
 SCENES.material = async c => {
   if (!PATH_MAT()) return; MAT_AVOID = new Set(c.avoid || []); const svg = newStage(260, { oasis: false, ground: 0 });   /* أعداد مسائلها لا تكون مشتّتاً في الشاشة التي تخدمها (H1 (10أ)) */

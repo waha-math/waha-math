@@ -468,6 +468,9 @@ async def run(p, dev):
           if not await gone(st['n']):
             bad.append((dev, st['scene'], k + ' (html)')); await pg.screenshot(path=os.path.join(HERE, 'out', 'realtap_%s_%s.png' % (dev.replace(' ', ''), st['scene'].replace(':', '_').replace('.', '_'))))
             await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")
+          elif k in ('c9Turn', 'c9Prot'):   # والزرّان أوصلا إلى الجواب حقاً: العجلة صحيحة في السجل، والمنقلة تمضي إلى القراءة (المراجع B لإغلاق ألعاب U9، 2)
+            await pg.wait_for_timeout(500); r2 = await pg.evaluate("() => [LOG.attempts.length ? LOG.attempts[LOG.attempts.length - 1].ok : null, window.__auto ? window.__auto.kind : null]")
+            if (k == 'c9Turn' and r2[0] is not True) or (k == 'c9Prot' and r2[1] != 'num'): bad.append((dev, st['scene'], k + ' (not ok: %s)' % r2))
           continue
         await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }"); await pg.wait_for_timeout(40); continue
       if st['go']: await pg.click('#go'); await pg.wait_for_timeout(30); continue

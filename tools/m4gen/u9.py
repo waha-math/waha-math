@@ -572,6 +572,5 @@ def PROB():
     hit+=[('تقييم أو مشهد',str(x)) for x in set(allg)&(assess|SC)]
     return game,assess|SC,sorted(hit)
 _g,_o,_h=PROB()
-if os.environ.get('PROBDUMP'): import pickle; pickle.dump((_g,_o),open('/tmp/t3/prob.pkl','wb'))
 assert not _h, ('مسائل الألعاب تتكرّر', _h)   # تحويلٌ آخر يعطي الصورة نفسها: البند لا يفرّق
 print('ok', len(PTS), len(KEYS))
