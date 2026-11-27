@@ -81,7 +81,7 @@ function c4RunRise(parent, Pl, a, b, o = {}) { const A = Pl.P(...a), K = Pl.P(b[
 const c4Frac = (p, q) => { const gcd = (a, b) => b ? gcd(b, a % b) : a, k = gcd(Math.abs(p), Math.abs(q)) || 1; let n = p / k, d = q / k; if (d < 0) { n = -n; d = -d; } return [n === 0 ? 0 : n, d]; };
 const c4MKey = v => v === 'none' ? 'none' : (v[0] < 0 ? 'm' + -v[0] : '' + v[0]) + (v[1] === 1 ? '' : 'o' + v[1]);
 function c4MIcon(v) { const T = (x, y, s, fs) => `<text x="${x}" y="${y}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${C4.ink}">${s}</text>`;
-  if (v === 'none') return `<svg viewBox="0 0 64 48" width="58" height="42" aria-hidden="true"><path d="M50 6 L50 42" stroke="${C4.ln}" stroke-width="4"/>${T(24, 31, esc(labelText('c4NoSlope')), 15)}</svg>`;
+  if (v === 'none') return `<svg viewBox="0 0 64 48" width="58" height="42" aria-hidden="true">${T(32, 31, esc(labelText('c4NoSlope')), 16)}</svg>`;   /* بلا خطٍّ رأسي يطابق المرسوم في البند (المراجع A، 16) */
   const [n, d] = v, neg = n < 0, east = SET.digits === 'east', a = DG(Math.abs(n));
   if (d === 1) return `<svg viewBox="0 0 56 48" width="48" height="42" aria-hidden="true">${T(28, 36, neg ? (east ? a + '−' : '−' + a) : a, 30)}</svg>`.replace('<text ', '<text direction="ltr" unicode-bidi="bidi-override" ');
   const fx = neg ? (east ? 22 : 34) : 28, sx = east ? 48 : 9;
@@ -224,10 +224,11 @@ ITEM.c4FindB = cpItem({ H: 262, tLine: 'gen.c4.together.findB', hint: 'gen.c4.hi
 /* ================= ⑨ الشارعان المتعامدان (د4، الإبداع): sl ميل الأول؛ ميل الثاني مقلوبه بإشارة معاكسة، وحاصل ضربهما −1 ================= */
 ITEM.c4Perp = cpItem({ H: 262, tLine: 'gen.c4.together.perp', hint: 'gen.c4.hint.perp', rLine: 'gen.c4.reveal.perp', rSay: it => S('gen.c4.m.' + it.want, { append: true }), praise: 'praiseThink',
   make: s => { const w = c4Frac(-1, s.sl), C = [w, c4Frac(1, s.sl), [-s.sl, 1], [s.sl, 1]].filter((v, i, X) => X.findIndex(u => c4MKey(u) === c4MKey(v)) === i); return { want: c4MKey(w), cands: C, tag: 'c4-perp' }; },
-  draw(svg, item, tries) { const Pl = c4Plane(svg, { n: 5, H: 232 }), g = el('g', { 'pointer-events': 'none' }, svg); c4Line(svg, Pl, item.sl, 0, { col: C4.pt, w: 4 }); c4Line(svg, Pl, -1 / item.sl, 0, { col: C4.pt2, w: 4, dash: '8 6' }); preRight(svg, Pl.P(0, 0), Pl.P(1, item.sl), Pl.P(-item.sl, 1), 11);
+  draw(svg, item, tries) { const Pl = c4Plane(svg, { n: 5, H: 232 }), g = el('g', { 'pointer-events': 'none' }, svg); c4Line(svg, Pl, item.sl, 0, { col: C4.pt, w: 4 });   /* الشارع الثاني يُرسم بعد الجواب لا قبله، فلا يُقرأ ميله بالنظر (المراجع A لبوابة M4-U5/U6، 16) */
     el('rect', { x: 104, y: 15, width: 152, height: 28, rx: 10, fill: '#fff', stroke: C4.pt, 'stroke-width': 2 }, g); preLab(g, 214, 34, labelText('c4SlopeIs'), { col: C4.pt, fs: 16, dir: 'rtl', anchor: 'middle' }); c4MDraw(g, 140, 28, [item.sl, 1], { col: C4.pt });
     if (tries >= 3) ciRule(helpG(svg), 180, 246, labelText('c4RulePerp'), C4.hl, 15); return { Pl }; },
   sayQ: async it => { await S('gen.c4.slope.' + (it.sl < 0 ? 'm' + -it.sl : it.sl), { append: true }); await S('gen.c4.q.perpEnd', { append: true }); },
+  showOnOk: true, show: async (item, ctx) => { if (!ctx || !ctx.Pl) return; const h = helpG(ctx.svg), Pl = ctx.Pl; c4Line(h, Pl, -1 / item.sl, 0, { col: C4.pt2, w: 4, dash: '8 6' }); preRight(h, Pl.P(0, 0), Pl.P(1, item.sl), Pl.P(-item.sl, 1), 11); },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) { const P = ctx.Pl.P, s = item.sl, k = Math.abs(s) > 2 ? 1 / Math.abs(s) : 1; c4Legs(m, ctx.Pl, [0, 0], [k, s * k]); const R1 = P(0, k), R2 = P(-s * k, k), O = P(0, 0); geoLine(m, O[0], O[1], R1[0], R1[1], { color: H2C[0], w: 3, dash: '3 4' }); geoLine(m, R1[0], R1[1], R2[0], R2[1], { color: H2C[1], w: 3, dash: '3 4' }); } ciRule(m, 180, 246, labelText('c4AskPerp'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* مثلث الميل ومثلثه مداراً ربع دورة */
   pick: item => choosePick(shuffle(item.cands.map(v => [c4MKey(v), labelText('c4m.' + c4MKey(v)), c4MIcon(v), 'gen.c4.m.' + c4MKey(v)])), item.want, { cls: 'symonly four' }),
   errOf: (it, k) => k === c4MKey(c4Frac(1, it.sl)) ? 'perpNoSign' : k === c4MKey([-it.sl, 1]) ? 'perpNoInv' : 'perpSame' });

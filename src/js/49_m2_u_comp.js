@@ -34,7 +34,7 @@ const cpItem = d => ({
     if (tries >= 3) { await S(d.tLine); if (d.together) await d.together(item, ctx); } else { await S(item.q, { noGap: !!d.sayQ }); if (d.sayQ) await d.sayQ(item); }
     const k = await d.pick(item, ctx); return { ans: k, ctx }; },
   judge(item, k) { return k === item.want ? { ok: true } : { ok: false, err: d.errOf(item, k) }; },
-  onOk(item, r) { if (d.num) numItem.onOk(item, r); else SFX.good(); }, onWrong(item, r) { if (d.num) numItem.onWrong(item, r); else SFX.soft(); },
+  onOk(item, r) { if (d.showOnOk && d.show && r && r.ctx) d.show(item, r.ctx); if (d.num) numItem.onOk(item, r); else SFX.good(); }, onWrong(item, r) { if (d.num) numItem.onWrong(item, r); else SFX.soft(); },
   async hint2(item, r) { if (d.h2 && r && r.ctx && r.ctx.svg) await d.h2(item, r.ctx); await S(typeof d.hint === 'function' ? d.hint(item) : d.hint); }, async together() {},   /* المستوى الثاني فعلٌ على المسرح حيث له معنى (المراجع B لبوابة U8/U9، 5) */
   async reveal(item, r) { if (d.show) await d.show(item, r.ctx); await S(typeof d.rLine === 'function' ? d.rLine(item) : d.rLine, { noGap: !!d.rSay }); if (d.rSay) await d.rSay(item); },
   praise: () => d.praise || 'praiseThink', twin(item) { return item.twin || null; } });
