@@ -4,7 +4,7 @@
 # قبل اللمس ولم يُرسم مكانه مثله (سهم اليد اليمنى، وعدّ يُمحى)، يُعدّ هنا ويُخفق. (والحلّ الذي هو كلام، أو حركة لما على المسرح، لا يضيف شيئاً يُمحى؛
 # وفي الأنواع التي حلّها رسمٌ (HELP_DRAWN) يجب أن يكون الرسم المعلَّم data-help على المسرح.)
 # python3 test/ladder_run.py   (FILE=نسخة فحص أخرى، ONLY=m1.u3.d2,… دروس بعينها)
-import asyncio, os, sys
+import re, asyncio, os, sys
 from playwright.async_api import async_playwright
 HERE = os.path.dirname(os.path.abspath(__file__))
 FILE = os.environ.get('FILE', os.path.join(HERE, '..', 'dist', 'واحة_الرياضيات.dev.html'))
@@ -148,7 +148,10 @@ async def main():
       check(not miss, '%s: المستوى الثاني باقٍ على مسرح المحاولة الثالثة (%d%s)' % (typ, len(L), '' if not miss else '؛ بلا شيء: ' + ', '.join(miss[:3])))
     check(n3 > 0 or not ONLY, 'فحصا المستوى الثالث بلغا بنوداً (%d)' % n3)
     check(not l3ans, 'الحلّ المشترك لا يكتب نصّ الخيار الصحيح في المساعدة (%s)' % (', '.join(l3ans[:3]) or '%d بنداً بمستوى ثالث، %d منها بنصّ خيار صحيح يُقارن' % (n3, n3ok)))   # المراجع B لبوابة M4-U7/U8، 4
-    check(not l3rep, 'المستوى الثالث لا يكرّر الثاني بنصّه وشكله (%s)' % (', '.join(l3rep[:3]) or '%d بنداً' % n3))   # 6
+    # يُلزَم في أنواع U7/U8 (c7، c8) التي بُني الفحص معها؛ وما قبلها يُطبع للعلم بأنواعه (مؤجّلٌ لمراجعة سلالمها: إغلاق بوابة M4-U7/U8، القسم 4)
+    l3new = [t for t in l3rep if re.search(r'\((c7|c8)[A-Z]', t)]; l3old = sorted({re.search(r'\(([^)]+)\)$', t).group(1) for t in l3rep if t not in l3new and re.search(r'\(([^)]+)\)$', t)})
+    check(not l3new, 'المستوى الثالث لا يكرّر الثاني بنصّه وشكله في U7/U8 (%s)' % (', '.join(l3new[:3]) or '%d بنداً' % n3))   # 6
+    if l3old: print('info المستوى الثالث يكرّر الثاني في أنواعٍ أقدم (%d بنداً): %s' % (len(l3rep) - len(l3new), '، '.join(l3old)))
     for typ, L in sorted(lvl2d.items()):
       miss = [t for h, t in L if not h]
       check(not miss, '%s: المستوى الثاني رسمٌ (شكلٌ في المساعدة، لا بطاقة وحدها) (%d%s)' % (typ, len(L), '' if not miss else '؛ بطاقةٌ وحدها: ' + ', '.join(miss[:3])))

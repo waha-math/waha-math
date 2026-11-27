@@ -138,7 +138,7 @@ d1={"id":"m4.u8.d1","title":"مُنَصِّفُ الزَّاوِيَةِ","icon"
  "mastery":{"concepts":{"C401":[half(140,'half'), eqd(60,.7,ns=True), reason("ms.1",c8p(bisPt=70),["ms.1a","ms.1b","ms.1c"])]},
   "alt":{"C401":[half(76,'whole',rot=25), eqd(30,.5,ns=True), reason("ms.x1",c8p(bis=70),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C401":{"scene":"lines","lines":["ms.recall"]}},
-  "remedial":{"C401":[tw(half(30,'half'),eqd(80,.5))]},
+  "remedial":{"C401":[tw(half(30,'half'),half(54,'half'))]},
   "mixed":{"lesson":"m4.u6.d3","concept":"C412","item":{"t":"ci4Ang","cen":116,"ask":"cen","q":"gen.ci4.q.ang.cen"}},
   "ok":"ms.ok"},
  "review":[half(150,'half')|{"c":"C401"}, eqd(40,.5,ns=True,rot=20)|{"c":"C401"}, half(50,'whole')|{"c":"C401"}],

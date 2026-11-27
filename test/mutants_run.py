@@ -974,6 +974,9 @@ RUNTIME = [
   ('G الحافلة تمتلئ بلا وميض الركّاب', "await Promise.all([flashSecond(svg), S('gen.bus.full')]);", "await S('gen.bus.full');", ['test/games_run.py', '{F}'], {'ONLY': 'TEN'}, 'FAIL TEN «حافلة الواحة»'),
   ('G الوميض لما في الإطار وحده', "const ks = [...svg.querySelectorAll('[data-counter]')].filter(k => k.querySelector('circle').getAttribute('fill') === COUNTER2);", "const ks = [...svg.querySelectorAll('[data-frame] [data-counter]')].filter(k => k.querySelector('circle').getAttribute('fill') === COUNTER2);", ['test/games_run.py', '{F}'], {'ONLY': 'TEN'}, 'FAIL TEN makeTen: حين امتلأ'),
   ('G المكعب الأبيض بحدٍّ أبيض', "edge: color === CUBE.white ? CUBE_EDGE_W : '#ffffff'", "edge: '#ffffff'", ['test/games_run.py', '{F}'], {'ONLY': 'DRAW'}, 'FAIL DRAW المكعبات البيضاء'),
+  # M4-U7/U8 (المراجع B، 4 و6 و9 (د)): الحلّ المشترك لا يكتب الخيار الصحيح، والمستوى الثالث لا يكرّر الثاني
+  ('الحلّ المشترك في «أيّ ضلعٍ هذا؟» يسمّي الأضلاع الثلاثة', "delete L[real]; c8Sides(helpG(svg), T, L, { flip: item.flip }); }", "c8Sides(helpG(svg), T, L, { flip: item.flip }); }", ['test/ladder_run.py'], {'ONLY': 'm4.u8.d3'}, 'FAIL الحلّ المشترك لا يكتب نصّ الخيار الصحيح'),
+  ('المستوى الثالث في التحويل هو الثاني', "if (tries >= 3) ciEq(helpG(svg), 180, 236, `${item.v} ${item.from === 'cm3' ? '÷' : '×'}", "if (tries >= 3) { const m = helpG(svg); el('polygon', { points: polyStr([[128, 80], [232, 80], [232, 184], [128, 184]]), fill: 'none', stroke: H2C[0], 'stroke-width': 3, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m); ciRule(m, 180, 206, labelText(item.from === 'm3' ? 'c7AskM3' : 'c7AskL'), C7.hl, 15); } if (false) ciEq(helpG(svg), 180, 236, `${item.v} ${item.from === 'cm3' ? '÷' : '×'}", ['test/ladder_run.py'], {'ONLY': 'm4.u7.d4'}, 'FAIL المستوى الثالث لا يكرّر الثاني'),
 ]
 if os.environ.get('MUT_COUNT'): print(len(RUNTIME)); sys.exit(0)   # عدد طفرات المتصفح وحده، لتقسيمها شرائح في run_all.sh (الدرس 299)
 def run(args, env, f):

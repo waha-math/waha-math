@@ -59,18 +59,18 @@ ITEM.c8EqDist = cpItem({ H: 236, tLine: 'gen.c8.together.eqd', hint: 'gen.c8.hin
   errOf: (it, k) => k === 'yes' ? 'eqdOffYes' : 'eqdOnNo' });
 
 /* ================= ③ العمود المنصّف: البعد عن الطرفين (C401 ب): half نصف القطعة، h ارتفاع ن عن المنتصف؛ ask mid | nb ================= */
-function c8PbFig(g, half, h, o = {}) { const u = Math.min(110 / half, 150 / Math.max(h, 1)) * (o.k || 1), M = [180, o.y ?? 196], A = [M[0] - half * u, M[1]], B = [M[0] + half * u, M[1]], N = [M[0], M[1] - h * u];
-  geoLine(g, A[0], A[1], B[0], B[1], { color: C8.ink, w: 3.4 }); geoLine(g, M[0], M[1] + 18, M[0], Math.max(30, M[1] - 170), { color: C8.bis, w: 3, dash: '8 5' }); preRight(g, M, B, N, 10);
-  [A, B, M].forEach(X => pfDot(g, X)); pfLab(g, A[0] - 10, A[1] + 18, 'أ', { fs: 15 }); pfLab(g, B[0] + 10, B[1] + 18, 'ب', { fs: 15 }); pfLab(g, M[0] - 12, M[1] + 18, 'م', { fs: 15 }); return { A, B, M, N, u }; }
+function c8PbFig(g, half, h, o = {}) { const u = Math.min(110 / half, (o.hmax || 150) / Math.max(h, 1)) * (o.k || 1), M = [180, o.y ?? 196], A = [M[0] - half * u, M[1]], B = [M[0] + half * u, M[1]], N = [M[0], M[1] - h * u];
+  geoLine(g, A[0], A[1], B[0], B[1], { color: C8.ink, w: 3.4 }); geoLine(g, M[0], M[1] + 18, M[0], Math.max(54, M[1] - 170), { color: C8.bis, w: 3, dash: '8 5' }); preRight(g, M, B, N, 10);
+  [A, B, M].forEach(X => pfDot(g, X)); pfLab(g, A[0] - 10, A[1] + 18, 'أ', { fs: 15 }); pfLab(g, B[0] + 10, B[1] + 18, 'ب', { fs: 15 }); pfLab(g, M[0] + 12, M[1] + 18, 'م', { fs: 15 }); return { A, B, M, N, u }; }   /* م يمين القدم فلا يلامس نصف القطعة يسارها (TXSTRICT) */
 ITEM.c8Pb = cpItem({ H: 250, tLine: 'gen.c8.together.pb', hint: it => 'gen.c8.hint.pb.' + it.ask, rLine: 'gen.ci4.reveal.half', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const na = Math.round(Math.hypot(s.half, s.h || 0)); /*T*/if (TESTHOOK && s.ask === 'nb' && na * na !== s.half * s.half + s.h * s.h) testBug('c8Pb: ن أ ليس عدداً صحيحاً');/*/T*/
     const ch = s.ask === 'mid' ? rkPick(s.half, [[2 * s.half, 'midNoHalf'], ...(s.half % 2 === 0 ? [[s.half / 2, 'midQuarter']] : []), [2 * s.half - 2, 'midSub2']], s.rk ?? 0) : rkPick(na, [[s.half + s.h, 'pyAdd'], [s.half, 'pbHalf'], [s.h, 'pbLeg'], [2 * s.half, 'pbWhole']], s.rk ?? 0);   /* أخطاءٌ حقيقية (المراجع A لبوابة M4-U7/U8، 1 و15) */
     return { na, want: ch[0][0], nums: ch.map(c => c[0]), ch, tag: 'c8-pb-' + s.ask }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), F = c8PbFig(g, item.half, item.ask === 'nb' ? item.h : Math.max(2, item.half * .8), item.rot ? { y: 162, k: .76 } : { y: item.ask === 'mid' ? 186 : 196 }); item._g = F;
+  draw(svg, item, tries) { const g = el('g', {}, svg), F = c8PbFig(g, item.half, item.ask === 'nb' ? item.h : Math.max(2, item.half * .8), item.rot ? { y: 162, k: .76, hmax: 96 } : { y: item.ask === 'mid' ? 186 : 196, hmax: 96 });   /* ن تحت البطاقة وعملية الثالث (TXSTRICT في deepall) */ item._g = F;
     if (item.rot) { queueMicrotask(() => c6Rot(g, F.M, item.rot)); item._g = c6RotG(F, F.M, item.rot); }   /* القطعة مائلة والنصوص قائمة (المراجع A لبوابة M4-U7/U8، 14) */
     if (item.ask === 'mid') { preLab(g, 180, F.M[1] + 40, MS(String(2 * item.half)), { fs: 17, col: C8.ink }); preLab(g, (F.A[0] + F.M[0]) / 2, F.M[1] - 10, '؟', { fs: 18, col: C8.q }); }
     else { geoLine(g, F.N[0], F.N[1], F.A[0], F.A[1], { color: C8.opp, w: 3 }); geoLine(g, F.N[0], F.N[1], F.B[0], F.B[1], { color: C8.opp, w: 3 }); pfDot(g, F.N); pfLab(g, F.N[0] + 12, F.N[1] - 4, 'ن', { fs: 15 });
-      preLab(g, (F.A[0] + F.M[0]) / 2, F.M[1] + 22, MS(String(item.half)), { fs: 16 }); preLab(g, F.M[0] + 10, (F.M[1] + F.N[1]) / 2 + 6, MS(String(item.h)), { fs: 16, anchor: 'start', col: C8.bis }); preLab(g, (F.N[0] + F.B[0]) / 2 + 12, (F.N[1] + F.B[1]) / 2, '؟', { fs: 18, col: C8.q, anchor: 'start' }); }
+      preLab(g, (F.A[0] + F.M[0]) / 2, F.M[1] + 22, MS(String(item.half)), { fs: 16 }); preLab(g, F.M[0] + 10, (F.M[1] + F.N[1]) / 2 + 6, MS(String(item.h)), { fs: 16, anchor: 'start', col: C8.bis }); { const dx = F.B[0] - F.N[0], dy = F.B[1] - F.N[1], l = Math.hypot(dx, dy) || 1; preLab(g, (F.N[0] + F.B[0]) / 2 + 20 * dy / l, (F.N[1] + F.B[1]) / 2 - 20 * dx / l + 6, '؟', { fs: 18, col: C8.q, anchor: 'start' }); } }   /* «؟» خارج ن ب لا عند تسمية الارتفاع (TXSTRICT) */
     if (tries >= 3) ciEq(helpG(svg), 180, 36, item.ask === 'mid' ? `${2 * item.half} ÷ 2 = ؟` : `${item.half} × ${item.half} + ${item.h} × ${item.h} = ${item.na * item.na}`, C8.hl, 16); return {}; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), F = item._g; if (F) { if (item.ask === 'mid') { hlSeg(m, F.A, F.M, H2C[0]); hlSeg(m, F.M, F.B, H2C[1]); } else { hlSeg(m, F.M, F.A, H2C[0]); hlSeg(m, F.M, F.N, H2C[1]); hlSeg(m, F.N, F.A, H2C[2]); hlRing(m, F.M, 12); } }   /* النصفان، أو المثلث القائم عند م */
     ciRule(m, 180, [24, 230], labelText(item.ask === 'mid' ? 'c8AskMid' : 'c8AskPb'), C8.hl, 15); await sleep(FAST ? 10 : 250); },
@@ -179,11 +179,11 @@ function c8Pic(g, P) { if (P.fig) return c8Fig(g, P.fig, { y0: 20, s: .9 }); if 
 SCENES.c8BisHook = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), V = [70, 200]; c8Angle(g, V, 60, { bis: false }); arArc(g, V, 0, 60, { r: 40, col: C8.ray, deg: 60, dl: 20, fs: 15 }); await c8Say(L, 0);
   const Q = c8Ray(V, 34, 220); geoLine(g, V[0], V[1], Q[0], Q[1], { color: C8.q, w: 3, dash: '6 5' }); SFX.tick(); await c8Say(L, 1); for (const l of L.slice(2)) await S(l); };
 SCENES.c8BisBuild = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), V = [64, 206], d = c.deg || 60, r1 = 100, r2 = 86;
-  for (const a of [0, d]) { const P = c8Ray(V, a, 250); geoLine(g, V[0], V[1], P[0], P[1], { color: C8.ray, w: 3.4 }); } pfDot(g, V);
+  for (const a of [0, d]) { const P = c8Ray(V, a, c8Fit(V, a, 250)); geoLine(g, V[0], V[1], P[0], P[1], { color: C8.ray, w: 3.4 }); } pfDot(g, V);   /* الأشعة داخل الإطار (TXSTRICT) */
   const P1 = c8Ray(V, 0, r1), P2 = c8Ray(V, d, r1); el('path', { d: angArc(V, r1, -8, d + 8), fill: 'none', stroke: C8.arc, 'stroke-width': 2.6 }, g); [P1, P2].forEach(X => pfDot(g, X)); SFX.tick(); await c8Say(L, 0);
   const t = r1 * Math.cos(d / 2 * Math.PI / 180) + Math.sqrt(r2 * r2 - (r1 * Math.sin(d / 2 * Math.PI / 180)) ** 2), X = c8Ray(V, d / 2, t);
   for (const P of [P1, P2]) { const a = Math.atan2(P[1] - X[1], X[0] - P[0]) * 180 / Math.PI; el('path', { d: angArc(P, r2, a - 14, a + 14), fill: 'none', stroke: C8.arc, 'stroke-width': 2.6 }, g); SFX.tick(); await sleep(FAST ? 5 : 400); }
-  pfDot(g, X); await c8Say(L, 1); const Q = c8Ray(V, d / 2, 250); geoLine(g, V[0], V[1], Q[0], Q[1], { color: C8.bis, w: 3.4 }); arArc(g, V, 0, d / 2, { r: 54, col: C8.bis, deg: d / 2, dl: 18, fs: 14, fill: true }); arArc(g, V, d / 2, d, { r: 54, col: C8.ray, deg: d / 2, dl: 18, fs: 14, fill: true }); SFX.tick(); await c8Say(L, 2); for (const l of L.slice(3)) await S(l); };
+  pfDot(g, X); await c8Say(L, 1); const Q = c8Ray(V, d / 2, c8Fit(V, d / 2, 250)); geoLine(g, V[0], V[1], Q[0], Q[1], { color: C8.bis, w: 3.4 }); arArc(g, V, 0, d / 2, { r: 54, col: C8.bis, deg: d / 2, dl: 18, fs: 14, fill: true }); arArc(g, V, d / 2, d, { r: 54, col: C8.ray, deg: d / 2, dl: 18, fs: 14, fill: true }); SFX.tick(); await c8Say(L, 2); for (const l of L.slice(3)) await S(l); };
 /* د2: المنتصف بالنظر؛ والإنشاء: قوسان بالفتحة نفسها من الطرفين */
 SCENES.c8PbHook = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), A = [70, 140], B = [290, 140]; geoLine(g, A[0], A[1], B[0], B[1], { color: C8.ink, w: 3.6 }); [A, B].forEach(X => pfDot(g, X)); await c8Say(L, 0);
   el('circle', { cx: 196, cy: 140, r: 6, fill: C8.q }, g); preLab(g, 196, 120, '؟', { fs: 20, col: C8.q }); SFX.tick(); await c8Say(L, 1); for (const l of L.slice(2)) await S(l); };
@@ -209,7 +209,7 @@ SCENES.c8TableShow = async c => { const L = c.lines, svg = m3Stage(262), mz = L[
     c8FnLabel(g, 260, 34, 'sin', d, { fs: 16, tail: MS(String(C8_T.sin[d])) + ' =' }); c8FnLabel(g, 260, 64, 'cos', d, { fs: 16, tail: MS(String(C8_T.cos[d])) + ' =' }); if (!i) preLab(g, 300, 92, '(sin ، cos)', { fs: 14, col: '#7d8a90' });   /* اللاتيني عند أول ظهور فقط (D190) */ SFX.tick(); await c8Say(L, i + mz); }
   for (const l of L.slice(3 + mz)) await S(l); };
 /* د3: النسبة ثابتة للزاوية الواحدة: مثلثان متشابهان */
-SCENES.c8SimShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), T1 = c8Tri(g, 4, 3, { u: 22, x0: 30, y0: 200 }), T2 = c8Tri(g, 8, 6, { u: 22, x0: 150, y0: 200 });
+SCENES.c8SimShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), T1 = c8Tri(g, 4, 3, { u: 22, x0: 30, y0: 200 }), T2 = c8Tri(g, 8, 6, { u: 22, x0: 140, y0: 200 });
   for (const T of [T1, T2]) arArc(g, T.A, 0, T.ang, { r: 24, col: C8.bis, fill: true }); c8Sides(g, T1, { adj: MS('4'), opp: MS('3'), hyp: MS('5') }); c8Sides(g, T2, { adj: MS('8'), opp: MS('6'), hyp: MS('10') }); await c8Say(L, 0);
   ciEq(g, 180, 30, '3 ÷ 5 = 6 ÷ 10 = 0.6', C8.ok, 17); SFX.tick(); await c8Say(L, 1); for (const l of L.slice(2)) await S(l); };
 /* د4: ظا، ومسح الارتفاع، وحكاية البيروني (تُروى ولا تُختبر) */
@@ -223,6 +223,6 @@ SCENES.c8SurveyShow = async c => { const L = c.lines, svg = m3Stage(250); let g 
   for (const l of L.slice(2)) await S(l); };
 SCENES.c8BiruniShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), O = [180, 330], R = 200, P = [180, 112], T = angP(O, 90 - 26, R);
   el('path', { d: angArc(O, R, 40, 140), fill: 'none', stroke: '#5c8f43', 'stroke-width': 4 }, g); el('path', { d: `M${P[0] - 30} ${O[1] - R + 2} L${P[0]} ${P[1]} L${P[0] + 30} ${O[1] - R + 2} Z`, fill: '#a58f6f', stroke: '#7b6a50', 'stroke-width': 2 }, g); await c8Say(L, 0);
-  geoLine(g, P[0], P[1], T[0] + (T[0] - P[0]) * .3, T[1] + (T[1] - P[1]) * .3, { color: C8.bis, w: 2.6, dash: '7 5' }); geoLine(g, O[0], O[1], T[0], T[1], { color: C8.hyp, w: 2.6 }); preRight(g, T, O, P, 10); pfDot(g, T); SFX.tick(); await c8Say(L, 1);
+  geoLine(g, P[0], P[1], T[0] + (T[0] - P[0]) * .3, T[1] + (T[1] - P[1]) * .3, { color: C8.bis, w: 2.6, dash: '7 5' }); { const k = (O[1] - 232) / (O[1] - T[1]); geoLine(g, O[0] + (T[0] - O[0]) * k, 232, T[0], T[1], { color: C8.hyp, w: 2.6 }); }   /* نصف القطر من حافة الإطار، والمركز تحته */ preRight(g, T, O, P, 10); pfDot(g, T); SFX.tick(); await c8Say(L, 1);
   for (const l of L.slice(2)) await S(l); };
 WRAP_ART.trigArt = svg => { const g = el('g', { 'pointer-events': 'none' }, svg), T = c8Tri(g, 4, 3, { u: 30, x0: 120, y0: 190 }); arArc(g, T.A, 0, T.ang, { r: 30, col: C8.bis, fill: true }); };

@@ -239,13 +239,13 @@
     "t": "c8Half",
     "deg": 170,
     "ask": "half",
-    "rk": 0,
+    "rk": 1,
     "q": "gen.c8.q.half.half",
     "twin": {
      "t": "c8Half",
      "deg": 44,
      "ask": "whole",
-     "rk": 1,
+     "rk": 2,
      "q": "gen.c8.q.half.whole",
      "rot": 40
     }
