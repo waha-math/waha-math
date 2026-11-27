@@ -159,7 +159,7 @@ SCENES.simShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g',
   ciEq(g, 100, 40, `× ${k}`, CG.ok, 20); await cgSay(L, 1); for (const l of L.slice(2)) await S(l); };
 /* د4 ود5: خطوات برهان رباعي تحت شكله */
 SCENES.quadProof = async c => { const L = c.lines, svg = m3Stage(262), pfs = c.pfs || [c.pf]; let g = null;
-  for (const [i, pf] of pfs.entries()) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); pfFitFig(g, pf, 16, 110, { sMax: .82, y0: 2, s: .82 }); await cgSay(L, i * 4); await pfWrite(g, pf, L, i * 4 + 1); }
+  for (const [i, pf] of pfs.entries()) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); pfFitFig(g, pf, 16, 108, { sMax: .82, y0: 2, s: .82 }); await cgSay(L, i * 4); await pfWrite(g, pf, L, i * 4 + 1, 126, { dy: 43 }); }   /* الأسّ المرفوع لا يمسّ السطر قبله */
   for (const l of L.slice(pfs.length * 4)) await S(l); };
 /* د5: تعميم نصف حاصل ضرب القطرين: المثلثان على القطر الأفقي وارتفاعاهما */
 SCENES.cgPerpShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), [a, b, cc, d] = c.dims || [3, 7, 4, 2], u = 20, Lp = [180 - (a + b) * u / 2, 112], M = [Lp[0] + a * u, 112], R = [Lp[0] + (a + b) * u, 112], T = [M[0], 112 - cc * u], B = [M[0], 112 + d * u];

@@ -75,7 +75,7 @@ function pfStep(g, y, k, n, o = {}) { const rs = PF_PROOFS[k].rs[n], t = el('tex
   r.setAttribute('font-size', (o.fs || 15) - (o.two ? 1 : 2));   /* السبب في سطره الثاني بخطّ يُقرأ (المراجع B لبوابة M4-U1/U2، 11) */ r.setAttribute('font-weight', 700); r.setAttribute('fill', o.ask ? PF.q : o.rcol || '#5b6b75');
   r.textContent = (o.two ? '' : '  ') + labelText('pfBecause') + ' ' + (o.ask ? '؟' : labelText('pf.rs.' + rs)); if (o.two) pfFitW(r, (o.x ?? 324) - 28, (o.fs || 15) - 1); return t; }
 /* سطرٌ أعرض من مكانه يُصغَّر خطّه حتى يسعه (حتى ١١)، فلا يخرج من الإطار (حروفٌ أخرى أعرض: المراجع B لبوابة M4-U3/U4) */
-function pfFitW(t, maxW, fs) { let w = 0; try { w = t.getComputedTextLength(); } catch (e) {} if (w > maxW) t.setAttribute('font-size', Math.max(11, Math.round(fs * maxW / w * 10) / 10)); }
+function pfFitW(t, maxW, fs) { let w = 0; try { w = t.getComputedTextLength(); } catch (e) {} if (!w) w = 8.6 * plain(t.textContent).length * fs / 16; if (w > maxW) t.setAttribute('font-size', Math.max(11, Math.round(fs * maxW / w * 10) / 10)); }
 
 /* ================= ① سلسلة السبب (C408): pf؛ ثلاث بطاقات خطوات تُرتَّب باللمس ================= */
 /* شكل البرهان في شريطٍ [T، B] بأسمائه وأقواسه داخله (المراجعان لبوابة M4-U1/U2): مدى الشكل مع تسمياته خطّيٌّ في s، فيُختار أكبر s ≤ sMax يسعه ثم y0.
@@ -282,7 +282,7 @@ function pfReasonPic(g, P) { const sc = el('g', {}, g);
 /* ================= المشاهد ================= */
 const pfSay = async (L, i) => { if (L[i]) await S(L[i]); };
 /* خطوات البرهان تُكتب واحدةً بعد واحدة تحت الشكل، وكلّ جملةٍ تُقال معها */
-async function pfWrite(g, k, L, from, y0 = 129, o = {}) { for (let n = 0; n < 3; n++) { pfStep(g, y0 + n * 39, k, n, { fs: 14, two: true, v: o.v }); SFX.tick(); if (L[from + n]) await S(L[from + n]); else await sleep(FAST ? 1 : 500); } }
+async function pfWrite(g, k, L, from, y0 = 129, o = {}) { for (let n = 0; n < 3; n++) { pfStep(g, y0 + n * (o.dy || 39), k, n, { fs: 14, two: true, v: o.v }); SFX.tick(); if (L[from + n]) await S(L[from + n]); else await sleep(FAST ? 1 : 500); } }
 /* إشعالٌ بصورة من صور التعليل (c.pic) ثم جمله */
 SCENES.pfPicHook = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg); pfReasonPic(g, c.pic || {}); for (const l of L) await S(l); };
 /* د1 الإشعال: فوضى قاست ثلاثة مثلثات */
