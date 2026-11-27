@@ -109,7 +109,7 @@
      "id": "f2",
      "item": {
       "t": "c8Half",
-      "deg": 70,
+      "deg": 66,
       "ask": "half",
       "q": "gen.c8.q.half.half"
      }
@@ -118,7 +118,7 @@
      "id": "f3",
      "item": {
       "t": "c8Height",
-      "dist": 14,
+      "dist": 13,
       "deg": 60,
       "q": "gen.c8.q.height"
      }

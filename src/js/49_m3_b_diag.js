@@ -195,7 +195,7 @@ ITEM.quadNames = { ...numItem,
 };
 
 /* ================= ⑨ هل هو أيضاً…؟ (C333): k الشكل، as الاسم الأعمّ (kite | trap | rect)؛ نعم أم لا ================= */
-const DQ_IS = { 'rhom.kite': 'yes', 'square.kite': 'yes', 'rect.kite': 'no', 'para.trap': 'yes', 'rect.trap': 'yes', 'square.trap': 'yes', 'rhom.trap': 'yes', 'kite.trap': 'no', 'square.rect': 'yes', 'rhom.rect': 'no', 'para.kite': 'no' };
+const DQ_IS = { 'rhom.kite': 'yes', 'square.kite': 'yes', 'rect.kite': 'no', 'para.trap': 'yes', 'rect.trap': 'yes', 'square.trap': 'yes', 'rhom.trap': 'yes', 'kite.trap': 'no', 'square.rect': 'yes', 'rhom.rect': 'no', 'para.kite': 'no', 'para.rect': 'no' };
 ITEM.quadIs = {
   make(spec) { const want = DQ_IS[spec.k + '.' + spec.as]; /*T*/if (TESTHOOK && !want) testBug('quadIs: لا جواب ' + spec.k + '.' + spec.as);/*/T*/ return { ...spec, want, tag: 'quad-is-' + want }; },
   async ask(item, mode, tries) { const svg = m3Stage(236); polyAt(svg, POLYS[{ square: 'qSq', rhom: 'qRhom', rect: 'qRect', para: 'qPara', kite: 'qKite' }[item.k]], [180, 100], { marks: tries >= 3 ? true : item.marks }); const nm = el('text', { x: 180, y: 206, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 800, fill: DQ.ink, direction: 'rtl' }, svg); nm.textContent = labelText('ply.q.' + item.k);

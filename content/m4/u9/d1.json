@@ -78,7 +78,7 @@
    "scene": "homeNums",
    "unit": "m4.u8",
    "art": "shadow",
-   "ask": "gen.home.askLamp",
+   "ask": "gen.home.askLampE",
    "fields": [
     {
      "key": "d",
@@ -97,11 +97,20 @@
      "unit": "cpDeg"
     },
     {
+     "key": "e",
+     "q": "gen.home.lampE",
+     "min": 60,
+     "max": 200,
+     "val": 130,
+     "unit": "rulCm",
+     "step": 5
+    },
+    {
      "key": "h",
      "q": "gen.home.lampH",
      "min": 1,
      "max": 40,
-     "val": 8,
+     "val": 10,
      "unit": "lenM"
     }
    ],
@@ -533,9 +542,9 @@
    "concept": "C409",
    "item": {
     "t": "c8Ratio",
-    "a": 3,
-    "b": 4,
-    "hy": 5,
+    "a": 60,
+    "b": 11,
+    "hy": 61,
     "fn": "cos",
     "q": "gen.c8.q.ratio.cos"
    }

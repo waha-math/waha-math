@@ -85,6 +85,9 @@ function shadowRows(svg, rows) { rows.forEach(([lab, a, b], i) => { const y = 70
   const t = el('text', { x: 304, y: y + 2, 'text-anchor': 'start', 'font-size': 17, 'font-weight': 800, fill: LENC.ink, direction: 'rtl' }, svg); t.textContent = labelText(lab);
   const r = el('text', { x: 120, y: y + 2, 'text-anchor': 'middle', 'font-size': 19, 'font-weight': 800, fill: DEC.ok, direction: 'rtl' }, svg); r.textContent = MX(`${MS(String(a))} : ${MS(String(b))}`); }); }
 const shClose = (p, q) => Math.abs(p - q) <= .12 * Math.max(p, q);
+/* ظا من جدول الطفل (30 ← 0.58، 45 ← 1، 60 ← 1.73، وما بينها خطّياً) أو من القيمة الدقيقة، والارتفاع الصحيح بينهما بفرق 5٪ وتقريب المتر */
+const homeTanT = a => a <= 30 ? .58 * a / 30 : a <= 45 ? .58 + (a - 30) / 15 * .42 : a <= 60 ? 1 + (a - 45) / 15 * .73 : Math.tan(a * Math.PI / 180);
+function homeTanOk(d, a, e, h) { const x = [d * homeTanT(a), d * Math.tan(a * Math.PI / 180)]; return h >= Math.min(...x) * .95 + e - .6 && h <= Math.max(...x) * 1.05 + e + .6; }
 const HOME_SAY = {
   shadowSay: async (r, v) => { const svg = homeStage(); homeArt(svg, 'shadow'); shadowRows(svg, [['homeShMe', v.mes, v.me], ['homeShPa', v.pas, v.pa]]); await S(shClose(v.mes / v.me, v.pas / v.pa) ? 'gen.home.shEq' : 'gen.home.shFar');
     const want = v.poles * v.me / v.mes;   /* مفتاح الحقل بحروفٍ صغيرة: «poleS» كان يُرفض في التخزين فيُمحى بالإصلاح */ await S(Math.abs(v.pole - want) <= Math.max(1, .2 * want) ? 'gen.home.poleOk' : 'gen.home.poleFar'); },
@@ -156,12 +159,14 @@ const HOME_SAY = {
     return S(Math.abs(m1 - m2) < .03 ? 'gen.home.slopeEq' : (v.st === 0) === (m1 > m2) ? 'gen.home.slopeOk' : 'gen.home.slopeNo'); },
   arcSay: async (r, v) => { const a = 2 * 3.14 * v.r / 4; return S(Math.abs(v.ac - a) > 1 ? 'gen.home.arcCalc' : Math.abs(v.am - v.ac) <= Math.max(1, .02 * v.ac) ? 'gen.home.arcOk' : 'gen.home.arcFar'); },   /* بفرق 2% كالمرجع، وأقلّه سنتيمتر لأن الإدخال بالسنتيمتر */
   cakeAgain: async (r, v) => { const a = 3.14 * (v.d / 2) ** 2 / 8; return S(Math.abs(v.p - 3.14 * v.d / 8) > 1 ? 'gen.home.cakeNo' : Math.abs(v.a - a) > Math.max(2, .05 * a) ? 'gen.home.cakeArea' : Math.abs(v.pm - v.p) <= Math.max(1, .02 * v.p) ? 'gen.home.cakeOk' : 'gen.home.cakeFar'); },
-  potLSay: async (r, v) => { const c = 3.14 * (v.d / 2) ** 2 * v.h; return S(Math.abs(v.v - c) > .06 * c ? 'gen.home.potLCalc' : Math.abs(v.l * 1000 - v.v) <= .2 * v.v ? 'gen.home.potLOk' : 'gen.home.potLFar'); },
-  coneAgain: async (r, v) => S(v.k === 3 ? 'gen.home.coneOk' : 'gen.home.coneNo'),
+  /* M4-U7 كالمرجع (المراجع A لبوابة M4-U7/U8، 10): الكوب بالملّيلتر والفرق المقبول 3٪، والقِدر باللتر بعد سبعة أيام */
+  cupMlSay: async (r, v) => { const c = 3.14 * (v.d / 2) ** 2 * v.h; return S(Math.abs(v.v - c) > Math.max(5, .03 * c) ? 'gen.home.cupCalc' : Math.abs(v.m - v.v) <= Math.max(5, .03 * v.v) ? 'gen.home.cupOk' : 'gen.home.cupFar'); },
+  potAgain: async (r, v) => { const c = 3.14 * (v.d / 2) ** 2 * v.h / 1000; return S(Math.abs(v.l - c) > Math.max(.6, .05 * c) ? 'gen.home.potCalc' : Math.abs(v.k - v.l) <= Math.max(1, .1 * v.l) ? 'gen.home.potOk' : 'gen.home.potFar'); },
   /* الارتفاع بالحساب، ويُقبل معه طول القامة إلى العين إن أضافه الطفل */
-  lampSay: async (r, v) => { const e = v.d * Math.tan(v.ang * Math.PI / 180); return S(v.h >= e - 1 && v.h <= e + 2.5 ? 'gen.home.lampOk' : 'gen.home.lampCalc'); },
-  lampAgain: async (r, v) => { const e = v.d2 * Math.tan(v.a2 * Math.PI / 180); if (!(v.h2 >= e - 1 && v.h2 <= e + 2.5)) return S('gen.home.lampCalc2'); const n = r && r.n;
-    return S(n && Math.abs(v.h2 - n.h) <= Math.max(1, .15 * n.h) ? 'gen.home.lampSame' : 'gen.home.lampDiff'); },
+  /* M4-U8 كالمرجع: البعد في ظا الزاوية من الجدول (وما بين قيمه تقديراً) مع ارتفاع العين، بفرق 5٪؛ والمسح الثاني يقارب الأول بفرق 5٪ */
+  lampSay: async (r, v) => S(homeTanOk(v.d, v.ang, (v.e || 0) / 100, v.h) ? 'gen.home.lampOk' : 'gen.home.lampCalc'),
+  lampAgain: async (r, v) => { const n = r && r.n, e = n && n.e ? n.e / 100 : 0; if (!homeTanOk(v.d2, v.a2, e, v.h2)) return S('gen.home.lampCalc2');
+    return S(n && Math.abs(v.h2 - n.h) <= Math.max(.6, .05 * n.h) ? 'gen.home.lampSame' : 'gen.home.lampDiff'); },
   mir2Say: async (r, v) => S(v.n !== 3 ? 'gen.home.mir2N' : v.rule === 0 ? 'gen.home.mir2Ok' : 'gen.home.mir2Rule'),
   ordAgain: async (r, v) => S(v.ord === 1 ? 'gen.home.ordOk' : 'gen.home.ordNo'),
   clockAgain: async (r, v) => { const svg = homeStage(); homeArt(svg, 'clock'); homeClock(svg, 6); await S(v.kind === 2 ? 'gen.home.sixOk' : 'gen.home.sixNo'); await S(v.q === 1 ? 'gen.home.quarterOk' : 'gen.home.quarterNo'); },

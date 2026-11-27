@@ -119,7 +119,7 @@ def arms(rng, lens):
             prev = d
             if not ok: break
         if ok: return norm(V)
-def rot_pair(rng, lens, mirror, used):
+def rot_pair(rng, lens, mirror, used, seen=None):   # seen: مجسّمات اللغز نفسه، فلا يتكرّر مجسّمٌ في زوجين (المراجع B لبوابة M4-U7/U8، 12)
     for _ in range(4000):
         A = arms(rng, lens)
         if not A: continue
@@ -132,8 +132,9 @@ def rot_pair(rng, lens, mirror, used):
         for X in (A, B):
             Av, F = visible(X)
             if any(Av.get(v, 0) < .18 * F for v in X): okv = False; break
-        if not okv or (tuple(A), seq, mirror) in used: continue
+        if not okv or (tuple(A), seq, mirror) in used or (seen is not None and tuple(A) in seen): continue
         used.add((tuple(A), seq, mirror))
+        if seen is not None: seen.add(tuple(A))
         # المكعّب الملوّن: طرفُ ذراعٍ (له جارٌ واحد) يُرى أوضح ما يكون في الرسمين معاً
         Bm = apply(A, ('m' if mirror else '') + seq); off = [min(v[k] for v in Bm) for k in range(3)]; Av, F = visible(A); Bv, _ = visible(B)
         ends = [i for i, v in enumerate(A) if sum(1 for w in A if sum(abs(v[k] - w[k]) for k in range(3)) == 1) == 1]
@@ -199,7 +200,7 @@ def build():
     for i, u in enumerate(M4):
         L = [[2, 1, 1], [2, 2, 1], [2, 2, 1], [3, 2, 1], [2, 2, 2], [3, 2, 2], [3, 2, 2], [3, 3, 2], [3, 3, 2]][i]
         mir = [True, False, True] if i % 2 else [False, True, True]
-        r = {'id': 'r1', 'kind': 'rot', 'name': 'gen.ws.p.cu.rot', 'pairs': [rot_pair(rng, L, m, used) for m in mir]}
+        seen = set(); r = {'id': 'r1', 'kind': 'rot', 'name': 'gen.ws.p.cu.rot', 'pairs': [rot_pair(rng, L, m, used, seen) for m in mir]}
         if i < 6: W[u] = [r, pic(rng, min(4, 2 + i // 2), 1 + i % 3, 'p1'), views_p(rng, min(3, 1 + i // 2), 'v1')]
         else: W[u] = [r, {'id': 't1', 'kind': 'cut', 'name': 'gen.ws.p.cu.cut', 'cuts': [{'p': p} for p in CUTS[u]]}, (pic(rng, 4, 1 + i % 3, 'p1') if i % 2 else views_p(rng, 3, 'v1'))]
     return W

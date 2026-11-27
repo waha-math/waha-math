@@ -28,10 +28,21 @@ function ciRule(parent, x, y, txt, col = CI.think, fs = 16) { const g = el('g', 
   const w = Math.min(312, Math.max(120, tw + 26));
   /* البطاقة داخل الإطار الورقي أياً كان موضعها المطلوب (المراجع B لبوابة S3-U8/U9، 4)؛ وy مصفوفةٌ: أقلّ المواضع تغطيةً للمعطى المرسوم (المراجع B لبوابة M4-U5/U6، 4) */
   { const sv = parent.ownerSVGElement || parent, vb = sv.viewBox && sv.viewBox.baseVal, H = vb && vb.height ? vb.height : 250, fit = v => Math.min(Math.max(v, 14 + 22), H - 14 - 20);
-    x = Math.min(Math.max(x, 20 + w / 2 + 2), 340 - w / 2 - 2);
-    if (Array.isArray(y)) { const B = []; for (const e of sv.querySelectorAll('text, circle, path, line')) { if (e.closest('[data-help]') || g.contains(e)) continue; const sw = +e.getAttribute('stroke-width') || 0; if ((e.tagName === 'path' || e.tagName === 'line') && sw < 3.5) continue; if (e.tagName === 'circle' && +e.getAttribute('r') > 12) continue;   /* النقاط لا قرص الدائرة */ try { const b = e.getBBox(); if (b.width * b.height < 40000) B.push(b); } catch (er) {} }
-      const cost = v => { const x0 = x - w / 2, y0 = v - 19; return B.reduce((a, b) => a + Math.max(0, Math.min(x0 + w, b.x + b.width) - Math.max(x0, b.x)) * Math.max(0, Math.min(y0 + 36, b.y + b.height) - Math.max(y0, b.y)), 0); };
-      y = y.map(fit).reduce((best, v) => cost(v) < cost(best) - 1 ? v : best); }
+    const fx = v => Math.min(Math.max(v, 20 + w / 2 + 2), 340 - w / 2 - 2); x = fx(x);
+    if (Array.isArray(y)) { const B = [], iv = (() => { try { return sv.getScreenCTM().inverse(); } catch (er) { return null; } })();
+      const map = e => { let m = null; try { m = iv && e.getScreenCTM() ? iv.multiply(e.getScreenCTM()) : null; } catch (er) {} return (px, py) => m ? [m.a * px + m.c * py + m.e, m.b * px + m.d * py + m.f] : [px, py]; };   /* بإحداثيات المسرح ولو كان العنصر في مجموعةٍ مدوَّرة */
+      const box = (e, k) => { try { const b = e.getBBox(), f = map(e), P = [f(b.x, b.y), f(b.x + b.width, b.y), f(b.x, b.y + b.height), f(b.x + b.width, b.y + b.height)], xs = P.map(q => q[0]), ys = P.map(q => q[1]), r = { x: Math.min(...xs), y: Math.min(...ys), k }; r.width = Math.max(...xs) - r.x; r.height = Math.max(...ys) - r.y; if (r.width * r.height < 40000) B.push(r); } catch (er) {} };
+      const seg = (P, Q, h, k) => { const n = Math.max(1, Math.ceil(Math.hypot(Q[0] - P[0], Q[1] - P[1]) / 8)); for (let i = 0; i <= n; i++) { const px = P[0] + (Q[0] - P[0]) * i / n, py = P[1] + (Q[1] - P[1]) * i / n; B.push({ x: px - h, y: py - h, width: 2 * h, height: 2 * h, k }); } };
+      const fr = sv.querySelector('rect[x="20"][y="14"][rx="14"]');   /* ما قبل الإطار الورقي زينة (الغيوم) */
+      for (const e of sv.querySelectorAll('text, circle, path, line, polygon')) { if (g.contains(e) || (fr && !(fr.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING))) continue; const hp = !!e.closest('[data-help]');
+        if (e.tagName === 'polygon') { if (hp) continue; const f = map(e), P = (e.getAttribute('points') || '').trim().split(/\s+/).map(q => f(...q.split(',').map(Number))).filter(q => isFinite(q[0]) && isFinite(q[1]));
+          P.forEach((q, i) => { B.push({ x: q[0] - 7, y: q[1] - 7, width: 14, height: 14, k: 2 }); seg(q, P[(i + 1) % P.length], 3, .5); }); continue; }   /* رؤوس المضلّع وأضلاعه لا داخله */
+        if (e.tagName === 'line' && !hp) { const sw = +e.getAttribute('stroke-width') || 0; if (sw < 3.5) continue; const f = map(e), A = ['x1', 'y1', 'x2', 'y2'].map(a => +e.getAttribute(a)); seg(f(A[0], A[1]), f(A[2], A[3]), sw / 2 + 2, 1); continue; }   /* الخطّ بنقاطٍ عليه لا بمستطيله المحيط (الضلع المائل) */
+        if (hp) { if (e.tagName === 'circle' || e.tagName === 'text') box(e, 4); continue; }   /* حلقات المستوى الثاني ونصوصه قبل البطاقة لا تُغطّى (المراجع B لبوابة M4-U7/U8، 5) */
+        const sw = +e.getAttribute('stroke-width') || 0; if ((e.tagName === 'path' || e.tagName === 'line') && sw < 3.5) continue; if (e.tagName === 'circle' && +e.getAttribute('r') > 12) continue;   /* النقاط لا قرص الدائرة */ box(e, 1); }
+      const cost = ([cx, v]) => { const x0 = cx - w / 2, y0 = v - 19; return B.reduce((a, b) => a + b.k * Math.max(0, Math.min(x0 + w, b.x + b.width) - Math.max(x0, b.x)) * Math.max(0, Math.min(y0 + 36, b.y + b.height) - Math.max(y0, b.y)), 0); };
+      const C = y.map(v => Array.isArray(v) ? [fx(v[0]), fit(v[1])] : [x, fit(v)]); /*T*/if (TESTHOOK) window.__ciDbg = { w, C: C.map(c => [c[0], c[1], Math.round(cost(c))]) };/*/T*/
+      [x, y] = C.reduce((best, c) => cost(c) < cost(best) - 1 ? c : best); }   /* والموضع [x، y] أيضاً */
     else y = fit(y); }
   t.setAttribute('x', x); t.setAttribute('y', y + 6);
   g.insertBefore(el('rect', { x: x - w / 2, y: y - 19, width: w, height: 36, rx: 12, fill: '#fff', stroke: col, 'stroke-width': 2.4 }), t); return g; }

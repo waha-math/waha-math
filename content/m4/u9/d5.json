@@ -83,7 +83,7 @@
      "q": "gen.home.lampH2",
      "min": 1,
      "max": 40,
-     "val": 8,
+     "val": 10,
      "unit": "lenM"
     }
    ],

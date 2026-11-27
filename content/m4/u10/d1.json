@@ -344,8 +344,8 @@
       "fig": "cyl",
       "u": "cm",
       "q": "gen.c7.q.vol.cyl",
-      "r": 2,
-      "h": 5
+      "r": 7,
+      "h": 2
      }
     },
     {
@@ -355,15 +355,15 @@
       "fig": "cone",
       "u": "cm",
       "q": "gen.c7.q.vol.cone",
-      "B": 30,
-      "h": 5
+      "B": 33,
+      "h": 4
      }
     },
     {
      "id": "f20",
      "item": {
       "t": "c7Conv",
-      "v": 8,
+      "v": 20,
       "from": "L",
       "to": "cm3",
       "q": "gen.c7.q.conv"
@@ -373,7 +373,7 @@
      "id": "f21",
      "item": {
       "t": "c8Half",
-      "deg": 150,
+      "deg": 136,
       "ask": "whole",
       "q": "gen.c8.q.half.whole"
      }
@@ -382,9 +382,9 @@
      "id": "f22",
      "item": {
       "t": "c8Pb",
-      "half": 8,
+      "half": 12,
       "ask": "nb",
-      "h": 15,
+      "h": 35,
       "q": "gen.c8.q.pb.nb"
      }
     },

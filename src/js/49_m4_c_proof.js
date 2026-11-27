@@ -113,7 +113,7 @@ ITEM.prChain = {
   praise: () => 'praiseThink', twin(item) { return item.twin || null; } };
 
 /* ================= ② أغلق البرهان (C408، C402، C411): pf، step (0..2)، cands [أسباب، الأول الصحيح] بطاقاتٍ مسموعة ================= */
-const PF_ERR = { measure: 'pfMeasure', measureS: 'pfMeasure', measureT: 'pfMeasure', looks: 'pfLooks', looksS: 'pfLooks', looksL: 'pfLooks', circ: 'pfCircular' };   /* والقياس والنظر من جنس الخطوة: أضلاع، أو مثلثات، أو طول (المراجع A لبوابة M4-U3/U4، 9) */
+const PF_ERR = { measure: 'pfMeasure', measureS: 'pfMeasure', measureT: 'pfMeasure', looks: 'pfLooks', looksS: 'pfLooks', looksL: 'pfLooks', circ: 'pfCircular', conSmall: 'conOpen', conAny: 'conOpen' };   /* وفتحة الفرجار في خطوات الإنشاء (المراجع A لبوابة M4-U7/U8، 13) */   /* والقياس والنظر من جنس الخطوة: أضلاع، أو مثلثات، أو طول (المراجع A لبوابة M4-U3/U4، 9) */
 ITEM.prReason = {
   make(spec) { /*T*/if (TESTHOOK && spec.cands[0] !== PF_PROOFS[spec.pf].rs[spec.step]) testBug('prReason: السبب الأول ليس سبب الخطوة');/*/T*/ return { ...spec, want: spec.cands[0], tag: 'pf-reason-' + spec.pf }; },
   async ask(item, mode, tries) { const svg = m3Stage(276), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFitFig(g, item.pf, 18, 124, { v, sMax: .72, y0: 12, s: .72 });   /* على الورقة: تُقرأ في الوضع الداكن (المراجع B لبوابة M4-U1/U2، 3) */
@@ -121,7 +121,7 @@ ITEM.prReason = {
     el('rect', { x: 22, y: 148 + item.step * 30 - 19, width: 316, height: 27, rx: 8, fill: 'rgba(192,57,43,.07)', stroke: PF.q, 'stroke-width': 1.6, 'pointer-events': 'none' }, svg);
     if (tries >= 3) { await S('gen.pf.together.reason'); } else await S(item.q || 'gen.pf.q.reason');
     const cp = cardPick(item.cands.map((o, i) => ({ id: 'gen.pf.rs.' + o, k: o, ok: i === 0 })), { intro: item.q || 'gen.pf.q.reason' }); const c = await cp.p; cp.done(); return { ans: c.k, ctx: { svg, cp, c, fig: g } }; },
-  judge(item, k) { return k === item.cands[0] ? { ok: true } : { ok: false, err: PF_ERR[k] || 'pfWrongRule' }; },
+  judge(item, k) { return k === item.cands[0] ? { ok: true } : { ok: false, err: k === 'sss' && /^(bisPf|pbPf)$/.test(item.pf) ? 'pfCircular' : PF_ERR[k] || 'pfWrongRule' }; },   /* SSS في برهاني المنصّف دائريّ (المراجع A لبوابة M4-U7/U8، 7) */
   onOk(item, r) { SFX.good(); r.ctx.cp.btns.find(b => b.dataset.k === r.ctx.c.k).classList.add('ok'); }, onWrong(item, r) { SFX.soft(); r.ctx.cp.btns.find(b => b.dataset.k === r.ctx.c.k).classList.add('no'); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg), dep = PF_DEP(item.pf)[item.step], yA = 148 + item.step * 30 - 19;   /* المستوى الثاني رسمٌ: سهمٌ من الخطوة المعلَّمة إلى ما تعتمد عليه (الرسم أو خطوةٌ قبلها؛ المراجع B، 8) */
       if (!dep.length) { const B = r.ctx.fig ? pfFigGlow(m, r.ctx.fig) : null; pfUpArrow(m, 32, yA, B ? B[3] + 2 : 128); }

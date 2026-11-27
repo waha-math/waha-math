@@ -114,7 +114,7 @@ d1={"id":"m4.u9.d1","title":"الانْعِكَاسُ عَلَى المِحْو�
   "alt":{"C420":[pick([-1,3],'refH'), draw([[1,-2],[3,-2],[3,-4]],'refV'), reason("ms.x1",c9p(p=[2,3],seq=['refH'],xf='refH'),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C420":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C420":[tw(pick([1,4],'refH'),which([-2,3],'refH'))]},
-  "mixed":{"lesson":"m4.u8.d3","concept":"C409","item":{"t":"c8Ratio","a":3,"b":4,"hy":5,"fn":"cos","q":"gen.c8.q.ratio.cos"}},
+  "mixed":{"lesson":"m4.u8.d3","concept":"C409","item":{"t":"c8Ratio","a":60,"b":11,"hy":61,"fn":"cos","q":"gen.c8.q.ratio.cos"}},   # لا مثلث مشهد التشابه (D240)
   "ok":"ms.ok"},
  "review":[pick([-3,-4],'refH')|{"c":"C420"}, draw([[-3,2]],'refV')|{"c":"C420"}, which([-1,-5],'refV')|{"c":"C420"}],
  "wrap":{"art":"xf9Art","lines":["wrap.01"],"home":"wrap.home"},

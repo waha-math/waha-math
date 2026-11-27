@@ -252,7 +252,7 @@ export function lint(content, js) {
   for (const m of code.matchAll(/\berr: '(\w+)'/g)) if (!ERR[m[1]]) errors.push(`الكود يسجّل err '${m[1]}' وليس في errors.json`);
   for (const m of code.matchAll(/err: [^,;]*\? '(\w+)' : '(\w+)'/g)) for (const t of [m[1], m[2]]) if (!ERR[t]) errors.push(`الكود يسجّل err '${t}' وليس في errors.json`);
   for (const [tag, e] of Object.entries(ERR)) { if (!e.label) errors.push('وسم بلا اسم للكبار: ' + tag);
-    for (const [id, t] of Object.entries(e.q || {})) { if (!id.startsWith('gen.err.' + tag + '.')) errors.push('معرّف سؤال الخطأ لا يتبع gen.err.<الوسم>: ' + id); if (!/[؟?]/.test(t)) warn.push(`السؤال الأول للخطأ ليس سؤالاً (D240): ${id}`); }
+    for (const [id, t] of Object.entries(e.q || {})) { if (!id.startsWith('gen.err.' + tag + '.')) errors.push('معرّف سؤال الخطأ لا يتبع gen.err.<الوسم>: ' + id); if (!/[؟?]/.test(t)) warn.push(`السؤال الأول للخطأ ليس سؤالاً (D240): ${id}`); if (/^\s*و/.test(t)) (/^(c7|c8|cyl|cone|sph|sa|len|lit|m3|m1000|conv|tank|frac|trig|bis|mid|pb|eqd|h[A-Z])/.test(tag) ? errors : warn).push(`سؤال الخطأ يبدأ بـ«وَ» ولا يُسمع وحده (errQ يختار أحدهما؛ المراجع A لبوابة M4-U7/U8، 7): ${id}`); }
     if (e.vis && !new RegExp('\\b' + e.vis + ': ').test(code)) errors.push(`حركة الأداة ${e.vis} للوسم ${tag} غير معرّفة في VIS`);
     if (e.mat) { for (const id of e.mat) if (!(e.q || {})[id]) errors.push(`الوسم ${tag}: سؤال المواد ${id} ليس من أسئلته`); if (!Object.keys(e.q || {}).some(id => !e.mat.includes(id))) errors.push(`الوسم ${tag}: لا سؤال له على الشاشة (كل أسئلته للمواد)`); } }
   const ITEMS = new Set([...code.matchAll(/^ITEM\.(\w+) = /gm)].map(m => m[1]));

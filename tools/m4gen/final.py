@@ -30,11 +30,11 @@ A=[C(1,{"t":"arComp","a":65,"kind":"comp","q":"gen.ar.q.ang"}),                 
    C(15,{"t":"ci4Tan","kind":"tan","dir":200,"q":"gen.ci4.q.tan"}),                                            # U6: المماس عمودي
    C(16,{"t":"ci4Ang","cen":136,"ask":"ins","q":"gen.ci4.q.ang.ins"}),                                         # U6: المحيطية نصف المركزية
    C(17,{"t":"ci4Sector","kind":"arc","ang":60,"u":"cm","q":"gen.ci4.q.arc","r":3}),                          # U6: طول القوس
-   C(18,{"t":"c7Vol","fig":"cyl","u":"cm","q":"gen.c7.q.vol.cyl","r":2,"h":5}),                                # U7: حجم الأسطوانة
-   C(19,{"t":"c7Vol","fig":"cone","u":"cm","q":"gen.c7.q.vol.cone","B":30,"h":5}),                             # U7: الثلث
-   C(20,{"t":"c7Conv","v":8,"from":"L","to":"cm3","q":"gen.c7.q.conv"}),                                      # U7: اللتر وسم³
-   C(21,{"t":"c8Half","deg":150,"ask":"whole","q":"gen.c8.q.half.whole"}),                                    # U8: منصّف الزاوية
-   C(22,{"t":"c8Pb","half":8,"ask":"nb","h":15,"q":"gen.c8.q.pb.nb"}),                                         # U8: العمود المنصّف
+   C(18,{"t":"c7Vol","fig":"cyl","u":"cm","q":"gen.c7.q.vol.cyl","r":7,"h":2}),                                # U7: حجم الأسطوانة
+   C(19,{"t":"c7Vol","fig":"cone","u":"cm","q":"gen.c7.q.vol.cone","B":33,"h":4}),                             # U7: الثلث
+   C(20,{"t":"c7Conv","v":20,"from":"L","to":"cm3","q":"gen.c7.q.conv"}),                                      # U7: اللتر وسم³
+   C(21,{"t":"c8Half","deg":136,"ask":"whole","q":"gen.c8.q.half.whole"}),                                    # U8: منصّف الزاوية
+   C(22,{"t":"c8Pb","half":12,"ask":"nb","h":35,"q":"gen.c8.q.pb.nb"}),                                         # U8: العمود المنصّف
    C(23,R("w.3",{"kind":"pfpic","c8":{"tri":[4,3,5],"labs":True}},["w.3a","w.3b","w.3c"])),                    # «لماذا؟» U8: جا ثابتة
    C(24,{"t":"c9Pick","p":[-3,4],"xf":"refV","q":"gen.c9.q.pick.refV"}),                                       # U9: الانعكاس
    C(25,{"t":"c9Pick","p":[2,-5],"xf":"rot90","q":"gen.c9.q.pick.rot90"})]                                      # U9: ربع الدورة
@@ -65,8 +65,8 @@ d1={"id":"m4.u10.d1","title":"البَوَّابَةُ: أَسْئِلَةُ ا�
 dump(U+'/d1.json', d1)
 # ---------------- د2: الجزء أ2 (أربع مهام بالأدوات والبرهان، وبديلها على الشاشة) ----------------
 A2=[C(1,{"t":"prReason","pf":"tri","v":2,"step":0,"cands":["draw","vert","looks"],"q":"gen.pf.q.reason"}),     # البرهان المكتوب: مجموع زوايا المثلث
-    C(2,{"t":"c8Half","deg":70,"ask":"half","q":"gen.c8.q.half.half"}),                                          # الإنشاء: منصّف زاوية 70 درجة
-    C(3,{"t":"c8Height","dist":14,"deg":60,"q":"gen.c8.q.height"}),                                              # قياس الارتفاع بـ ظا
+    C(2,{"t":"c8Half","deg":66,"ask":"half","q":"gen.c8.q.half.half"}),                                          # الإنشاء: منصّف زاوية 70 درجة
+    C(3,{"t":"c8Height","dist":13,"deg":60,"q":"gen.c8.q.height"}),                                              # قياس الارتفاع بـ ظا
     C(4,{"t":"c9Comp","p":[3,2],"seq":["refV","rot90"],"ask":"img","q":"gen.c9.q.comp"})]                       # التحويل والتركيب على الشبكة
 L2={"bag.ask":"هَلْ {مَعَكَ|مَعَكِ} فِرْجَارٌ وَمِنْقَلَةٌ وَمِسْطَرَةٌ وَوَرَقُ مُرَبَّعَاتٍ؟ أَمْ نَعْمَلُ عَلَى الشَّاشَةِ؟",
  "hook.01":"أَرْبَعُ مَهَامَّ بِالأَدَوَاتِ وَالبُرْهَانِ، كَمَا يَعْمَلُ المُخْتَرِعُونَ.",

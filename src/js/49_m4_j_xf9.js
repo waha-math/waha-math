@@ -125,7 +125,7 @@ ITEM.c9Rot = cpItem({ H: 250, tLine: 'gen.c9.together.rot', hint: 'gen.c9.hint.r
   make: s => { const ask = s.ask || 'ang', th = s.th, r = s.r || 5;
     if (ask === 'dir') return { ask, r, want: s.cw ? 'cw' : 'ccw', tag: 'c9-rot-dir' };
     if (ask === 'len') return { ask, r, want: r, nums: [r, r + 2, 2 * r].filter((v, i, X) => X.indexOf(v) === i), tag: 'c9-rot-len' };
-    return { ask, r, want: th, nums: [th, 180 - th, th + (th > 90 ? -20 : 20)].filter((v, i, X) => X.indexOf(v) === i && v > 0), tag: 'c9-rot-ang' }; },
+    return { ask, r, want: th, nums: [th, 180 - th, th + (th > 90 ? -20 : 20), 2 * th].filter((v, i, X) => X.indexOf(v) === i && v > 0 && v <= 360).slice(0, 3), tag: 'c9-rot-ang' }; },   /* ثلاثة خياراتٍ دائماً (90: 180 − 90 = 90) */
   draw(svg, item, tries) { const g = el('g', {}, svg), F = c9RotFig(g, { th: item.th, cw: item.cw, r: item.r, a0: item.a0 ?? 10 }); el('rect', { x: 18, y: 14, width: 324, height: 226, rx: 12, fill: 'none', stroke: css('--line'), 'stroke-width': 1.5 }, g);
     if (item.ask === 'ang') { if (tries >= 3) c9Prot(helpG(svg), F.M, F.a0, item.cw); else arArc(g, F.M, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1), { r: 34, col: C9.arc, lab: '؟', dl: 18, fs: 15, fill: true }); }
     else { arArc(g, F.M, Math.min(F.a0, F.a1), Math.max(F.a0, F.a1), { r: 34, col: C9.arc, deg: item.th, dl: 18, fs: 14, fill: true }); }

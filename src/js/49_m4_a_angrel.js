@@ -10,7 +10,7 @@ const AR = { line: '#24323a', tr: '#7a4fb0', par: '#2f7fc1', a: '#2f9d6b', b: '#
 /* قوس زاوية بين اتجاهين (درجات الرياضيات) مع رقمها أو قياسها */
 function arArc(g0, V, a1, a2, o = {}) { const g = el('g', { 'pointer-events': 'none' }, g0), r = o.r || 24, col = o.col || AR.a, p = el('path', { d: angArc(V, r, a1, a2), fill: 'none', stroke: col, 'stroke-width': o.w || 3.4, 'pointer-events': 'none' }, g);
   if (o.fill) el('path', { d: `M${V[0]} ${V[1]} L${angP(V, a1, r)[0]} ${angP(V, a1, r)[1]} ${angArc(V, r, a1, a2).replace(/^M[^A]*/, '')} Z`, fill: col, opacity: .18, 'pointer-events': 'none' }, g);
-  let t = null; const m = angP(V, (a1 + a2) / 2, r + (o.dl || 16));
+  let t = null; const m = angP(V, a1 + (((a2 - a1) % 360 + 360) % 360) * (o.lt ?? .5), r + (o.dl || 16));   /* lt: موضع الوسم كسراً من الزاوية (لا على منصّفها حين يُرسم المنصّف؛ المراجع B لبوابة M4-U7/U8، 1) */
   if (o.deg != null) t = degText(g, m[0], m[1] + 6, o.deg, { size: o.fs || 16, color: o.labCol || col });
   else if (o.lab != null) { t = el('text', { x: m[0], y: m[1] + 6, 'text-anchor': 'middle', 'font-size': o.fs || 16, 'font-weight': 800, fill: o.labCol || col, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke', 'pointer-events': 'none' }, g); t.textContent = o.lab; }
   return { p, t, m, g, sg: g, fs: o.fs || 16 }; }
