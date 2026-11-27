@@ -70,10 +70,12 @@ function polyFig(g, n, o = {}) { const P = o.pts || polyPts(n, o.cx ?? 180, o.cy
 
 /* ---------- نصّ خطوة: عبارة ثم «لأن…» بخطّ أصغر ---------- */
 function pfStep(g, y, k, n, o = {}) { const rs = PF_PROOFS[k].rs[n], t = el('text', { x: o.x ?? 324, y, 'text-anchor': 'start', 'font-size': o.fs || 15, 'font-weight': 800, fill: o.col || PF.ink, direction: 'rtl', 'pointer-events': 'none' }, g);
-  t.textContent = MX(pfText(k, o.v, n)); if (o.reason === false) return t;   /* الخطوة العددية الخالصة بالغربية من اليسار (D280 (2)، المراجع A لبوابة M4-U1/U2، 1) */
+  t.textContent = MX(pfText(k, o.v, n)); pfFitW(t, (o.x ?? 324) - 28, o.fs || 15); if (o.reason === false) return t;   /* الخطوة العددية الخالصة بالغربية من اليسار (D280 (2)، المراجع A لبوابة M4-U1/U2، 1) */
   const r = o.two ? el('text', { x: o.x ?? 324, y: y + (o.fs || 15) + 5, 'text-anchor': 'start', direction: 'rtl', 'pointer-events': 'none' }, g) : el('tspan', {}, t);   /* two: السبب سطرٌ ثانٍ تحت العبارة */
   r.setAttribute('font-size', (o.fs || 15) - (o.two ? 1 : 2));   /* السبب في سطره الثاني بخطّ يُقرأ (المراجع B لبوابة M4-U1/U2، 11) */ r.setAttribute('font-weight', 700); r.setAttribute('fill', o.ask ? PF.q : o.rcol || '#5b6b75');
-  r.textContent = (o.two ? '' : '  ') + labelText('pfBecause') + ' ' + (o.ask ? '؟' : labelText('pf.rs.' + rs)); return t; }
+  r.textContent = (o.two ? '' : '  ') + labelText('pfBecause') + ' ' + (o.ask ? '؟' : labelText('pf.rs.' + rs)); if (o.two) pfFitW(r, (o.x ?? 324) - 28, (o.fs || 15) - 1); return t; }
+/* سطرٌ أعرض من مكانه يُصغَّر خطّه حتى يسعه (حتى ١١)، فلا يخرج من الإطار (حروفٌ أخرى أعرض: المراجع B لبوابة M4-U3/U4) */
+function pfFitW(t, maxW, fs) { let w = 0; try { w = t.getComputedTextLength(); } catch (e) {} if (w > maxW) t.setAttribute('font-size', Math.max(11, Math.round(fs * maxW / w * 10) / 10)); }
 
 /* ================= ① سلسلة السبب (C408): pf؛ ثلاث بطاقات خطوات تُرتَّب باللمس ================= */
 /* شكل البرهان في شريطٍ [T، B] بأسمائه وأقواسه داخله (المراجعان لبوابة M4-U1/U2): مدى الشكل مع تسمياته خطّيٌّ في s، فيُختار أكبر s ≤ sMax يسعه ثم y0.

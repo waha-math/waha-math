@@ -86,7 +86,7 @@ ITEM.simMiss = cpItem({ H: 250, tLine: 'gen.pre.together.sim', hint: 'gen.pre.hi
       T2 = [{ P: [sm.A, sm.C, sm.B], s: [a, b, c] }, { P: [bg.A, bg.C, bg.B], s: [a, b, c].map(v => v * item.k) }];
       preSideLabs(g, sm, item.s.map(v => MS(String(v))), [PRE.ink, PRE.ink, PRE.ink]); labs = preSideLabs(g, bg, item.s.map((v, i) => i === item.ask ? '؟' : MS(String(v * item.k))), item.s.map((v, i) => i === item.ask ? PRE.q : PRE.ink)); }
     else { const mx = Math.max(...item.s) * Math.max(1, item.k), u = Math.min(13, 150 / mx), big = item.k >= 1;   /* مثلث عامّ بأطوال أضلاعه (M4-U3)؛ الأصل يمين والمكبَّر أو المصغَّر يسار */
-      const P1 = cgTri(g, item.s, { cx: 266, y: 196, u }), P2 = cgTri(g, item.s.map(v => v * item.k), { cx: 96, y: 196, u, col: PRE.b, fill: PRE.fillB, ask: item.ask }); labs = P2.labs; T2 = [{ P: P1, s: item.s }, { P: P2, s: item.s.map(v => v * item.k) }]; }
+      const P1 = cgTri(g, item.s, { cx: 266, y: 196, u, fit: [198, 326] }), P2 = cgTri(g, item.s.map(v => v * item.k), { cx: 96, y: 196, u, col: PRE.b, fill: PRE.fillB, ask: item.ask, fit: [34, 166] });   /* المنفرج داخل نصفه (المراجع B لبوابة M4-U3/U4، 5) */ labs = P2.labs; T2 = [{ P: P1, s: item.s }, { P: P2, s: item.s.map(v => v * item.k) }]; }
     if (tries >= 3) { const j = item.ask === 0 ? 1 : 0; ciEq(helpG(svg), 110, 34, `${item.s[j] * item.k} ÷ ${item.s[j]} = ${item.k}`, PRE.hl, 17); } return { q: labs[item.ask], T2 }; },   /* المعامل من ضلعٍ معلوم غير المجهول (5 (د)) */
   h2: async (item, ctx) => { const m = helpG(ctx.svg); for (const T of ctx.T2 || []) rankSides(m, T.P, T.s);   /* المستوى الثاني رسمٌ: المتناظر بلونٍ واحد */
     ciRule(m, 120, 34, labelText('preRuleSim'), PRE.hl, 15); await sleep(FAST ? 10 : 250); },

@@ -81,7 +81,7 @@ function pyTriNS(g, s3, o = {}) { const [a, b, c] = [...s3].sort((x, y) => x - y
 /* ================= ④ هل المثلث قائم؟ (C407 العكس): s ثلاثة أطوال ================= */
 ITEM.pyIsRight = cpItem({ H: 236, tLine: 'gen.py.together.isRight', hint: 'gen.py.hint.isRight', rLine: it => 'gen.py.reveal.isRight.' + it.want, praise: 'praiseThink',
   make: s => { const [a, b, c] = [...s.s].sort((x, y) => x - y); return { want: a * a + b * b === c * c ? 'yes' : 'no', sq: [a * a, b * b, c * c], tag: 'py-isright' }; },
-  draw(svg, item, tries) { const g = el('g', {}, svg), P = pyTriNS(g, item.s, { cx: 180, cy: 128, uMax: 22, bw: 270, bh: 120, rot: item.rot || 0 }); item._P = P; cgNotScale(g, 180, 212);
+  draw(svg, item, tries) { const g = el('g', {}, svg), P = pyTriNS(g, item.s, { cx: 180, cy: 120, uMax: 22, bw: 270, bh: 108, rot: item.rot || 0 }); item._P = P; cgNotScale(g, 180, 215);
     if (tries >= 3) ciEq(helpG(svg), 180, 36, `${item.sq[0]} + ${item.sq[1]} ؟ ${item.sq[2]}`, PY.hl, 18); return {}; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), P = item._P; if (P) { hlSeg(m, P[0], P[1], H2C[2]); hlRing(m, P[2], 18); }   /* المستوى الثاني رسمٌ: الأطول، والزاوية المقابلة له: أهي قائمة؟ */
     ciRule(m, 180, 36, labelText('pyRuleConv'), PY.hl, 15); await sleep(FAST ? 10 : 250); },

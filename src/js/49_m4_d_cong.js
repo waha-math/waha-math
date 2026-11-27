@@ -24,7 +24,7 @@ const cgRel = (a, b) => { const A = cgSorted(a), B = cgSorted(b), k = B[0] / A[0
 ITEM.cgSides = cpItem({ H: 236, tLine: 'gen.cg.together.sides', hint: 'gen.cg.hint.sides', rLine: it => 'gen.cg.reveal.sides.' + it.want, praise: 'praiseThink',
   make: s => ({ want: cgRel(s.a, s.b), tag: 'cg-sides' }),
   draw(svg, item, tries) { const g = el('g', {}, svg), ua = Math.min(14, 118 / Math.max(...item.a)), ub = Math.min(14, 118 / Math.max(...item.b));   /* كلٌّ بمقياسه، فلا يُحكَم بالحجم بل بالأعداد (D254؛ المراجع A لبوابة M4-U3/U4، 20) */
-    const Pa = cgTri(g, item.a, { cx: 268, y: 172, u: ua, fit: [198, 326] }), Pb = cgTri(g, item.b, { cx: 92, y: 172, u: ub, rot: item.rot || 0, flip: !!item.flip, col: CG.b, fill: CG.fb, fit: [34, 162] }); cgNotScale(g, 180, 226);
+    const Pa = cgTri(g, item.a, { cx: 268, y: 172, u: ua, fit: [198, 326] }), Pb = cgTri(g, item.b, { cx: 92, y: 172, u: ub, rot: item.rot || 0, flip: !!item.flip, col: CG.b, fill: CG.fb, fit: [34, 162] }); cgNotScale(g, 180, 216);
     if (tries >= 3) { const A = cgSorted(item.a), B = cgSorted(item.b), m = helpG(svg); A.forEach((v, i) => ciEq(m, 180, 40 + i * 22, `${B[i]} ÷ ${v} = ${+(B[i] / v).toFixed(2)}`, CG.hl, 15)); } return { Pa, Pb }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pa) { rankSides(m, ctx.Pa, item.a); rankSides(m, ctx.Pb, item.b); }   /* المستوى الثاني رسمٌ: الأقصر مع الأقصر… */
     ciRule(m, 180, 30, labelText('cgRuleSides'), CG.hl, 15); await sleep(FAST ? 10 : 250); },
@@ -159,7 +159,7 @@ SCENES.simShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g',
   ciEq(g, 100, 40, `× ${k}`, CG.ok, 20); await cgSay(L, 1); for (const l of L.slice(2)) await S(l); };
 /* د4 ود5: خطوات برهان رباعي تحت شكله */
 SCENES.quadProof = async c => { const L = c.lines, svg = m3Stage(262), pfs = c.pfs || [c.pf]; let g = null;
-  for (const [i, pf] of pfs.entries()) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); pfFitFig(g, pf, 16, 122, { sMax: .82, y0: 2, s: .82 }); await cgSay(L, i * 4); await pfWrite(g, pf, L, i * 4 + 1); }
+  for (const [i, pf] of pfs.entries()) { if (g) g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); pfFitFig(g, pf, 16, 110, { sMax: .82, y0: 2, s: .82 }); await cgSay(L, i * 4); await pfWrite(g, pf, L, i * 4 + 1); }
   for (const l of L.slice(pfs.length * 4)) await S(l); };
 /* د5: تعميم نصف حاصل ضرب القطرين: المثلثان على القطر الأفقي وارتفاعاهما */
 SCENES.cgPerpShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), [a, b, cc, d] = c.dims || [3, 7, 4, 2], u = 20, Lp = [180 - (a + b) * u / 2, 112], M = [Lp[0] + a * u, 112], R = [Lp[0] + (a + b) * u, 112], T = [M[0], 112 - cc * u], B = [M[0], 112 + d * u];
@@ -167,12 +167,12 @@ SCENES.cgPerpShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('
   geoLine(g, T[0], T[1], B[0], B[1], { color: CG.b, w: 3, dash: '7 4' }); geoLine(g, Lp[0], Lp[1], R[0], R[1], { color: CG.a, w: 3 });
   cgDim(g, Lp, R, [0, B[1] - 112 + 16], a + b, CG.a); preLab(g, M[0] - 8, (T[1] + M[1]) / 2 + 5, MS(String(cc)), { col: CG.b, fs: 15, anchor: 'end' }); preLab(g, M[0] - 8, (B[1] + M[1]) / 2 + 5, MS(String(d)), { col: CG.b, fs: 15, anchor: 'end' });
   await cgSay(L, 0);   /* البرهان مرئياً: مثلثان قاعدتهما القطر، وارتفاعاهما جزءا الآخر (المراجع A لبوابة M4-U3/U4، 14) */
-  ciEq(g, 180, 214, `${a + b} × ${cc} ÷ 2 + ${a + b} × ${d} ÷ 2 = ${(a + b) * cc / 2} + ${(a + b) * d / 2}`, CG.q, 16); SFX.tick(); await sleep(FAST ? 10 : 700);
-  ciEq(g, 180, 240, `= ${a + b} × ${cc + d} ÷ 2 = ${(a + b) * (cc + d) / 2}`, CG.ok, 18); SFX.tick(); await cgSay(L, 1);
+  ciEq(g, 180, 205, `${a + b} × ${cc} ÷ 2 + ${a + b} × ${d} ÷ 2 = ${(a + b) * cc / 2} + ${(a + b) * d / 2}`, CG.q, 16); SFX.tick(); await sleep(FAST ? 10 : 700);
+  ciEq(g, 180, 229, `= ${a + b} × ${cc + d} ÷ 2 = ${(a + b) * (cc + d) / 2}`, CG.ok, 18); SFX.tick(); await cgSay(L, 1);
   if (L[2]) { g.innerHTML = ''; const P = [[108, 62], [252, 62], [252, 170], [108, 170]];   /* والمستطيل ٦ × ٨: قطراه عشرة لا يتعامدان، فنصف حاصل ضربهما ٥٠ ومساحته ٤٨ (المراجع A لبوابة M4-U3/U4، 10) */
     el('polygon', { points: polyStr(P), fill: CG.fc, stroke: CG.ink, 'stroke-width': 3.2 }, g); geoLine(g, P[0][0], P[0][1], P[2][0], P[2][1], { color: CG.a, w: 3, dash: '7 4' }); geoLine(g, P[1][0], P[1][1], P[3][0], P[3][1], { color: CG.b, w: 3, dash: '7 4' });
     preLab(g, 180, 188, MS('8'), { fs: 15 }); preLab(g, 266, 121, MS('6'), { fs: 15, anchor: 'start' }); preLab(g, 146, 84, MS('10'), { fs: 15, col: CG.a });
-    ciEq(g, 180, 214, '10 × 10 ÷ 2 = 50', CG.q, 17); ciEq(g, 180, 238, '6 × 8 = 48', CG.ok, 17); SFX.tick(); await cgSay(L, 2); }
+    ciEq(g, 180, 206, '10 × 10 ÷ 2 = 50', CG.q, 17); ciEq(g, 180, 229, '6 × 8 = 48', CG.ok, 17); SFX.tick(); await cgSay(L, 2); }
   for (const l of L.slice(3)) await S(l); };
 /* د5: البطاقات الثلاث للأقطار والعائلة (الشمول) */
 SCENES.quadFamily = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), N = [['para', 180, 44], ['rect', 96, 118], ['rhom', 264, 118], ['square', 180, 192]];
