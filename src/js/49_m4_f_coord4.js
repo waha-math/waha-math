@@ -120,10 +120,13 @@ ITEM.c4Place = {
 };
 
 /* ================= ② في أيّ ربع؟ (C419): x، y؛ الخيارات الأرباع الأربعة، أو «على محور» مع ربعين مجاورين ================= */
+/* المستوى الثاني رسمٌ في أنواع U5 (المعروف (2) لبوابة M4-U5/U6) */
+const c4Legs = (m, Pl, a, b) => { const A = Pl.P(...a), B = Pl.P(...b), K = Pl.P(b[0], a[1]); geoLine(m, A[0], A[1], K[0], K[1], { color: H2C[0], w: 3.2, dash: '7 5' }); geoLine(m, K[0], K[1], B[0], B[1], { color: H2C[1], w: 3.2, dash: '7 5' }); hlRing(m, K, 12); };   /* المشي والصعود بلا أطوال */
 ITEM.c4Quad = cpItem({ H: 262, tLine: 'gen.c4.together.quad', hint: 'gen.c4.hint.quad', rLine: it => 'gen.c4.reveal.quad.' + it.want, praise: 'praiseThink',
   make: s => { const want = c4QuadOf(s.x, s.y), cands = want === 'axis' ? ['axis', ...(s.x ? [c4QuadOf(s.x, 1), c4QuadOf(s.x, -1), c4QuadOf(-s.x, 1)] : [c4QuadOf(1, s.y), c4QuadOf(-1, s.y), c4QuadOf(1, -s.y)])] : C4_QS;
     return { want, cands: [...C4_QS, 'axis'].filter(k => cands.includes(k)), ext: c4Ext([[s.x, s.y]], 5), tag: 'c4-quad' + (want === 'axis' ? '-axis' : '') }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, item.ext); c4Card(svg, item.x, item.y); if (tries >= 3) c4Walk(svg, Pl, item.x, item.y, { ms: 60 }); return { Pl }; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), Pl = ctx.Pl; if (Pl) { [[Pl.n, 0, '+', 0], [-Pl.n, 0, '−', 0], [0, Pl.m, '+', 1], [0, -Pl.m, '−', 1]].forEach(([x, y, t, i]) => { const P = Pl.P(x, y); preLab(m, P[0] + (x > 0 ? -9 : x < 0 ? 9 : 15), P[1] + (y > 0 ? 14 : y < 0 ? -6 : -8), t, { col: H2C[i], fs: 20 }); }); hlRing(m, Pl.P(0, 0), 12); } await sleep(FAST ? 10 : 250); },   /* إشارتا كل محور عند طرفيه */
   sayQ: it => S('gen.c4.pt.' + preKey([it.x, it.y]), { append: true }),
   show: async (item, ctx) => { if (ctx && ctx.Pl) c4Dot(helpG(ctx.svg), ctx.Pl, item.x, item.y, { col: C4.ok }); },
   pick: item => choosePick(item.cands.map(k => [k, labelText('c4Q.' + k), '<i></i>', 'gen.c4.quad.' + k]), item.want, { cls: item.cands.length > 3 ? 'four' : '' }),
@@ -135,6 +138,7 @@ ITEM.c4Read = cpItem({ H: 262, tLine: 'gen.c4.together.read', hint: 'gen.c4.hint
     for (const p of [[-x, y], [x, -y], [y, x], [-x, -y], [x + 1, y]]) if (ch.length < 2 && !c4Same(p, [x, y]) && !ch.some(q => c4Same(p, q))) ch.push(p);
     return { cands: [[x, y], ...ch], want: preKey([x, y]), ext: c4Ext([[x, y]], 5), tag: 'c4-read' }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, { ...item.ext, top: 16 }); c4Dot(svg, Pl, item.x, item.y, { name: 'a', col: C4.pt2 }); if (tries >= 3) c4Walk(svg, Pl, item.x, item.y, { ms: 60 }); return { Pl }; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), Pl = ctx.Pl; if (Pl) { const P = Pl.P(item.x, item.y), X = Pl.P(item.x, 0), Y = Pl.P(0, item.y); geoLine(m, P[0], P[1], X[0], X[1], { color: H2C[0], w: 3, dash: '6 5' }); geoLine(m, P[0], P[1], Y[0], Y[1], { color: H2C[1], w: 3, dash: '6 5' }); } await sleep(FAST ? 10 : 250); },   /* عمودان من النقطة إلى المحورين */
   pick: item => choosePick(shuffle(item.cands.map(p => [preKey(p), coPair(preNum(p[0]), preNum(p[1])), '<i></i>', 'gen.c4.pt.' + preKey(p)])), item.want),
   errOf: (it, k) => { const { x, y } = it; return k === preKey([-x, y]) ? 'c4SignX' : k === preKey([x, -y]) ? 'c4SignY' : k === preKey([-x, -y]) ? 'c4SignBoth' : k === preKey([y, x]) ? 'coordSwap' : 'c4Off'; } });
 
@@ -148,7 +152,7 @@ ITEM.c4Dist = cpItem({ H: 262, tLine: 'gen.c4.together.dist', hint: 'gen.c4.hint
   draw(svg, item, tries) { const Pl = c4Plane(svg, item.ext), A = Pl.P(...item.a), B = Pl.P(...item.b); geoLine(svg, A[0], A[1], B[0], B[1], { color: C4.ln, w: 3.4 });
     c4Dot(svg, Pl, ...item.a, { name: 'a', pair: true, col: C4.pt2 }); c4Dot(svg, Pl, ...item.b, { name: 'b', pair: true, col: C4.pt2 });
     if (tries >= 3) c4RunRise(helpG(svg), Pl, item.a, item.b, { abs: true }); return { Pl }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 22, labelText('c4RuleDist'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) c4Legs(m, ctx.Pl, item.a, item.b); ciRule(m, 180, 22, labelText('c4RuleDist'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
   errOf: (it, k) => k === it.dx + it.dy ? 'coDistAdd' : k === it.alt ? 'c4DistSign' : k === it.dx * it.dx + it.dy * it.dy ? 'pyNoRoot' : 'coDistOff2' });
 
@@ -163,7 +167,7 @@ ITEM.c4Slope = cpItem({ H: 262, tLine: 'gen.c4.together.slope', hint: 'gen.c4.hi
   draw(svg, item, tries) { const Pl = c4Plane(svg, item.ext); c4Through(svg, Pl, item.a, item.b, { col: 'rgba(122,79,176,.35)', w: 2.4 }); const A = Pl.P(...item.a), B = Pl.P(...item.b); geoLine(svg, A[0], A[1], B[0], B[1], { color: C4.ln, w: 3.6 });
     c4Dot(svg, Pl, ...item.a, { name: 'a', pair: true, col: C4.pt2 }); c4Dot(svg, Pl, ...item.b, { name: 'b', pair: true, col: C4.pt2 });
     if (tries >= 3) c4RunRise(helpG(svg), Pl, item.a, item.b, { right: false }); return { Pl }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 22, labelText('c4RuleSlope'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl && item.a[0] !== item.b[0] && item.a[1] !== item.b[1]) c4Legs(m, ctx.Pl, item.a, item.b); else if (ctx.Pl) [item.a, item.b].forEach(p => hlRing(m, ctx.Pl.P(...p), 12, H2C[0])); ciRule(m, 180, 22, labelText('c4RuleSlope'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.Pl) c4RunRise(helpG(ctx.svg), ctx.Pl, item.a, item.b, { right: false }); },
   pick: item => choosePick(shuffle(item.cands.map(v => [c4MKey(v), labelText('c4m.' + c4MKey(v)), c4MIcon(v), 'gen.c4.m.' + c4MKey(v)])), item.want, { cls: 'symonly' }),
   errOf: (it, k) => it.want === 'none' ? (k === '0' ? 'slopeVert0' : 'slopeNoDiv') : it.want === '0' ? (k === 'none' ? 'slopeHorNone' : 'slopeNoDiv')
@@ -178,7 +182,7 @@ ITEM.c4Eq = cpItem({ H: 262, tLine: 'gen.c4.together.eq', hint: 'gen.c4.hint.eq'
   draw(svg, item, tries) { const Pl = c4Plane(svg, item.ext), [m, b] = item.ln; c4Line(svg, Pl, m, b, {});
     c4Dot(svg, Pl, 0, b, { pair: true, col: C4.pt2, side: 1 }); c4Dot(svg, Pl, ...item.p2, { pair: true, col: C4.pt2 });
     if (tries >= 3) { const h = helpG(svg); c4RunRise(h, Pl, [0, b], item.p2, { right: false }); const I = Pl.P(0, b); preLab(h, I[0] - 10, I[1] + 5, labelText('c4B'), { col: C4.hl, fs: 16, anchor: 'end', dir: 'rtl' }); } return { Pl }; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 22, labelText('c4RuleEq'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) hlRing(m, ctx.Pl.P(0, item.ln[1]), 14, H2C[0]); ciRule(m, 180, 22, labelText('c4RuleEq'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* أين يقطع المحور الرأسي؟ */
   pick: item => c4EqPick(item.cands, item.want),
   errOf: (it, k) => { const [m, b] = it.ln; return k === c4LKey([b, m]) ? 'eqSwapMB' : k === c4LKey([m, -b]) ? 'eqSignB' : k === c4LKey([-m, b]) ? 'eqSignM' : 'eqOff'; } });
 
@@ -189,7 +193,7 @@ ITEM.c4On = cpItem({ H: 236, tLine: 'gen.c4.together.on', hint: 'gen.c4.hint.on'
     el('rect', { x: 110, y: 82, width: 140, height: 34, rx: 10, fill: '#fff', stroke: C4.pt2, 'stroke-width': 2 }, g); coPairText(g, 180, 106, preNum(item.p[0]), preNum(item.p[1]), 'middle', 19, C4.pt2);
     if (tries >= 3) ciEq(helpG(svg), 180, 168, `${m} × ${item.p[0]} + ${b} = ${item.v}`, C4.hl, 20); return {}; },
   sayQ: async it => { await S('gen.c4.eq.' + c4LKey(it.ln), { append: true }); await S('gen.c4.q.onPt', { append: true }); await S('gen.c4.pt.' + preKey(it.p), { append: true }); },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 210, labelText('c4RuleOn'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); el('rect', { x: 102, y: 75, width: 156, height: 48, rx: 12, fill: 'none', stroke: H2C[0], 'stroke-width': 3, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m); cpArrow(m, [180, 74], [180, 62], { color: H2C[0] }); ciRule(m, 180, 210, labelText('c4RuleOn'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* النقطة إلى المعادلة: نعوّض */
   pick: item => yesNo(item.want),
   errOf: (it, k) => k === 'yes' ? 'eqOnYes' : 'eqOnNo' });
 
@@ -201,7 +205,7 @@ ITEM.c4FindB = cpItem({ H: 262, tLine: 'gen.c4.together.findB', hint: 'gen.c4.hi
     el('rect', { x: 104, y: 4, width: 152, height: 30, rx: 10, fill: '#fff', stroke: C4.ln, 'stroke-width': 2 }, g); preLab(g, 214, 25, labelText('c4SlopeIs'), { col: C4.ln, fs: 16, dir: 'rtl', anchor: 'middle' }); c4MDraw(g, 140, 18, [item.sl, 1], { col: C4.ln });
     if (tries >= 3) { const h = helpG(svg); c4Line(h, Pl, item.sl, item.b, { col: 'rgba(122,79,176,.4)', w: 2.4, dash: '6 5' }); ciEq(h, 180, 252, `${item.p[1]} = ${item.sl} × ${item.p[0]} + ${labelText('c4B')}`, C4.hl, 17); } return { Pl }; },
   sayQ: async it => { await S('gen.c4.slope.' + (it.sl < 0 ? 'm' + -it.sl : it.sl), { append: true }); await S('gen.c4.q.findBPt', { append: true }); await S('gen.c4.pt.' + preKey(it.p), { append: true }); },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 252, labelText('c4RuleFindB'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) { const P = ctx.Pl.P(...item.p), Y = ctx.Pl.P(0, item.p[1]); geoLine(m, P[0], P[1], Y[0], Y[1], { color: H2C[0], w: 3, dash: '6 5' }); hlRing(m, P, 13, H2C[1]); } ciRule(m, 180, 252, labelText('c4RuleFindB'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* من النقطة إلى المحور الرأسي: كم خطوةً نرجع؟ */
   pick: item => c4EqPick(item.cands, item.want),
   errOf: (it, k) => k === c4LKey([it.sl, it.p[1]]) ? 'eqBNoSub' : k === c4LKey([it.sl, it.p[1] + it.sl * it.p[0]]) ? 'eqBSign' : 'eqOff' });
 
@@ -212,7 +216,7 @@ ITEM.c4Perp = cpItem({ H: 262, tLine: 'gen.c4.together.perp', hint: 'gen.c4.hint
     el('rect', { x: 104, y: 4, width: 152, height: 30, rx: 10, fill: '#fff', stroke: C4.pt, 'stroke-width': 2 }, g); preLab(g, 214, 25, labelText('c4SlopeIs'), { col: C4.pt, fs: 16, dir: 'rtl', anchor: 'middle' }); c4MDraw(g, 140, 18, [item.sl, 1], { col: C4.pt });
     if (tries >= 3) ciRule(helpG(svg), 180, 246, labelText('c4RulePerp'), C4.hl, 15); return { Pl }; },
   sayQ: async it => { await S('gen.c4.slope.' + (it.sl < 0 ? 'm' + -it.sl : it.sl), { append: true }); await S('gen.c4.q.perpEnd', { append: true }); },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 246, labelText('c4RulePerp'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) { const P = ctx.Pl.P, s = item.sl, k = Math.abs(s) > 2 ? 1 / Math.abs(s) : 1; c4Legs(m, ctx.Pl, [0, 0], [k, s * k]); const R1 = P(0, k), R2 = P(-s * k, k), O = P(0, 0); geoLine(m, O[0], O[1], R1[0], R1[1], { color: H2C[0], w: 3, dash: '3 4' }); geoLine(m, R1[0], R1[1], R2[0], R2[1], { color: H2C[1], w: 3, dash: '3 4' }); } ciRule(m, 180, 246, labelText('c4RulePerp'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* مثلث الميل ومثلثه مداراً ربع دورة */
   pick: item => choosePick(shuffle(item.cands.map(v => [c4MKey(v), labelText('c4m.' + c4MKey(v)), c4MIcon(v), 'gen.c4.m.' + c4MKey(v)])), item.want, { cls: 'symonly four' }),
   errOf: (it, k) => k === c4MKey(c4Frac(1, it.sl)) ? 'perpNoSign' : k === c4MKey([-it.sl, 1]) ? 'perpNoInv' : 'perpSame' });
 
