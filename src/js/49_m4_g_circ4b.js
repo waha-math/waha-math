@@ -3,7 +3,7 @@
    الخطوات المنجزة تبقى بعد الخطأ (item.step)، والحلّ المشترك في الخطوة التي وقف عندها الطفل وحدها. */
 const c6Q = (id, live) => { const f = () => S(id); f(); REPLAY_HOOK = f; REPLAY_HOOK.live = live; };
 const c6Arr = up => `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" style="vertical-align:middle"><path d="${up ? 'M2 15 L18 15 L10 3Z' : 'M2 5 L18 5 L10 17Z'}" fill="currentColor"/></svg>`;
-/* زرّا التحريك: k من lo إلى hi، وAUTO بنوعه (window.__c6K للسائقين واللمس الحقيقي) */
+/* زرّا التحريك: k من lo إلى hi، وAUTO بنوعه (خطاف __c6K للسائقين واللمس الحقيقي) */
 async function c6Move(item, k0, lo, hi, want, labels, icons, redraw) { let k = k0; redraw(k);
   const St = dqSteps(labels, d => { const v = Math.max(lo, Math.min(hi, k + d)); if (v === k) return false; k = v; redraw(k); return true; }, { icons });
   /*T*/window.__c6K = () => k;/*/T*/

@@ -4,7 +4,7 @@
 const c7Q = (id, live) => { const f = () => S(id); f(); REPLAY_HOOK = f; REPLAY_HOOK.live = live; };
 const c7Pick = (ch, want, uk) => choosePick(shuffle(ch.map(([v]) => [String(v), c7Txt(v, uk), '<i></i>', c7Line(v, uk)])), String(want));
 const c7PickOff = () => document.querySelectorAll('#stage .choices').forEach(x => x.remove());
-/* زرّا الملء (أعلى وأسفل): n من lo إلى hi، وAUTO بنوعه للسائقين واللمس الحقيقي (window.__c7N) */
+/* زرّا الملء (أعلى وأسفل): n من lo إلى hi، وAUTO بنوعه للسائقين واللمس الحقيقي (خطاف __c7N) */
 async function c7Fill(item, n0, lo, hi, want, kind, labels, redraw, guard) { let n = n0; redraw(n);
   const St = dqSteps(labels, d => { const v = Math.max(lo, Math.min(hi, n + d)); if (v === n) return false; n = v; redraw(n); return true; }, { vert: true });
   /*T*/window.__c7N = () => n;/*/T*/

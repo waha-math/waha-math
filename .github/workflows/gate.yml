@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [a, m, n, l1, l2, b, b2, b3]
+        part: [a, m, n, l1, l2, l3, l4, b, b2, b3]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

@@ -5,7 +5,7 @@
 # ثم تقرير الجمل غير المنطوقة. كل ملف نتائج ينتهي بسطور errors / LOG.errors / FAILS / small targets / unnamed targets / tap conflicts / chaos leaks / font fallbacks (D256) / NOT in script.
 # ولكل فحص حدّ زمني (timeout: نصف ساعة، وشريحة الطفرات ساعة): الفحص الذي يتجمّد إخفاقٌ تراه الخلاصة لا توقّفٌ للمجموعة (بوابة S1-U4، الدرس 173).
 # وتُشغَّل على أجزاء متتابعة حين يحدّ المشغّل زمن المهمة الواحدة (ساعتان؛ والمجموعة كلها نحو ثماني ساعات منذ D266):
-#   PART=a (البناءان والفحوص المنفردة) وm (المحتوى ونصف طفرات المتصفح) وn (نصفها الثاني) وl1 وl2 (الهاتف بالعرض بحجمين لكلٍّ، وdeep mat f في l2) وb وb2 وb3 (أنماط السائق)،
+#   PART=a (البناءان والفحوص المنفردة) وm (المحتوى ونصف طفرات المتصفح) وn (نصفها الثاني) وl1 وl2 وl3 وl4 (الهاتف بالعرض بحجمين لكلٍّ، وdeep mat f في l2) وb وb2 وb3 (أنماط السائق)،
 #   ثم PART=c (deepall وremedialdeep والخلاصة)، بمجلد النتائج نفسه؛ وبلا PART كلها. وكل جزءٍ ينتهي بملفٍّ PART_<اسمه>، والخلاصة تعدّ جزءاً بلا ملفه إخفاقاً (قطعته مهلة المهمة أو لم تُرفع نواتجه؛ المراجع B لدفعة ألعاب U9، 8).
 #   وطفرات المتصفح شرائح من 15 (الدرس 299): إن انقطع m أو n أُعيد تشغيله فأكمل من حيث توقّف. وMUT_UNTIL=<ثوانٍ منذ 1970> لا يبدأ شريحةً بعده،
 #   فيقف الجزء قبل حدّ المشغّل بلا عملية يقطعها الحدّ (والشرائح الباقية في FAILED حتى يُعاد الجزء).
@@ -65,8 +65,13 @@ fi
 # الهاتف بالعرض بحجمين في كل جزء: فحصه بالأحجام الأربعة تجاوز وحده ساعتين (بوابتا ws56a وws78a)، وكان مع الطفرات في m وn فيقارب حدّ المهمة (المراجع B لدفعة ألعاب U9، 9)
 if in_part l1; then
 [ -f "$O/FAILED" ] && sed -i '/^adv_land1$/d' "$O/FAILED"
-ONLY=X-03,N-01 LANDVP=640x360,740x360 timeout 7200 python3 test/adv_run.py > "$O/adv_land1.txt" 2>&1 || echo adv_land1 >> "$O/FAILED"
+LANDSHARD=0/2 ONLY=X-03,N-01 LANDVP=640x360,740x360 timeout 5400 python3 test/adv_run.py > "$O/adv_land1.txt" 2>&1 || echo adv_land1 >> "$O/FAILED"   # نصف الدروس (والنصف الآخر في l3): الحجمان على الدروس كلها تجاوزا ساعتين في l1 وحده
 echo ok > "$O/PART_l1"
+fi
+if in_part l3; then
+[ -f "$O/FAILED" ] && sed -i '/^adv_land3$/d' "$O/FAILED"
+LANDSHARD=1/2 ONLY=X-03,N-01 LANDVP=640x360,740x360 timeout 5400 python3 test/adv_run.py > "$O/adv_land3.txt" 2>&1 || echo adv_land3 >> "$O/FAILED"
+echo ok > "$O/PART_l3"
 fi
 if in_part n; then   # (و«mutants2» من الطريقة السابقة: كان النصف الثاني ملفاً واحداً)
 [ -f "$O/FAILED" ] && sed -i '/^mutcount$/d; /^mutants2$/d' "$O/FAILED"
@@ -75,9 +80,14 @@ echo ok > "$O/PART_n"
 fi
 if in_part l2; then
 [ -f "$O/FAILED" ] && sed -i '/^adv_land2$/d' "$O/FAILED"
-ONLY=X-03,N-01 LANDVP=844x390,412x860 timeout 7200 python3 test/adv_run.py > "$O/adv_land2.txt" 2>&1 || echo adv_land2 >> "$O/FAILED"
+LANDSHARD=0/2 ONLY=X-03,N-01 LANDVP=844x390,412x860 timeout 5400 python3 test/adv_run.py > "$O/adv_land2.txt" 2>&1 || echo adv_land2 >> "$O/FAILED"
 SHOTS=0 CLIPS_OUT="$O/clips/auto_deep_mat_f.json" timeout 3600 python3 test/auto_run.py deep mat f        > "$O/auto_deep_mat_f.txt" 2>&1   # بمهلة ساعة: قُطع بنصف الساعة في الجزء b (EPIPE، بوابة ws56a)
 echo ok > "$O/PART_l2"
+fi
+if in_part l4; then
+[ -f "$O/FAILED" ] && sed -i '/^adv_land4$/d' "$O/FAILED"
+LANDSHARD=1/2 ONLY=X-03,N-01 LANDVP=844x390,412x860 timeout 5400 python3 test/adv_run.py > "$O/adv_land4.txt" 2>&1 || echo adv_land4 >> "$O/FAILED"
+echo ok > "$O/PART_l4"
 fi
 # أنماط السائق على ثلاثة أجزاء متوازية بمهلة ساعة لكلٍّ (قُطعت كلها بنصف الساعة في بوابة ws78a: EPIPE)
 if in_part b; then
@@ -116,11 +126,11 @@ timeout 1800 python3 test/unspoken.py "$O/clips" > "$O/unspoken.txt" 2>&1   # ج
 python3 - "$O" "$(mut_stamp)" > "$O/SUMMARY.txt" <<'PY'
 import sys, os, re, glob
 O = sys.argv[1]; bad = [l.strip() for l in open(os.path.join(O, 'FAILED'))] if os.path.exists(os.path.join(O, 'FAILED')) else []
-for p in ('a', 'm', 'n', 'l1', 'l2', 'b', 'b2', 'b3'):   # كل جزءٍ انتهى ورُفعت نواتجه (المراجع B لدفعة ألعاب U9، 8: جزءٌ قطعته مهلة المهمة أو فُقدت نواتجه كان لا يُرى)
+for p in ('a', 'm', 'n', 'l1', 'l2', 'l3', 'l4', 'b', 'b2', 'b3'):   # كل جزءٍ انتهى ورُفعت نواتجه (المراجع B لدفعة ألعاب U9، 8: جزءٌ قطعته مهلة المهمة أو فُقدت نواتجه كان لا يُرى)
   if not os.path.exists(os.path.join(O, 'PART_' + p)): bad.append(f'الجزء {p} لم ينتهِ أو لم تُرفع نواتجه')
 for f in ('auto_ok_screen_f', 'auto_ok_mat_m', 'auto_mixed_screen_m', 'auto_failmastery_screen_f', 'auto_failtest_mat_m', 'auto_replay_screen_f', 'auto_dark_ok_mat_f', 'auto_s5_mixed_screen_m', 'auto_failreview_screen_m', 'auto_se_ok_screen_f', 'auto_deep_mat_f', 'auto_deepall_screen_f', 'auto_deepall_chal_mat_m', 'auto_remedialdeep_screen_m', 'auto_se_remedialdeep_d5ws'):
   if not os.path.exists(os.path.join(O, f + '.txt')): bad.append(f'{f}.txt مفقود')   # وأنماط السائق كلها بأسمائها، لا ما وُجد منها
-for f in ('adv.txt', 'adv_land1.txt', 'adv_land2.txt', 'games.txt', 'items.txt', 'ladder.txt', 'realtap.txt'):   # وما ينتهي بعدّاد إخفاقاته يُقرأ لا يُكتفى بـ FAILED
+for f in ('adv.txt', 'adv_land1.txt', 'adv_land2.txt', 'adv_land3.txt', 'adv_land4.txt', 'games.txt', 'items.txt', 'ladder.txt', 'realtap.txt'):   # وما ينتهي بعدّاد إخفاقاته يُقرأ لا يُكتفى بـ FAILED
   t = open(os.path.join(O, f)).read() if os.path.exists(os.path.join(O, f)) else ''
   if not re.search(r'^FAILS: 0$', t, re.M): bad.append(f'{f}: لم يتمّ أو أخفق')
 for f in sorted(glob.glob(os.path.join(O, 'auto_*.txt'))):
