@@ -163,6 +163,10 @@ TEXTOV = """() => { const s = document.querySelector('#stage svg'); if (!s) retu
     for (const t of s.querySelectorAll('text')) { if (!t.textContent.trim() || !vis(t) || t.closest('[data-help]')) continue; const b = t.getBoundingClientRect(); if (!b.width) continue; const P = []; for (const fx of [.2, .5, .8]) for (const fy of [.2, .5, .8]) P.push([b.left + fx * b.width, b.top + fy * b.height]);
       for (const { e, r } of SH) { if (r.right < b.left || r.left > b.right || r.bottom < b.top || r.top > b.bottom || !(t.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING) || e.contains(t)) continue; const M = e.getScreenCTM(); if (!M) continue; const I = M.inverse(); let n = 0;
         for (const [px, py] of P) { const q = new DOMPoint(px, py).matrixTransform(I); try { if (e.isPointInFill(q)) n++; } catch (z) {} } if (n >= 3) { out.push('شكلٌ يغطّي: ' + t.textContent.trim().slice(0, 24) + (window.__TXDBG ? ' ← ' + e.tagName + ' ' + (e.getAttribute('fill') || getComputedStyle(e).fill) + ' ' + (e.getAttribute('d') || e.getAttribute('points') || '').slice(0, 50) + ' ' + [e.getAttribute('cx'), e.getAttribute('cy'), e.getAttribute('r'), e.getAttribute('x'), e.getAttribute('y')].join(',') + ' @' + (e.parentNode.getAttribute('class') || e.parentNode.getAttribute('data-k') || '') : '')); break; } } } }
+  /* ونصٌّ رُسم بعد نقطةٍ صغيرة ملوّنة ومركزُها داخله فأخفاها (المراجع B لبوابة M4-U9، 9 و15 (هـ)) */
+  { const fl = e => { const f = getComputedStyle(e).fill; return f && f !== 'none' && f !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(f); }, D = [...s.querySelectorAll('circle')].filter(c => vis(c) && !c.closest('[data-help]') && +c.getAttribute('r') >= 3 && +c.getAttribute('r') <= 8 && fl(c));
+    for (const t of s.querySelectorAll('text')) { if (!t.textContent.trim() || !vis(t) || t.closest('[data-help]')) continue; const b = t.getBoundingClientRect(); if (!b.width) continue;
+      for (const c of D) { if (!(c.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING)) continue; const r = c.getBoundingClientRect(), cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2; if (cx > b.left + 1 && cx < b.right - 1 && cy > b.top + 1 && cy < b.bottom - 1) { out.push('نصٌّ فوق نقطة: ' + t.textContent.trim().slice(0, 24) + (window.__TXDBG ? ' @' + [t.getAttribute('x'), t.getAttribute('y'), c.getAttribute('cx'), c.getAttribute('cy'), c.getAttribute('r'), c.getAttribute('fill')].join(',') : '')); break; } } } }
   const fr = s.querySelector('rect[x="20"][y="14"][rx="14"]'); if (fr) { const F = fr.getBoundingClientRect(); for (const x of T) { const b = x.b; if (b.left < F.left - 2 || b.right > F.right + 2 || b.top < F.top - 2 || b.bottom > F.bottom + 2) out.push('خارج الإطار: ' + x.t); }
     /* والرسم أيضاً (المراجع B لبوابة S3-U8/U9، 5 و8 و10 و11 (د)): كل شكلٍ مرئي بعد الإطار، بلونٍ أو خطّ، داخله */
     const paint = e => { const c = getComputedStyle(e), f = c.fill, k = c.stroke; return (f && f !== 'none' && !/rgba\(.*, 0\)$/.test(f) && f !== 'transparent') || (k && k !== 'none' && !/rgba\(.*, 0\)$/.test(k)); };
@@ -341,7 +345,10 @@ async def main():
             for _ in range(60):
               if await pg.evaluate("(n) => !window.__auto || window.__auto.n !== n", a['n']): kdone = True; break
               await pg.wait_for_timeout(25)
-            if not kdone: keyless.setdefault((sc, a['kind'], key + ' لا يجيب: ' + (await pg.evaluate("() => window.__keyEl && (window.__keyEl.getAttribute('aria-label') || window.__keyEl.tagName)") or '')), 0); await pg.evaluate(KEYGO)
+            if not kdone:
+              if asy and await pg.evaluate("() => window.__race === true"): krace[0] += 1   # الحلّ المتتابع سبق المفتاح فأعاد رسم الهدف تحت التركيز (الوجوه في m1.u2.d6 على مشغّلٍ بطيء، بوابة ws78a): لا حكم على المفتاح
+              else: keyless.setdefault((sc, a['kind'], key + ' لا يجيب: ' + (await pg.evaluate("() => window.__keyEl && (window.__keyEl.getAttribute('aria-label') || window.__keyEl.tagName)") or '')), 0)
+              await pg.evaluate(KEYGO)
             else:
               # ما اختاره المفتاح: في «المس واحداً» (tapOne) الهدفُ نفسه الذي يلمسه الحلّ (والتوقّع لا جواب له، فلا يُحكم بما سُجّل)؛ وفي غيره لا خطأ يُسجَّل بعده
               same = await pg.evaluate("() => window.__actG === undefined ? null : window.__actG === window.__keyEl")
@@ -350,6 +357,7 @@ async def main():
                 wr = await pg.evaluate("(n) => LOG.attempts.slice(n).filter(x => x.ok === false).map(x => x.scene + ':' + (x.tag || ''))", na)
                 if wr and asy and await pg.evaluate("() => window.__race === true"): krace[0] += 1   # سبق الحلُّ المتتابع المفتاح: لا حكم على المفتاح
                 elif wr and await pg.evaluate("(n) => window.__drvWrongAt === n", na): kdrv[0] += 1   # خطوةٌ سابقة من البند نفسه أجابها السائق خطأً عمداً (المراجع B لبوابة S3-U4/U5، 11: «آلة التحويل» خطوتان)
+                elif wr and await pg.evaluate("() => { const e = window.__keyEl; return !!(e && e.closest && e.closest('.choices') && e.dataset.ok === ''); }"): pass   # خيارٌ بلا جواب (توقّع «gapsPredict» في m1.u4.d3): ما يُسجَّل حكمُ التوقّع لا خطأُ المفتاح (بوابة ws78a)
                 elif wr:
                   keyless.setdefault((sc, a['kind'], key + ' لمس غير الحلّ: ' + ','.join(wr)[:60]), 0)
                   print('   keyless detail:', sc, a, await pg.evaluate("(n) => JSON.stringify([LOG.attempts.slice(n - 1), window.__auto && window.__auto.kind, window.__item && window.__item.t, window.__itemMode])", na), flush=True)
@@ -404,7 +412,8 @@ async def main():
     print('clipped texts:', len(clipt)); [print(' ', *k) for k in list(clipt)[:20]]
     TXSTRICT = ('m3.', 'm4.u1.', 'm4.u2.', 'm4.u3.', 'm4.u4.', 'm4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.', 'm4.u9.', 'm4.u10.', 'ws:m4.u9')   # م3 وما أُغلقت بوابته من م4 تُفحص (M4-U1/U2)، والباقي من م4 يُطبع للعلم حتى تُراجَع بوابته
     COVERSTRICT = ('m4.u3.', 'm4.u4.', 'm4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.', 'm4.u9.', 'm4.u10.')   # الشكل المعتم فوق نصّ: صارمٌ في الوحدتين، وللعلم في غيرهما حتى تُراجَع (44 في م3 وU1/U2 عند إضافته)
-    textov3 = {k: v for k, v in textov.items() if k[0].startswith(TXSTRICT) and (not str(k[2]).startswith('شكلٌ يغطّي') or k[0].startswith(COVERSTRICT))}; contr3 = {k: v for k, v in contr.items() if k[0].startswith(TXSTRICT)}
+    PTSTRICT = ('m4.u9.', 'm4.u10.', 'ws:m4.u9')   # نصٌّ فوق نقطة: صارمٌ من U9، وللعلم في غيرها حتى تُراجَع
+    textov3 = {k: v for k, v in textov.items() if k[0].startswith(TXSTRICT) and (not str(k[2]).startswith('شكلٌ يغطّي') or k[0].startswith(COVERSTRICT)) and (not str(k[2]).startswith('نصٌّ فوق نقطة') or k[0].startswith(PTSTRICT))}; contr3 = {k: v for k, v in contr.items() if k[0].startswith(TXSTRICT)}
     if os.environ.get('DARK') == '1': print('low contrast (dark):', len(contr3), '(m4: %d)' % (len(contr) - len(contr3))); [print(' ', *k) for k in list(contr)[:20]]
     print('text overlaps/out of frame:', len(textov3), '(m4: %d)' % (len(textov) - len(textov3))); [print(' ', *k) for k in list(textov)[:20]]
     json.dump({'textov': [list(k) for k in textov], 'clipt': [list(k) for k in clipt], 'small': [list(map(str, v)) for v in small.values()]}, open(os.path.join(OUT, 'findings.json'), 'w'), ensure_ascii=False, indent=0)   # القائمة كاملة للتحليل

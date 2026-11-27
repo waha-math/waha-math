@@ -36,7 +36,7 @@ jobs:
           MUT_UNTIL=$(( $(date +%s) + 19200 )) PART=${{ matrix.part }} sh test/run_all.sh test/out/all || true
           echo "--- FAILED (part ${{ matrix.part }}) ---"; cat test/out/all/FAILED 2>/dev/null || echo "(none)"
           echo "--- DETAILS ---"; for f in test/out/all/*.txt test/out/all/mutslices/*.txt; do [ -f "$f" ] || continue; case "$f" in */SUMMARY.txt) continue;; esac; if grep -q -E '^(FAIL[^S]|Traceback)' "$f" || ! grep -q -E '^(FAILS: 0|errors: 0)$' "$f"; then echo "== $f"; grep -E '^(FAIL[^S]|Traceback|[A-Za-z]*Error)' "$f" | cut -c1-400 | head -25; tail -n 4 "$f" | cut -c1-300; fi; done || true
-          echo "--- COUNTERS ---"; for f in test/out/all/auto_*.txt; do [ -f "$f" ] || continue; grep -q -E '^[a-zA-Z. ]+: [1-9]' "$f" || continue; echo "== $f"; awk '/^(lessons not done|blocked lessons|twins|clips spoken|storage invalid|mat distractors|keyless targets)/{p=0; next} /^[a-zA-Z.][a-zA-Z. ]*: [1-9]/{p=1; print; next} /^  /{ if (p) print; next } { p=0 }' "$f" | cut -c1-300 | head -40; done || true
+          echo "--- COUNTERS ---"; for f in test/out/all/auto_*.txt; do [ -f "$f" ] || continue; grep -q -E '^[a-zA-Z. ]+: [1-9]' "$f" || continue; echo "== $f"; awk '/^(lessons not done|blocked lessons|twins|clips spoken|storage invalid|mat distractors)/{p=0; next} /^[a-zA-Z.][a-zA-Z. ]*: [1-9]/{p=1; print; next} /^  /{ if (p) print; next } { p=0 }' "$f" | cut -c1-300 | head -40; done || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -74,7 +74,7 @@ jobs:
           rc=0; PART=c sh test/run_all.sh test/out/all || rc=$?
           echo "--- SUMMARY ---"; cat test/out/all/SUMMARY.txt || true
           echo "--- DETAILS ---"; for f in test/out/all/*.txt test/out/all/mutslices/*.txt; do [ -f "$f" ] || continue; case "$f" in */SUMMARY.txt) continue;; esac; if grep -q -E '^(FAIL[^S]|Traceback)' "$f" || ! grep -q -E '^(FAILS: 0|errors: 0)$' "$f"; then echo "== $f"; grep -E '^(FAIL[^S]|Traceback|[A-Za-z]*Error)' "$f" | cut -c1-400 | head -25; tail -n 4 "$f" | cut -c1-300; fi; done || true
-          echo "--- COUNTERS ---"; for f in test/out/all/auto_*.txt; do [ -f "$f" ] || continue; grep -q -E '^[a-zA-Z. ]+: [1-9]' "$f" || continue; echo "== $f"; awk '/^(lessons not done|blocked lessons|twins|clips spoken|storage invalid|mat distractors|keyless targets)/{p=0; next} /^[a-zA-Z.][a-zA-Z. ]*: [1-9]/{p=1; print; next} /^  /{ if (p) print; next } { p=0 }' "$f" | cut -c1-300 | head -40; done || true
+          echo "--- COUNTERS ---"; for f in test/out/all/auto_*.txt; do [ -f "$f" ] || continue; grep -q -E '^[a-zA-Z. ]+: [1-9]' "$f" || continue; echo "== $f"; awk '/^(lessons not done|blocked lessons|twins|clips spoken|storage invalid|mat distractors)/{p=0; next} /^[a-zA-Z.][a-zA-Z. ]*: [1-9]/{p=1; print; next} /^  /{ if (p) print; next } { p=0 }' "$f" | cut -c1-300 | head -40; done || true
           exit $rc
       - uses: actions/upload-artifact@v4
         if: always()

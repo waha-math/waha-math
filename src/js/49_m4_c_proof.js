@@ -265,6 +265,10 @@ function pfReasonPic(g, P) { const sc = el('g', {}, g);
   else if (P.ineq) ineqSticks(sc, P.ineq, { y: 150, u: 22, meet: P.meet });
   else if (P.poly) polyFig(sc, P.poly, { cy: 100, r: 76, diag: !!P.diag });
   else if (P.trap) { const Q = isoTrapAt(sc, P.trap, { y1: 50, y2: 150, axis: !!P.axis }); pfAng(sc, Q.B1, Q.B2, Q.T1, { col: PF.a, r: 24, deg: P.trap, dl: 18, fs: 14 }); }
+  else if (P.flags) { const ang = (V, Q) => Math.atan2(V[1] - Q[1], Q[0] - V[0]) * 180 / Math.PI;   /* علمان مثلثان بحجمين وزواياهما متساوية (الختامي، المراجع A لبوابة M4-U9، 5) */
+    for (const [x, y0, k, col, fill] of [[108, 40, 1, CG.a, CG.fa], [246, 104, .5, CG.b, CG.fb]]) { const A = [x, y0], B = [x, y0 + 72 * k], T = [x + 88 * k, y0 + 36 * k]; geoLine(sc, x, y0 - 6, x, 186, { color: '#7d5a3a', w: 4 });
+      el('polygon', { points: polyStr([A, T, B]), fill, stroke: col, 'stroke-width': 2.6, 'stroke-linejoin': 'round' }, sc);
+      for (const [V, P1, P2, n] of [[T, A, B, 1], [A, T, B, 2]]) { let a1 = ang(V, P1), a2 = ang(V, P2); if (a2 < a1) [a1, a2] = [a2, a1]; if (a2 - a1 > 180) [a1, a2] = [a2, a1 + 360]; for (let i = 0; i < n; i++) el('path', { d: angArc(V, 14 + i * 5, a1, a2), fill: 'none', stroke: CG.c || col, 'stroke-width': 2 }, sc); } } }
   else if (P.cg) { cgTri(sc, P.cg[0], { cx: 268, y: 160, u: P.u || 13, fs: 16 }); cgTri(sc, P.cg[1], { cx: 92, y: 160, u: P.u || 13, col: CG.b, fill: CG.fb, rot: P.rot || 0, fs: 16 }); }   /* تسمياتٌ ≥ ١١ بكسلاً على iPhone SE (المراجع B، 7) */   /* M4-U3 */
   else if (P.cs) preCaseTris(sc, P.cs, P.v || 0);
   else if (P.tri1) { pyTriNS(sc, P.tri1, { cx: 180, cy: 112, uMax: 13, bw: 250, bh: 118, rot: P.rot || 0, fs: 16 }); cgNotScale(sc, 180, 26); }   /* مثلثٌ بأضلاعه الثلاثة: حكمٌ وتعليل (المراجع A لبوابة M4-U3/U4، 17) */

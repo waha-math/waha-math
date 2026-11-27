@@ -402,10 +402,12 @@ export const factOf = it => { const t = it.t;
   if (t === 'c8Height') return `c8y|${it.dist}|${it.deg}`;
   if (t === 'c9Draw') return `c9d|${JSON.stringify(it.pts)}|${it.xf}`;
   if (t === 'c9Pick') return `c9p|${it.p}|${it.xf}`;
-  if (t === 'c9Which') return `c9w|${it.xf}|${it.p}`;
+  if (t === 'c9Which') return `c9w|${it.xf}`;   /* الجواب بالتحويل وحده، والنقطة زينة (المراجع A لبوابة M4-U9، 4) */
   if (t === 'c9NameIt') return `c9n|${JSON.stringify(it.pts)}|${it.xf}`;
-  if (t === 'c9Rot') return `c9r|${it.th}|${it.cw ? 1 : 0}|${it.r ?? 5}|${it.ask ?? 'ang'}`;
-  if (t === 'c9Comp') return `c9c|${it.p}|${JSON.stringify(it.seq)}|${it.ask ?? 'img'}`;
+  if (t === 'c9Rot') return it.ask === 'len' ? `c9r|len|${it.r ?? 5}` : it.ask === 'dir' ? `c9r|dir|${it.cw ? 1 : 0}` : `c9r|${it.th}|${it.cw ? 1 : 0}|${it.r ?? 5}|ang`;   /* البعد جوابه r وحده، والاتجاه بالاتجاه */
+  if (t === 'c9Comp') { const XF = { refV: ([x, y]) => [-x, y], refH: ([x, y]) => [x, -y], rot90: ([x, y]) => [-y, x], rot180: ([x, y]) => [-x, -y], rot270: ([x, y]) => [y, -x] }, ap = (s, p) => Array.isArray(s) ? [p[0] + s[1], p[1] + s[2]] : XF[s](p), q = it.seq.reduce((a, s) => ap(s, a), [3, 1]);
+    if (it.ask === 'one') return `c9c|one|${Object.keys(XF).find(k => { const r = XF[k]([3, 1]); return r[0] === q[0] && r[1] === q[1]; })}`;   /* «أيّ تحويلٍ واحد؟» بالتحويل المكافئ */
+    if (it.ask === 'order') return `c9c|order|${JSON.stringify(it.seq)}`; return `c9c|${it.p}|${JSON.stringify(it.seq)}|img`; }
   if (t === 'arComp') return `arc|${it.a}|${it.kind}`;
   if (t === 'arPair') return `arp|${[it.a, it.b].sort((x, y) => x - y)}`;
   if (t === 'arVert') return arvK(it.th, it.given, it.ask);
@@ -692,10 +694,10 @@ export function d240(lessons, code, MAKERS) {
     c4PerpShow: c => [`c4pp|${c.sl || 2}`],
     /* M4-U7 وM4-U8: ما تعرضه المشاهد بجوابه (المعروف (3) لبوابة M4-U7/U8؛ والمشروعان بمعطياتهما وحدها، والجدولان يُقرآن من بعد) */
     /* M4-U9: ما تعرضه المشاهد بجوابه (المعروف (3) لبوابة M4-U9 والختامي): الانعكاسان والدوران بنقطتيهما، والمنقلة بزاويتها، والمرآتان معاً، والمدينة بمبنييها */
-    c9RefShow: () => ['c9p|3,2|refV', 'c9p|3,2|refH', 'c9w|refV|3,2', 'c9w|refH|3,2'],
-    c9RotShow: () => ['c9p|3,1|rot90', 'c9p|3,1|rot180', 'c9p|3,1|rot270', 'c9w|rot180|3,1'],
-    c9ProtHook: () => ['c9r|40|0|5|ang'], c9ProtShow: () => ['c9r|50|0|5|ang', 'c9r|50|0|5|len', 'c9r|50|0|5|dir'],
-    c9TwoMirrorShow: () => ['c9p|3,1|refV', 'c9p|-3,1|refH', 'c9p|3,1|rot180', 'c9c|3,1|["refV","refH"]|img', 'c9c|3,1|["refV","refH"]|one'],
+    c9RefShow: () => ['c9p|3,2|refV', 'c9p|3,2|refH', 'c9w|refV', 'c9w|refH'],
+    c9RotShow: () => ['c9p|3,1|rot90', 'c9p|3,1|rot180', 'c9p|3,1|rot270'],
+    c9ProtHook: () => ['c9r|40|0|5|ang'], c9ProtShow: () => ['c9r|50|0|5|ang', 'c9r|len|5'],
+    c9TwoMirrorShow: () => ['c9p|3,1|refV', 'c9p|-3,1|refH', 'c9p|3,1|rot180', 'c9c|3,1|["refV","refH"]|img', 'c9c|one|rot180', 'c9c|order|["refV",["tr",3,0]]'],
     c9CityShow: () => ['c9d|[[3,1],[5,1],[5,3],[4,4],[3,3]]|refV', 'c9n|[[3,1],[5,1],[5,3],[4,4],[3,3]]|refV', 'c9d|[[4,-1],[5,-1],[5,-3],[4,-3]]|rot90', 'c9n|[[4,-1],[5,-1],[5,-3],[4,-3]]|rot90'],
     c7CylShow: () => ['c7cyl|2|10', 'c7cyl|5|5'], c7NetShow: c => c.hook ? [] : ['c7a|sa|2|10', 'c7a|len|2', 'c7a|lat|20'], c7SphereShow: () => ['c7sph|3'],
     c7LiterShow: () => ['c7c|L|1', 'c7c|m3|1|L', 'c7c|m3|1|cm3'],

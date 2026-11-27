@@ -51,22 +51,33 @@
    "art": "fold",
    "again": [
     {
-     "key": "ord",
-     "q": "gen.home.ordQ",
-     "pick": [
-      [
-       "yes",
-       "gen.home.y"
-      ],
-      [
-       "no",
-       "gen.home.n"
-      ]
-     ]
+     "key": "ang",
+     "q": "gen.home.doorA",
+     "min": 10,
+     "max": 180,
+     "val": 60,
+     "unit": "cpDeg",
+     "step": 5
+    },
+    {
+     "key": "c",
+     "q": "gen.home.doorC",
+     "min": 20,
+     "max": 150,
+     "val": 80,
+     "unit": "rulCm"
+    },
+    {
+     "key": "o",
+     "q": "gen.home.doorO",
+     "min": 20,
+     "max": 150,
+     "val": 80,
+     "unit": "rulCm"
     }
    ],
-   "askAgain": "gen.home.askOrd",
-   "sayAgain": "ordAgain",
+   "askAgain": "gen.home.askDoor",
+   "sayAgain": "doorAgain",
    "quiet": true,
    "lines": []
   },
@@ -108,10 +119,15 @@
     {
      "id": "f2",
      "item": {
-      "t": "c8Half",
-      "deg": 66,
-      "ask": "half",
-      "q": "gen.c8.q.half.half"
+      "t": "prReason",
+      "pf": "bisCon",
+      "step": 1,
+      "cands": [
+       "conArcs",
+       "conAny",
+       "measure"
+      ],
+      "q": "gen.pf.q.reason"
      }
     },
     {

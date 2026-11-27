@@ -167,8 +167,9 @@ const HOME_SAY = {
   lampSay: async (r, v) => S(homeTanOk(v.d, v.ang, (v.e || 0) / 100, v.h) ? 'gen.home.lampOk' : 'gen.home.lampCalc'),
   lampAgain: async (r, v) => { const n = r && r.n, e = n && n.e ? n.e / 100 : 0; if (!homeTanOk(v.d2, v.a2, e, v.h2)) return S('gen.home.lampCalc2');
     return S(n && Math.abs(v.h2 - n.h) <= Math.max(.6, .05 * n.h) ? 'gen.home.lampSame' : 'gen.home.lampDiff'); },
-  mir2Say: async (r, v) => S(v.n !== 3 ? 'gen.home.mir2N' : v.rule === 0 ? 'gen.home.mir2Ok' : 'gen.home.mir2Rule'),
-  ordAgain: async (r, v) => S(v.ord === 1 ? 'gen.home.ordOk' : 'gen.home.ordNo'),
+  /* M4-U9 كالمرجع (المراجع A لبوابة M4-U9، 12): زوجا الصورتين، وتحويل الركن، والربع الثالث؛ والباب بعد سبعة أيام بفرق 3٪ في بُعد طرفه */
+  mir3Say: async (r, v) => S(v.v !== 0 || v.corner !== 0 ? 'gen.home.mir3Read' : v.rule !== 0 ? 'gen.home.mir2Rule' : v.q3 !== 0 ? 'gen.home.mir3Q3' : 'gen.home.mir3Ok'),
+  doorAgain: async (r, v) => S(Math.abs(v.o - v.c) <= Math.max(2, .03 * v.c) ? 'gen.home.doorOk' : 'gen.home.doorFar'),
   clockAgain: async (r, v) => { const svg = homeStage(); homeArt(svg, 'clock'); homeClock(svg, 6); await S(v.kind === 2 ? 'gen.home.sixOk' : 'gen.home.sixNo'); await S(v.q === 1 ? 'gen.home.quarterOk' : 'gen.home.quarterNo'); },
 };
 /* صورة ناتج مهمة البيت عبر «صيد الكاميرا» (المرجع: U7 السجادة والخيط، U8 الشريحتان؛ المراجع A لبوابتي U6/U7 (30) وU8/U9 (21)):

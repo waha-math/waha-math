@@ -206,6 +206,18 @@ XF_ORD = r"""() => { hush(); FLOW++; let it = null; for (const id of Object.keys
 XF_CELL = r"""([x, y]) => { const kg = document.querySelector('#stage svg [role=grid]'), R = kg && kg.__rove; if (!R) return false; const c = R[R.length - 1 - y][x]; c.focus(); return document.activeElement === c; }"""
 XF_AT = r"""() => { const kg = document.querySelector('#stage svg [role=grid]'), R = kg && kg.__rove, a = document.activeElement; if (!R) return null; for (let i = 0; i < R.length; i++) { const j = R[i].indexOf(a); if (j >= 0) return [j, R.length - 1 - i, R.flat().filter(c => c.getAttribute('tabindex') === '0').length]; } return null; }"""
 # المستوى الثاني المنقول (HELP_CARRY) يبقى في المسار نفسه ولا يُنسخ إلى درسٍ آخر بعد الخروج (المراجع B لبوابة S3-U6/U7، 4)
+# وفي M4-U9: «ارسم الصورة» على المستوى الكامل بترتيبٍ آخر، ولمستان سريعتان على الخانة نفسها لا تمحوان، ولوحة المفاتيح تبدأ من الأصل (المراجع B لبوابة M4-U9، 6 و8 و12 و15 (ب) (ج))
+C9_ORD = r"""() => { hush(); FLOW++; let it = null; for (const id of Object.keys(LDATA).filter(k => k.startsWith('m4.u9.'))) { const L = LDATA[id], all = [...((L.test && L.test.items) || []).map(q => q.item), ...((L.practice || {}).normal || [])]; it = all.find(x => x && x.t === 'c9Draw' && x.pts.length >= 3); if (it) { CUR = L; break; } }
+  if (!it) return null; show('lesson'); window.__auto = null; window.__ordRes = null; const I = ITEM.c9Draw, item = I.make(JSON.parse(JSON.stringify(it)));
+  I.ask(item, 'practice', 0).then(r => { window.__ordRes = { ok: I.judge(item, r.ans).ok, ans: r.ans, want: item.want }; }, e => { window.__ordRes = { err: String(e) }; }); return item.img; }"""
+C9_CELL = r"""([x, y]) => { const kg = document.querySelector('#stage svg [role=grid]'), R = kg && kg.__rove; if (!R) return false; const m = (R.length - 1) / 2, n = (R[0].length - 1) / 2, c = R[m - y] && R[m - y][x + n]; if (!c) return false; c.focus(); return document.activeElement === c; }"""
+C9_ORIGIN = r"""() => { const c = document.querySelector('#stage svg [role=grid] [tabindex="0"]'); return !!(c && c.hasAttribute('data-origin')); }"""
+# ورتبة الجواب في الخيارات العددية التي يبنيها النوع بنفسه: لا رتبةٌ (أصغر/أوسط/أكبر) في أكثر من ثلثي بنود النوع ولا في أقلّ من ثُمنها، على عشرين بناءً لكل بند (المراجع B لبوابة M4-U9، 3 و15 (د))
+RANKS = r"""() => { const T = {}; for (const id of Object.keys(LDATA)) { const L = LDATA[id], all = []; const add = it => { if (it && typeof it === 'object' && it.t) { all.push(it); if (it.twin) add(it.twin); } };
+    (L.flow || []).forEach(st => (st.items || []).forEach(add)); for (const k of ['normal', 'challenge', 'chaos']) ((L.practice || {})[k] || []).forEach(add); ((L.test && L.test.items) || []).forEach(q => add(q.item)); for (const a of Object.values((L.mastery || {}).remedial || {})) a.forEach(add);
+    for (const it of all) { const I = ITEM[it.t]; if (!I || !I.make) continue; for (let k = 0; k < 20; k++) { let m = null; try { m = I.make(JSON.parse(JSON.stringify(it))); } catch (e) { break; } if (!m || !Array.isArray(m.nums) || typeof m.want !== 'number' || m.nums.length < 3) break;
+      const r = [...m.nums].sort((a, b) => a - b).indexOf(m.want), rk = r === 0 ? 0 : r === m.nums.length - 1 ? 2 : 1, c = T[it.t] || (T[it.t] = [0, 0, 0]); c[rk]++; } } }
+  return T; }"""
 HC_LEAK = r"""async () => { hush(); FLOW++; show('lesson'); const g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.setAttribute('data-help', '1'); HELP_CARRY = { flow: FLOW, nodes: [g] };
   const s1 = newStage(200); await new Promise(r => setTimeout(r, 60)); const kept = !!s1.querySelector('[data-help]'); FLOW++; const s2 = newStage(200); await new Promise(r => setTimeout(r, 60)); const leaked = !!s2.querySelector('[data-help]'); HELP_CARRY = null; return [kept, leaked]; }"""
 KBD_START = r"""([lid, px]) => { hush(); FLOW++; const L = LDATA[lid]; CUR = L; show('lesson'); window.__auto = null; window.__clips = [];
@@ -587,6 +599,20 @@ async def main():
       await pg.evaluate("() => { const b = document.querySelector('#stage .pick.done'); if (b) b.click(); }"); await pg.wait_for_timeout(600); orr = await pg.evaluate("() => window.__ordRes")
       cbase(bool(orr) and orr.get('ok'), '«ارسم الصورة»: الصورة الصحيحة بترتيبٍ معكوس تُحكم صحيحاً (%s)' % orr)
     else: cbase(False, '«ارسم الصورة»: لا بند متعدّد الرؤوس في m3.u6')
+    await pg.evaluate("() => { hush(); FLOW++; }")
+    img = await pg.evaluate(C9_ORD); await pg.wait_for_timeout(900)
+    if img:
+      o0 = await pg.evaluate(C9_ORIGIN); cbase(o0, 'شبكة «ارسم الصورة» على المستوى الكامل تبدأ بخانة الأصل في ترتيب Tab')
+      q = img[0]; await pg.evaluate(C9_CELL, q); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(60); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(80); n2 = await pg.evaluate("() => window.__axPlaced")
+      await pg.wait_for_timeout(500); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(120); n3 = await pg.evaluate("() => window.__axPlaced")
+      cbase(n2 == 1 and n3 == 0, 'c9Draw: لمستان سريعتان على الخانة نفسها تبقيان النقطة، وبعد مهلةٍ تمحوها الثالثة (%s، %s)' % (n2, n3))
+      for q in [img[1], img[0]] + img[2:]: await pg.evaluate(C9_CELL, q); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(450)
+      await pg.evaluate("() => { const b = document.querySelector('#stage .pick.done'); if (b) b.click(); }"); await pg.wait_for_timeout(600); orr = await pg.evaluate("() => window.__ordRes")
+      cbase(bool(orr) and orr.get('ok'), 'c9Draw: الصورة الصحيحة بترتيبٍ آخر تُحكم صحيحاً (%s)' % orr)
+    else: cbase(False, 'c9Draw: لا بند متعدّد الرؤوس في m4.u9')
+    await pg.evaluate("() => { hush(); FLOW++; }")
+    rk = await pg.evaluate(RANKS); bad = {t: c for t, c in rk.items() if sum(c) >= 9 and (max(c) > 2 * sum(c) / 3 or min(c) < sum(c) / 8)}   # ولا رتبةٌ نادرة: «ليس أوسطها أبداً» خطأٌ أيضاً
+    print('ranks:', rk); print('ranks (info, older types):', {t: c for t, c in bad.items() if not t.startswith('c9')}); cbase(not {t: c for t, c in bad.items() if t.startswith('c9')}, 'رتبة الجواب في الخيارات العددية متوازنة (%s)' % {t: c for t, c in bad.items() if t.startswith('c9')})   # صارمٌ من U9، وما قبلها للعلم (c8Half مثلاً: لا مشتّتين أصغر من النصف غالباً)
     await pg.evaluate("() => { hush(); FLOW++; }")
     await pg.evaluate(KBD_START, ['m1.u2.d4', 'flow[5].items[1]']); await pg.wait_for_timeout(1500); t0 = await pg.evaluate(KBTOG, -1)
     await pg.keyboard.press('Space'); await pg.wait_for_timeout(500); t1 = await pg.evaluate(KBTOG, 0)

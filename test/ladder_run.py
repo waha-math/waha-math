@@ -88,6 +88,8 @@ HSNAP = r"""() => { const P = s => s.replace(/[\u064B-\u0652\u0670\u0640]/g, '')
 # ولا يرسم المستوى الثاني الجوابَ في بنود النقطة الواحدة: لا حلقة مساعدة على موضع الجواب (المراجع B لبوابة S3-U6/U7، 2 و18)؛ والحلّ المشترك فيها مرسوم (3)
 ONANS = """() => { const W = window.__axWant || (window.__gridPtWant ? [window.__gridPtWant] : null), at = window.__axWant ? window.__axAt : window.__gridPtAt; if (!W || W.length !== 1 || !at) return null;
   const p = at(W[0][0], W[0][1]); return [...document.querySelectorAll('#stage [data-help] circle')].some(c => { const r = c.getBoundingClientRect(); return Math.hypot((r.left + r.right) / 2 - p.x, (r.top + r.bottom) / 2 - p.y) < 4; }); }"""
+ON3 = """() => { const W = window.__axWant, at = window.__axAt; if (!W || W.length !== 1 || !at) return null; const p = at(W[0][0], W[0][1]), s = document.querySelector('#stage svg'), m = s.getScreenCTM(), near = (x, y) => Math.hypot(m.a * x + m.e - p.x, m.d * y + m.f - p.y) < 5;
+  return [...document.querySelectorAll('#stage [data-help] line, #stage [data-help] circle')].some(e => e.tagName === 'circle' ? near(+e.getAttribute('cx'), +e.getAttribute('cy')) : near(+e.getAttribute('x1'), +e.getAttribute('y1')) || near(+e.getAttribute('x2'), +e.getAttribute('y2'))); }"""   # والحلّ المشترك لا ينتهي على خانة الجواب (المراجع B لبوابة M4-U9، 5)
 ONE_TOG = "() => window.__axWant && window.__axWant.length === 1 ? !!document.querySelector('#stage [data-help]') : null"
 async def main():
   async with async_playwright() as p:
@@ -110,8 +112,8 @@ async def main():
           last = a['n']
           if not st['twin'] and st['fails'] == 2 and s3 is None and typ in HELP2_DRAW: await pg.wait_for_timeout(40); s3 = await pg.evaluate(HSNAP)
           if not st['twin'] and st['fails'] == 3 and s4 is None and typ in HELP2_DRAW: await pg.wait_for_timeout(40); s4 = await pg.evaluate(HSNAP); n3 += 1; n3ok += bool(s4['ok']); (l3ans.append(tag0) if s4['ok'] and any(s4['ok'] == t for t in s4['t']) else None); (l3rep.append(tag0) if s3 and s4['t'] == s3['t'] and s4['n'] == s3['n'] else None)
-          if not st['twin'] and st['fails'] == 2 and third is None: await pg.wait_for_timeout(40); third = await pg.evaluate(H2); third_d = (await pg.evaluate(H2D)) if typ in HELP2_DRAW else None; oa = typ in ('xfDraw', 'coordPlace', 'enDraw') and await pg.evaluate(ONANS); (onans.append(tag0) if oa else None)
-          if not st['twin'] and st['fails'] == 3 and fourth is None: ot = (await pg.evaluate(ONE_TOG)) if typ == 'xfDraw' else None; (onetog.append(tag0) if ot is False else None)
+          if not st['twin'] and st['fails'] == 2 and third is None: await pg.wait_for_timeout(40); third = await pg.evaluate(H2); third_d = (await pg.evaluate(H2D)) if typ in HELP2_DRAW else None; oa = typ in ('xfDraw', 'coordPlace', 'enDraw', 'c9Draw') and await pg.evaluate(ONANS); (onans.append(tag0) if oa else None)
+          if not st['twin'] and st['fails'] == 3 and fourth is None: ot = (await pg.evaluate(ONE_TOG)) if typ in ('xfDraw', 'c9Draw') else None; o3 = typ == 'c9Draw' and await pg.evaluate(ON3); (onans.append(tag0 + '@3') if o3 else None)   # والنقطة الواحدة في c9Draw أيضاً (المراجع B لبوابة M4-U9، 15 (أ)); (onetog.append(tag0) if ot is False else None)
           if not st['twin'] and st['fails'] == 3 and fourth is None: fourth = await pg.evaluate(GONE)   # انتظار المحاولة الرابعة: ما رُسم منذ الحكم الثالث
           h = 'wrong' if not st['twin'] and a['wrong'] and st['fails'] < 3 else 'ok'
           await pg.evaluate("(h) => { const a = window.__auto; if (a) (h === 'wrong' && a.wrong ? a.wrong : a.ok)(); }", h); continue
@@ -146,7 +148,8 @@ async def main():
     for typ, L in sorted(lvl2.items()):
       miss = [t for h, t in L if not h]
       check(not miss, '%s: المستوى الثاني باقٍ على مسرح المحاولة الثالثة (%d%s)' % (typ, len(L), '' if not miss else '؛ بلا شيء: ' + ', '.join(miss[:3])))
-    check(n3 > 0 or not ONLY, 'فحصا المستوى الثالث بلغا بنوداً (%d)' % n3)
+    c3 = sum(1 for x in items if x[2] in HELP2_DRAW)   # بنودٌ من الأنواع المفحوصة في الدروس المختارة: بلا شيءٍ منها (دروس م1 في الطفرات) لا يُطلب بلوغها (بوابة ws78a)
+    check(n3 > 0 or not ONLY or not c3, 'فحصا المستوى الثالث بلغا بنوداً (%d من %d مرشّحاً)' % (n3, c3))
     check(not l3ans, 'الحلّ المشترك لا يكتب نصّ الخيار الصحيح في المساعدة (%s)' % (', '.join(l3ans[:3]) or '%d بنداً بمستوى ثالث، %d منها بنصّ خيار صحيح يُقارن' % (n3, n3ok)))   # المراجع B لبوابة M4-U7/U8، 4
     # يُلزَم في أنواع U7–U9 (c7، c8، c9) التي بُني الفحص معها؛ وما قبلها يُطبع للعلم بأنواعه (مؤجّلٌ لمراجعة سلالمها: إغلاق بوابة M4-U7/U8، القسم 4)
     l3new = [t for t in l3rep if re.search(r'\((c7|c8|c9)[A-Z]', t)]; l3old = sorted({re.search(r'\(([^)]+)\)$', t).group(1) for t in l3rep if t not in l3new and re.search(r'\(([^)]+)\)$', t)})

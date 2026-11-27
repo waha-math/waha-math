@@ -157,7 +157,7 @@ ITEM.digitMatch = {
 ITEM.fill = {
   make(spec) { return { ...spec, tag: 'fill', want: spec.n }; },
   async ask(item, mode, tries) { const svg = newStage(290, { oasis: false, ground: 0 }); const mb = mailboxAt(svg, 250, 104, 0); digitCard(svg, 250, 30, item.n, { size: .8 });
-    const pile = layoutPts(10, 'row', 92, 104, 34); const inside = []; const pcs = pile.map((p, i) => { const g = el('g', { transform: `translate(${p.x} ${p.y})` }, svg); el('rect', { x: -12, y: -9, width: 24, height: 18, rx: 3, fill: '#fff', stroke: '#c98f55', 'stroke-width': 2 }, g); el('path', { d: 'M-12 -9 L0 1 L12 -9', fill: 'none', stroke: '#c98f55', 'stroke-width': 2 }, g); return { g, p, inB: false }; });
+    const pile = layoutPts(10, 'row', 122, 104, 30);   /* منطقة لمس الرسالة الطرفية (104) داخل الشاشة: كانت تبدأ قبل حافّتها (الهدف الخارج عن عرض الشاشة، بوابة ws34g) */ const inside = []; const pcs = pile.map((p, i) => { const g = el('g', { transform: `translate(${p.x} ${p.y})` }, svg); el('rect', { x: -12, y: -9, width: 24, height: 18, rx: 3, fill: '#fff', stroke: '#c98f55', 'stroke-width': 2 }, g); el('path', { d: 'M-12 -9 L0 1 L12 -9', fill: 'none', stroke: '#c98f55', 'stroke-width': 2 }, g); return { g, p, inB: false }; });
     const slot = j => ({ x: 250 - 26 + (j % 5) * 13, y: 104 - 30 + Math.floor(j / 5) * 20 });
     const place = (pc, on) => { pc.inB = on; pc.g.dataset.twin = on ? 'in' : 'out'; if (on) inside.push(pc); else inside.splice(inside.indexOf(pc), 1); inside.forEach((q, j) => { const s = slot(j); q.g.setAttribute('transform', `translate(${s.x} ${s.y}) scale(.55)`); }); if (!on) pc.g.setAttribute('transform', `translate(${pc.p.x} ${pc.p.y})`); };
     if (tries >= 3 && !item.n) await S('gen.fill.zero');   /* بطاقة الصفر: لا شيء نضعه (N003) */
