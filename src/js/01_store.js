@@ -191,9 +191,10 @@ const DG = n => SET.digits === 'east' ? String(n).replace(/\d/g, d => '٠١٢٣�
    MS: نصّ فيه أعداد (كل رقم ونقطة عشرية بين رقمين). MF: صيغة رموزها بين مسافات، تُعرض من اليمين مع المشرقية (D251): الرموز معكوسة والأقواس في موضعها،
    وتُرسم بـ mfSet (ltr مع bidi-override، فلا يقلب المتصفّح رقمي العدد) */
 const MS = s => SET.digits === 'east' ? String(s).replace(/(\d)\.(?=\d)/g, '$1٫').replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]).replace(/²/g, '\u2063٢').replace(/\u00B3/g, '\u2063٣') : String(s);   /* والأسّ مشرقيٌّ مع المشرقية، يرفعه supRaise (B-17، قرار فراس 27 نوفمبر 2026، الخيار أ) */
-const MF = s => SET.digits === 'east' ? String(s).split(' ').reverse().map(t => t.startsWith('(') ? t.slice(1) + ')' : t.endsWith(')') ? '(' + t.slice(0, -1) : t).map(MS).join(' ') : String(s);
+const MF = s => SET.digits === 'east' || /[\u0621-\u064A]/.test(s) ? String(s).split(' ').reverse().map(t => t.startsWith('(') ? t.slice(1) + ')' : t.endsWith(')') ? '(' + t.slice(0, -1) : t).map(MS).join(' ') : String(s);
 /* «a × b» بالأرقام الغربية يُكتب من اليسار داخل جملة عربية: عزلٌ باتجاه اليسار (D280 (2)، المراجع A لبوابة S3-U8/U9، 22)؛ وبالمشرقية من اليمين كما هو */
 const MX = s => SET.digits === 'west' && /[0-9]/.test(s) && !/[\u0621-\u064A]/.test(s) ? '\u2066' + s + '\u2069' : s;   /* بلا حرف عربي: «120 سم مكعب» يبقى من اليمين */
+/* وما فيه حرفٌ عربي يُقرأ من اليمين بالكتابتين (D280 (1)، المراجع A لبوابة M4-U5/U6، 20) */
 const mfSet = (t, s) => { t.setAttribute('direction', 'ltr'); t.setAttribute('unicode-bidi', 'bidi-override'); t.textContent = MF(s); return t; };
 const fmt = {
   num: DG,

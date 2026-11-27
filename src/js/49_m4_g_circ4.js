@@ -109,7 +109,7 @@ ITEM.ci4Ang = cpItem({ H: 250, tLine: 'gen.ci4.together.ang', hint: 'gen.ci4.hin
     if (tries >= 3) ciEq(helpG(svg), 180, 238, cq ? `${item.ins} × 2 = ؟` : item.cen === 180 ? `180 ÷ 2 = ؟` : `${item.cen} ÷ 2 = ؟`, C6.hl, 16); return { q: cq ? c : i }; },
   sayQ: async it => { await sayDeg(it.ask === 'cen' ? it.ins : it.cen); await S('gen.ci4.q.ang.' + it.ask + 'End', { append: true, sep: '، ' }); },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), F = item._g; if (F) el('path', { d: angArc(F.O, F.R, F.a1, F.a2), fill: 'none', stroke: H2C[0], 'stroke-width': 8, opacity: .5, 'stroke-linecap': 'round', 'pointer-events': 'none' }, m);   /* القوس الذي تقف عليه الزاويتان */
-    ciRule(m, 180, 238, labelText('ci4RuleInsc'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, 238, labelText('ci4AskInsc'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   show: async (item, ctx) => { if (ctx && ctx.q) arSetDeg(ctx.q, item.want, C6.ok); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); ctx.np = np; return np.p; },
   errOf: (it, k) => it.ask === 'cen' ? (k === it.ins ? 'ciInsEqCen' : 'ciCenOff') : k === it.cen ? 'ciInsEqCen' : k === 2 * it.cen ? 'ciInsDouble' : 'ciInsOff' });
@@ -128,8 +128,9 @@ ITEM.ci4Sector = cpItem({ H: 262, tLine: 'gen.ci4.together.sector', hint: 'gen.c
     arArc(g, O, a1, a2, { r: 22, col: C6.r, deg: item.ang, dl: 20, fs: 14, fill: true });
     if (item.r != null) ciTop(svg, 'r', item.r, item.u, 36); else ciTop(svg, item.C != null ? 'C' : 'A', item.C ?? item.A, item.u, 36);
     if (tries >= 3) ciEq(helpG(svg), 180, 252, `${item.ang} ÷ 360 × ${item.W} = ؟`, C6.hl, 15); return {}; },
-  h2: async (item, ctx) => { const m = helpG(ctx.svg), G = item._g; if (G) { el('circle', { cx: G.O[0], cy: G.O[1], r: G.R + 7, fill: 'none', stroke: H2C[1], 'stroke-width': 3, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m); el('path', { d: `M${G.O[0]} ${G.O[1]} L${angP(G.O, G.a1, G.R).join(' ')} ` + angArc(G.O, G.R, G.a1, G.a2).replace(/^M[^A]*/, '') + ' Z', fill: H2C[0], opacity: .25, 'pointer-events': 'none' }, m); }   /* الجزء من الكلّ: القطاع ودائرته كاملة */
-    ciRule(m, 180, 252, labelText(item.kind === 'arc' ? 'ci4RuleArc' : 'ci4RuleArea').replace('N', MS('360')), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), G = item._g; if (G) { el('circle', { cx: G.O[0], cy: G.O[1], r: G.R + 7, fill: 'none', stroke: H2C[1], 'stroke-width': 3, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m); el('path', { d: `M${G.O[0]} ${G.O[1]} L${angP(G.O, G.a1, G.R).join(' ')} ` + angArc(G.O, G.R, G.a1, G.a2).replace(/^M[^A]*/, '') + ' Z', fill: H2C[0], opacity: .25, 'pointer-events': 'none' }, m);
+      const gcd = (a, b) => b ? gcd(b, a % b) : a, st = gcd(item.ang, 360); for (let a = 0; a < 360; a += st) { const Q = angP(G.O, G.a1 + a, G.R); geoLine(m, G.O[0], G.O[1], Q[0], Q[1], { color: H2C[1], w: 2, dash: '4 4' }); } }   /* الجزء من الكلّ شرائحَ مثله (المراجع A، 10 ب) */
+    ciRule(m, 180, 252, labelText('ci4AskSector'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.cands.map(v => [String(v), ciTxt(v, item.uk), '<i></i>', ciLine(v, item.uk)])), String(item.want)),
   errOf: (it, k) => +k === c6R(it.W / 2) ? 'ciArcHalf' : +k === c6R(it.W - it.want) ? 'ciArcOther' : +k === c6R(it.W * it.ang / 180) ? 'ciArcDouble' : 'ciArcOff' });
 { const j0 = ITEM.ci4Sector.judge; ITEM.ci4Sector.judge = (item, k) => k === String(item.want) ? { ok: true } : j0(item, k); }   /* مفاتيح الاختيار نصوص والجواب عدد */
