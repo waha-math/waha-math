@@ -39,17 +39,19 @@ function c7VolCh(s) { const pi = 3.14, r = s.r ?? (s.d != null ? s.d / 2 : null)
   return { r, base, ch: ch.filter((c, i, X) => X.findIndex(d => d[0] === c[0]) === i).slice(0, 3) }; }
 ITEM.c7Vol = cpItem({ H: 262, tLine: 'gen.c7.together.vol', hint: 'gen.c7.hint.vol', rLine: 'gen.ci.reveal.calc', rSay: it => S(c7Line(it.want, it.uk), { append: true }), praise: 'praiseThink',
   make: s => { const R = c7VolCh(s); return { want: R.ch[0][0], ch: R.ch, r0: R.r, base: R.base, uk: s.out === 'L' ? 'L' : s.ask === 'h' ? s.u : s.u + '3', tag: 'c7-vol-' + s.fig + (s.ask === 'h' ? '-h' : s.out ? '-tank' : '') }; },
-  draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg), F = c7Shape(g, item.fig, { cx: 196, bot: 214 }), u = item.u, hu = item.hm != null ? 'm' : u;
+  draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg), top = item.ask === 'h' || item.B != null, F = c7Shape(g, item.fig, top ? { cx: 196, bot: 226, H: 92, rx: 56, ry: 15 } : { cx: 196, bot: item.fig === 'pyr' ? 214 : 222, H: 116, R: 70 }), u = item.u, hu = item.hm != null ? 'm' : u; item._g = F;   /* بسطرٍ علويّ يصغر الشكل ليتّسع السطر والبطاقة وعملية المستوى الثالث فوقه (المعروف (1) لبوابة M4-U7/U8) */
     if (item.fig === 'sph') c7RLine(g, [F.cx, F.cy], F.rEnd, ciTxt(item.r, u));
-    else if (item.fig === 'pyr') { if (item.B != null) preLab(g, 180, 24, labelText('c7Base') + ': ' + ciTxt(item.B, u + '2'), { fs: 15, dir: 'rtl', col: C7.coneEdge }); else preLab(g, (F.A[0] + F.B[0]) / 2, F.bot + 20, ciTxt(item.s, u), { fs: 15, dir: 'rtl', col: C7.coneEdge }); }
-    else if (item.B != null) preLab(g, 180, 24, labelText('c7Base') + ': ' + ciTxt(item.B, u + '2'), { fs: 15, dir: 'rtl', col: C7.r });
+    else if (item.fig === 'pyr') { if (item.B != null) preLab(g, 180, 46, labelText('c7Base') + ': ' + ciTxt(item.B, u + '2'), { fs: 15, dir: 'rtl', col: C7.coneEdge }); else preLab(g, (F.A[0] + F.B[0]) / 2, F.bot + 20, ciTxt(item.s, u), { fs: 15, dir: 'rtl', col: C7.coneEdge }); }
+    else if (item.B != null) preLab(g, 180, 46, labelText('c7Base') + ': ' + ciTxt(item.B, u + '2'), { fs: 15, dir: 'rtl', col: C7.r });
     else if (item.d != null) { const y = item.fig === 'cyl' ? F.top : F.bot; c7RLine(g, [F.cx - F.rx, y], [F.cx + F.rx, y], labelText('c7Diam') + ' ' + ciTxt(item.d, u), CI.d || C7.r); }
     else c7RLine(g, F.ctr, F.rEnd, ciTxt(item.r, u));
     if (item.fig !== 'sph') c7HArrow(g, F.cx - F.rx - 24, F.top, F.bot, item.ask === 'h' ? '؟' : ciTxt(item.hm ?? item.h, hu), item.ask === 'h' ? C7.q : C7.ink);
-    if (item.ask === 'h') preLab(g, 180, 24, labelText('c7Vol') + ': ' + c7Txt(item.V, u + '3'), { fs: 15, dir: 'rtl' });
-    if (item.fig !== 'pyr' && item.B == null) c7PiNote(g, 300, 252);
-    if (tries >= 3) ciEq(helpG(svg), 180, item.ask === 'h' || item.B != null ? 50 : 30, c7Calc(item), C7.hl, 15); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, item.ask === 'h' || item.B != null ? 54 : 30, labelText('c7Rule.' + (item.fig === 'pyr' ? 'cone' : item.fig)), C7.hl, 15); await sleep(FAST ? 10 : 250); },
+    if (item.ask === 'h') preLab(g, 180, 46, labelText('c7Vol') + ': ' + c7Txt(item.V, u + '3'), { fs: 15, dir: 'rtl' });
+    if (item.fig !== 'pyr' && item.B == null) c7PiNote(g, 270, 240);   /* داخل الإطار (المعروف (1) لبوابة M4-U7/U8) */
+    if (tries >= 3) ciEq(helpG(svg), 180, top ? 112 : 76, c7Calc(item), C7.hl, 15); return {}; },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), F = item._g;   /* المستوى الثاني رسمٌ (المعروف (2) لبوابة M4-U7/U8): القاعدة مظلّلةً والارتفاع، أو نصف القطر للكرة */
+    if (F) { if (item.fig === 'sph') hlSeg(m, [F.cx, F.cy], F.rEnd, H2C[0]); else { if (item.fig === 'pyr') el('polygon', { points: polyStr([F.A, F.B, F.Cc, F.D]), fill: H2C[0], opacity: .35, 'pointer-events': 'none' }, m); else el('ellipse', { cx: F.cx, cy: item.fig === 'cyl' ? F.top : F.bot, rx: F.rx, ry: F.ry, fill: H2C[0], opacity: .35, 'pointer-events': 'none' }, m); hlSeg(m, [F.cx - F.rx - 24, F.top], [F.cx - F.rx - 24, F.bot], H2C[1]); } }
+    ciRule(m, 180, item.ask === 'h' || item.B != null ? [76] : [36], labelText('c7Rule.' + (item.fig === 'pyr' ? 'cone' : item.fig)), C7.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), c7Txt(v, item.uk), '<i></i>', c7Line(v, item.uk)])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'c7VolOff' });
 ITEM.c7Vol.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(v) === k) || [])[1] || 'c7VolOff' };
@@ -63,19 +65,22 @@ function c7Calc(it) { const r = it.r0, h = it.hm != null ? it.hm * 100 : it.h;
 function c7SACh(s) { const pi = 3.14, b2 = 2 * pi * s.r * s.r, lat = 2 * pi * s.r * s.h, len = 2 * pi * s.r;
   const ch = { sa: [[c7R1(b2 + lat), 'ok'], [c7R1(lat), 'saLatOnly'], [c7R1(pi * s.r * s.r + lat), 'saOneBase'], [c7R1(b2 + pi * s.r * s.h), 'saHalfC']], lat: [[c7R1(lat), 'ok'], [c7R1(pi * s.r * s.h), 'saHalfC'], [c7R1(pi * s.r * s.r * s.h), 'saVol'], [c7R1(b2 + lat), 'saAll']], len: [[c7R1(len), 'ok'], [c7R1(pi * s.r), 'lenHalf'], [c7R1(pi * s.r * s.r), 'lenArea'], [c7R1(2 * s.r), 'lenDiam']] }[s.ask];
   return ch.filter((c, i, X) => X.findIndex(d => d[0] === c[0]) === i).slice(0, 3); }
-function c7Net(g, r, h, o = {}) { const k = Math.min(210 / (2 * 3.14 * r), (o.hmax ?? 116) / h), W = 2 * 3.14 * r * k, Hh = h * k, R = r * k, x0 = 180 - W / 2, y0 = o.y0 ?? 112 - Hh / 2 + 10;
+function c7Net(g, r, h, o = {}) { const k = Math.min(210 / (2 * 3.14 * r), (o.hmax ?? 116) / h, (o.fit ?? 160) / (h + 4 * r)), W = 2 * 3.14 * r * k, Hh = h * k, R = r * k, x0 = 180 - W / 2, y0 = o.y0 ?? 112 - Hh / 2;   /* الدائرتان داخل الإطار (المعروف (1)) */
   el('rect', { x: x0, y: y0, width: W, height: Hh, fill: C7.side, stroke: C7.edge, 'stroke-width': 3 }, g);
   for (const cy of [y0 - R, y0 + Hh + R]) { el('circle', { cx: x0 + W / 2, cy, r: R, fill: C7.top, stroke: C7.edge, 'stroke-width': 3 }, g); el('circle', { cx: x0 + W / 2, cy, r: 3, fill: C7.ink }, g); }
   return { x0, y0, W, Hh, R, cTop: [x0 + W / 2, y0 - R] }; }
 ITEM.c7SA = cpItem({ H: 262, tLine: 'gen.c7.together.sa', hint: 'gen.c7.hint.sa', rLine: 'gen.ci.reveal.calc', rSay: it => S(c7Line(it.want, it.uk), { append: true }), praise: 'praiseThink',
   make: s => { const ch = c7SACh(s); return { want: ch[0][0], ch, uk: s.ask === 'len' ? s.u : s.u + '2', tag: 'c7-sa-' + s.ask }; },
-  draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg), N = c7Net(g, item.r, item.h), u = item.u;
+  draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg), N = c7Net(g, item.r, item.h), u = item.u; item._g = N;
     c7RLine(g, N.cTop, [N.cTop[0] + N.R, N.cTop[1]], ciTxt(item.r, u)); c7HArrow(g, N.x0 - 14, N.y0, N.y0 + N.Hh, ciTxt(item.h, u));
     preLab(g, 180, N.y0 + N.Hh / 2 + 6, item.ask === 'len' ? '؟' : labelText('c7Perim'), { fs: item.ask === 'len' ? 20 : 13, col: item.ask === 'len' ? C7.q : C7.edge, dir: 'rtl' });
     if (item.ask === 'sa') for (const cy of [N.y0 - N.R, N.y0 + N.Hh + N.R]) el('circle', { cx: 180, cy, r: N.R, fill: 'rgba(217,130,43,.25)', stroke: 'none' }, g);
-    c7PiNote(g, 300, 252);
+    if (tries < 3) c7PiNote(g, 270, 240);
     if (tries >= 3) ciEq(helpG(svg), 150, 252, { sa: `2 × 3.14 × ${item.r} × ${item.r} + 2 × 3.14 × ${item.r} × ${item.h}`, lat: `2 × 3.14 × ${item.r} × ${item.h} = ؟`, len: `2 × 3.14 × ${item.r} = ؟` }[item.ask], C7.hl, 13); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 20, labelText('c7RuleSA.' + item.ask), C7.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg), N = item._g;   /* الجزء المطلوب من الشبكة مظلّلاً: طول المستطيل حول الدائرة، أو المستطيل، أو الثلاثة */
+    if (N) { if (item.ask === 'len') { el('circle', { cx: N.cTop[0], cy: N.cTop[1], r: N.R + 3, fill: 'none', stroke: H2C[0], 'stroke-width': 5, opacity: .7, 'pointer-events': 'none' }, m); hlSeg(m, [N.x0, N.y0], [N.x0 + N.W, N.y0], H2C[0]); }
+      else { el('rect', { x: N.x0, y: N.y0, width: N.W, height: N.Hh, fill: H2C[0], opacity: .3, 'pointer-events': 'none' }, m); if (item.ask === 'sa') for (const cy of [N.y0 - N.R, N.y0 + N.Hh + N.R]) el('circle', { cx: N.x0 + N.W / 2, cy, r: N.R, fill: H2C[1], opacity: .3, 'pointer-events': 'none' }, m); } }
+    ciRule(m, 180, [212], labelText('c7RuleSA.' + item.ask), C7.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), c7Txt(v, item.uk), '<i></i>', c7Line(v, item.uk)])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'c7SAOff' });
 ITEM.c7SA.judge = (item, k) => k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(v) === k) || [])[1] || 'c7SAOff' };
@@ -90,7 +95,8 @@ ITEM.c7Conv = cpItem({ H: 236, tLine: 'gen.c7.together.conv', hint: 'gen.c7.hint
   draw(svg, item, tries) { const g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 3, 3, 3, { s: 30, cx: 180, cy: 132 });
     el('rect', { x: 70, y: 14, width: 220, height: 40, rx: 12, fill: '#fff', stroke: C7.edge, 'stroke-width': 2 }, g); preLab(g, 180, 41, c7Txt(item.v, item.from) + ' = ؟ ' + c7U(item.to), { fs: 19, dir: 'rtl', col: C7.edge });
     if (tries >= 3) ciRule(helpG(svg), 180, 216, labelText(item.from === 'm3' || item.to === 'm3' ? 'c7RuleM3' : 'c7RuleL'), C7.hl, 15); return {}; },
-  h2: async (item, ctx) => { ciRule(helpG(ctx.svg), 180, 216, labelText(item.from === 'm3' ? 'c7RuleM3' : 'c7RuleL'), C7.hl, 15); await sleep(FAST ? 10 : 250); },
+  h2: async (item, ctx) => { const m = helpG(ctx.svg); el('rect', { x: 128, y: 80, width: 104, height: 104, rx: 8, fill: 'none', stroke: H2C[0], 'stroke-width': 3, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m);   /* المكعب كلّه: كم مكعباً صغيراً فيه؟ */
+    ciRule(m, 180, 216, labelText(item.from === 'm3' ? 'c7RuleM3' : 'c7RuleL'), C7.hl, 15); await sleep(FAST ? 10 : 250); },
   sayQ: async it => { await S(c7Line(it.v, it.from), { append: true }); await S('gen.c7.q.convTo.' + it.to, { append: true }); },
   pick: item => choosePick(shuffle(item.ch.map(([v]) => [String(v), c7Txt(v, item.to), '<i></i>', c7Line(v, item.to)])), String(item.want)),
   errOf: (it, k) => (it.ch.find(([v]) => String(v) === k) || [])[1] || 'c7ConvOff' });
@@ -112,7 +118,7 @@ SCENES.c7CylHook = async c => { const L = c.lines, svg = m3Stage(250), g = el('g
   const w = el('g', { 'pointer-events': 'none' }, svg); for (let i = 1; i <= 7; i++) { el('ellipse', { cx: 180, cy: 210 - i * 20, rx: 66, ry: 17, fill: 'rgba(80,160,220,.18)', stroke: C7.edge, 'stroke-width': 1.4 }, w); SFX.tick(); await sleep(FAST ? 2 : 160); } await c7Say(L, 1); for (const l of L.slice(2)) await S(l); };
 SCENES.c7CylShow = async c => { const L = c.lines, svg = m3Stage(250), g = el('g', { 'pointer-events': 'none' }, svg), F = c7Shape(g, 'cyl', { cx: 210, bot: 210, H: 130 });
   c7RLine(g, F.ctr, F.rEnd, ciTxt(2, 'cm')); el('ellipse', { cx: F.cx, cy: F.top, rx: F.rx, ry: F.ry, fill: 'rgba(217,130,43,.3)' }, g); await c7Say(L, 0);
-  c7HArrow(g, F.cx - F.rx - 24, F.top, F.bot, ciTxt(10, 'cm')); SFX.tick(); await c7Say(L, 1); ciEq(g, 180, 30, '3.14 × 2 × 2 × 10 = 125.6', C7.ok, 17); c7PiNote(g, 290, 232); SFX.tick(); await c7Say(L, 2); for (const l of L.slice(3)) await S(l); };
+  c7HArrow(g, F.cx - F.rx - 24, F.top, F.bot, ciTxt(10, 'cm')); SFX.tick(); await c7Say(L, 1); ciEq(g, 180, 30, '3.14 × 2 × 2 × 10 = 125.6', C7.ok, 17); c7PiNote(g, 44, 228); SFX.tick(); await c7Say(L, 2); for (const l of L.slice(3)) await S(l); };
 /* د2: نفتح العلبة: دائرتان ومستطيلٌ طوله المحيط */
 SCENES.c7NetShow = async c => { const L = c.lines, svg = m3Stage(262); let g = el('g', { 'pointer-events': 'none' }, svg); c7Shape(g, 'cyl', { cx: 180, bot: 200, H: 120 }); await c7Say(L, 0);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); const N = c7Net(g, 2, 10); preLab(g, 180, N.y0 + N.Hh / 2 + 6, labelText('c7Perim'), { fs: 14, col: C7.edge, dir: 'rtl' }); c7HArrow(g, N.x0 - 14, N.y0, N.y0 + N.Hh, ciTxt(10, 'cm')); SFX.tick(); await c7Say(L, 1);
@@ -126,8 +132,8 @@ SCENES.c7SphereShow = async c => { const L = c.lines, svg = m3Stage(250), g = el
   ciEq(g, 180, 30, '4 ÷ 3 × 3.14 × 3 × 3 × 3 = 113.04', C7.ok, 15); SFX.tick(); await c7Say(L, 1); for (const l of L.slice(2)) await S(l); };
 /* د4: المكعب 10 سم لترٌ، والمتر المكعب ألف لتر */
 SCENES.c7LiterShow = async c => { const L = c.lines, svg = m3Stage(250); let g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 3, 3, 3, { s: 36, cx: 180, cy: 140 }); ciEq(g, 180, 28, '10 × 10 × 10 = 1000', C7.ok, 17); await c7Say(L, 0);
-  preLab(g, 180, 238, '1000 ' + labelText('voCm3') + ' = 1 ' + labelText('voL'), { fs: 16, dir: 'rtl', col: C7.edge }); SFX.tick(); await c7Say(L, 1);
-  g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 4, 4, 4, { s: 30, cx: 180, cy: 140 }); ciEq(g, 180, 28, `100 × 100 × 100 = ${c7G(1000000)}`, C7.ok, 16); preLab(g, 180, 238, MS('1') + ' ' + labelText('voM3') + ' = ' + MS('1000') + ' ' + labelText('voL'), { fs: 16, dir: 'rtl', col: C7.edge }); SFX.tick(); await c7Say(L, 2); for (const l of L.slice(3)) await S(l); };
+  preLab(g, 180, 228, '1000 ' + labelText('voCm3') + ' = 1 ' + labelText('voL'), { fs: 16, dir: 'rtl', col: C7.edge }); SFX.tick(); await c7Say(L, 1);
+  g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); soBox(g, 4, 4, 4, { s: 30, cx: 180, cy: 140 }); ciEq(g, 180, 28, `100 × 100 × 100 = ${c7G(1000000)}`, C7.ok, 16); preLab(g, 180, 228, MS('1') + ' ' + labelText('voM3') + ' = ' + MS('1000') + ' ' + labelText('voL'), { fs: 16, dir: 'rtl', col: C7.edge }); SFX.tick(); await c7Say(L, 2); for (const l of L.slice(3)) await S(l); };
 /* د4: خزان الماء: نصف قطره 50 سم وارتفاعه 1 م */
 SCENES.c7TankShow = async c => { const L = c.lines, svg = m3Stage(262), g = el('g', { 'pointer-events': 'none' }, svg), F = c7Shape(g, 'cyl', { cx: 200, bot: 222, rx: 72, ry: 18, H: 150 });
   c7RLine(g, F.ctr, F.rEnd, ciTxt(50, 'cm')); c7HArrow(g, F.cx - F.rx - 24, F.top, F.bot, ciTxt(1, 'm')); await c7Say(L, 0);

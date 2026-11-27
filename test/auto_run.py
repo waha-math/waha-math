@@ -402,8 +402,8 @@ async def main():
     print('empty drags:', len(empty)); [print(' ', *k) for k in list(empty)[:20]]
     print('squeezed stages:', len(squeeze)); [print(' ', *k, v) for k, v in list(squeeze.items())[:30]]
     print('clipped texts:', len(clipt)); [print(' ', *k) for k in list(clipt)[:20]]
-    TXSTRICT = ('m3.', 'm4.u1.', 'm4.u2.', 'm4.u3.', 'm4.u4.', 'm4.u5.', 'm4.u6.')   # م3 وما أُغلقت بوابته من م4 تُفحص (M4-U1/U2)، والباقي من م4 يُطبع للعلم حتى تُراجَع بوابته
-    COVERSTRICT = ('m4.u3.', 'm4.u4.', 'm4.u5.', 'm4.u6.')   # الشكل المعتم فوق نصّ: صارمٌ في الوحدتين، وللعلم في غيرهما حتى تُراجَع (44 في م3 وU1/U2 عند إضافته)
+    TXSTRICT = ('m3.', 'm4.u1.', 'm4.u2.', 'm4.u3.', 'm4.u4.', 'm4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.')   # م3 وما أُغلقت بوابته من م4 تُفحص (M4-U1/U2)، والباقي من م4 يُطبع للعلم حتى تُراجَع بوابته
+    COVERSTRICT = ('m4.u3.', 'm4.u4.', 'm4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.')   # الشكل المعتم فوق نصّ: صارمٌ في الوحدتين، وللعلم في غيرهما حتى تُراجَع (44 في م3 وU1/U2 عند إضافته)
     textov3 = {k: v for k, v in textov.items() if k[0].startswith(TXSTRICT) and (not str(k[2]).startswith('شكلٌ يغطّي') or k[0].startswith(COVERSTRICT))}; contr3 = {k: v for k, v in contr.items() if k[0].startswith(TXSTRICT)}
     if os.environ.get('DARK') == '1': print('low contrast (dark):', len(contr3), '(m4: %d)' % (len(contr) - len(contr3))); [print(' ', *k) for k in list(contr)[:20]]
     print('text overlaps/out of frame:', len(textov3), '(m4: %d)' % (len(textov) - len(textov3))); [print(' ', *k) for k in list(textov)[:20]]
