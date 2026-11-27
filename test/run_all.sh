@@ -48,6 +48,7 @@ timeout 1800 python3 test/quicktap_run.py                       > "$O/quicktap.t
 timeout 1800 python3 test/items_run.py                          > "$O/items.txt" 2>&1         || echo items >> "$O/FAILED"   # كل بند يُقيَّم أو يُراجَع صحيحاً وخطأً، والطرق المرسومة (الفحص المستقل C)
 timeout 1800 python3 test/ladder_run.py                         > "$O/ladder.txt" 2>&1        || echo ladder >> "$O/FAILED"   # الحلّ المشترك باقٍ في المحاولة الرابعة (D257(5)(و))
 timeout 2400 python3 test/audit_run.py                         > "$O/audit.txt" 2>&1         || echo audit >> "$O/FAILED"   # قبول تقرير المهندس الخصم A01–A08 (28 أكتوبر 2026)
+SKIP=X-03,N-01 timeout 6600 python3 test/adv_run.py            > "$O/adv.txt" 2>&1           || echo adv >> "$O/FAILED"     # قبول مراجعة الخصم الشاملة (5 نوفمبر 2026)، إلا الهاتف بالعرض (الجزءان m وn)
 timeout 1800 python3 test/fresh_run.py                         > "$O/fresh.txt" 2>&1         || echo fresh >> "$O/FAILED"   # قبول المراجعة بعين جديدة (13 نوفمبر 2026)
 timeout 2400 python3 test/decisions_run.py                     > "$O/decisions.txt" 2>&1     || echo decisions >> "$O/FAILED"   # قبول قرارات فراس (14 نوفمبر 2026، D266)
 timeout 900 python3 test/m4dec_run.py                        > "$O/m4dec.txt" 2>&1         || echo m4dec >> "$O/FAILED"   # قبول قرارات فراس (27 نوفمبر 2026): العدسة والأسّ المرفوع ولون المنشور
@@ -57,12 +58,14 @@ if in_part m; then   # الطفرات على جزأين (بوابة S1-U4 بعد
 [ -f "$O/FAILED" ] && sed -i '/^mutants$/d; /^mutcount$/d' "$O/FAILED"
 CONTENT_ONLY=1 timeout 3600 python3 test/mutants_run.py         > "$O/mutants.txt" 2>&1       || echo mutants >> "$O/FAILED"   # كل فحص جديد يخفق على الخطأ القديم (الدرس 98)
 mut_slices 1
-[ -f "$O/FAILED" ] && sed -i '/^adv$/d' "$O/FAILED"
-LANDPAR=4 timeout 9000 python3 test/adv_run.py                           > "$O/adv.txt" 2>&1           || echo adv >> "$O/FAILED"     # قبول مراجعة الخصم الشاملة (5 نوفمبر 2026)؛ في الجزء m بعد الطفرات: تجاوز 6600 ثانية في الجزء a (بوابة ws56a)
+[ -f "$O/FAILED" ] && sed -i '/^adv_land1$/d' "$O/FAILED"
+ONLY=X-03,N-01 LANDVP=640x360,740x360 timeout 7200 python3 test/adv_run.py > "$O/adv_land1.txt" 2>&1 || echo adv_land1 >> "$O/FAILED"   # الهاتف بالعرض بحجمين (والحجمان الآخران في الجزء n): فحصه بالأحجام الأربعة تجاوز وحده ساعتين (بوابتا ws56a وws78a)
 fi
 if in_part n; then   # (و«mutants2» من الطريقة السابقة: كان النصف الثاني ملفاً واحداً)
 [ -f "$O/FAILED" ] && sed -i '/^mutcount$/d; /^mutants2$/d' "$O/FAILED"
 mut_slices 2
+[ -f "$O/FAILED" ] && sed -i '/^adv_land2$/d' "$O/FAILED"
+ONLY=X-03,N-01 LANDVP=844x390,412x860 timeout 7200 python3 test/adv_run.py > "$O/adv_land2.txt" 2>&1 || echo adv_land2 >> "$O/FAILED"
 SHOTS=0 CLIPS_OUT="$O/clips/auto_deep_mat_f.json" timeout 3600 python3 test/auto_run.py deep mat f        > "$O/auto_deep_mat_f.txt" 2>&1   # في الجزء n بمهلة ساعة: قُطع بنصف الساعة في الجزء b (EPIPE، بوابة ws56a)
 fi
 if in_part b; then

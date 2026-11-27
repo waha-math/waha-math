@@ -984,6 +984,10 @@ RUNTIME = [
   ('c9Rot: الحادّة أصغرها والمنفرجة أكبرها', "const nums = th === 90 ? rankMix(th, ds, 10, 170) : [th, o, shuffle(rand() < .5 ? (lo.length ? lo : hi) : (hi.length ? hi : lo))[0]];", "const nums = [th, o, th < 90 ? th + 20 : th - 20];", ['test/items_run.py'], {'ONLY': 'm4.u9.d1', 'PROBES': 'none'}, 'FAIL رتبة الجواب في الخيارات العددية'),
   ('c9Poly: الاسم فوق النقطة', "c9Free(t, A.map(a => [q[0] + 17", "c4Free(t, A.map(a => [q[0] + 17", ['test/auto_run.py', 'deepall', 'screen', 'f'], {'ONLY': 'm4.u9.d1,m4.u9.d2,m4.u9.d4', 'STRICT': '1', 'SHOTS': '0', 'DEVICE': 'iPhone SE'}, 'نصٌّ فوق نقطة'),
   ('c9Draw: الحلّ المشترك ينتهي على الجواب', "else { const K = item.xf === 'refV' ? Pl.P(0, p[1]) : Pl.P(p[0], 0); if (Math.hypot(A[0] - K[0], A[1] - K[1]) <= 2) {", "else { const K = Pl.P(...C9_XF[item.xf](p)); if (Math.hypot(A[0] - K[0], A[1] - K[1]) <= 2) {", ['test/ladder_run.py'], {'ONLY': 'm4.u9.d1,m4.u9.d5'}, 'FAIL المستوى الثاني لا يرسم حلقةً على جواب النقطة الواحدة'),
+  # ألعاب M4-U9 الحركية (خطة ألعاب المرحلة 4)
+  ('G مرآة الكنز: النقطة على المرآة تتحرّك', "if (q[0] === p[0] && q[1] === p[1]) { SFX.soft(); bad++; logAttempt({ scene: c.s || 'game', tag: 'c9Treasure-stay', ok: false });", "if (false) { SFX.soft(); bad++; logAttempt({ scene: c.s || 'game', tag: 'c9Treasure-stay', ok: false });", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G مرآة الكنز: النقطة على المرآة الرأسية'),
+  ('G عجلة الدوران: أيّ إدارةٍ صحيحة', "const ok = ((k % 4) + 4) % 4 === q;", "const ok = k > 0;", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G عجلة الدوران: ربعٌ واحد في جولة النصف خطأ'),
+  ('G الباب الدوّار: أيّ نقطةٍ مركز', "const ok = k === 'H'; logAttempt({ scene: c.s || 'game', tag: 'c9Door-centre'", "const ok = true; logAttempt({ scene: c.s || 'game', tag: 'c9Door-centre'", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: نقطةٌ غير المفصّلة خطأ'),
 ]
 if os.environ.get('MUT_COUNT'): print(len(RUNTIME)); sys.exit(0)   # عدد طفرات المتصفح وحده، لتقسيمها شرائح في run_all.sh (الدرس 299)
 def run(args, env, f):

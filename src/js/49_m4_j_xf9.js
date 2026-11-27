@@ -216,6 +216,77 @@ function c9Pic(g, P) {
   ps.forEach((q, i) => c4Dot(g, Pl, ...q, { pair: true, col: i ? (i === ps.length - 1 ? C9.img : '#8a9aa8') : C9.org }));
   if (P.turn) c9TurnArc(g, Pl, p, ps[ps.length - 1]); }
 
+/* ================= الألعاب الحركية (خطة ألعاب المرحلة 4) ================= */
+/* صندوق الكنز عند نقطة */
+function c9Chest(parent, P) { const g = el('g', { transform: `translate(${P[0]} ${P[1]})`, 'pointer-events': 'none' }, parent);
+  el('rect', { x: -11, y: -6, width: 22, height: 14, rx: 2, fill: '#b9813f', stroke: '#6e4a22', 'stroke-width': 1.6 }, g); el('path', { d: 'M-11 -6 Q0 -16 11 -6 Z', fill: '#d29a52', stroke: '#6e4a22', 'stroke-width': 1.6 }, g);
+  el('rect', { x: -2.5, y: -3, width: 5, height: 6, fill: '#f2c94c', stroke: '#6e4a22', 'stroke-width': 1 }, g); return g; }
+/* د1 «مرآة الكنز»: يختار الطفل المرآة فتنقلب النقطة عليها حتى تبلغ الكنز. c.rounds [[p، t]…]؛ lines: [الدعوة، (لكل جولة جملة)…، وصلنا، لم تتحرّك، ابتعدت، الختام] */
+const C9_TREASURE = [[[3, 2], [-3, 2]], [[-2, 3], [2, -3]], [[0, 3], [0, -3]]];   /* مرآة · مرآتان بأيّ ترتيب · نقطةٌ على المرآة الرأسية فلا تنقلها */
+const c9Need = (p, t) => p[0] === t[0] && p[1] === t[1] ? [] : ['refV', 'refH'].filter(k => { const q = C9_XF[k](p); return (q[0] === t[0] && q[1] === t[1]) || (q[0] !== p[0] || q[1] !== p[1]) && (C9_XF[k === 'refV' ? 'refH' : 'refV'](q)[0] === t[0] && C9_XF[k === 'refV' ? 'refH' : 'refV'](q)[1] === t[1]); });
+SCENES.c9Treasure = async c => { const L = c.lines, R = c.rounds || C9_TREASURE, nR = R.length; await c9Say(L, 0);
+  for (const [ri, [p0, t]] of R.entries()) { const svg = m3Stage(262), Pl = c4Plane(svg, { n: 5, ny: 4, top: 30 }), mk = el('g', { 'pointer-events': 'none' }, svg); { const T = Pl.P(...t); c9Chest(svg, T); c4Hide(Pl, [[T[0] - 13, T[1] - 15, T[0] + 13, T[1] + 10]]); } let p = [...p0], dot = c4Dot(svg, Pl, ...p, { pair: true, col: C9.org }), bad = 0, moves = 0;
+    const help = n => { mk.innerHTML = ''; if (n < 2) return; const need = c9Need(p, t); if (!need.length) return; c9Mark(mk, Pl, need[0]); if (n >= 3) { const A = Pl.P(...p), K = need[0] === 'refV' ? Pl.P(0, p[1]) : Pl.P(p[0], 0); if (Math.hypot(A[0] - K[0], A[1] - K[1]) > 2) { geoLine(mk, A[0], A[1], K[0], K[1], { color: THINK_INK, w: 2.4, dash: '5 4' }); preTicks(mk, A, K, 1, THINK_INK); } } };   /* الثاني يبرز المرآة، والثالث نصف الطريق إليها */
+    await c9Say(L, 1 + ri);
+    while (p[0] !== t[0] || p[1] !== t[1]) { const need = c9Need(p, t), k = await choosePick([['refV', labelText('c9S.refV'), '<i></i>', 'gen.c9.n.refV'], ['refH', labelText('c9S.refH'), '<i></i>', 'gen.c9.n.refH']], need);
+      document.querySelectorAll('#stage .choices').forEach(b => b.remove()); moves++; const q = C9_XF[k](p), ok = need.includes(k);
+      if (q[0] === p[0] && q[1] === p[1]) { SFX.soft(); bad++; logAttempt({ scene: c.s || 'game', tag: 'c9Treasure-stay', ok: false }); await c9Say(L, nR + 2); help(bad); continue; }   /* على هذه المرآة نفسها: لا تتحرّك */
+      const A = Pl.P(...p), B = Pl.P(...q); c9Mark(svg, Pl, k).setAttribute('data-flash', ''); dot.remove(); const ghost = el('circle', { r: 7, fill: C9.org, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, svg);
+      await symTween(FAST ? 20 : 420, u => { ghost.setAttribute('cx', A[0] + (B[0] - A[0]) * u); ghost.setAttribute('cy', A[1] + (B[1] - A[1]) * u); }); ghost.remove(); svg.querySelectorAll('[data-flash]').forEach(e => e.remove());
+      p = q; dot = c4Dot(svg, Pl, ...p, { pair: true, col: ok ? C9.org : C9.q }); SFX.tick();
+      if (!ok) { bad++; logAttempt({ scene: c.s || 'game', tag: 'c9Treasure-far', ok: false }); await c9Say(L, nR + 3); help(bad); } else help(bad); }
+    SFX.good(); logAttempt({ scene: c.s || 'game', tag: 'c9Treasure', ok: true, firstTry: bad === 0 }); await c9Say(L, nR + 1); }
+  await c9Say(L, nR + 4); };
+
+/* د2 «عجلة الدوران»: يتوقّع الطفل ربع الصورة، ثم يدير ذراع النقطة حول الأصل ربعاً ربعاً بالزرّين حتى المطلوب، و«تمّ». c.rounds [[p، أرباعٌ عكس العقارب]…]؛
+   lines: [الدعوة، (لكل جولة جملة)…، أدِر الذراع، هنا صورتها، ليس بعد، الختام] */
+const C9_WHEEL = [[[4, 2], 1], [[-1, 3], 2], [[2, -3], 3]];
+/* زرّا الإدارة داخل الإطار عن جانبي المستوى: سهمٌ دائري بجهته (عكس العقارب يميناً)، 72 وحدةً فلا يقلّ عن 56 بكسلاً، وبلوحة المفاتيح */
+function c9TurnBtns(svg, y, step) { return [-1, 1].map(s => { const cx = 180 + s * 122, b = el('g', { role: 'button', tabindex: 0, 'aria-label': plain(G(labelText(s > 0 ? 'c9TurnCcw' : 'c9TurnCw'))), style: 'cursor:pointer' }, svg);
+  el('circle', { cx, cy: y, r: 36, fill: '#fffdf6', stroke: css('--compass'), 'stroke-width': 3 }, b); const a0 = s > 0 ? -40 : 220, a1 = s > 0 ? 220 : -40;
+  el('path', { d: angArc([cx, y], 17, Math.min(a0, a1), Math.max(a0, a1)), fill: 'none', stroke: css('--compass'), 'stroke-width': 4, 'stroke-linecap': 'round' }, b); const E = angP([cx, y], a1, 17); geoArrow(b, E[0], E[1], s > 0 ? -(a1 + 90) : 90 - a1, css('--compass'), 8);
+  const go = e => { if (e) e.stopPropagation(); step(s); SFX.tick(); }; b.onclick = go; b.onpointerdown = e => e.stopPropagation(); b.onkeydown = e => { if (isActKey(e)) { e.preventDefault(); go(); } }; return b; }); }
+const c9RotK = (p, k) => { let q = [...p]; for (let i = 0; i < ((k % 4) + 4) % 4; i++) q = C9_XF.rot90(q); return q; };
+SCENES.c9Wheel = async c => { const L = c.lines, R = c.rounds || C9_WHEEL, nR = R.length; await c9Say(L, 0);
+  for (const [ri, [p0, q]] of R.entries()) { const svg = m3Stage(262), Pl = c4Plane(svg, { n: 4, ny: 4, top: 50, H: 250, c: 17 }), O = Pl.P(0, 0); c9Mark(svg, Pl, 'rot90');   /* مستوى أصغر يترك جانبيه لزرّي الإدارة */ c9Card(svg, c9Name(q === 1 ? 'rot90' : q === 2 ? 'rot180' : 'rot270'), { w: 300 }); c4Dot(svg, Pl, ...p0, { pair: true, col: '#8a9aa8' });
+    const want = c4QuadOf(...c9RotK(p0, q)); await c9Say(L, 1 + ri);
+    { const k = await choosePick(['q1', 'q2', 'q3', 'q4'].map(x => [x, labelText('c4Q.' + x), '<i></i>', 'gen.c4.quad.' + x]), want, { cls: 'four' }); document.querySelectorAll('#stage .choices').forEach(b => b.remove()); logAttempt({ scene: c.s || 'game', tag: 'c9Wheel-predict', ok: k === want }); SFX.tick(); }   /* التوقّع قبل الإدارة، ولا حكم عليه إلا بما يراه بعدها */
+    let k = 0, bad = 0; const arm = el('g', { 'pointer-events': 'none' }, svg), dot = el('g', { 'pointer-events': 'none' }, svg);
+    const draw = (deg = 0) => { arm.innerHTML = ''; dot.innerHTML = ''; const A = Pl.P(...p0), a0 = Math.atan2(O[1] - A[1], A[0] - O[0]), r = Math.hypot(A[0] - O[0], A[1] - O[1]), t = a0 + (k * 90 + deg) * Math.PI / 180, B = [O[0] + r * Math.cos(t), O[1] - r * Math.sin(t)];
+      geoLine(arm, O[0], O[1], B[0], B[1], { color: C9.arc, w: 3, dash: '7 4' }); if (deg) el('circle', { cx: B[0], cy: B[1], r: 7, fill: C9.img, stroke: '#fff', 'stroke-width': 2 }, dot); else c4Dot(dot, Pl, ...c9RotK(p0, k), { pair: true, col: C9.img }); };
+    draw(); let busy = false; await c9Say(L, nR + 1);
+    const nudge = c9TurnBtns(svg, 150, s => { if (busy) return; busy = true; (async () => { for (let i = 1; i <= 6; i++) { draw(s * 15 * i); await sleep(FAST ? 1 : 40); } k += s; draw(); busy = false; })(); });
+    AUTO({ kind: 'c9Wheel', ok: () => { k = q; draw(); rulDoneBtn().click(); }, wrong: () => { k = q + 1; draw(); rulDoneBtn().click(); } });
+    while (true) { await rulDone(() => {}); while (busy) await sleep(20); const ok = ((k % 4) + 4) % 4 === q; logAttempt({ scene: c.s || 'game', tag: 'c9Wheel', ok, firstTry: bad === 0 }); if (ok) break;
+      bad++; SFX.soft(); await c9Say(L, nR + 3); if (bad >= 2) { const m = helpG(svg); c9TurnArc(m, Pl, p0, c9RotK(p0, q), { col: THINK_INK }).querySelectorAll('path')[1]?.remove(); }   /* الثاني: قوس الطريق بلا رأسه */
+      AUTO({ kind: 'c9Wheel', ok: () => { k = q; draw(); rulDoneBtn().click(); } }); }
+    nudge.forEach(b => b.remove()); SFX.good(); await c9Say(L, nR + 2); }
+  await c9Say(L, nR + 4); };
+
+/* د3 «باب المدينة الدوّار» ثم «مرآتان»: يلمس الطفل مركز الدوران (المفصّلة) بين ثلاث نقاط، ثم يقرأ زاوية الباب بالمنقلة؛ ثم يعكس نقطةً على المرآتين بنفسه
+   ويختار الدوران الذي يعطي صورتها. c.rounds [[θ، مع العقارب، b]…]، c.p؛ lines: [الدعوة، أين المفصّلة، المفصّلة ثابتة، المنقلة، اقرأ من الصفر، مرآتان: الرأسية، ثم الأفقية، أيّ دوران، نصف دورة، الختام] */
+const C9_DOOR = [[70, false, 14], [120, true, 8]];
+SCENES.c9Door = async c => { const L = c.lines, R = c.rounds || C9_DOOR; await c9Say(L, 0);
+  for (const [th, cw, b] of R) { const svg = m3Stage(250), g = el('g', {}, svg), len = 104, PR = 96, cs = d => Math.cos(d * Math.PI / 180), a0 = cw ? b + th : b, a1 = cw ? b : b + th;
+    const xs = [cs(a0) * (len + 16), cs(a1) * (len + 16), -PR, PR * cs(b)], H = [Math.round(180 - (Math.min(...xs) + Math.max(...xs)) / 2), 176], D = angP(H, a0, len), D2 = angP(H, a1, len), Mid = [(D[0] + D2[0]) / 2, (D[1] + D2[1]) / 2];
+    el('path', { d: angArc(H, len, b, b + th), fill: 'none', stroke: C9.arc, 'stroke-width': 2, 'stroke-dasharray': '5 4' }, g); geoLine(g, H[0], H[1], D[0], D[1], { color: '#8a6a43', w: 7 }); geoLine(g, H[0], H[1], D2[0], D2[1], { color: '#d2b48c', w: 7 });   /* البابُ مغلقاً (داكن) ومفتوحاً (فاتح)، وطرفه يرسم قوساً */
+    const cand = [['H', H], ['D', D], ['M', Mid]].map(([k, P]) => { const t = el('g', {}, svg); el('circle', { cx: P[0], cy: P[1], r: 9, fill: '#fff', stroke: C9.ink, 'stroke-width': 2.4 }, t); return { g: t, k, label: labelText('c9Spot') }; });
+    let n = 0; S(L[1], { free: true });
+    while (true) { const k = await tapOne(cand, { ok: 'H', pad: 56 }); hush(); const ok = k === 'H'; logAttempt({ scene: c.s || 'game', tag: 'c9Door-centre', ok, firstTry: n === 0 }); if (ok) { SFX.good(); break; } n++; SFX.soft(); await c9Say(L, 2); if (n >= 2) hlRing(helpG(svg), H, 16, H2C[0]); }
+    cand.forEach(t => t.g.remove()); el('circle', { cx: H[0], cy: H[1], r: 7, fill: C9.ink }, g);
+    const pg = el('g', {}, svg); svg.insertBefore(pg, g); protAt(pg, H, b, { R: PR, step: 30, fs: 1.27 }); await c9Say(L, 3);
+    const it = ITEM.c9Rot.make({ th, ask: 'ang' }); let m = 0;
+    while (true) { const np = numberPick(shuffle(it.nums), th, { west: true, word: degw }); const k = await np.p; document.querySelectorAll('#stage .choices').forEach(x => x.remove()); const ok = k === th; logAttempt({ scene: c.s || 'game', tag: 'c9Door-angle', ok, firstTry: m === 0 }); if (ok) { SFX.good(); break; }
+      m++; SFX.soft(); await c9Say(L, 4); if (m >= 2) el('path', { d: angArc(H, PR - 19, b, b + th), fill: 'none', stroke: THINK_INK, 'stroke-width': 4, opacity: .8 }, helpG(svg)); }   /* الثالث يبرز التدريج الخارجي من صفره */
+    pg.remove(); arArc(g, H, b, b + th, { r: 34, col: C9.arc, deg: th, dl: 18, fs: 14, fill: true }); await sleep(FAST ? 10 : 600); }   /* المنقلة تُرفع فلا يقع عدد الزاوية على أعدادها */
+  /* «مرآتان»: الرأسية ثم الأفقية بيد الطفل، ثم أيّ دورانٍ يعطي الصورة نفسها */
+  const p0 = c.p || [3, 1], svg = m3Stage(262), Pl = c4Plane(svg, { n: 4, ny: 4, top: 30 }); c4Dot(svg, Pl, ...p0, { pair: true, col: C9.org }); let p = [...p0];
+  for (const [i, xf] of ['refV', 'refH'].entries()) { await c9Say(L, 5 + i); let n = 0;
+    while (true) { const k = await choosePick([['refV', labelText('c9S.refV'), '<i></i>', 'gen.c9.n.refV'], ['refH', labelText('c9S.refH'), '<i></i>', 'gen.c9.n.refH']], xf); document.querySelectorAll('#stage .choices').forEach(x => x.remove()); const ok = k === xf; logAttempt({ scene: c.s || 'game', tag: 'c9Door-mirror', ok, firstTry: n === 0 }); if (ok) break; n++; SFX.soft(); }
+    c9Mark(svg, Pl, xf); const q = C9_XF[xf](p), A = Pl.P(...p), B = Pl.P(...q); geoLine(svg, A[0], A[1], B[0], B[1], { color: C9.arc, w: 2, dash: '5 4' }); p = q; c4Dot(svg, Pl, ...p, { pair: true, col: i ? C9.img : '#8a9aa8' }); SFX.tick(); }
+  await c9Say(L, 7); { let n = 0; while (true) { const k = await choosePick(['rot90', 'rot180', 'rot270'].map(x => [x, labelText('c9S.' + x), '<i></i>', 'gen.c9.n.' + x]), 'rot180'); document.querySelectorAll('#stage .choices').forEach(x => x.remove()); const ok = k === 'rot180'; logAttempt({ scene: c.s || 'game', tag: 'c9Door-two', ok, firstTry: n === 0 }); if (ok) break; n++; SFX.soft(); } }
+  c9TurnArc(svg, Pl, p0, p); SFX.good(); await c9Say(L, 8); await c9Say(L, 9); };
+
 /* ================= المشاهد ================= */
 /* د1: فوضى: «المرآة الرأسية تغيّر الإحداثي الرأسي!»؛ والانعكاس على المحورين */
 SCENES.c9MirrorHook = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5, ny: 4, top: 30 }); c9Mark(svg, Pl, 'refV'); c4Dot(svg, Pl, 3, 2, { pair: true, col: C9.org }); await c9Say(L, 0);
