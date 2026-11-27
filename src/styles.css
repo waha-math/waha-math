@@ -348,8 +348,18 @@ html.lpause #confetti { visibility: hidden; }
   .stage > .choices.rbbar .pick { min-height: 56px; } .go, .help { min-height: 56px; }   /* D255: 56 بكسلاً للمس بالعرض أيضاً (المراجع B لبوابة U6/U7، 25) */
   /* لوحة الأرقام بالعرض: ستة في الصف وصفّان، فيبقى الرسم ظاهراً (Gate X-03: كان 90 بكسلاً تحت أربعة صفوف) */
   .stage > .choices.numpad { grid-template-columns: repeat(6, minmax(56px, 1fr)); } .numpad .npk { min-height: 56px; } .numpad .npv { min-height: 38px; font-size: 26px; }
+  .pfsteps { gap: 2px; padding: 0 8px 2px; } .pfrow { font-size: 13.5px; line-height: 1.25; padding: 1px 8px; } .pfrow .why { font-size: 12px; } .pfrow.given { font-size: 12.5px; }   .stage > .choices.cards.row3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stage > .choices.cards.row3 .card { font-size: 14px; line-height: 1.45; padding: 3px 5px; }   /* خطوات البرهان بالعرض أصغر، فيبقى للشكل ارتفاعه (X-03) */
 }
 @media (max-width: 340px) { #who { display: none; } #talk { grid-template-columns: 1fr; } .cover .talk { grid-template-columns: 64px 1fr; } .cover .talk .who { width: 64px; height: 74px; }
   .avatars { gap: 8px; } .av { min-height: 62px; padding: 4px; } }   /* صور الملف الأربع في 288 بكسلاً، لا تخرج عن الشاشة */
 /* خيار برمزه وحده (اسم الكسر سؤالُ البند): النصّ للقارئ الآلي فقط */
 .choices.symonly .pick > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* خطوات «ما السبب الناقص؟» نصوصاً في الصفحة (D288 (1)): المعطى منقّطاً، والخطوة المسؤولة بإطارٍ أحمر، وما تعتمد عليه في المستوى الثاني بإطار البوصلة */
+.pfsteps { display: grid; gap: 3px; padding: 0 10px 4px; flex: none; }
+.pfrow { background: var(--paper); color: var(--ink); border-radius: 9px; padding: 2px 9px; font-size: 15px; font-weight: 700; line-height: 1.4; }
+.pfrow .why { font-size: 13px; color: var(--muted); margin-right: 8px; }   /* السبب في السطر نفسه: الخطوات الأربع والأسباب الثلاثة والشكل على أضيق شاشة */
+.pfrow.given { font-size: 14px; }
+.pfrow.given { border: 1.5px dashed var(--line); }
+.pfrow.ask { box-shadow: inset 0 0 0 2px #c0392b; } .pfrow.ask .why { color: #c0392b; }
+.pfrow.dep { outline: 3px dashed var(--compass); outline-offset: 1px; }
+.pfrow.rule { background: none; text-align: center; color: var(--think); font-size: 15px; }

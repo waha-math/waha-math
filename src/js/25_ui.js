@@ -145,7 +145,7 @@ function choosePick(options, okKey, opt = {}) {
 const EAR = '<svg viewBox="0 0 40 28" width="44" height="30" aria-hidden="true"><path d="M8 11h6l7-6v18l-7-6H8z" fill="currentColor"/><path d="M26 9a7 7 0 0 1 0 10M30 5a12 12 0 0 1 0 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
 let REPLAY_HOOK = null;
 function cardPick(cards, opt = {}) {   // cards: [{id(line), k, ok, icon, hide, pre}]؛ opt.intro: معرّف السؤال، يُعاد قبل البطاقات عند «أعد الجملة»
-  const box = document.createElement('div'); box.className = 'choices cards'; (opt.host || $('#stage')).appendChild(box);
+  const box = document.createElement('div'); box.className = 'choices cards' + (opt.cls ? ' ' + opt.cls : ''); (opt.host || $('#stage')).appendChild(box);
   const list = opt.keepOrder ? cards : shuffle(cards);
   const btns = list.map(c => { const b = document.createElement('button'); b.className = 'pick card' + (c.hide ? ' hidden-text' : ''); b.dataset.k = c.k;
     b.innerHTML = (c.hide && list.length > 1 ? `<b class="cn">${DG(list.indexOf(c) + 1)}</b>` : '') + (c.icon || '') + (c.hide ? `<span class="q">${EAR}</span>` : `<span>${esc(T(c.id))}</span>`);   /* رقم البطاقة المخفية: الأولى تُقرأ أولاً (D271) */ b.setAttribute('aria-label', c.hide ? plain(labelText('listenCard')) : plain(T(c.id)));

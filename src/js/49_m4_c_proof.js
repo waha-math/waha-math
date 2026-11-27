@@ -88,18 +88,26 @@ const PF_SPAN = { tri: [38, -21, 112, 18], ineq: [38, -21, 106, 10], vert: [62, 
   bisPf: [16, -4, 130, 22], bisCon: [16, -2, 130, 10], pbPf: [34, -16, 130, 20], perpCon: [27, -2, 233, 4] };   /* وأشكال U8 (المعروف (1) لبوابة M4-U7/U8) */   /* وبرهانا الدائرة في U6 (المعروف (1) لبوابة M4-U5/U6) */   /* وبراهين الرباعيات (المراجع B لبوابة M4-U3/U4، 6) */   /* براهين U4 تملأ مكانها في السلسلة والتعليل (المراجع A لبوابة M4-U3/U4، 24) */
 function pfFitFig(g, k, T, B, o = {}) { const S = PF_SPAN[k]; if (!S) return pfFig(g, k, { y0: o.y0 ?? 2, s: o.s ?? .7, v: o.v });
   const [a, b, c, d] = S, s = Math.min(o.sMax || .72, c > a ? (B - T - (d - b)) / (c - a) : 1), y0 = T - (a * s + b); return pfFig(g, k, { y0, s, v: o.v }); }
-const PF_CY = i => 126 + i * 76;
+const PF_CY = i => 152 + i * 74;   /* تحت بطاقة المعطى والشكل (D288 (1)) */
 /* ما تعتمد عليه كل خطوة: [] الرسم نفسه (المعلوم)، أو أرقام الخطوات قبلها (المستوى الثاني في سلسلة السبب وأغلق البرهان: المراجع B لبوابة M4-U1/U2، 8) */
 const PF_DEP = k => k === 'tri' || k === 'poly' ? [[], [0], [0, 1]] : [[], [], [0, 1]];
 function pfFigGlow(m, fig) { let b = null; try { b = fig.getBBox(); } catch (e) {} if (!b || !b.width) return null;
   const x0 = Math.max(24, b.x - 8), x1 = Math.min(336, b.x + b.width + 8), y0 = Math.max(18, b.y - 6), y1 = b.y + b.height + 6;
   const r = 12; el('path', { d: `M${x0 + r} ${y0} H${x1 - r} A${r} ${r} 0 0 1 ${x1} ${y0 + r} V${y1 - r} A${r} ${r} 0 0 1 ${x1 - r} ${y1} H${x0 + r} A${r} ${r} 0 0 1 ${x0} ${y1 - r} V${y0 + r} A${r} ${r} 0 0 1 ${x0 + r} ${y0} Z`,
     fill: 'rgba(242,201,76,.10)', stroke: PF.hl, 'stroke-width': 2.4, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m); return [x0, y0, x1, y1]; }
+/* المعطى والمطلوب: الخطوة الأولى الثابتة في البرهان المكتوب (D288 (1)، A26 لبوابة M4-U1/U2): سطران في بطاقةٍ منقّطة */
+const pfGivenLines = (k, v) => { const t = pfText(k, v, -1), i = t.indexOf('المَطْلُوبُ'); return i > 0 ? [t.slice(0, i).trim(), t.slice(i).trim()] : [t]; };
+function pfGiven(g, k, v, y) { el('rect', { x: 22, y, width: 316, height: 40, rx: 10, fill: PF.soft, stroke: PF.edge, 'stroke-width': 1.6, 'stroke-dasharray': '5 4', 'pointer-events': 'none' }, g);
+  pfGivenLines(k, v).forEach((t, j) => { const e = el('text', { x: 328, y: y + 17 + j * 18, 'text-anchor': 'start', 'font-size': 14, 'font-weight': 700, fill: PF.ink, direction: 'rtl', 'pointer-events': 'none' }, g); e.textContent = MX(t); pfFitW(e, 300, 14); }); }
+/* خطوات «ما السبب الناقص؟» في الصفحة: المعطى، ثم الخطوات الثلاث بأسبابها، والمسؤولة بـ«؟» */
+function pfRows(k, v, ask) { const box = document.createElement('div'); box.className = 'pfsteps'; $('#stage').appendChild(box); const row = (cls, a, b) => { const d = document.createElement('div'); d.className = 'pfrow' + (cls ? ' ' + cls : ''); d.innerHTML = `<span>${esc(MX(a))}</span>` + (b ? `<span class="why">${esc(b)}</span>` : ''); box.appendChild(d); return d; };
+  const given = k === 'tri' ? row('given', pfGivenLines(k, v).join(' ')) : null, steps = [0, 1, 2].map(n => row(n === ask ? 'ask' : '', pfText(k, v, n), labelText('pfBecause') + ' ' + (n === ask ? '؟' : labelText('pf.rs.' + PF_PROOFS[k].rs[n])))), rule = row('rule', labelText('pfRuleReason')); rule.hidden = true;
+  return { box, given, steps, rule }; }   /* المعطى سطراً رابعاً في برهان المثلث وحده (D288 (1))، فتبقى الأسباب الثلاثة ظاهرةً على أضيق شاشة */
 const pfUpArrow = (m, x, y0, y1) => { geoLine(m, x, y0, x, y1, { color: PF.hl, w: 2.6, dash: '5 4' }); geoArrow(m, x, y1, -90, PF.hl, 8); };   /* بطاقات 70 وحدة: 56 بكسلاً على أضيق شاشة (0.8 بكسل للوحدة، كـ ORD_XY؛ المراجع B لبوابة M4-U1/U2، 1) */   /* البطاقات تحت الشكل كله، لا على رأسيه (المراجع B لبوابة M4-U1/U2) */
 ITEM.prChain = {
   make(spec) { const P = PF_PROOFS[spec.pf], order = shuffle([0, 1, 2]); const ok = ['0,1,2', ...(P.alt || [])].map(s => s.split(',').map(i => order.indexOf(+i)).join(','));
     return { ...spec, order, okSet: ok, want: ok[0], tag: 'pf-chain-' + spec.pf }; },
-  async ask(item, mode, tries) { const svg = m3Stage(390), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0, cg = ['sas', 'asa', 'sss'].some(r => PF_PROOFS[item.pf].rs.includes(r)); pfFitFig(g, item.pf, 18, 120, { v, sMax: .7, y0: 8, s: cg ? .5 : .56 });
+  async ask(item, mode, tries) { const svg = m3Stage(390), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0, cg = ['sas', 'asa', 'sss'].some(r => PF_PROOFS[item.pf].rs.includes(r)); pfGiven(svg, item.pf, v, 16); pfFitFig(g, item.pf, 74, 146, { v, sMax: .56, y0: 64, s: cg ? .42 : .48 });   /* المعطى ثم الشكل ثم ثلاث بطاقات 70 وحدة: 56 بكسلاً على أضيق شاشة لا تُنقص (المراجع B لبوابة M4-U1/U2، 1) */   /* المعطى والمطلوب أولاً ثابتاً، ثم ثلاث خطواتٍ تُرتَّب: البرهان أربع خطوات (D288 (1)) */
     const cards = item.order.map((n, i) => { const c = el('g', { role: 'button', tabindex: 0, style: 'cursor:pointer' }, svg), y = PF_CY(i);
       el('rect', { x: 20, y, width: 320, height: 70, rx: 10, fill: PF.card, stroke: PF.edge, 'stroke-width': 2 }, c); pfStep(c, y + 30, item.pf, n, { x: 330, fs: 15, two: true, v }); c.setAttribute('aria-label', plain(pfText(item.pf, v, n) + ' ' + labelText('pfBecause') + ' ' + labelText('pf.rs.' + PF_PROOFS[item.pf].rs[n]))); return c; });
     if (tries >= 3) { const m = helpG(svg); badge(m, 38, PF_CY(item.order.indexOf(0)) + 35, 1, THINK_INK); await S('gen.pf.together.chain'); }
@@ -108,7 +116,7 @@ ITEM.prChain = {
   judge(item, k) { if (item.okSet.includes(k)) return { ok: true }; const first = +k.split(',')[0]; return { ok: false, err: item.order[first] === 2 ? 'pfJump' : 'pfOrder' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { if (r.ctx.fig) pfFigGlow(helpG(r.ctx.svg), r.ctx.fig);   /* المستوى الثاني رسمٌ: المعلوم في الرسم أولاً (المراجع B، 8) */
-      hintCard(r.ctx.svg, 180, 358, labelText('pfRuleChain')); } await S('gen.pf.hint.chain'); }   /* تحت البطاقات، لا على الشكل (المراجع B لبوابة M4-U1/U2، 6) */, async together() {},
+      hintCard(r.ctx.svg, 180, 110, labelText('pfRuleChain')); } await S('gen.pf.hint.chain'); }   /* تحت البطاقات، لا على الشكل (المراجع B لبوابة M4-U1/U2، 6) */, async together() {},
   async reveal(item, r) { const m = helpG(r.ctx.svg); item.want.split(',').forEach((i, n) => badge(m, 38, PF_CY(+i) + 35, n + 1, PF.ok)); await S('gen.pf.reveal.chain'); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; } };
 
@@ -116,17 +124,14 @@ ITEM.prChain = {
 const PF_ERR = { measure: 'pfMeasure', measureS: 'pfMeasure', measureT: 'pfMeasure', looks: 'pfLooks', looksS: 'pfLooks', looksL: 'pfLooks', circ: 'pfCircular', conSmall: 'conOpen', conAny: 'conOpen' };   /* وفتحة الفرجار في خطوات الإنشاء (المراجع A لبوابة M4-U7/U8، 13) */   /* والقياس والنظر من جنس الخطوة: أضلاع، أو مثلثات، أو طول (المراجع A لبوابة M4-U3/U4، 9) */
 ITEM.prReason = {
   make(spec) { /*T*/if (TESTHOOK && spec.cands[0] !== PF_PROOFS[spec.pf].rs[spec.step]) testBug('prReason: السبب الأول ليس سبب الخطوة');/*/T*/ return { ...spec, want: spec.cands[0], tag: 'pf-reason-' + spec.pf }; },
-  async ask(item, mode, tries) { const svg = m3Stage(276), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; pfFitFig(g, item.pf, 18, 124, { v, sMax: .72, y0: 12, s: .72 });   /* على الورقة: تُقرأ في الوضع الداكن (المراجع B لبوابة M4-U1/U2، 3) */
-    for (let n = 0; n < 3; n++) pfStep(g, 148 + n * 30, item.pf, n, { fs: 14, v, reason: n === item.step ? true : false, ask: n === item.step, col: n === item.step ? PF.ink : '#5b6b75' });
-    el('rect', { x: 22, y: 148 + item.step * 30 - 19, width: 316, height: 27, rx: 8, fill: 'rgba(192,57,43,.07)', stroke: PF.q, 'stroke-width': 1.6, 'pointer-events': 'none' }, svg);
+  async ask(item, mode, tries) { const svg = m3Stage(166), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; svg.style.minHeight = '90px'; pfFitFig(g, item.pf, 18, 146, { v, sMax: .72, y0: 10, s: .72 });   /* على الورقة: تُقرأ في الوضع الداكن (المراجع B لبوابة M4-U1/U2، 3) */
+    const rows = pfRows(item.pf, v, item.step);   /* المعطى والخطوات الثلاث نصوصاً في الصفحة بخطٍّ يُقرأ على أضيق شاشة (D288 (1)؛ B-7 وB-11 لبوابتي U1/U2 وU3/U4) */
     if (tries >= 3) { await S('gen.pf.together.reason'); } else await S(item.q || 'gen.pf.q.reason');
-    const cp = cardPick(item.cands.map((o, i) => ({ id: 'gen.pf.rs.' + o, k: o, ok: i === 0 })), { intro: item.q || 'gen.pf.q.reason' }); const c = await cp.p; cp.done(); return { ans: c.k, ctx: { svg, cp, c, fig: g } }; },
+    const cp = cardPick(item.cands.map((o, i) => ({ id: 'gen.pf.rs.' + o, k: o, ok: i === 0 })), { intro: item.q || 'gen.pf.q.reason', cls: item.cands.length <= 3 ? 'row3' : '' });   /* بالعرض: الأسباب الثلاثة في صفٍّ واحد، فيبقى للشكل ارتفاعه تحت الخطوات (X-03) */ const c = await cp.p; cp.done(); return { ans: c.k, ctx: { svg, cp, c, fig: g, rows } }; },
   judge(item, k) { return k === item.cands[0] ? { ok: true } : { ok: false, err: k === 'sss' && /^(bisPf|pbPf)$/.test(item.pf) ? 'pfCircular' : PF_ERR[k] || 'pfWrongRule' }; },   /* SSS في برهاني المنصّف دائريّ (المراجع A لبوابة M4-U7/U8، 7) */
   onOk(item, r) { SFX.good(); r.ctx.cp.btns.find(b => b.dataset.k === r.ctx.c.k).classList.add('ok'); }, onWrong(item, r) { SFX.soft(); r.ctx.cp.btns.find(b => b.dataset.k === r.ctx.c.k).classList.add('no'); },
-  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg), dep = PF_DEP(item.pf)[item.step], yA = 148 + item.step * 30 - 19;   /* المستوى الثاني رسمٌ: سهمٌ من الخطوة المعلَّمة إلى ما تعتمد عليه (الرسم أو خطوةٌ قبلها؛ المراجع B، 8) */
-      if (!dep.length) { const B = r.ctx.fig ? pfFigGlow(m, r.ctx.fig) : null; pfUpArrow(m, 32, yA, B ? B[3] + 2 : 128); }
-      else for (const d of dep) { const y = 148 + d * 30; el('rect', { x: 22, y: y - 19, width: 316, height: 27, rx: 8, fill: 'none', stroke: PF.hl, 'stroke-width': 2.2, 'stroke-dasharray': '6 4', 'pointer-events': 'none' }, m); if (yA > y + 8) pfUpArrow(m, 30 + d * 6, yA, y + 9); }
-      hintCard(r.ctx.svg, 180, 238, labelText('pfRuleReason')); } await S('gen.pf.hint.reason'); }, async together() {},
+  async hint2(item, r) { if (r && r.ctx && r.ctx.svg) { const m = helpG(r.ctx.svg), dep = PF_DEP(item.pf)[item.step], R = r.ctx.rows;   /* المستوى الثاني: ما تعتمد عليه الخطوة مُعلَّماً (الشكل أو خطوةٌ قبلها)، والشكل يتوهّج في الرسم (المراجع B، 8) */
+      if (r.ctx.fig) pfFigGlow(m, r.ctx.fig); if (R) { (dep.length ? dep.map(d => R.steps[d]) : [R.given]).forEach(e => e && e.classList.add('dep')); R.rule.hidden = false; } } await S('gen.pf.hint.reason'); }, async together() {},
   async reveal(item, r) { const b = r.ctx.cp.btns.find(x => x.dataset.k === item.cands[0]); if (b) b.classList.add('ok'); await S('gen.pf.rs.' + item.cands[0]); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; } };
 
