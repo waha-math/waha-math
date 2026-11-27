@@ -126,7 +126,7 @@ ITEM.c4Place = {
 /* المستوى الثاني رسمٌ في أنواع U5 (المعروف (2) لبوابة M4-U5/U6) */
 const c4Legs = (m, Pl, a, b) => { const A = Pl.P(...a), B = Pl.P(...b), K = Pl.P(b[0], a[1]); geoLine(m, A[0], A[1], K[0], K[1], { color: H2C[0], w: 3.2, dash: '7 5' }); geoLine(m, K[0], K[1], B[0], B[1], { color: H2C[1], w: 3.2, dash: '7 5' }); hlRing(m, K, 12); };   /* المشي والصعود بلا أطوال */
 ITEM.c4Quad = cpItem({ H: 262, tLine: 'gen.c4.together.quad', hint: 'gen.c4.hint.quad', rLine: it => 'gen.c4.reveal.quad.' + it.want, praise: 'praiseThink',
-  make: s => { const want = c4QuadOf(s.x, s.y), cands = want === 'axis' ? ['axis', ...(s.x ? [c4QuadOf(s.x, 1), c4QuadOf(s.x, -1), c4QuadOf(-s.x, 1)] : [c4QuadOf(1, s.y), c4QuadOf(-1, s.y), c4QuadOf(1, -s.y)])] : C4_QS;
+  make: s => { const want = c4QuadOf(s.x, s.y), cands = want === 'axis' ? ['axis', ...(s.x ? [c4QuadOf(s.x, 1), c4QuadOf(s.x, -1), c4QuadOf(-s.x, 1)] : [c4QuadOf(1, s.y), c4QuadOf(-1, s.y), c4QuadOf(1, -s.y)])] : [want, c4QuadOf(-s.x, s.y), c4QuadOf(s.x, -s.y), 'axis'];   /* «على محور» خيارٌ دائماً، فظهوره ليس الجواب (المراجع A، 2) */
     return { want, cands: [...C4_QS, 'axis'].filter(k => cands.includes(k)), ext: c4Ext([[s.x, s.y]], 5), tag: 'c4-quad' + (want === 'axis' ? '-axis' : '') }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, item.ext); c4Card(svg, item.x, item.y); if (tries >= 3) c4Walk(svg, Pl, item.x, item.y, { ms: 60 }); return { Pl }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), Pl = ctx.Pl; if (Pl) { [[Pl.n, 0, '+', 0], [-Pl.n, 0, '−', 0], [0, Pl.m, '+', 1], [0, -Pl.m, '−', 1]].forEach(([x, y, t, i]) => { const P = Pl.P(x, y); preLab(m, P[0] + (x > 0 ? -9 : x < 0 ? 9 : 15), P[1] + (y > 0 ? 14 : y < 0 ? -6 : -8), t, { col: H2C[i], fs: 20 }); }); hlRing(m, Pl.P(0, 0), 12); } await sleep(FAST ? 10 : 250); },   /* إشارتا كل محور عند طرفيه */
@@ -150,14 +150,16 @@ ITEM.c4Dist = cpItem({ H: 262, tLine: 'gen.c4.together.dist', hint: 'gen.c4.hint
   make: s => { const dx = Math.abs(s.b[0] - s.a[0]), dy = Math.abs(s.b[1] - s.a[1]), want = Math.round(Math.hypot(dx, dy));
     /*T*/if (TESTHOOK && (want * want !== dx * dx + dy * dy || !dx || !dy || dx * dx + dy * dy > 100)) testBug('c4Dist: المسافة ليست عدداً صحيحاً، أو النقطتان على خط، أو المربع فوق مئة');/*/T*/
     const ax = Math.abs(Math.abs(s.b[0]) - Math.abs(s.a[0])), ay = Math.abs(Math.abs(s.b[1]) - Math.abs(s.a[1])), sg = Math.hypot(ax, ay), alt = (ax !== dx || ay !== dy) && ax && ay && Number.isInteger(sg) && sg !== want ? sg : null;
-    const nums = [want, dx + dy, alt ?? dx * dx + dy * dy].filter((v, i, X) => X.indexOf(v) === i); if (nums.length < 3) nums.push(want + 2);
+    /* رتبة الجواب بين الخيارات تتغيّر بالبند (المراجع A لبوابة M4-U5/U6، 3): الأصغرَ، أو الأوسطَ بفرقٍ واحد، أو الأكبرَ بفرقٍ واحد وبطرح الفرقين */
+    const k = (dx * 7 + dy * 3 + Math.abs(s.a[0]) + Math.abs(s.b[1])) % 3, mx = Math.max(dx, dy), mn = Math.min(dx, dy), sub = Math.abs(dx - dy) || mn;
+    const nums = (k === 0 ? [want, dx + dy, alt ?? dx * dx + dy * dy] : k === 1 ? [want, mx, dx + dy] : [want, mx, sub]).filter((v, i, X) => X.indexOf(v) === i && v > 0); while (nums.length < 3) nums.push(want + nums.length);
     return { dx, dy, want, alt, nums, ext: c4Ext([s.a, s.b], 4), tag: 'c4-dist' }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, item.ext), A = Pl.P(...item.a), B = Pl.P(...item.b); geoLine(svg, A[0], A[1], B[0], B[1], { color: C4.ln, w: 3.4 });
     c4Dot(svg, Pl, ...item.a, { name: 'a', pair: true, col: C4.pt2 }); c4Dot(svg, Pl, ...item.b, { name: 'b', pair: true, col: C4.pt2 });
     if (tries >= 3) c4RunRise(helpG(svg), Pl, item.a, item.b, { abs: true }); return { Pl }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) c4Legs(m, ctx.Pl, item.a, item.b); ciRule(m, 180, 22, labelText('c4RuleDist'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
   pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
-  errOf: (it, k) => k === it.dx + it.dy ? 'coDistAdd' : k === it.alt ? 'c4DistSign' : k === it.dx * it.dx + it.dy * it.dy ? 'pyNoRoot' : 'coDistOff2' });
+  errOf: (it, k) => k === it.dx + it.dy ? 'coDistAdd' : k === it.alt ? 'c4DistSign' : k === it.dx * it.dx + it.dy * it.dy ? 'pyNoRoot' : k === Math.max(it.dx, it.dy) || k === Math.min(it.dx, it.dy) ? 'c4DistOne' : k === Math.abs(it.dx - it.dy) ? 'c4DistSub' : 'coDistOff2' });
 
 /* ================= ⑤ الميل بين نقطتين (C410): a، b؛ الفرق الرأسي ÷ الفرق الأفقي، والرأسي لا ميل له ================= */
 function c4SlopeCands(a, b) { const dx = b[0] - a[0], dy = b[1] - a[1], want = dx ? c4Frac(dy, dx) : 'none', C = [want], add = v => { if (C.length < 3 && !C.some(u => c4MKey(u) === c4MKey(v))) C.push(v); };
@@ -203,14 +205,15 @@ ITEM.c4On = cpItem({ H: 236, tLine: 'gen.c4.together.on', hint: 'gen.c4.hint.on'
 /* ================= ⑧ المعادلة من ميلٍ ونقطة (C417): sl الميل، p نقطة؛ ب = ص − م س ================= */
 ITEM.c4FindB = cpItem({ H: 262, tLine: 'gen.c4.together.findB', hint: 'gen.c4.hint.findB', rLine: 'gen.c4.reveal.eq', rSay: it => S('gen.c4.eq.' + it.want, { append: true }), praise: 'praiseThink',
   make: s => { const m = s.sl, [x, y] = s.p, b = y - m * x; /*T*/if (TESTHOOK && (m < 0 || x < 0 || y < 0)) testBug('c4FindB: عدد سالب في جملة التعويض');/*/T*/
-    return { b, want: c4LKey([m, b]), cands: c4EqCands(m, b, [[m, y], [m, y + m * x]]), ext: c4Ext([[x, y], [0, b]], 5), tag: 'c4-findb' }; },
+    const k = (m + x + y) % 3, ex = [[[m, y], [m, y + m * x]], [[m, -b], [m, y]], [[m, -b], [m, b - m]]][k];   /* ب الصحيحة ليست أصغر الخيارات دائماً (المراجع A، 3)؛ ومثله في u5.py */
+    return { b, want: c4LKey([m, b]), cands: c4EqCands(m, b, ex), ext: c4Ext([[x, y], [0, b]], 5), tag: 'c4-findb' }; },
   draw(svg, item, tries) { const Pl = c4Plane(svg, { ...item.ext, H: 236 }), g = el('g', { 'pointer-events': 'none' }, svg); c4Dot(svg, Pl, ...item.p, { pair: true, col: C4.pt2 });
     el('rect', { x: 104, y: 15, width: 152, height: 28, rx: 10, fill: '#fff', stroke: C4.ln, 'stroke-width': 2 }, g); preLab(g, 214, 34, labelText('c4SlopeIs'), { col: C4.ln, fs: 16, dir: 'rtl', anchor: 'middle' }); c4MDraw(g, 140, 28, [item.sl, 1], { col: C4.ln });
     if (tries >= 3) { const h = helpG(svg); c4Line(h, Pl, item.sl, item.b, { col: 'rgba(122,79,176,.4)', w: 2.4, dash: '6 5' }); ciEq(h, 180, 252, `${item.p[1]} = ${item.sl} × ${item.p[0]} + ${labelText('c4B')}`, C4.hl, 17); } return { Pl }; },
   sayQ: async it => { await S('gen.c4.slope.' + (it.sl < 0 ? 'm' + -it.sl : it.sl), { append: true }); await S('gen.c4.q.findBPt', { append: true }); await S('gen.c4.pt.' + preKey(it.p), { append: true }); },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) { const P = ctx.Pl.P(...item.p), Y = ctx.Pl.P(0, item.p[1]); geoLine(m, P[0], P[1], Y[0], Y[1], { color: H2C[0], w: 3, dash: '6 5' }); hlRing(m, P, 13, H2C[1]); } ciRule(m, 180, 252, labelText('c4RuleFindB'), C4.hl, 15); await sleep(FAST ? 10 : 250); },   /* من النقطة إلى المحور الرأسي: كم خطوةً نرجع؟ */
   pick: item => c4EqPick(item.cands, item.want),
-  errOf: (it, k) => k === c4LKey([it.sl, it.p[1]]) ? 'eqBNoSub' : k === c4LKey([it.sl, it.p[1] + it.sl * it.p[0]]) ? 'eqBSign' : 'eqOff' });
+  errOf: (it, k) => k === c4LKey([it.sl, it.p[1]]) ? 'eqBNoSub' : k === c4LKey([it.sl, it.p[1] + it.sl * it.p[0]]) ? 'eqBSign' : k === c4LKey([it.sl, -it.b]) ? 'eqBRev' : 'eqOff' });
 
 /* ================= ⑨ الشارعان المتعامدان (د4، الإبداع): sl ميل الأول؛ ميل الثاني مقلوبه بإشارة معاكسة، وحاصل ضربهما −1 ================= */
 ITEM.c4Perp = cpItem({ H: 262, tLine: 'gen.c4.together.perp', hint: 'gen.c4.hint.perp', rLine: 'gen.c4.reveal.perp', rSay: it => S('gen.c4.m.' + it.want, { append: true }), praise: 'praiseThink',
@@ -237,10 +240,10 @@ SCENES.c4Hook = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane
   const g = el('g', { 'pointer-events': 'none' }, svg), A = Pl.P(-3, 2), B = Pl.P(3, 2), V1 = Pl.P(0, -5), V2 = Pl.P(0, 5); geoLine(g, V1[0], V1[1], V2[0], V2[1], { color: C4.hl, w: 5 }); geoLine(g, A[0], A[1], B[0], B[1], { color: C4.hl, w: 2.4, dash: '6 5' }); await c4Say(L, 2); for (const l of L.slice(3)) await S(l); };
 /* د1: الأرباع الأربعة بإشاراتها، ونقاط المحورين بلا ربع */
 SCENES.c4QuadShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5, top: 16 }); await c4Say(L, 0);
-  const sh = el('g', { 'pointer-events': 'none' }, svg), sg = ['(+ ، +)', '(− ، +)', '(− ، −)', '(+ ، −)'];
+  const sh = el('g', { 'pointer-events': 'none' }, svg);
   for (const [i, [k, sx, sy]] of [['q1', 1, 1], ['q2', -1, 1], ['q3', -1, -1], ['q4', 1, -1]].entries()) { const n = Pl.n, c = Pl.c, C = Pl.C;
     el('rect', { x: Math.min(C[0], C[0] + sx * n * c), y: Math.min(C[1], C[1] - sy * n * c), width: n * c, height: n * c, fill: C4.quad[i] }, sh);
-    preLab(sh, C[0] + sx * n * c / 2, C[1] - sy * n * c / 2 - 4, labelText('c4Q.' + k), { fs: 14, col: C4.ink, dir: 'rtl' }); const t = preLab(sh, C[0] + sx * n * c / 2, C[1] - sy * n * c / 2 + 16, sg[i], { fs: 15, col: C4.ln }); t.setAttribute('unicode-bidi', 'bidi-override'); SFX.tick();
+    preLab(sh, C[0] + sx * n * c / 2, C[1] - sy * n * c / 2 - 4, labelText('c4Q.' + k), { fs: 14, col: C4.ink, dir: 'rtl' }); coPairText(sh, C[0] + sx * n * c / 2, C[1] - sy * n * c / 2 + 16, sx > 0 ? '+' : '−', sy > 0 ? '+' : '−', 'middle', 15, C4.ln); SFX.tick();   /* قالب الإشارتين زوجٌ كالأزواج حوله: من اليمين بالمشرقية (D280؛ المراجع A لبوابة M4-U5/U6، 1) */
     if (i === 1 || i === 3) await c4Say(L, (i + 1) / 2); else await sleep(FAST ? 10 : 500); }
   c4Dot(svg, Pl, 0, 4, { pair: true, col: C4.q }); c4Dot(svg, Pl, -3, 0, { pair: true, col: C4.q, below: true }); SFX.tick(); await c4Say(L, 3); for (const l of L.slice(4)) await S(l); };
 /* د1: السالب يساراً وإلى أسفل */
