@@ -235,8 +235,8 @@
     "of": "m4.u6.d1",
     "item": {
      "t": "ci4Half",
-     "r": 26,
-     "d": 10,
+     "r": 20,
+     "d": 12,
      "ask": "half",
      "q": "gen.ci4.q.half.half"
     }
@@ -278,7 +278,7 @@
     "of": "m4.u6.d3",
     "item": {
      "t": "ci4Ang",
-     "cen": 70,
+     "cen": 84,
      "ask": "ins",
      "q": "gen.ci4.q.ang.ins"
     }
@@ -288,7 +288,7 @@
     "of": "m4.u6.d3",
     "item": {
      "t": "ci4Ang",
-     "cen": 160,
+     "cen": 124,
      "ask": "cen",
      "q": "gen.ci4.q.ang.cen"
     }

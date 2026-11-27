@@ -236,7 +236,7 @@
     "q": "gen.ci4.q.ang.ins",
     "twin": {
      "t": "ci4Ang",
-     "cen": 180,
+     "cen": 64,
      "ask": "ins",
      "q": "gen.ci4.q.ang.ins",
      "pAt": 60
@@ -291,7 +291,7 @@
     "step": 2,
     "cands": [
      "ext",
-     "tri",
+     "isoBase",
      "measure"
     ],
     "q": "gen.pf.q.reason",
@@ -368,7 +368,7 @@
     },
     {
      "t": "ci4Ang",
-     "cen": 60,
+     "cen": 76,
      "ask": "cen",
      "q": "gen.ci4.q.ang.cen"
     },
@@ -414,10 +414,9 @@
      "q": "gen.ci4.q.ang.ins",
      "twin": {
       "t": "ci4Ang",
-      "cen": 180,
+      "cen": 88,
       "ask": "ins",
-      "q": "gen.ci4.q.ang.ins",
-      "pAt": 120
+      "q": "gen.ci4.q.ang.ins"
      }
     }
    ]
@@ -445,17 +444,16 @@
   },
   {
    "t": "ci4Ang",
-   "cen": 170,
+   "cen": 146,
    "ask": "cen",
    "q": "gen.ci4.q.ang.cen",
    "c": "C412"
   },
   {
    "t": "ci4Ang",
-   "cen": 180,
+   "cen": 104,
    "ask": "ins",
    "q": "gen.ci4.q.ang.ins",
-   "pAt": 45,
    "c": "C412"
   }
  ],

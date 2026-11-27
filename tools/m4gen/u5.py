@@ -4,6 +4,8 @@
 import sys, os, json; sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'm2gen')); sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'm3gen'))
 from common import *
 from math import gcd, hypot
+from numar import decphrase
+DECS=set()   # مسافاتٌ بمنزلة عشرية: جمل نطقها gen.py.v.* (كالوتر التقريبي في U4)
 U=ROOT+'/content/m4/u5'
 os.makedirs(U, exist_ok=True)
 def tw(a,b): a=dict(a); a['twin']=b; return a
@@ -30,7 +32,10 @@ def read(x,y):
     for p in read_cands(x,y): PTS.add(p)
     return {"t":"c4Read","x":x,"y":y,"q":"gen.c4.q.read"}
 def dist(a,b):
-    dx,dy=abs(b[0]-a[0]),abs(b[1]-a[1]); h=hypot(dx,dy); assert h==int(h) and dx and dy and dx*dx+dy*dy<=100, (a,b)
+    dx,dy=abs(b[0]-a[0]),abs(b[1]-a[1]); h=hypot(dx,dy); assert dx and dy, (a,b)
+    if h!=int(h):   # كما في ITEM.c4Dist: r ثم جارتان بحسب (dx + dy) % 3
+        r=round(h,1); k=(dx+dy)%3
+        for e in [0]+[[-.1,.1],[.1,.2],[-.1,-.2]][k]: DECS.add(round(r+e,1))
     return {"t":"c4Dist","a":list(a),"b":list(b),"q":"gen.c4.q.dist"}
 def frac(p,q):
     k=gcd(abs(p),abs(q)) or 1; n=int(p/k); d=int(q/k)
@@ -192,19 +197,19 @@ d2={"id":"m4.u5.d2","title":"المَسَافَةُ وَالمَيْلُ","icon"
  "flow":[
   {"s":"hook","scene":"c4DistShow","lines":["hk.01","hk.02","hk.03","hk.04"]},
   {"s":"explore","scene":"c4SlopeShow","mat":MAT(),"lines":["sl.01","sl.02","sl.03","sl.04"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(corner((-2,1),(2,4)),corner((-1,-3),(2,1))), tw(dist((-2,1),(2,4)),dist((-1,-3),(2,1)))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"gm.intro","items":[tw(corner((-2,1),(2,4)),corner((-1,-3),(2,1))), tw(dist((-2,1),(2,4)),dist((-1,-3),(1,2)))]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
-  "normal":[tw(dist((0,0),(3,4)),dist((-3,0),(0,-4))), tw(slope((1,2),(3,6)),slope((-1,4),(1,-2))), tw(slope((2,1),(2,4)),slope((-3,-2),(2,-2)))],
+  "normal":[tw(dist((0,0),(3,4)),dist((-3,0),(1,-2))), tw(slope((1,2),(3,6)),slope((-1,4),(1,-2))), tw(slope((2,1),(2,4)),slope((-3,-2),(2,-2)))],
   "challenge":[tw(reason("pr.r1",c4p(pts=[[1,1],[4,5]],seg=[[1,1],[4,5]],rr=True),["pr.r1a","pr.r1b","pr.r1c"]),dist((-3,-2),(3,6))), tw(reason("pr.r2",c4p(pts=[[-2,-3],[-2,3]],vx=-2),["pr.r2a","pr.r2b","pr.r2c"]),slope((-2,-3),(2,3)))]},
  "chaos":{"kind":"scene","scene":"chaosItem","item":slope((1,-3),(1,2)),"find":"ch.find","after":"ch.after","right":"ch.right","wrong":"ch.wrong"},
- "mastery":{"concepts":{"C410":[dist((-4,2),(4,-4)), slope((-2,3),(2,1)), reason("ms.1",c4p(pts=[[-2,-1],[2,2]],seg=[[-2,-1],[2,2]],rr=True),["ms.1a","ms.1b","ms.1c"])]},
-  "alt":{"C410":[dist((-3,1),(1,-2)), slope((-3,-1),(1,1)), reason("ms.x1",c4p(pts=[[-1,-2],[3,1]],seg=[[-1,-2],[3,1]],rr=True),["ms.x1a","ms.x1b","ms.x1c"])]},
+ "mastery":{"concepts":{"C410":[dist((-4,2),(1,-1)), slope((-2,3),(2,1)), reason("ms.1",c4p(pts=[[-2,-1],[2,2]],seg=[[-2,-1],[2,2]],rr=True),["ms.1a","ms.1b","ms.1c"])]},
+  "alt":{"C410":[dist((-3,1),(3,-1)), slope((-3,-1),(1,1)), reason("ms.x1",c4p(pts=[[-1,-2],[3,1]],seg=[[-1,-2],[3,1]],rr=True),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C410":{"scene":"lines","lines":["ms.recall"]}},
-  "remedial":{"C410":[tw(dist((1,-1),(4,3)),slope((0,0),(2,4)))]},
+  "remedial":{"C410":[tw(dist((1,-1),(4,3)),slope((0,0),(2,6)))]},
   "mixed":{"lesson":"m4.u5.d1","concept":"C419","item":quad(-5,3)},
   "ok":"ms.ok"},
- "review":[dist((-2,-2),(1,2))|{"c":"C410"}, slope((-1,-1),(3,1))|{"c":"C410"}, slope((3,-4),(3,1))|{"c":"C410"}],
+ "review":[dist((-2,-2),(3,2))|{"c":"C410"}, slope((-1,-1),(3,4))|{"c":"C410"}, slope((3,-4),(3,0))|{"c":"C410"}],
  "wrap":{"art":"coord4Art","lines":["wrap.01"],"home":"wrap.home"},
  "talk":"اطلبوا منه حساب طول طريق بين نقطتين على خريطة فيها سالب، واسألوه: كم يصعد الطريق في كل خطوة؟ ولماذا لا ميل للعمود؟"}
 dump(U+'/d2.json', d2)
@@ -264,7 +269,7 @@ d3={"id":"m4.u5.d3","title":"مُعَادَلَةُ المُسْتَقِيمِ",
   "alt":{"C417":[eq(-1,3), findb(3,(1,4)), inter(2,-3), reason("ms.x1",c4p(pts=[[0,3]],ln=[-1,3]),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C417":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C417":[tw(inter(1,2),on((1,1),(2,3)))]},
-  "mixed":{"lesson":"m4.u5.d2","concept":"C410","item":dist((2,-3),(-4,5))},
+  "mixed":{"lesson":"m4.u5.d2","concept":"C410","item":dist((2,-3),(-3,4))},
   "ok":"ms.ok"},
  "review":[eq(1,3)|{"c":"C417"}, on((2,1),(3,7))|{"c":"C417"}, findb(3,(1,1))|{"c":"C417"}],
  "wrap":{"art":"coord4Art","lines":["wrap.01"],"home":"wrap.home"},
@@ -312,7 +317,7 @@ d4={"id":"m4.u5.d4","title":"مَشْرُوعُ: خَرِيطَةُ المَدِ
  "labels":{"bagGrid":"وَرَقُ مُرَبَّعَاتٍ","bagPen":"أَقْلَامٌ مُلَوَّنَةٌ"},"lines":L4,
  "flow":[
   {"s":"explore","scene":"c4CityShow","mat":MAT(),"lines":["ct.01","ct.02","ct.03","ct.04"]},
-  {"s":"game","scene":"items","mode":"practice","intro":"prj.intro","items":[tw(place(-4,-2,'house'),place(1,-5,'house')), tw(dist((-4,-2),(2,6)),dist((-3,4),(1,1)))]},
+  {"s":"game","scene":"items","mode":"practice","intro":"prj.intro","items":[tw(place(-4,-2,'house'),place(1,-5,'house')), tw(dist((-4,-2),(2,6)),dist((-3,4),(2,2)))]},
   {"s":"explore","scene":"lines","table":True,"lines":["tb.01","tb.02"]},
   {"s":"practice"},{"s":"chaos"},{"s":"mastery"},{"s":"wrap"}],
  "practice":{"intro":"pr.intro",
@@ -370,7 +375,7 @@ d5={"id":"m4.u5.d5","title":"بَوَّابَةُ حَيِّ الخَرَائِ�
   "challenge":[tw(slope((4,-2),(4,3)),inter(-2,-3))]},
  "test":{"remedial":"ts.rem","stoneLine":"ts.stone","winLines":["ts.win1","ts.win2"],"items":[   # أقسام المرجع: 2 تعيين نقطة في الربع، 3 المسافة، 2 الميل (ومستقيم رأسي)، 3 معادلة المستقيم (كتابة وتحقق)، 1 اكتشاف خطأ، 1 مفتوح
    T5(1,1,place(-5,4)), T5(2,1,quad(-6,-2)),
-   T5(3,2,dist((-1,-2),(2,2))), T5(4,2,dist((-5,1),(3,-5))), T5(5,2,dist((0,-3),(-4,0))),
+   T5(3,2,dist((-1,-2),(2,5))), T5(4,2,dist((-5,1),(1,-4))), T5(5,2,dist((0,-3),(-1,2))),
    T5(6,2,slope((-2,-1),(1,5))), T5(7,2,slope((-1,-4),(-1,2))),
    T5(8,3,eq(-2,1)), T5(9,3,findb(3,(2,5))), T5(10,3,on((2,3),(4,11))),
    T5(11,1,reason("ts.11",c4p(pts=[[3,-2]]),["ts.11a","ts.11b","ts.11c"])),
@@ -437,6 +442,7 @@ G={
  "gen.c4.q.perp":"شَارِعَانِ مُتَعَامِدَانِ. مَيْلُ الأَوَّلِ","gen.c4.q.perpEnd":"كَمْ مَيْلُ الثَّانِي؟",
  "gen.c4.together.perp":"هَيَّا مَعًا: كَتَبْنَا القَاعِدَةَ تَحْتُ. أَيُّ مَيْلٍ ضَرْبُهُ فِي مَيْلِ الأَوَّلِ سَالِبُ وَاحِدٍ؟","gen.c4.hint.perp":"حَاصِلُ ضَرْبِ مَيْلَيِ المُتَعَامِدَيْنِ سَالِبُ وَاحِدٍ: نَقْلِبُ المَيْلَ وَنُغَيِّرُ إِشَارَتَهُ.","gen.c4.reveal.perp":"مَيْلُ الثَّانِي:",
 }
+for v in sorted(DECS): G['gen.py.v.'+('%g'%v).replace('.','_')]=decphrase(v)+'.'
 for p in PTS: G['gen.c4.pt.'+key(*p)]=pw(p[0])+'، '+pw(p[1])+'.'
 for p in GO: G['gen.c4.go.'+key(*p)]=goline(*p)
 for e in EQS: G['gen.c4.eq.'+key(*e)]=eqline(*e)

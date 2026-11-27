@@ -25,10 +25,10 @@ A=[C(1,{"t":"arComp","a":65,"kind":"comp","q":"gen.ar.q.ang"}),                 
    C(10,{"t":"pyIsRight","s":[12,35,37],"q":"gen.py.q.isRight"}),                                               # U4: العكس
    C(11,{"t":"pyLeg","hyp":37,"a":12,"q":"gen.py.q.leg.perp","ctx":"perp"}),                                   # U4: العمودي أقصر مسافة
    C(12,{"t":"c4Quad","x":4,"y":-5,"q":"gen.c4.q.quad"}),                                                      # U5: الربع
-   C(13,{"t":"c4Dist","a":[-2,1],"b":[1,5],"q":"gen.c4.q.dist"}),                                              # U5: المسافة
+   C(13,{"t":"c4Dist","a":[-2,1],"b":[4,4],"q":"gen.c4.q.dist"}),                                              # U5: المسافة
    C(14,{"t":"c4Eq","ln":[3,-2],"q":"gen.c4.q.eq"}),                                                          # U5: معادلة المستقيم
    C(15,{"t":"ci4Tan","kind":"tan","dir":200,"q":"gen.ci4.q.tan"}),                                            # U6: المماس عمودي
-   C(16,{"t":"ci4Ang","cen":110,"ask":"ins","q":"gen.ci4.q.ang.ins"}),                                         # U6: المحيطية نصف المركزية
+   C(16,{"t":"ci4Ang","cen":136,"ask":"ins","q":"gen.ci4.q.ang.ins"}),                                         # U6: المحيطية نصف المركزية
    C(17,{"t":"ci4Sector","kind":"arc","ang":60,"u":"cm","q":"gen.ci4.q.arc","r":3}),                          # U6: طول القوس
    C(18,{"t":"c7Vol","fig":"cyl","u":"cm","q":"gen.c7.q.vol.cyl","r":2,"h":5}),                                # U7: حجم الأسطوانة
    C(19,{"t":"c7Vol","fig":"cone","u":"cm","q":"gen.c7.q.vol.cone","B":30,"h":5}),                             # U7: الثلث

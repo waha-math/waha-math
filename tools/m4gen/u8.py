@@ -120,7 +120,7 @@ d1={"id":"m4.u8.d1","title":"مُنَصِّفُ الزَّاوِيَةِ","icon"
   "alt":{"C401":[half(80,'whole'), eqd(30,.5), reason("ms.x1",c8p(bis=70),["ms.x1a","ms.x1b","ms.x1c"])]},
   "recall":{"C401":{"scene":"lines","lines":["ms.recall"]}},
   "remedial":{"C401":[tw(half(30,'half'),eqd(80,.5))]},
-  "mixed":{"lesson":"m4.u6.d3","concept":"C412","item":{"t":"ci4Ang","cen":150,"ask":"cen","q":"gen.ci4.q.ang.cen"}},
+  "mixed":{"lesson":"m4.u6.d3","concept":"C412","item":{"t":"ci4Ang","cen":116,"ask":"cen","q":"gen.ci4.q.ang.cen"}},
   "ok":"ms.ok"},
  "review":[half(150,'half')|{"c":"C401"}, eqd(40,.5)|{"c":"C401"}, half(50,'whole')|{"c":"C401"}],
  "wrap":{"art":"trigArt","lines":["wrap.01"],"home":"wrap.home"},

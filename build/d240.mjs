@@ -118,6 +118,8 @@ export const arpicK = P => P.tr != null ? `arpic|tr|${P.tr}|${P.tilt || 0}|${[..
   : P.adj ? `arpic|adj|${P.adj.join('|')}` : 'arpic|' + JSON.stringify(P);
 export const pfpicK = P => P.fig ? `pfpic|fig|${P.fig}|${P.v || 0}` : P.ineq ? `pfpic|ineq|${[...P.ineq].sort((x, y) => x - y).join(',')}` : P.poly ? `pfpic|poly|${P.poly}|${P.diag ? 1 : 0}`
   : P.trap ? `pfpic|trap|${P.trap}|${P.axis ? 1 : 0}` : 'pfpic|' + JSON.stringify(Object.fromEntries(Object.entries(P).filter(([k]) => k !== 'kind' && k !== 'rm').sort()));   /* بلا kind ولا rm (لا يغيّر الرسم)، فصورة المشهد وصورة البند مفتاحٌ واحد (المراجع A لبوابة M4-U3/U4، 6) */
+const c4dK = (a, b) => `c4d|${[Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])].sort((x, y) => x - y)}`, c4gcd = (x, y) => y ? c4gcd(y, x % y) : Math.abs(x);
+const c4sK = (a, b) => { let dx = b[0] - a[0], dy = b[1] - a[1]; if (!dx) return `c4s|none|${Math.abs(dy)}`; if (!dy) return `c4s|0|${Math.abs(dx)}`; if (dx < 0) { dx = -dx; dy = -dy; } const g = c4gcd(Math.abs(dy), dx); return `c4s|${dy / g}/${dx / g}|${dx},${dy}`; };
 export const factOf = it => { const t = it.t;
   if (t === 'split') return `part|${it.n}|${s2(it.k, it.n - it.k)}`;
   if (t === 'eqPair') return `part|${it.n}|${s2(...(it.parts || []))}`;
@@ -367,18 +369,18 @@ export const factOf = it => { const t = it.t;
   if (t === 'c4Place') return `c4p|${it.kind || 'pt'}|${it.kind === 'int' ? it.ln.join(',') : it.kind === 'corner' ? c4P(it.a, it.b) : [it.x, it.y].join(',')}`;
   if (t === 'c4Quad') return `c4q|${it.x},${it.y}`;
   if (t === 'c4Read') return `c4r|${it.x},${it.y}`;
-  if (t === 'c4Dist') return `c4d|${c4P(it.a, it.b)}`;
-  if (t === 'c4Slope') return `c4s|${c4P(it.a, it.b)}`;
+  if (t === 'c4Dist') return c4dK(it.a, it.b);   /* دلالياً: بالفرقين، وبالكسر المختزل (المراجع A لبوابة M4-U5/U6، 6) */
+  if (t === 'c4Slope') return c4sK(it.a, it.b);
   if (t === 'c4Eq') return `c4e|${it.ln.join(',')}`;
   if (t === 'c4On') return `c4o|${it.ln.join(',')}|${it.p.join(',')}`;
   if (t === 'c4FindB') return `c4b|${it.sl}|${it.p.join(',')}`;
   if (t === 'c4Perp') return `c4pp|${it.sl}`;
   if (t === 'ci4Chord') return `c6c|${it.seg}|${it.rot ?? 200}`;
-  if (t === 'ci4Half') return `c6h|${it.r}|${it.d}|${it.ask}`;
+  if (t === 'ci4Half') return it.ask === 'half' ? `c6hh|${2 * Math.round(Math.sqrt(it.r * it.r - it.d * it.d))}` : `c6h|${it.r}|${it.d}`;   /* في «نصف الوتر» لا يُرى إلا الوتر كاملاً */
   if (t === 'ci4Tan') return `c6t|${it.kind}|${it.dir ?? 60}`;
   if (t === 'ci4TanLen') return `c6l|${it.r}|${it.op}|${it.ask}`;
   if (t === 'ci4TanAng') return `c6a|${it.th}`;
-  if (t === 'ci4Ang') return `c6g|${it.cen}|${it.ask}|${it.pAt ?? 90}`;
+  if (t === 'ci4Ang') return it.cen === 180 ? 'c6g|180' : `c6g|${it.cen}|${it.pAt ?? 90}`;   /* والمحيطية على القطر حقيقةٌ واحدة أينما كان رأسها */   /* الشكل نفسه أياً كان المسؤول عنه */
   if (t === 'ci4Sector') return `c6s|${it.kind}|${it.ang}|${it.C ?? ''}|${it.A ?? ''}|${it.r ?? ''}`;
   if (t === 'c7Vol') return `c7v|${it.fig}|${['r', 'd', 's', 'B', 'h', 'ask', 'V', 'hm', 'out'].map(k => it[k] ?? '').join('|')}`;
   if (t === 'c7SA') return `c7a|${it.r}|${it.h}|${it.ask}`;
@@ -674,15 +676,15 @@ export function d240(lessons, code, MAKERS) {
     pyPumpShow: c => { const h = c.h || 12; return (c.ds || [9, 5, 0]).filter(d => d).flatMap(d => { const L = Math.sqrt(h * h + d * d); return [`pyh|${[h, d].sort((x, y) => x - y)}`, `pya|${[h, d].sort((x, y) => x - y)}`, `pyl|${+L.toFixed(1)}|${h}`, `pyl|${+L.toFixed(1)}|${d}`]; }); },
     /* M4-U5 وM4-U6: ما تعرضه المشاهد بجوابه (المعروف (3) لبوابة M4-U5/U6) */
     c4Hook: () => [[-3, 2], [3, 2]].flatMap(c4Pt), c4QuadShow: () => [[0, 4], [-3, 0]].flatMap(c4Pt), c4SignShow: () => [[-3, 2], [3, -2]].flatMap(c4Pt),
-    c4DistShow: c => { const a = c.a || [1, 1], b = c.b || [4, 5]; return [`c4d|${c4PP(a, b)}`, `c4s|${c4PP(a, b)}`]; },
-    c4SlopeShow: () => [[[1, 1], [4, 5]], [[-3, -4], [-3, 3]], [[0, -2], [4, -2]]].map(([a, b]) => `c4s|${c4PP(a, b)}`),
+    c4DistShow: c => { const a = c.a || [1, 1], b = c.b || [4, 5]; return [c4dK(a, b), c4sK(a, b)]; },
+    c4SlopeShow: () => [[[1, 1], [4, 5]], [[-3, -4], [-3, 3]], [[0, -2], [4, -2]]].map(([a, b]) => c4sK(a, b)),
     c4LineHook: () => ['c4e|2,0', 'c4e|0,0'],
     c4LineShow: c => { const [m, b] = c.ln || [2, 1], P = [[0, b], [1, m + b], [2, 2 * m + b], [-1, b - m], [-2, b - 2 * m]].filter(p => Math.abs(p[1]) < 5); return [`c4e|${m},${b}`, ...P.flatMap(p => [`c4o|${m},${b}|${p}`, `c4b|${m}|${p}`])]; },
     c4CheckShow: c => { const [m, b] = c.ln || [2, 1]; return (c.pts || [[2, 5], [2, 2]]).map(p => `c4o|${m},${b}|${p}`); },
-    c4CityShow: () => [...[[-3, 2], [1, -1], [-3, -2], [2, 3]].flatMap(c4Pt), `c4d|${c4PP([-3, 2], [1, -1])}`, `c4s|${c4PP([-3, 2], [1, -1])}`, 'c4e|1,1', 'c4e|-1,5', 'c4pp|1', 'c4pp|-1'],
+    c4CityShow: () => [...[[-3, 2], [1, -1], [-3, -2], [2, 3]].flatMap(c4Pt), c4dK([-3, 2], [1, -1]), c4sK([-3, 2], [1, -1]), 'c4e|1,1', 'c4e|-1,5', 'c4pp|1', 'c4pp|-1'],
     ci4ChordHook: () => ['c6c|chord|200', 'c6c|diam|200'], ci4TanHook: () => ['c6t|sec|90'], ci4TanShow: () => ['c6t|sec|90', 'c6t|tan|90', 'c6t|out|90'],
-    ci4InscHook: c => { const cen = c.cen || 80; return [`c6g|${cen}|ins|90`, `c6g|${cen}|cen|90`]; },
-    ci4InscShow: () => [[100, 60], [100, 130], [180, 90]].flatMap(([cen, p]) => [`c6g|${cen}|ins|${p}`, `c6g|${cen}|cen|${p}`]),
+    ci4InscHook: c => [`c6g|${c.cen || 80}|90`],
+    ci4InscShow: () => ['c6g|100|60', 'c6g|100|130', 'c6g|180'],
     ci4SectorShow: c => [`c6s|area|${c.ang || 90}||100|`], ci4GardenShow: () => ['c6s|arc|90|||5', 'c6s|area|90|||5'],
     ladderShow: c => [['pyl|5|3', 'pyl|5|4', 'pyh|3,4'], ['pyl|10|6', 'pyl|10|8', 'pyh|6,8'], []].slice(c.from || 0, c.to ?? 3).flat(),
     projTable: c => c.facts || [],

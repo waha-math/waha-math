@@ -146,9 +146,11 @@ ITEM.c4Read = cpItem({ H: 262, tLine: 'gen.c4.together.read', hint: 'gen.c4.hint
   errOf: (it, k) => { const { x, y } = it; return k === preKey([-x, y]) ? 'c4SignX' : k === preKey([x, -y]) ? 'c4SignY' : k === preKey([-x, -y]) ? 'c4SignBoth' : k === preKey([y, x]) ? 'coordSwap' : 'c4Off'; } });
 
 /* ================= ④ المسافة بين نقطتين في المستوى الكامل (C410): a، b؛ وترٌ ضلعاه الفرقان ================= */
-ITEM.c4Dist = cpItem({ H: 262, tLine: 'gen.c4.together.dist', hint: 'gen.c4.hint.dist', rLine: 'gen.c4.reveal.dist', rSay: it => S(numw(it.want), { append: true }), num: true, praise: 'praiseThink',
+ITEM.c4Dist = cpItem({ H: 262, tLine: 'gen.c4.together.dist', hint: 'gen.c4.hint.dist', rLine: 'gen.c4.reveal.dist', rSay: it => S(it.dec ? 'gen.py.v.' + it.want : numw(it.want), { append: true }), num: true, praise: 'praiseThink',
   make: s => { const dx = Math.abs(s.b[0] - s.a[0]), dy = Math.abs(s.b[1] - s.a[1]), want = Math.round(Math.hypot(dx, dy));
-    /*T*/if (TESTHOOK && (want * want !== dx * dx + dy * dy || !dx || !dy || dx * dx + dy * dy > 100)) testBug('c4Dist: المسافة ليست عدداً صحيحاً، أو النقطتان على خط، أو المربع فوق مئة');/*/T*/
+    /*T*/if (TESTHOOK && (!dx || !dy)) testBug('c4Dist: النقطتان على خطٍّ أفقي أو رأسي');/*/T*/
+    /* المسافة غير الصحيحة بمنزلة عشرية (كالوتر التقريبي في U4): فلا تنحصر المسافات في ٥ و١٠ (المراجع A لبوابة M4-U5/U6، 3 و6) */
+    if (want * want !== dx * dx + dy * dy) { const r = +Math.hypot(dx, dy).toFixed(1), k = (dx + dy) % 3, cands = [r, ...[[-.1, .1], [.1, .2], [-.1, -.2]][k].map(e => +(r + e).toFixed(1))]; return { dx, dy, dec: true, r, cands, want: pyKey(r), ext: c4Ext([s.a, s.b], 4), tag: 'c4-dist-dec' }; }
     const ax = Math.abs(Math.abs(s.b[0]) - Math.abs(s.a[0])), ay = Math.abs(Math.abs(s.b[1]) - Math.abs(s.a[1])), sg = Math.hypot(ax, ay), alt = (ax !== dx || ay !== dy) && ax && ay && Number.isInteger(sg) && sg !== want ? sg : null;
     /* رتبة الجواب بين الخيارات تتغيّر بالبند (المراجع A لبوابة M4-U5/U6، 3): الأصغرَ، أو الأوسطَ بفرقٍ واحد، أو الأكبرَ بفرقٍ واحد وبطرح الفرقين */
     const k = (dx * 7 + dy * 3 + Math.abs(s.a[0]) + Math.abs(s.b[1])) % 3, mx = Math.max(dx, dy), mn = Math.min(dx, dy), sub = Math.abs(dx - dy) || mn;
@@ -158,8 +160,8 @@ ITEM.c4Dist = cpItem({ H: 262, tLine: 'gen.c4.together.dist', hint: 'gen.c4.hint
     c4Dot(svg, Pl, ...item.a, { name: 'a', pair: true, col: C4.pt2 }); c4Dot(svg, Pl, ...item.b, { name: 'b', pair: true, col: C4.pt2 });
     if (tries >= 3) c4RunRise(helpG(svg), Pl, item.a, item.b, { abs: true }); return { Pl }; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg); if (ctx.Pl) c4Legs(m, ctx.Pl, item.a, item.b); ciRule(m, 180, 22, labelText('c4RuleDist'), C4.hl, 15); await sleep(FAST ? 10 : 250); },
-  pick: (item, ctx) => { const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
-  errOf: (it, k) => k === it.dx + it.dy ? 'coDistAdd' : k === it.alt ? 'c4DistSign' : k === it.dx * it.dx + it.dy * it.dy ? 'pyNoRoot' : k === Math.max(it.dx, it.dy) || k === Math.min(it.dx, it.dy) ? 'c4DistOne' : k === Math.abs(it.dx - it.dy) ? 'c4DistSub' : 'coDistOff2' });
+  pick: (item, ctx) => { if (item.dec) return choosePick(shuffle(item.cands.map(v => [pyKey(v), pyTxt(v), '<i></i>', 'gen.py.v.' + pyKey(v)])), item.want); const np = numberPick(shuffle(item.nums), item.want, { west: true }); ctx.np = np; return np.p; },
+  errOf: (it, k) => it.dec ? 'pyOff' : k === it.dx + it.dy ? 'coDistAdd' : k === it.alt ? 'c4DistSign' : k === it.dx * it.dx + it.dy * it.dy ? 'pyNoRoot' : k === Math.max(it.dx, it.dy) || k === Math.min(it.dx, it.dy) ? 'c4DistOne' : k === Math.abs(it.dx - it.dy) ? 'c4DistSub' : 'coDistOff2' });
 
 /* ================= ⑤ الميل بين نقطتين (C410): a، b؛ الفرق الرأسي ÷ الفرق الأفقي، والرأسي لا ميل له ================= */
 function c4SlopeCands(a, b) { const dx = b[0] - a[0], dy = b[1] - a[1], want = dx ? c4Frac(dy, dx) : 'none', C = [want], add = v => { if (C.length < 3 && !C.some(u => c4MKey(u) === c4MKey(v))) C.push(v); };
