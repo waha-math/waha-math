@@ -375,7 +375,10 @@ export const factOf = it => { const t = it.t;
   if (t === 'c4Place') return `c4p|${it.kind || 'pt'}|${it.kind === 'int' ? it.ln.join(',') : it.kind === 'corner' ? c4P(it.a, it.b) : [it.x, it.y].join(',')}`;
   if (t === 'c4Quad') return `c4q|${it.x},${it.y}`;
   if (t === 'c4Read') return `c4r|${it.x},${it.y}`;
-  if (t === 'c4Dist') return c4dK(it.a, it.b);   /* دلالياً: بالفرقين، وبالكسر المختزل (المراجع A لبوابة M4-U5/U6، 6) */
+  if (t === 'c4Dist') return c4dK(it.a, it.b);
+  if (t === 'c5Hunt') return `c4p|pt|${it.x},${it.y}`;   /* ألعاب U5 الحركية (D288 (2)) بمفاتيح بنودها */
+  if (t === 'c5Detect') return c4dK(it.a, it.b);
+  if (t === 'c5Line') return `c4o|${it.m},${it.i0}|${it.cand[0].join(',')}`;   /* دلالياً: بالفرقين، وبالكسر المختزل (المراجع A لبوابة M4-U5/U6، 6) */
   if (t === 'c4Slope') return c4sK(it.a, it.b);
   if (t === 'c4Eq') return `c4e|${it.ln.join(',')}`;
   if (t === 'c4On') return `c4o|${it.ln.join(',')}|${it.p.join(',')}`;
