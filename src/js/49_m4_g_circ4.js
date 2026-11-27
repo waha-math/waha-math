@@ -147,12 +147,12 @@ function c6Fig(g, k, o = {}) { const y0 = o.y0 ?? 0, s = o.s || 1, T = (x, y) =>
 /* ---------- صورة بطاقة التعليل (pfReasonPic، المفتاح ci4): k chord | diam | rad | tan | sec | insc | arc | sector ---------- */
 function c6Pic(g, P) { const O = [180, 100], R = 70;
   if (P.k === 'insc') { c6Insc(g, P.cen || 80, { O, R: 66, pAt: P.pAt }); return; }
-  if (P.k === 'perp') { c6Circle(g, O, R); const C = c6Chord(O, R, 36); c6Seg(g, C.A, C.B, C6.ch, 4); c6Seg(g, O, C.A, C6.r, 3); c6Seg(g, O, C.B, C6.r, 3); c6Seg(g, O, C.M, C6.ok, 3, '6 4'); preRight(g, C.M, O, C.B, 9); [C.A, C.B, C.M].forEach(X => pfDot(g, X)); return; }
+  if (P.k === 'perp') { c6Circle(g, O, R); const C = c6Chord(O, R, P.d ?? 36); c6Seg(g, C.A, C.B, C6.ch, 4); c6Seg(g, O, C.A, C6.r, 3); c6Seg(g, O, C.B, C6.r, 3); c6Seg(g, O, C.M, C6.ok, 3, '6 4'); preRight(g, C.M, O, C.B, 9); [C.A, C.B, C.M].forEach(X => pfDot(g, X)); return; }
   if (P.k === 'tan' || P.k === 'sec') { c6Circle(g, O, R); const X = c6LineAt(g, O, R, P.dir ?? 60, P.k === 'tan' ? R : R * .62); X.pts.forEach(Q => pfDot(g, Q)); if (P.k === 'tan' && P.radius) { c6Seg(g, O, X.N, C6.r, 3); preRight(g, X.N, O, angP(X.N, (P.dir ?? 60) + 90, 20), 9); } return; }
   if (P.k === 'arc' || P.k === 'sector') { const a = P.ang || 90;
     c6Circle(g, O, R); if (P.k === 'sector') c6SecPath(g, O, R, 90, 90 + a); if (P.k === 'arc') el('path', { d: angArc(O, R, 90, 90 + a), fill: 'none', stroke: C6.arc, 'stroke-width': 6, 'pointer-events': 'none' }, g); c6Seg(g, O, angP(O, 90, R), C6.r, 3); c6Seg(g, O, angP(O, 90 + a, R), C6.r, 3); arArc(g, O, 90, 90 + a, { r: 20, col: C6.r, deg: a, dl: 18, fs: 13, fill: true }); return; }
   c6Circle(g, O, R); const [A, B] = C6_SEG(O, R, P.k, P.rot ?? 200); c6Seg(g, A, B, C6.ch, 4); [A, B].forEach(X => pfDot(g, X));
-  if (P.perp) { const C = c6Chord(O, R, 36); c6Seg(g, C.A, C.B, C6.ch, 4); c6Seg(g, O, C.M, C6.ok, 3, '6 4'); preRight(g, C.M, O, C.B, 9); } }
+  if (P.perp) { const M = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2]; c6Seg(g, O, M, C6.ok, 3, '6 4'); preRight(g, M, O, B, 9); pfDot(g, M); } }   /* العمود على الوتر نفسه لا وترٌ ثانٍ (المراجع A لبوابة M4-U5/U6، 9) */
 
 /* ================= المشاهد ================= */
 /* د1: فوضى تسمّي الوتر قطراً */

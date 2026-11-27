@@ -230,7 +230,7 @@ ITEM.c4Perp = cpItem({ H: 262, tLine: 'gen.c4.together.perp', hint: 'gen.c4.hint
 
 /* ---------- صورة بطاقة التعليل (pfReasonPic، kind pfpic، المفتاح c4): pts [[س، ص، حرف؟]]، seg [أ، ب]، ln [م، ب]، vx، mirror ---------- */
 function c4Pic(g, P) { const pts = (P.pts || []).map(p => p.slice(0, 2)), Pl = c4Plane(g, { ...c4Ext(pts.length ? pts : [[0, 0]], P.n || 4), top: 12, H: 200 });
-  if (P.ln) c4Line(g, Pl, P.ln[0], P.ln[1], {}); if (P.vx != null) c4Line(g, Pl, 0, 0, { vx: P.vx });
+  if (P.ln) c4Line(g, Pl, P.ln[0], P.ln[1], {}); if (P.ln2) { c4Line(g, Pl, P.ln2[0], P.ln2[1], { col: C4.pt2, dash: '8 6' }); preRight(g, Pl.P(0, P.ln[1]), Pl.P(1, P.ln[0] + P.ln[1]), Pl.P(-P.ln[0], 1 + P.ln[1]), 10); }   /* شارعان متعامدان (المراجع A، 9) */ if (P.vx != null) c4Line(g, Pl, 0, 0, { vx: P.vx });
   if (P.seg) { const A = Pl.P(...P.seg[0]), B = Pl.P(...P.seg[1]); geoLine(g, A[0], A[1], B[0], B[1], { color: C4.ln, w: 3.4 }); if (P.rr) c4RunRise(g, Pl, P.seg[0], P.seg[1], { abs: true }); }
   if (P.mirror) { const [a, b] = pts, A = Pl.P(...a), B = Pl.P(...b); geoLine(g, A[0], A[1], B[0], B[1], { color: C4.hl, w: 2.2, dash: '6 5' }); }
   (P.pts || []).forEach(([x, y, k], i) => c4Dot(g, Pl, x, y, { pair: true, name: k, col: i ? C4.pt2 : C4.pt })); }

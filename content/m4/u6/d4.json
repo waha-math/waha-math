@@ -363,8 +363,8 @@
      "pic": {
       "kind": "pfpic",
       "ci4": {
-       "k": "sector",
-       "ang": 120
+       "k": "arc",
+       "ang": 150
       }
      },
      "opts": [
