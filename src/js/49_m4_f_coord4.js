@@ -91,7 +91,7 @@ function c4MDraw(parent, x, y, v, o = {}) { const g = el('g', { 'pointer-events'
   if (v === 'none') { preLab(g, x, y + 6, labelText('c4NoSlope'), { col, fs: 17, dir: 'rtl' }); return g; }
   const [n, d] = v, neg = n < 0, east = SET.digits === 'east';
   if (d === 1) { preLab(g, x, y + 7, (neg ? '−' : '') + MS(String(Math.abs(n))), { col, fs: 22, dir: east ? 'rtl' : 'ltr' }); return g; }
-  if (neg) preLab(g, x + (east ? 18 : -18), y + 7, '−', { col, fs: 22 }); preLab(g, x, y - 4, MS(String(Math.abs(n))), { col, fs: 17 }); geoLine(g, x - 11, y + 1, x + 11, y + 1, { color: col, w: 2.4 }); preLab(g, x, y + 20, MS(String(d)), { col, fs: 17 }); return g; }
+  if (neg) preLab(g, x + (east ? 23 : -23), y + 7, '−', { col, fs: 22 }); preLab(g, x, y - 4, MS(String(Math.abs(n))), { col, fs: 17 }); geoLine(g, x - 11, y + 1, x + 11, y + 1, { color: col, w: 2.4 }); preLab(g, x, y + 20, MS(String(d)), { col, fs: 17 }); return g; }
 
 /* ================= ① عيّن النقطة في المستوى الكامل (C419): kind pt (x، y)، أو int (مقطع المحور الرأسي من المعادلة ln)، أو corner (رأس الزاوية القائمة بين a وb)؛ art treasure ================= */
 ITEM.c4Place = {
@@ -257,9 +257,10 @@ SCENES.c4SignShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4P
   for (const [i, [x, y]] of [[-3, 2], [3, -2]].entries()) { const m = await c4Walk(svg, Pl, x, y, { ms: 200 }); c4Dot(svg, Pl, x, y, { pair: true, col: i ? C4.pt2 : C4.pt }); await c4Say(L, i); m.remove(); }
   for (const l of L.slice(2)) await S(l); };
 /* د2: من (1 ، 1) إلى (4 ، 5): الجمع سبعة، والوتر خمسة */
-SCENES.c4DistShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5 }), a = c.a || [1, 1], b = c.b || [4, 5], A = Pl.P(...a), B = Pl.P(...b);
+SCENES.c4DistShow = async c => { const L = c.ans ? [null, ...c.lines] : c.lines, svg = m3Stage(262), Pl = c4Plane(svg, { n: 5 }), a = c.a || [1, 1], b = c.b || [4, 5], A = Pl.P(...a), B = Pl.P(...b);
   geoLine(svg, A[0], A[1], B[0], B[1], { color: C4.ln, w: 3.6 }); c4Dot(svg, Pl, ...a, { pair: true, col: C4.pt2 }); c4Dot(svg, Pl, ...b, { pair: true, col: C4.pt2, side: 1 }); await c4Say(L, 0);   /* اسم النقطة يمينها، والطول يسار القطعة (المعروف (1)) */
-  const h = el('g', { 'pointer-events': 'none' }, svg); c4RunRise(h, Pl, a, b, { abs: true }); SFX.tick(); await c4Say(L, 1);
+  const h = el('g', { 'pointer-events': 'none' }, svg); c4RunRise(h, Pl, a, b, { abs: true }); SFX.tick(); if (c.ans) hlSeg(h, A, B, C4.hl); await c4Say(L, 1);   /* ans: المعطى صامتاً، ثم القياس فالحساب */
+  if (c.noAns) { for (const l of L.slice(2)) await S(l); return; }   /* الإشعال يقف عند السؤال، والوتر بعد التوقّع والقياس (المراجع A لبوابة M4-U5/U6، 12) */
   const dx = Math.abs(b[0] - a[0]), dy = Math.abs(b[1] - a[1]), d = Math.round(Math.hypot(dx, dy)); ciEq(h, 180, 26, `${dx} × ${dx} + ${dy} × ${dy} = ${d * d}`, C4.ok, 18);
   preLab(h, (A[0] + B[0]) / 2 - 12, (A[1] + B[1]) / 2 - 4, MS(String(d)), { col: C4.ok, fs: 19, anchor: 'end' }); SFX.tick(); await c4Say(L, 2); for (const l of L.slice(3)) await S(l); };
 /* د2: الميل صعودٌ على مشي، والرأسي لا ميل له، والأفقي ميله صفر */
@@ -292,5 +293,13 @@ SCENES.c4CityShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4P
   let g = el('g', { 'pointer-events': 'none' }, svg); const A1 = Pl.P(...B.a), B1 = Pl.P(...B.b); geoLine(g, A1[0], A1[1], B1[0], B1[1], { color: C4.pt2, w: 4 }); c4RunRise(g, Pl, B.a, B.b, { abs: true }); SFX.tick(); await c4Say(L, 1);
   g.remove(); g = el('g', { 'pointer-events': 'none' }, svg); c4Line(g, Pl, 1, 1, { col: C4.ln, w: 4 }); c4EqText(g, 92, 32, 1, 1, { fs: 18 }); c4Dot(g, Pl, 0, 1, { col: C4.ok }); SFX.tick(); await c4Say(L, 2);
   c4Line(g, Pl, -1, 5, { col: C4.pt2, w: 4, dash: '8 6' }); preRight(g, Pl.P(2, 3), Pl.P(3, 4), Pl.P(3, 2), 10); SFX.tick(); await c4Say(L, 3); for (const l of L.slice(4)) await S(l); };
+/* د4 (الإبداع): شارعان متعامدان؛ الزاوية تُقاس، ومثلث الميل يدور معه ربع دورة، ثم حاصل ضرب الميلين (المراجع A لبوابة M4-U5/U6، 12) */
+SCENES.c4PerpShow = async c => { const L = c.lines, s = c.sl || 2, svg = m3Stage(262), Pl = c4Plane(svg, { n: 3, top: 72 }), P = Pl.P, O = P(0, 0), g = el('g', { 'pointer-events': 'none' }, svg);
+  c4Line(g, Pl, s, 0, { col: C4.pt, w: 4 }); c4Legs(g, Pl, [0, 0], [1, s]); preLab(g, (O[0] + P(1, 0)[0]) / 2 + 3, O[1] - 6, MS('1'), { col: H2C[0], fs: 15 }); preLab(g, P(1, 0)[0] + 9, (O[1] + P(1, s)[1]) / 2 + 5, MS(String(Math.abs(s))), { col: H2C[1], fs: 15, anchor: 'start' }); SFX.tick(); await c4Say(L, 0);
+  c4Line(g, Pl, -1 / s, 0, { col: C4.pt2, w: 4, dash: '8 6' }); preRight(g, O, P(-1, -s), P(s, -1), 12); degText(g, O[0] + 16, O[1] + 42, 90, { size: 14, color: C4.ok });   /* القائمة في الزاوية السفلى، والعليا لمثلثي الميل */ SFX.tick(); await c4Say(L, 1);
+  const R1 = P(0, 1), R2 = P(-s, 1); geoLine(g, O[0], O[1], R1[0], R1[1], { color: H2C[0], w: 3.2, dash: '7 5' }); geoLine(g, R1[0], R1[1], R2[0], R2[1], { color: H2C[1], w: 3.2, dash: '7 5' }); hlRing(g, R2, 11); SFX.tick(); await c4Say(L, 2);
+  const east = SET.digits === 'east', X = east ? [266, 228, 180, 132, 94] : [94, 132, 180, 228, 266];   /* حاصل الضرب: من اليمين بالمشرقية ومن اليسار بالغربية (D280 (2)) */
+  el('rect', { x: 62, y: 12, width: 236, height: 44, rx: 12, fill: '#fff', stroke: C4.ln, 'stroke-width': 2 }, g); c4MDraw(g, X[0], 30, [s, 1], { col: C4.pt }); preLab(g, X[1], 38, '×', { col: C4.ink, fs: 20 }); c4MDraw(g, X[2], 30, c4Frac(-1, s), { col: C4.pt2 }); preLab(g, X[3], 38, '=', { col: C4.ink, fs: 20 }); c4MDraw(g, X[4], 30, [-1, 1], { col: C4.ok });
+  SFX.tick(); await c4Say(L, 3); for (const l of L.slice(4)) await S(l); };
 WRAP_ART.coord4Art = svg => { const g = el('g', { 'pointer-events': 'none', transform: 'translate(64 18) scale(.64)' }, svg), Pl = c4Plane(g, { n: 4, top: 10, H: 230, nums: false });
   [[2, 3], [-3, 1], [-2, -3], [3, -2]].forEach((p, i) => c4Dot(g, Pl, ...p, { col: [C4.pt, C4.pt2, C4.ln, C4.ok][i], r: 8 })); };
