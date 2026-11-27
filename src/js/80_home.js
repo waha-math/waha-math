@@ -141,12 +141,17 @@ const stopIcon = L => `<svg viewBox="0 0 72 56" aria-hidden="true">${stopIconInn
 /* «متقدّم مع دعم» يفتح الوحدة التالية (A-03، D266)؛ وأول وحدة في المرحلة التالية يفتحها التقييم الختامي «متقن» أو «متقدّم»
    (S3_نظام_التقييم، رابعاً: المتقدّم ينتقل مع أنشطة دعم)، فالختامي لا شارة له */
 const FINAL_UNIT = { 'm2.u10': 'm2', 'm3.u11': 'm3', 'm4.u10': 'm4' };
-const unitOpen = ui => { if (ui === 0 || PROG.unlockAll) return true; const P = UNITS[ui - 1].id; if (PROG['badge:' + P] || PROG['support:' + P]) return true;
+/* مرحلة البدء (D288 (5)): يختارها الكبير لكل طفل في التجربة. ما قبلها مفتوحٌ للعودة إليه بلا نجمة ولا إتقان، وأول وحداتها مفتوحة، وما بعدها بالتدرّج المعتاد؛
+   ولا يُحسب شيءٌ متقناً بالاختيار (D231)، والدرس التالي من مرحلة البدء */
+const STAGE_ORDER = ['m1', 'm2', 'm3', 'm4'];
+const beforeStart = id => !!PROG.start && STAGE_ORDER.indexOf(stageOf(id)) < STAGE_ORDER.indexOf(PROG.start);
+const startUnit = ui => !!PROG.start && ui === UNITS.findIndex(u => stageOf(u.id) === PROG.start);
+const unitOpen = ui => { if (ui === 0 || PROG.unlockAll || beforeStart(UNITS[ui].id) || startUnit(ui)) return true; const P = UNITS[ui - 1].id; if (PROG['badge:' + P] || PROG['support:' + P]) return true;
   const R = FINAL_UNIT[P] && PROG['final:' + FINAL_UNIT[P]]; return !!(R && (R.level === 'master' || R.level === 'adv')); };
 const isTestLesson = id => !!LDATA[id].test;
-function lessonOpen(U, i) { const ids = U.lessons; if (PROG.unlockAll) return true; if (i > 0 && !(PROG[ids[i - 1]] || {}).done) return false;
+function lessonOpen(U, i) { const ids = U.lessons; if (PROG.unlockAll || beforeStart(U.id)) return true; if (i > 0 && !(PROG[ids[i - 1]] || {}).done) return false;
   if (isTestLesson(ids[i]) && WS[U.id] && !WS[U.id].optional && wsSolved(U.id) < 1) return false; if (isTestLesson(ids[i]) && !retakeOpen(PROG[ids[i]] || {})) return false; return true; }
-const wsOpen = U => PROG.unlockAll || !!PROG['badge:' + U.id] || !!(PROG[U.lessons[U.lessons.length - 2]] || {}).done;
+const wsOpen = U => PROG.unlockAll || beforeStart(U.id) || !!PROG['badge:' + U.id] || !!(PROG[U.lessons[U.lessons.length - 2]] || {}).done;
 
 /* لافتة الواحة: النبع بحجارة الشارات، وجدول لكل حيّ أُتقن، ونخيل يخضرّ */
 /* لافتة الواحة تنمو بالمراحل (D230): م1 النبع بأحجاره الستة وجداوله؛ م2 «قنوات الأدوات» عشرٌ تخرج من النبع إلى الكثبان، تُشقّ كلٌّ بشارة وحدتها؛
@@ -242,7 +247,7 @@ function showHome() {
       const btn = document.createElement('button'); btn.className = 'stop'; btn.setAttribute('aria-disabled', !open); btn.dataset.lesson = id;
       const redo = isObj(PROG.redo) && !!PROG.redo[id];   /* خطآن متتاليان في المراجعة: يُعاد الدرس (المبدأ 14) */
       const want = PROG.review ? PROG.review === id : isObj(PROG.redo) && Object.keys(PROG.redo).length ? redo : (!p.done || (L.test && !p.mastered));
-      if (open && want && !nowSet) { btn.classList.add('now'); nowSet = true; }
+      if (open && want && !nowSet && !beforeStart(id)) { btn.classList.add('now'); nowSet = true; }   /* «الآن» من مرحلة البدء، وما قبلها للعودة (D288 (5)) */
       const st = !open ? ST_ICON.lock(css('--muted')) : resting && !p.done ? ST_ICON.moon(css('--muted')) : p.mastered ? ST_ICON.star() : p.done ? ST_ICON.done(css('--good')) : '';
       /* الاختبار بعد إخفاقٍ مقفلٌ حتى يُعاد الدرس الأضعف ويمضي يوم (A-03): يقول له لماذا */
       const wait = L.test && p.failAt && !p.mastered && !retakeOpen(p) ? labelText(!weakDone(p) ? 'testAfterReview' : dayStart(dueAfter(p.failAt, 1)) <= dayStart(Date.now()) ? 'testLaterToday' : 'testTomorrow') : '';   /* اليوم إن حان اليوم (الفحص المستقل للقرارات، 6) */

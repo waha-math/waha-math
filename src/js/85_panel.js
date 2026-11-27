@@ -6,7 +6,7 @@ const allLessons = () => UNITS.flatMap(U => U.lessons);
 /* أسماء أعداد مهمة البيت في لوحة الكبار */
 const HOME_NAME = { corners: 'الأركان المتعامدة من ستة', d1: 'المسافة بين خطّي البلاط في الموضع الأول (سم)', d2: 'وفي الموضع الثاني (سم)', d3: 'وقرب الجدار (سم)', hour: 'الساعة التي تعامد فيها العقربان', kind: 'نوع الزاوية عند السادسة', q: 'أرباع الدورة من الثالثة إلى السادسة', shapes: 'عدد الأشكال المختلفة', sides: 'أضلاع نافذة الغرفة', verts: 'رؤوسها', win: 'هل النافذة منتظمة؟', ax1: 'محاور الشيء الأول', ax2: 'محاور الشيء الثاني', ax3: 'محاور الشيء الثالث', tile: 'محاور البلاطة المربعة', e1: 'تقدير عرض الباب (سم)', m1: 'عرض الباب بالشريط (سم)', e2: 'تقدير طول السرير (سم)', m2: 'طول السرير بالشريط (سم)', e3: 'تقدير طوله (سم)', m3: 'طوله بالشريط (سم)', rm: 'عرض الغرفة: الأمتار', rc: 'والسنتيمترات بعدها', rt: 'عرض الغرفة بالسنتيمتر وحده', rp: 'محيط السجادة (سم)', tl: 'البلاطات تحتها تقريباً', fk: 'الإطار: ماذا نحسب؟', fu: 'وحدته' };
 const HOME_PICK = { fk: ['المحيط', 'المساحة'], fu: ['سم', 'سم مربع'], kind: ['حادة', 'قائمة', 'مستقيمة'], win: ['لا: الأضلاع غير متساوية', 'لا: الزوايا غير متساوية', 'نعم: منتظمة'] };
-function nextLessonId() { for (const [ui, U] of UNITS.entries()) { if (!unitOpen(ui)) break; for (const [i, id] of U.lessons.entries()) if (!(PROG[id] || {}).done && lessonOpen(U, i)) return id; } return null; }
+function nextLessonId() { for (const [ui, U] of UNITS.entries()) { if (beforeStart(U.id)) continue; if (!unitOpen(ui)) break; for (const [i, id] of U.lessons.entries()) if (!(PROG[id] || {}).done && lessonOpen(U, i)) return id; } return null; }
 const conceptName = (L, C) => (L.concepts || {})[C] || '';
 /* موعد صيانة «الثابت» في جدول المراجعة (R02، D266) */
 function maintNote(L, C, x) { const md = maintDue(L, C, x); if (md == null) return ''; const d = daysBetween(Date.now(), md);
@@ -107,6 +107,8 @@ function openPanel() {
       <div class="seg" id="segRead">${[['all', 'كل الجمل مسموعة'], ['questions', 'الأسئلة فقط مسموعة'], ['none', 'مكتوبة بلا صوت']].map(([k, t]) => `<button class="pick" data-m="${k}" aria-pressed="${READ.mode === k}">${t}</button>`).join('')}</div>
       <div class="seg"><button class="pick" id="quickBtn" aria-pressed="${READ.fast}">قراءة أسرع: ${READ.fast ? 'تعمل' : 'متوقفة'}</button></div>
       <p class="muted">«القراءة الأبطأ» لطفلٍ بعينه تغلب «الأسرع». ${(() => { const n = Object.keys(LDATA).reduce((s, id) => s + ((isObj(PROG[id]) && PROG[id].skips) || 0), 0); return n ? `تخطّى ${esc(PROFILE && PROFILE.name || 'الطفل')} القراءة ${DG(n)} مرة.` : ''; })()}</p></div>
+    <div class="card"><b>مرحلة البدء (للتجربة):</b> يختارها الكبير لهذا الطفل. ما قبلها يبقى مفتوحاً للعودة إليه، ولا يُحسب شيءٌ منه متقناً، والدرس التالي من أول المرحلة المختارة.
+      <div class="seg" id="segStart">${['m1', 'm2', 'm3', 'm4'].map((m, i) => `<button class="pick" data-m="${m}" aria-pressed="${(PROG.start || 'm1') === m}">${['المرحلة الأولى', 'المرحلة الثانية', 'المرحلة الثالثة', 'المرحلة الرابعة'][i]}</button>`).join('')}</div></div>
     <div class="card"><b>أطفال هذا الجهاز</b> (لكل طفل تقدّمه ومعرضه وإعداداته، ويختار صورته عند الدخول):
       <div class="seg">${KIDS.map(k => `<span class="pill${k.id === KID ? ' good' : ''}">${esc(k.name || 'بلا اسم')} (${k.gender === 'f' ? 'بنت' : 'ولد'})</span>${k.id === KID || kidDelBusy() ? '' : `<button class="pick" data-del="${esc(k.id)}">حذف ${esc(k.name || 'الطفل')}</button>`}`).join(' ')}<button class="pick" id="addKid">إضافة طفل</button><button class="pick" id="editProfile">تعديل الاسم والصورة وصيغة الخطاب</button></div>${kidDelNote()}</div>
     <div class="card"><b>الصوت:</b> <span id="vpStat">${vpStatText()}</span>
@@ -136,6 +138,7 @@ function openPanel() {
   $('#quickBtn').onclick = () => { READ.fast = !READ.fast; saveRead(); openPanel(); };
   $('#segRead').querySelectorAll('.pick').forEach(b => b.onclick = () => { READ.mode = b.dataset.m; saveRead(); openPanel(); });
   $('#segMax').querySelectorAll('.pick').forEach(b => b.onclick = () => { SET.sessionMax = +b.dataset.n; saveSet(); openPanel(); });
+  $('#segStart').querySelectorAll('.pick').forEach(b => b.onclick = () => { if (b.dataset.m === 'm1') delete PROG.start; else PROG.start = b.dataset.m; if (saveProg()) openPanel(); });   /* D288 (5) */
   $('#unlockAll').onclick = () => { if (PROG.unlockAll) delete PROG.unlockAll; else PROG.unlockAll = true; saveProg(); $('#panel').hidden = true; showHome(); };
   /* الصور أولاً، وما لم تُحذف لا يُمحى شيء (مراجعة الخصم C-01: أزال إصلاح WM101-R1 الدالة IDB.clear وبقي استدعاؤها هنا،
      فكان الزرّ يمحو التقدّم ثم ينهار قبل الصور، وتبقى اللوحة مفتوحة فوق غطاء العطل) */

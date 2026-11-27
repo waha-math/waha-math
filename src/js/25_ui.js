@@ -195,7 +195,7 @@ function readChoices(items, opt = {}) {
   if (!opt.quiet) readAll(false);   /* quiet: لا تُقرأ الخيارات الآن، ويعيدها «أعد الجملة» (أقنعني بسببين في محاولتيه الوسطيين) */
 }
 /* اختيار عدد: الكلمة مسموعة دائماً، والرقم مكتوب بعد أن يتعلّمه الطفل (D229) */
-const digitsKnown = () => !!(PROG['m1.u1.d5'] || {}).done || !!PROG.unlockAll;
+const digitsKnown = () => !!(PROG['m1.u1.d5'] || {}).done || !!PROG.unlockAll || !!PROG.start;   /* ومن بدأ بعد م1 (D288 (5)) يعرف الأرقام */
 /* الأرقام المكتوبة في الرسم (الشارات والعدّادات): من درس «أرقام الواحة» نفسه فصاعداً (N003)، وقبله نقاط وعلامات عدّ */
 const LESSON_SEQ = () => UNITS.flatMap(u => u.lessons);
 const digitsShown = () => digitsKnown() || (!!CUR && LESSON_SEQ().indexOf(CUR.id) >= LESSON_SEQ().indexOf('m1.u1.d5'));

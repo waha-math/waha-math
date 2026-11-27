@@ -999,6 +999,10 @@ RUNTIME = [
   ('G الباب الدوّار: أيّ قراءةٍ صحيحة', "return +k === item.th ? { ok: true } : { ok: false, err: +k === 180 - item.th ? 'c9AngSup' : 'c9AngOff' }; },", "return true ? { ok: true } : { ok: false, err: +k === 180 - item.th ? 'c9AngSup' : 'c9AngOff' }; },", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: المنقلة تدور بالزرّين'),
   ('G الباب الدوّار: الصفر الآخر مرفوض', "okB: [lo, lo + spec.th - 180]", "okB: [lo]", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: صفر التدريج الداخلي'),
   ('G الباب الدوّار: المنقلة بلا فحص الصفر', "if (!item.okB.includes(((beta % 360) + 540) % 360 - 180)) return { ans: 'zero|' + beta, ctx };", "", ['test/games_run.py', '{F}'], {'ONLY': 'C9G'}, 'FAIL C9G الباب الدوّار: المنقلة وصفرها'),
+  # D288 (5): مرحلة البدء يختارها الكبير (test/m4dec_run.py)
+  ('D288 (5): ما قبل مرحلة البدء مقفل', "function lessonOpen(U, i) { const ids = U.lessons; if (PROG.unlockAll || beforeStart(U.id)) return true;", "function lessonOpen(U, i) { const ids = U.lessons; if (PROG.unlockAll) return true;", ['test/m4dec_run.py', '{F}'], {}, 'FAIL D288 (5) م1 وم2 مفتوحتان'),
+  ('D288 (5): «الآن» من أول الطريق', "if (open && want && !nowSet && !beforeStart(id)) { btn.classList.add('now'); nowSet = true; }", "if (open && want && !nowSet) { btn.classList.add('now'); nowSet = true; }", ['test/m4dec_run.py', '{F}'], {}, 'FAIL D288 (5) «الآن» والدرس التالي'),
+  ('D288 (5): أول وحدات المرحلة مقفلة', "|| beforeStart(UNITS[ui].id) || startUnit(ui)) return true;", "|| beforeStart(UNITS[ui].id)) return true;", ['test/m4dec_run.py', '{F}'], {}, 'FAIL D288 (5) «الآن» والدرس التالي'),
 ]
 if os.environ.get('MUT_COUNT'): print(len(RUNTIME)); sys.exit(0)   # عدد طفرات المتصفح وحده، لتقسيمها شرائح في run_all.sh (الدرس 299)
 def run(args, env, f):

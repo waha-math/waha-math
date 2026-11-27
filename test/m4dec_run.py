@@ -4,6 +4,7 @@
 #   B-17 الأسّ المشرقي مرفوع: «سم²» مع المشرقية «سم٢» والرقم مرفوع مصغَّر (tspan/sup)، والنصّ (textContent) هو MS نفسه؛ ولا يُرفع رقمٌ ليس أسّاً
 #        («يخلط ٦ و٢»، «م٣» اسم المرحلة)؛ ومع الغربية «²» كما هو بلا رفع مصنوع.
 #   A38  المنشور بلونه (العنابي) والمكعب يبقى بلونه.
+#   D288 (5) مرحلة البدء من لوحة الكبار: ما قبلها مفتوحٌ بلا إتقان، و«الآن» والدرس التالي من أولها، والمرحلة الأولى تعيد الطريق.
 # الاستعمال: python3 test/m4dec_run.py [ملف نسخة الفحص]   (يخرج بـ 1 مع أي إخفاق)
 import asyncio, json, os, sys
 from playwright.async_api import async_playwright
@@ -75,10 +76,32 @@ async def prism_case(b):
   check(not set(P[k] for k in ('face', 'top', 'side')) & set(r['cube']), 'A38 المكعب يبقى بلونه', r)
   check(not errs, 'A38 بلا أخطاء صفحة', errs); await ctx.close()
 
+# D288 (5): مرحلة البدء يختارها الكبير في التجربة؛ ما قبلها مفتوحٌ بلا إتقان، و«الآن» والدرس التالي من أولها، وما بعد أول وحداتها مقفل، ولا شيء يُحسب منتهياً
+START_MAP = """() => { const s = [...document.querySelectorAll('#path .stop[data-lesson]')], at = id => s.find(b => b.dataset.lesson === id);
+  const U3 = UNITS.filter(u => stageOf(u.id) === 'm3'), now = document.querySelector('#path .stop.now[data-lesson]');
+  return { now: now ? now.dataset.lesson : null, first3: U3[0].lessons[0], m1open: at('m1.u1.d2') ? at('m1.u1.d2').getAttribute('aria-disabled') === 'false' : null,
+    m2open: at(UNITS.filter(u => stageOf(u.id) === 'm2')[3].lessons[1]).getAttribute('aria-disabled') === 'false', u3b: U3[1].lessons.every(id => at(id).getAttribute('aria-disabled') === 'true'),
+    m4: at(UNITS.find(u => stageOf(u.id) === 'm4').lessons[0]).getAttribute('aria-disabled') === 'true', next: nextLessonId(), done: Object.keys(PROG).filter(k => PROG[k] && PROG[k].done).length, digits: digitsKnown() }; }"""
+async def start_case(b):
+  ctx, pg, errs = await page(b)
+  await pg.evaluate("() => { show('home'); showHome(); }"); await pg.wait_for_timeout(300); r0 = await pg.evaluate(START_MAP)
+  check(r0['now'] == 'm1.u1.d1' and r0['m1open'] is False and r0['next'] == 'm1.u1.d1' and not r0['digits'], 'D288 (5) بلا اختيار: يبدأ من م1 والطريق مقفلٌ بعد الدرس الأول', r0)
+  await pg.evaluate("() => { openPanel(); }"); await pg.wait_for_timeout(200); await pg.click('#segStart .pick[data-m="m3"]'); await pg.wait_for_timeout(200)
+  st = await pg.evaluate("() => [PROG.start, document.querySelector('#segStart .pick[data-m=m3]').getAttribute('aria-pressed')]")
+  await pg.evaluate("() => { $('#panel').hidden = true; showHome(); }"); await pg.wait_for_timeout(300); r = await pg.evaluate(START_MAP)
+  check(st == ['m3', 'true'], 'D288 (5) اللوحة: «المرحلة الثالثة» تُحفظ وتُعلَّم', st)
+  check(r['now'] == r['first3'] and r['next'] == r['first3'], 'D288 (5) «الآن» والدرس التالي أول دروس م3', r)
+  check(r['m1open'] and r['m2open'] and r['u3b'] and r['m4'], 'D288 (5) م1 وم2 مفتوحتان للعودة، والوحدة الثانية في م3 وم4 مقفلتان', r)
+  check(r['done'] == 0 and r['digits'], 'D288 (5) لا درس يُحسب منتهياً بالاختيار، والأرقام معروفة', r)
+  await pg.evaluate("() => { openPanel(); }"); await pg.wait_for_timeout(200); await pg.click('#segStart .pick[data-m="m1"]'); await pg.wait_for_timeout(200)
+  await pg.evaluate("() => { $('#panel').hidden = true; showHome(); }"); await pg.wait_for_timeout(300); r2 = await pg.evaluate(START_MAP); st2 = await pg.evaluate("() => 'start' in PROG")
+  check(not st2 and r2['now'] == 'm1.u1.d1' and r2['m1open'] is False, 'D288 (5) «المرحلة الأولى» تعيد الطريق كما كان', [st2, r2])
+  check(not errs, 'D288 (5) بلا أخطاء صفحة', errs); await ctx.close()
+
 async def main():
   async with async_playwright() as p:
     b = await p.chromium.launch()
     for k in ('coordPlace', 'c4Place'): await lens_case(b, k)
-    await sup_case(b); await prism_case(b); await b.close()
+    await sup_case(b); await prism_case(b); await start_case(b); await b.close()
   print('FAILS: %d' % len(FAILS)); sys.exit(1 if FAILS else 0)
 asyncio.run(main())
