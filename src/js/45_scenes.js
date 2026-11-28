@@ -12,9 +12,10 @@ SCENES.motion = async c => { const un = bubbleHold3(), uh = motionHold(c); MOTIO
    الأزرار تحته (المراجع B لدفعة ألعاب U8/U7، 4: نزل 24 بكسلاً وصعد 59 على iPhone SE، و80 على Pixel 5). شريطٌ خفيّ في آخر المسرح يملأ الفرق */
 /* ما يظهر تحت الرسم في خطوات كل نوعٍ حركي: dq (زرّا الملء والتحريك و«تمّ»)، done، وpick n (خيارات)، وnums n (أعدادٌ بكلماتها) */
 const MOTION_UI = { c5Hunt: ['done'], c5Detect: ['done', 'nums', 'pick'], c5Line: ['done'], c6ChordGame: ['dq', 'nums'], c6TanGame: ['dq', 'ndeg'], c6CenGame: ['ndeg'], c7Cup: ['dq', 'pick'], c7Wrap: ['done', 'pick'], c7Thirds: ['dq', 'pick'], c7Tank: ['dq', 'pick'],
-  c8BisMake: ['ndeg'], c8PbMake: ['nums'], c8HypHunt: ['pick'], c9Trs: ['done'], c9Whl: ['dq'], c9DrA: ['dq', 'ndeg'] };   /* ndeg: أعدادٌ بكلمة الدرجات */
+  c8BisMake: ['pick', 'ndeg'], c8PbMake: ['pick', 'nums'], c8HypHunt: ['pick'], c9Trs: ['done'], c9Whl: ['dq'], c9DrA: ['dq', 'ndeg'] };   /* ndeg: أعدادٌ بكلمة الدرجات */
 function motionHold(c) { const st = $('#stage'), LS = $('#lesson'); if (!st || typeof MutationObserver === 'undefined') return () => {};
   if (!matchMedia('(max-height: 700px), (max-width: 380px)').matches) { const old = LS ? LS.style.alignContent : ''; if (LS) LS.style.alignContent = 'start'; return () => { if (LS) LS.style.alignContent = old; }; }   /* الشاشة الطويلة: الدرس كلّه في الوسط فيتحرّك مع كل زرّ؛ يبدأ من أعلاها، والرسم بعرضه لا بما تحته */
+  const dense = () => { if (LS && !LS.classList.contains('dense')) { LS.classList.add('dense'); if (typeof bubbleMore === 'function') bubbleMore(); } }; dense();   /* الشاشة القصيرة: اللعبة كلها بالتخطيط الكثيف (كان يُضاف حين تضغط الأعدادُ الرسمَ وحده فتتغيّر أحجامها بين الخطوات)، والحجز يُقاس به */
   let H = 0, on = true; const hide = d => { d.style.visibility = 'hidden'; d.setAttribute('aria-hidden', 'true'); st.appendChild(d); return d; };
   const box = (cls, n, html, pc) => { const d = document.createElement('div'); d.className = cls; for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.className = pc; b.innerHTML = html; d.appendChild(b); } return hide(d); };
   const meas = (k, it) => { const els = []; try { const nk = k === 'nums' || k === 'ndeg', n = Math.min(6, Math.max(nk ? 4 : 2, ((nk ? it.nums || it.cens || it.ins : it.ch || it.reads || it.lens || it.cands) || []).length || 3));
@@ -25,13 +26,13 @@ function motionHold(c) { const st = $('#stage'), LS = $('#lesson'); if (!st || t
       else els.push(box('choices icons', n, `<i></i><span>${esc(MS('37.7') + ' سم')}</span>`, 'pick'));
       return els.reduce((a, e) => a + e.getBoundingClientRect().height, 0); } catch (e) { return 0; } finally { els.forEach(e => e.remove()); } };
   try { for (const sp of (c && c.items) || []) { const t = itemType(sp), T = ITEM[t]; if (!T || !MOTION_UI[t]) continue; const it = T.make(sp); for (const k of MOTION_UI[t]) H = Math.max(H, meas(k, it)); } } catch (e) {}   /* أعلى ما تحت الرسم في خطوات اللعبة كلها، من أول جولة */
-  const fix = () => { if (!on) return; const sv = st.querySelector(':scope > svg'); let sp = st.querySelector(':scope > .mhold'); if (!sv) return;
+  const fix = () => { if (!on) return; dense(); const sv = st.querySelector(':scope > svg'); let sp = st.querySelector(':scope > .mhold'); if (!sv) return;
     if (!sp) { sp = document.createElement('div'); sp.className = 'mhold'; sp.setAttribute('aria-hidden', 'true'); sp.style.flex = 'none'; sp.style.height = '0px'; st.appendChild(sp); }
     else if (sp.nextElementSibling) st.appendChild(sp);   /* آخر المسرح دائماً */
     const below = st.getBoundingClientRect().bottom - sv.getBoundingClientRect().bottom - sp.getBoundingClientRect().height;
     if (below > H + .5) H = below; sp.style.height = Math.max(0, H - below) + 'px'; };
   const mo = new MutationObserver(fix); mo.observe(st, { childList: true }); fix(); const onR = () => fix(); window.addEventListener('resize', onR);
-  return () => { on = false; mo.disconnect(); window.removeEventListener('resize', onR); const sp = st.querySelector(':scope > .mhold'); if (sp) sp.remove(); }; }
+  return () => { on = false; mo.disconnect(); window.removeEventListener('resize', onR); const sp = st.querySelector(':scope > .mhold'); if (sp) sp.remove(); if (LS) LS.classList.remove('dense'); }; }
 /* في اللعبة الحركية تتبدّل الجملة مع كل خطوة: الفقاعة بأربعة أسطر على الشاشة الطويلة (وبأطول ما ظهر فيها بعدها) (القصيرة ثابتةٌ بقاعدتها)، فلا يتحرّك المسرح تحت إصبع الطفل بين خطوة وأخرى (المراجع B لإغلاق ألعاب U9، 3) */
 function bubbleHold3() { const b = $('#bubble'), sy = $('#say'); if (!b || !sy || matchMedia('(max-height: 700px), (max-width: 380px)').matches) return () => {};
   const cs = getComputedStyle(b), lh = parseFloat(getComputedStyle(sy).lineHeight) || 0, old = b.style.minHeight; if (!lh) return () => {};

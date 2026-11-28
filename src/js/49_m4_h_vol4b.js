@@ -57,7 +57,7 @@ ITEM.c7Cup = {
   async together() {},
   async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { c7JugFill(c.D, c.G, c.G.V); ciEq(c.svg, 130, 36, `3.14 × ${c.G.r} × ${c.G.r} × ${item.h} = ${item.want}`, C7.ok, 15); }
     item.step = 3; await S('gen.ci.reveal.calc', { noGap: true }); await S(c7Line(item.want, 'cm3'), { append: true }); },
-  praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 
 /* ---------- د2 «غلّف العلبة» (c7Wrap): r، h، lid؛ يلمس وجوه العلبة المفكوكة فتُغلَّف (الغطاء والقاع والجانب)، ثم طول المستطيل، ثم الورق كله ---------- */
@@ -67,7 +67,7 @@ function c7WrapCh(item) { const pi = 3.14, b = pi * item.r * item.r, lat = 2 * p
   if (item.lid !== false) return c7SACh({ r: item.r, h: item.h, ask: 'sa', rk: item.rk ?? 0 });
   return rkPick(c7R1(b + lat), [[2 * b + lat, 'saLidAdd'], [lat, 'saLatOnly'], [b + pi * item.r * item.h, 'saHalfC']].map(([v, e]) => [c7R1(v), e]), 1); }   /* علبةٌ بلا غطاء: قاعٌ واحد، وإضافة الغطاء بين الخيارات دائماً (الجواب أوسطها) */
 function c7WrapDraw(svg, item, G) { const g = el('g', {}, svg), P = {}, mk = (k, f) => { const t = el('g', { 'data-face': k }, g); f(t); P[k] = t; };
-  if (item.lid !== false) mk('lid', t => { el('ellipse', { cx: G.cx, cy: G.lidY, rx: G.rx, ry: G.ry, fill: C7.top, stroke: C7.edge, 'stroke-width': 2.6 }, t); });
+  mk('lid', t => { el('ellipse', { cx: G.cx, cy: G.lidY, rx: G.rx, ry: G.ry, fill: item.lid === false ? 'rgba(255,255,255,.6)' : C7.top, stroke: C7.edge, 'stroke-width': 2.6, 'stroke-dasharray': item.lid === false ? '6 4' : '' }, t); });   /* والعلبة المفتوحة: فتحتها وجهٌ يُلمس ولا يُغلَّف (المراجع A لدفعة ألعاب U8/U7، 6) */
   mk('side', t => { el('path', { d: `M${G.cx - G.rx} ${G.top} L${G.cx - G.rx} ${G.bot} A${G.rx} ${G.ry} 0 0 0 ${G.cx + G.rx} ${G.bot} L${G.cx + G.rx} ${G.top} A${G.rx} ${G.ry} 0 0 1 ${G.cx - G.rx} ${G.top}`, fill: C7.side, stroke: C7.edge, 'stroke-width': 2.6 }, t);
     el('ellipse', { cx: G.cx, cy: G.top, rx: G.rx, ry: G.ry, fill: item.lid === false ? '#cfdbe6' : 'none', stroke: C7.edge, 'stroke-width': 1.6, 'stroke-dasharray': item.lid === false ? '' : '4 3' }, t); });
   mk('base', t => { el('ellipse', { cx: G.cx, cy: G.baseY, rx: G.rx, ry: G.ry, fill: C7.top, stroke: C7.edge, 'stroke-width': 2.6 }, t); });
@@ -75,7 +75,7 @@ function c7WrapDraw(svg, item, G) { const g = el('g', {}, svg), P = {}, mk = (k,
   return { g, P, net: el('g', { 'pointer-events': 'none' }, svg) }; }
 /* الورقة على الوجه، وقطعتها مسطّحةً في الشبكة يميناً (دائرتان ومستطيل) */
 function c7WrapPaper(D, G, item, on) { D.net.innerHTML = ''; const W = 2 * 3.14 * G.rx, k = Math.min(1, 150 / W), w = W * k, hh = G.H * k, R = G.rx * k, x0 = 258 - w / 2, y0 = 132 - hh / 2;
-  for (const [f, t] of Object.entries(D.P)) { const s = t.querySelector('ellipse, path'); s.setAttribute('fill', on[f] ? '#f6d98a' : f === 'side' ? C7.side : C7.top); }
+  for (const [f, t] of Object.entries(D.P)) { const s = t.querySelector('ellipse, path'); s.setAttribute('fill', on[f] ? '#f6d98a' : f === 'side' ? C7.side : f === 'lid' && item.lid === false ? 'rgba(255,255,255,.6)' : C7.top); }
   if (on.side) el('rect', { x: x0, y: y0, width: w, height: hh, fill: '#f6d98a', stroke: '#b9813f', 'stroke-width': 2 }, D.net);
   if (on.lid) el('circle', { cx: x0 + w / 2, cy: y0 - R - 2, r: R, fill: '#f6d98a', stroke: '#b9813f', 'stroke-width': 2 }, D.net);
   if (on.base) el('circle', { cx: x0 + w / 2, cy: y0 + hh + R + 2, r: R, fill: '#f6d98a', stroke: '#b9813f', 'stroke-width': 2 }, D.net);
@@ -83,32 +83,32 @@ function c7WrapPaper(D, G, item, on) { D.net.innerHTML = ''; const W = 2 * 3.14 
 ITEM.c7Wrap = {
   make(spec) { const L = c7SACh({ r: spec.r, h: spec.h, ask: 'len', rk: spec.rk ?? 0 }), T = c7WrapCh(spec); return { ...spec, step: 0, lens: L, len: L[0][0], ch: T, want: T[0][0], tag: 'c7-wrap' + (spec.lid === false ? '-open' : '') }; },
   async ask(item, mode, tries) { item.__try = tries; const svg = m3Stage(262), Q = c7WrapGeo(item), D = c7WrapDraw(svg, item, Q), ctx = { svg, Q, D }; let live = true; const isLive = () => live && svg.isConnected;
-    const faces = Object.keys(D.P), on = Object.fromEntries(faces.map(f => [f, item.step >= 1])), t0 = item.step, TG = k => tries >= 3 && t0 === k, tg = TG(0); if (tg) faces.forEach(f => { on[f] = f !== 'base'; });   /* الحلّ المشترك: غلّفنا ما عدا القاع */
+    const faces = Object.keys(D.P), need = f => !(f === 'lid' && item.lid === false), on = Object.fromEntries(faces.map(f => [f, item.step >= 1 && need(f)])), t0 = item.step, TG = k => tries >= 3 && t0 === k, tg = TG(0); if (tg) faces.forEach(f => { on[f] = need(f) && f !== 'base'; });   /* الحلّ المشترك: غلّفنا ما عدا القاع */
     let N = c7WrapPaper(D, Q, item, on);
     if (item.step === 0) { c7Q(tg ? 'gen.c7.together.wrap' : tries === 0 ? item.q || 'gen.c7.q.wrap' : 'gen.c7.q.wrap', isLive);
-      const T = faces.map(f => ({ g: D.P[f], f })); T.forEach(t => { t.g.dataset.face = t.f; t.g.setAttribute('role', 'button'); t.g.setAttribute('tabindex', 0); t.g.setAttribute('aria-label', plain(G(labelText('c7Face.' + t.f)))); t.g.style.cursor = 'pointer'; hitPad(t.g, 56);
+      const T = faces.map(f => ({ g: D.P[f], f })); T.forEach(t => { t.g.dataset.face = t.f; t.g.dataset.need = need(t.f) ? 1 : 0; t.g.setAttribute('role', 'button'); t.g.setAttribute('tabindex', 0); t.g.setAttribute('aria-label', plain(G(labelText('c7Face.' + (need(t.f) ? t.f : 'open'))))); t.g.style.cursor = 'pointer'; hitPad(t.g, 56);
         t.g.onclick = () => { on[t.f] = !on[t.f]; N = c7WrapPaper(D, Q, item, on); SFX.tick(); /*T*/window.__c7W = faces.filter(f => on[f]).join(',');/*/T*/ }; });
       routeClicks(T.map(t => t.g)); /*T*/window.__c7W = faces.filter(f => on[f]).join(',');/*/T*/
-      AUTO({ kind: 'c7Wrap', ok: () => { faces.forEach(f => { on[f] = true; }); N = c7WrapPaper(D, Q, item, on); rulDoneBtn().click(); }, wrong: () => { faces.forEach(f => { on[f] = f === 'side'; }); N = c7WrapPaper(D, Q, item, on); rulDoneBtn().click(); } });
+      AUTO({ kind: 'c7Wrap', ok: () => { faces.forEach(f => { on[f] = need(f); }); N = c7WrapPaper(D, Q, item, on); rulDoneBtn().click(); }, wrong: () => { faces.forEach(f => { on[f] = f === 'side'; }); N = c7WrapPaper(D, Q, item, on); rulDoneBtn().click(); } });
       await rulDone(() => { REPLAY_HOOK = null; untarget(T.map(t => t.g)); }, () => faces.some(f => on[f])); hush();
-      const miss = faces.filter(f => !on[f]); if (miss.length) { live = false; return { ans: 'wrap|' + miss.join(','), ctx }; } item.step = 1; SFX.tick(); }
+      const miss = faces.filter(f => need(f) && !on[f]), extra = faces.filter(f => !need(f) && on[f]); if (extra.length) { live = false; return { ans: 'wrap|+' + extra.join(','), ctx }; } if (miss.length) { live = false; return { ans: 'wrap|' + miss.join(','), ctx }; } item.step = 1; SFX.tick(); }
     if (item.step === 1) { const h = el('g', { 'pointer-events': 'none' }, svg); geoLine(h, N.x0, N.y0 + N.hh + 10, N.x0 + N.w, N.y0 + N.hh + 10, { color: C7.r, w: 2.6 }); preLab(h, N.x0 + N.w / 2, N.y0 + N.hh / 2 + 6, '؟', { fs: 18, col: C7.q });
       if (TG(1)) { ciEq(helpG(svg), 258, 30, `2 × 3.14 × ${item.r} = ؟`, C7.hl, 15); await S('gen.c7.together.len'); } else c7Q('gen.c7.q.wrapLen', isLive);
       const k = await c7Pick(item.lens, item.len, 'cm'); c7PickOff(); h.remove(); if (k !== String(item.len)) { live = false; return { ans: 'len|' + k, ctx }; } item.step = 2; SFX.tick(); }
     preLab(D.net, N.x0 + N.w / 2, N.y0 + N.hh / 2 + 6, c7Txt(item.len, 'cm'), { fs: 13, col: C7.r });
-    c7PiNote(D.net, 34, 238); if (TG(2)) { ciEq(helpG(svg), 214, 240, (item.lid === false ? `3.14 × ${item.r} × ${item.r}` : `2 × 3.14 × ${item.r} × ${item.r}`) + ` + ${item.len} × ${item.h} = ؟`, C7.hl, 13);   /* تحتُ، والحاشية يساراً (RUNGG، والمراجع B لدفعة ألعاب U8/U7، 3د و16) */ await S('gen.c7.together.sa'); } else c7Q('gen.c7.q.wrapAll', isLive);
+    c7PiNote(D.net, 34, 238); if (TG(2)) { ciEq(helpG(svg), 214, 240, (item.lid === false ? `3.14 × ${item.r} × ${item.r}` : `2 × 3.14 × ${item.r} × ${item.r}`) + ` + 2 × 3.14 × ${item.r} × ${item.h} = ؟`, C7.hl, 12);   /* بالطول غير المقرّب فيعطي الجواب (المراجع A لدفعة ألعاب U8/U7، 7ب) */   /* تحتُ، والحاشية يساراً (RUNGG، والمراجع B لدفعة ألعاب U8/U7، 3د و16) */ await S('gen.c7.together.sa'); } else c7Q('gen.c7.q.wrapAll', isLive);
     const k = await c7Pick(item.ch, item.want, 'cm2'); live = false; c7PickOff(); return { ans: 'all|' + k, ctx }; },
   judge(item, a) { const [w, v] = String(a).split('|');
-    if (w === 'wrap') return { ok: false, err: v.split(',').includes('side') ? 'saNoSide' : 'saOneBase' };   /* القاع أو الغطاء ناقص: «ينسى إحدى القاعدتين» */
+    if (w === 'wrap') return { ok: false, err: v[0] === '+' ? 'saLidAdd' : v.split(',').includes('side') ? 'saNoSide' : 'c7WrapMiss' };   /* ورقٌ على فتحة العلبة المفتوحة، أو وجهٌ ناقص (المراجع A لدفعة ألعاب U8/U7، 6 و9ب) */
     if (w === 'len') return { ok: false, err: (item.lens.find(([x]) => String(x) === v) || [])[1] || 'c7SAOff' };
     return v === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([x]) => String(x) === v) || [])[1] || 'c7SAOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), Q = c.Q;
-      if (err === 'saOneBase' || err === 'saNoSide') { for (const f of Object.keys(c.D.P)) { const b = c.D.P[f].getBBox(); el('rect', { x: b.x - 4, y: b.y - 4, width: b.width + 8, height: b.height + 8, rx: 8, fill: 'none', stroke: H2C[f === 'side' ? 1 : 0], 'stroke-width': 3, 'stroke-dasharray': '6 4' }, m); } ciRule(m, 180, [30, 246], labelText('c7AskWrap'), C7.hl, 15); }   /* كل وجهٍ في إطار: كم وجهاً؟ */
+      if (item.step === 0) { for (const f of Object.keys(c.D.P)) { const b = c.D.P[f].getBBox(); el('rect', { x: b.x - 4, y: b.y - 4, width: b.width + 8, height: b.height + 8, rx: 8, fill: 'none', stroke: H2C[f === 'side' ? 1 : 0], 'stroke-width': 3, 'stroke-dasharray': '6 4' }, m); } ciRule(m, 180, [30, 246], labelText('c7AskWrap'), C7.hl, 15); }   /* كل وجهٍ في إطار: كم وجهاً؟ */
       else { hlSeg(m, [Q.cx - Q.rx, Q.top], [Q.cx + Q.rx, Q.top], H2C[0]); ciRule(m, 180, [30, 246, 128, 200], labelText('c7AskSA.' + (err && /^len/.test(err) ? 'len' : 'sa')), C7.hl, 15); } }
-    await S(err === 'saOneBase' || err === 'saNoSide' ? 'gen.c7.hint.wrap' : err && /^len/.test(err) ? 'gen.c7.hint.sa.len' : 'gen.c7.hint.sa.sa'); },
+    await S(item.step === 0 ? 'gen.c7.hint.wrap' : err && /^len/.test(err) ? 'gen.c7.hint.sa.len' : 'gen.c7.hint.sa.sa'); },
   async together() {},
-  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { const on = Object.fromEntries(Object.keys(c.D.P).map(f => [f, true])); const N = c7WrapPaper(c.D, c.Q, item, on); preLab(c.D.net, N.x0 + N.w / 2, N.y0 + N.hh / 2 + 6, c7Txt(item.len, 'cm'), { fs: 13, col: C7.ok }); }
+  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { const on = Object.fromEntries(Object.keys(c.D.P).map(f => [f, !(f === 'lid' && item.lid === false)])); const N = c7WrapPaper(c.D, c.Q, item, on); preLab(c.D.net, N.x0 + N.w / 2, N.y0 + N.hh / 2 + 6, c7Txt(item.len, 'cm'), { fs: 13, col: C7.ok }); }
     item.step = 3; await S('gen.ci.reveal.calc', { noGap: true }); await S(c7Line(item.want, 'cm2'), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
@@ -118,11 +118,11 @@ function c7ThirdsDraw(svg, item) { const g = el('g', { 'pointer-events': 'none' 
   const A = c7Shape(g, a, { ...o, cx: 96 }), B = c7Shape(g, b, { ...o, cx: 262 }), x0 = b === 'prism' ? B.A[0] : B.cx - B.rx, wd = b === 'prism' ? B.B[0] - B.A[0] : 2 * B.rx;
   return { g, A, B, x0, wd, w: el('g', { 'pointer-events': 'none' }, svg), lab: el('g', { 'pointer-events': 'none' }, svg) }; }
 function c7ThirdsWater(D, n, cnt = true) { D.w.innerHTML = ''; const H = 124, h = H * Math.min(n, 3) / 3; if (n) el('rect', { x: D.x0, y: D.B.bot - h, width: D.wd, height: h, fill: C7.water }, D.w);
-  for (let i = 1; i < 3; i++) geoLine(D.w, D.x0 + D.wd - 12, D.B.bot - H * i / 3, D.x0 + D.wd, D.B.bot - H * i / 3, { color: C7.edge, w: 1.6 });   /* علامتا الثلث والثلثين على الجدار */
+  for (let i = 1; i < 3 && i <= n; i++) geoLine(D.w, D.x0 + D.wd - 12, D.B.bot - H * i / 3, D.x0 + D.wd, D.B.bot - H * i / 3, { color: C7.edge, w: 1.6 });   /* علامة كل تعبئةٍ بعد صبّها لا قبله (المراجع A لدفعة ألعاب U8/U7، 20أ) */
   if (n > 3) el('ellipse', { cx: D.x0 + D.wd + 16, cy: D.B.bot + 6, rx: 22, ry: 5, fill: C7.water }, D.w);   /* فاض */
   if (cnt) preLab(D.w, D.x0 + D.wd / 2, 52, MS(String(n)) + ' ×', { fs: 18, col: C7.coneEdge }); }   /* العدّ في خطوة الصبّ وحدها */
 ITEM.c7Thirds = {
-  make(spec) { const whole = spec.v != null, x = whole ? spec.v : spec.V, w = whole ? 3 * x : c7R1(x / 3), P = whole ? [[x, 'c7ThWhSame'], [2 * x, 'coneHalf'], [c7R1(x / 3), 'c7ThWhDiv'], [4 * x, 'c7ThFour']] : [[x, 'coneNoThird'], [c7R1(x / 2), 'coneHalf'], [3 * x, 'c7ThTimes'], [c7R1(x / 4), 'c7ThFour']];   /* كـ thirds في u7.py */
+  make(spec) { const whole = spec.v != null, x = whole ? spec.v : spec.V, w = whole ? 3 * x : c7R1(x / 3), P = whole ? [[x, 'c7ThWhSame'], [2 * x, 'c7ThHalf'], [c7R1(x / 3), 'c7ThWhDiv'], [4 * x, 'c7ThFour']] : [[x, 'c7ThNoThird'], [c7R1(x / 2), 'c7ThHalf'], [3 * x, 'c7ThTimes'], [c7R1(x / 4), 'c7ThFour']];   /* كـ thirds في u7.py */
     return { ...spec, step: 0, pourN: 3, want: w, ch: rkPick(w, P, spec.rk ?? 0), tag: 'c7-thirds-' + (spec.fig || 'cone') }; },
   async ask(item, mode, tries) { item.__try = tries; const svg = m3Stage(262), D = c7ThirdsDraw(svg, item), ctx = { svg, D }; let live = true; const isLive = () => live && svg.isConnected;
     const t0 = item.step, tg = tries >= 3 && t0 === 0, small = item.fig === 'pyr' ? 'c7Pyr' : 'c7Cone';
@@ -138,8 +138,8 @@ ITEM.c7Thirds = {
     return v === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([x]) => String(x) === v) || [])[1] || 'c7VolOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), D = c.D;
-      if (err === 'c7PourShort' || err === 'c7PourOver') { geoLine(m, D.x0 - 6, D.B.bot - 124, D.x0 + D.wd + 6, D.B.bot - 124, { color: THINK_INK, w: 3, dash: '6 4' }); for (let i = 1; i <= 3; i++) preLab(m, D.x0 - 14, D.B.bot - 124 * (i - .5) / 3 + 5, MS(String(i)), { fs: 13, col: THINK_INK }); ciRule(m, 180, [244], labelText('c7AskPour'), C7.hl, 15); }   /* تحت المجسّمين: لا تغطّي العدّ فوق الكبير */   /* الحافّة، والأثلاث مرقّمة */
-      else ciRule(m, 180, [30], labelText('c7Ask.cone'), C7.hl, 15); }
+      if (err === 'c7PourShort' || err === 'c7PourOver') { geoLine(m, D.x0 - 6, D.B.bot - 124, D.x0 + D.wd + 6, D.B.bot - 124, { color: THINK_INK, w: 3, dash: '6 4' }); ciRule(m, 180, [244], labelText('c7AskPour'), C7.hl, 15); }   /* الحافّة وحدها: لا أثلاث مرقّمة تقول عدد التعبئات (المراجع A لدفعة ألعاب U8/U7، 2) */
+      else { const h1 = 124 / 3; el('rect', { x: D.x0 + 2, y: D.B.bot - h1, width: D.wd - 4, height: h1 - 2, fill: THINK_INK, opacity: .28 }, m); ciRule(m, 180, [30, 244], labelText('c7Ask.cone'), C7.hl, 15); } }   /* تعبئةٌ واحدة مضاءةٌ على الكبير */
     await S(err === 'c7PourShort' || err === 'c7PourOver' ? 'gen.c7.hint.pour' : 'gen.c7.hint.vol.cone'); },
   async together() {},
   async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { c7ThirdsWater(c.D, 3, false); ciEq(c.svg, 180, 30, item.v != null ? `3 × ${item.v} = ${item.want}` : `${item.V} ÷ 3 = ${item.want}`, C7.ok, 15); }
@@ -165,7 +165,7 @@ function c7TankWater(D, T, n) { D.w.innerHTML = ''; const lh = T.H / T.layers, h
   preLab(D.w, x0 + W / 2, T.top + T.H / 2 + 5, labelText('c7LayN').replace('N', MS(String(n))), { fs: 14, col: C7.edge, dir: 'rtl' }); }   /* على وجه الخزان: لا تقع عليه بطاقة المساعدة فوقه */
 const c7TankTo = (L, to) => to === 'm3' ? [[L / 1000, null], [L / 100, 'm3L100'], [L, 'convNone']] : [[L * 1000, null], [L * 100, 'lit100'], [L * 1e6, 'litM'], [L, 'lit1']];   /* كـ tank في u7.py */
 ITEM.c7Tank = {
-  make(spec) { const T = c7TankGeo(spec), L = T.L, P1 = [[T.layers, 'c7TankLayers'], [L * 10, 'lit100'], [spec.a * spec.b * spec.c, 'c7TankCm3']], C = c7TankTo(L, spec.to), R3 = v => Math.round(v * 1e6) / 1e6;
+  make(spec) { const T = c7TankGeo(spec), L = T.L, P1 = [[T.layers, 'c7TankLayers'], [L * 10, 'c7TankH'], [spec.a * spec.b * spec.c, 'c7TankCm3']], C = c7TankTo(L, spec.to), R3 = v => Math.round(v * 1e6) / 1e6;
     return { ...spec, step: 0, tankN: T.layers, L, lits: rkPick(L, P1, spec.rk ?? 0), want: R3(C[0][0]), ch: rkPick(R3(C[0][0]), C.slice(1).map(([v, e]) => [R3(v), e]), spec.rk ?? 0), tag: 'c7-tank-' + spec.to }; },
   async ask(item, mode, tries) { item.__try = tries; const svg = m3Stage(262), T = c7TankGeo(item), D = c7TankDraw(svg, item, T), ctx = { svg, T, D }; let live = true; const isLive = () => live && svg.isConnected;
     const t0 = item.step, TG = k => tries >= 3 && t0 === k, tg = TG(0);
@@ -184,11 +184,12 @@ ITEM.c7Tank = {
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), T = c.T;
       if (err === 'c7FillShort' || err === 'c7FillOver') { geoLine(m, T.x0 - 6, T.top, T.x0 + T.W + 6, T.top, { color: THINK_INK, w: 3, dash: '6 4' }); hlSeg(m, [T.x0 - 18, T.top], [T.x0 - 18, T.bot], H2C[1]); ciRule(m, 180, [82], labelText('c7AskTank'), C7.hl, 15); }   /* الحافّة، والارتفاع طبقاتٌ من 10 */
-      else if (c.D && item.step <= 1) ciRule(m, 180, [82], labelText('c7AskTankL'), C7.hl, 15);
-      else ciRule(m, 180, [82], labelText(item.to === 'm3' ? 'c7AskM3' : 'c7AskL'), C7.hl, 15); }
+      else if (c.D && item.step <= 1) { const lh = T.H / T.layers; el('rect', { x: T.x0 + 2, y: T.bot - lh, width: T.W - 4, height: lh - 2, fill: THINK_INK, opacity: .3 }, m); ciRule(m, 180, [82], labelText('c7AskTankL'), C7.hl, 15); }   /* طبقةٌ واحدة مضاءةٌ بلتراتها (المراجع A لدفعة ألعاب U8/U7، 10ج) */
+      else { if (item.to !== 'm3') { const e = 10 * T.s; el('rect', { x: T.x0 + 4, y: T.bot - e - 2, width: e, height: e, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6, 'stroke-dasharray': '4 3' }, m); }   /* مكعّب اللتر (10 سم) داخل الخزان (10ب) */
+        ciRule(m, 180, [82], labelText(item.to === 'm3' ? 'c7AskM3' : 'c7AskL'), C7.hl, 15); } }
     await S(err === 'c7FillShort' || err === 'c7FillOver' ? 'gen.c7.hint.tank' : item.step <= 1 ? 'gen.c7.hint.tankL' : 'gen.c7.hint.conv'); },
   async together() {},
-  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { c7TankWater(c.D, c.T, c.T.layers); if (item.step < 2) preLab(c.D.lab, 180, 58, c7Txt(item.L, 'L'), { fs: 15, col: C7.ok }); preLab(c.D.lab, 180, 82, c7Txt(item.L, 'L') + ' = ' + c7Txt(item.want, item.to), { fs: 15, col: C7.ok, dir: 'rtl' }); }   /* تحت لترات الطبقات لا فوقها (RUNGG) */
+  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { c7TankWater(c.D, c.T, c.T.layers); if (item.step < 2) preLab(c.D.lab, 180, 58, c7Txt(item.L, 'L'), { fs: 15, col: C7.ok }); preLab(c.D.lab, 180, 82, c7Txt(item.L, 'L') + ' = ' + c7Txt(item.want, item.to) + (item.to === 'm3' ? ' = ' + c7Txt(item.L * 1000, 'cm3') : ''), { fs: item.to === 'm3' ? 13 : 15, col: C7.ok, dir: 'rtl' }); }   /* والمتر المكعّب بالوحدات الثلاث (المراجع A لدفعة ألعاب U8/U7، 19) */   /* تحت لترات الطبقات لا فوقها (RUNGG) */
     item.step = 3; await S('gen.ci.reveal.calc', { noGap: true }); await S(c7Line(item.want, item.to), { append: true }); },
-  praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };

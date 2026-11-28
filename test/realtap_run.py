@@ -457,7 +457,7 @@ async def run(p, dev):
             if xy: await tap(*xy)
           elif k in FACEK:   # «غلّف العلبة»: يلمس بالإصبع كل وجهٍ لم يُغلَّف (مركز رسمه) ثم «تمّ» (المراجع B لدفعة ألعاب U8/U7، 14)
             for _ in range(6):
-              miss = await pg.evaluate("() => { const on = String(window.__c7W || '').split(',').filter(Boolean); const all = [...document.querySelectorAll('#stage svg [role=button][data-face]')]; const e = all.find(x => !on.includes(x.dataset.face)); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }")
+              miss = await pg.evaluate("() => { const on = String(window.__c7W || '').split(',').filter(Boolean); const all = [...document.querySelectorAll('#stage svg [role=button][data-face][data-need=\"1\"]')]; const e = all.find(x => !on.includes(x.dataset.face)); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }")
               if not miss: break
               await tap(*miss); await pg.wait_for_timeout(120)
             xy = await pg.evaluate(DONE_BTN)

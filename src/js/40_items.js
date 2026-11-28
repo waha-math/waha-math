@@ -40,13 +40,13 @@ async function runItem0(spec, mode, ctx) {
   const item = T.make(spec); item.itype = type; item.spec = spec;   // itype لا type: البند قد يكون شكلاً له type
   const stepped = typeof item.step === 'number'; if (stepped) stepWatch(item);   /* اللعبة الحركية: قبول خطوةٍ وسطى يسلّح حارس X-01 ويمحو مساعدتها (المراجع B لدفعة ألعاب U8/U7، 1 و2) */
   const help = mode === 'practice' || mode === 'explore' || mode === 'remedial';
-  const scene = ctx.scene || mode; let tries = 0, together = false;
+  const scene = ctx.scene || mode; let tries = 0, together = false; const lvMap = {};   /* البند بخطوات: درجة السلّم بأخطاء الخطوة الجارية، وستة أخطاء في الجولة كلها كشف (المراجع A لدفعة ألعاب U8/U7، 8: كانت أول زلّةٍ في خطوةٍ جديدة تأتي بالرسم أو بالحساب كله) */
   /*T*/window.__item = item; window.__itemMode = mode; window.__itemTwin = !!ctx.isTwin; window.__itemSeq = (window.__itemSeq || 0) + 1; const mySeq = window.__itemSeq;/*/T*/
   while (true) {
     /* المساعدة عند السكوت أو بالفانوس: «لاحظ جيداً» ثم ما يريه نوع البند، أو السؤال من جديد (الفحص المستقل B: كان «لاحظ جيداً» وحدها) */
     if (help) armIdle(async () => { await S(T.idleLine ? T.idleLine(item) : 'gen.hint.look', { aside: true }); if (T.idle) await T.idle(item); else replayLine(); }, { first: firstTime('item:' + type) });
     /*T*/window.__itemTry = [mySeq, tries];/*/T*/   /* محاولة البند الجارية: سائق الفحص يعدّ الأخطاء بالمحاولات لا بخطوات السؤال (بندٌ بخطوتين «لا» ثم «لماذا» محاولة واحدة) */
-    const t0 = Date.now(); NEUTRAL_ANS = mode === 'mastery' || mode === 'test'; let r; try { r = await T.ask(item, mode, tries); } finally { NEUTRAL_ANS = false; } disarmIdle();
+    const t0 = Date.now(); NEUTRAL_ANS = mode === 'mastery' || mode === 'test'; let r; try { r = await T.ask(item, mode, stepped ? (lvMap[item.step] || 0) : tries); } finally { NEUTRAL_ANS = false; } disarmIdle();
     const j = T.judge(item, r.ans); tries += r.slip ? 2 : 1;   /* خطأٌ في خطوةٍ داخل البند أُصلح قبل الجواب (بناء القصة): محاولة، فلا يُحسب من أول محاولة */
     logAttempt({ scene, mode, type, tag: item.tag, ans: r.ans, ok: j.ok, firstTry: tries === 1, try: tries, err: j.ok ? null : (j.err || 'generic'), ms: Date.now() - t0, spec: specText(spec) });
     if (j.ok) {
@@ -62,9 +62,10 @@ async function runItem0(spec, mode, ctx) {
     if (mode === 'test') return { firstTry: false, ok: false, item };   // لا يُرسم الجواب الصحيح في الاختبار (القرار A-03، D266): الإعادة بالبنود نفسها
     if (mode === 'mastery') { await S('gen.ms.noted'); return { firstTry: false, ok: false, item }; }
     if (mode === 'review') { await T.reveal(item, r); const why = T.reason && T.reason(item); if (why) await S(why); return { firstTry: false, ok: false, item }; }
-    if (tries === 1) { await S(errQ(j.err, item)); await sleep(300); continue; }                       // المستوى 1: سؤال
-    if (tries === 2) { await S(bank('look') || 'gen.hint2.01'); await T.hint2(item, r, j.err); { const sv = $('#stage svg'); HELP_CARRY = sv ? { flow: FLOW, nodes: [...sv.querySelectorAll('[data-help]')].filter(n => !n.parentNode.closest('[data-help]')).map(n => n.cloneNode(true)) } : null; }   /* مربوطٌ بالمسار: لا يُنسخ إلى درسٍ آخر بعد الخروج (المراجع B لبوابة S3-U6/U7، 4) */ await sleep(300); continue; }   // المستوى 2: حركة الأداة
-    if (tries === 3) { HELP_CARRY = null; together = true; await T.together(item, r, j.err); continue; }                  // المستوى 3: حلّ مشترك، والخطوة الأخيرة للطفل
+    const L = stepped ? (lvMap[item.step] = (lvMap[item.step] || 0) + (r.slip ? 2 : 1), tries >= 6 ? Math.max(4, lvMap[item.step]) : lvMap[item.step]) : tries;
+    if (L === 1) { await S(errQ(j.err, item)); await sleep(300); continue; }                       // المستوى 1: سؤال
+    if (L === 2) { await S(bank('look') || 'gen.hint2.01'); await T.hint2(item, r, j.err); { const sv = $('#stage svg'); HELP_CARRY = sv ? { flow: FLOW, nodes: [...sv.querySelectorAll('[data-help]')].filter(n => !n.parentNode.closest('[data-help]')).map(n => n.cloneNode(true)) } : null; }   /* مربوطٌ بالمسار: لا يُنسخ إلى درسٍ آخر بعد الخروج (المراجع B لبوابة S3-U6/U7، 4) */ await sleep(300); continue; }   // المستوى 2: حركة الأداة
+    if (L === 3) { HELP_CARRY = null; together = true; await T.together(item, r, j.err); continue; }                  // المستوى 3: حلّ مشترك، والخطوة الأخيرة للطفل
     if (stepped) helpClear();   /* الكشف لا يكتب فوق معادلة الحلّ المشترك (المراجع B لدفعة ألعاب U8/U7، 3أ) */
     await T.reveal(item, r); /*T*/if (window.__onReveal) try { window.__onReveal(item); } catch (e) {}/*/T*/   /* الفحص يرى المسرح بعد الكشف قبل التوأم */
     { const why = T.reason && T.reason(item); if (why) await S(why); }

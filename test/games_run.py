@@ -290,7 +290,7 @@ async def c9g(b):
       for x in L:
         if x[0] != 'c9-wheel-predict' and x[1] is False: per[x[0]] = per.get(x[0], 0) + 1
       items = await pg.evaluate("([lid, i]) => LDATA[lid].flow[i].items.length", [lid, i])
-      check('C9G', s2['res'] and not s2['err'] and sum(per.values()) == 4 * items, '%s (%d): كل جولةٍ بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
+      check('C9G', s2['res'] and not s2['err'] and 4 * items <= sum(per.values()) <= 6 * items, '%s (%d): كل جولةٍ بأخطائها حتى الكشف (أربعةٌ في الخطوة أو ستةٌ في الجولة) بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
   check('C9G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
 # M4-U8 الألعاب الحركية (خطة ألعاب المرحلة 4): صائد المنصّف (الفرجار خطوةً خطوة)، وأين المنتصف؟ (العمود المنصّف)، وصائد الوتر (الوتر ثم النسبة)
@@ -310,24 +310,30 @@ async def c8g(b):
   async def tapw(P, st): ok = await tap(P, st); s2 = await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['n'] != nn(st)), 20000); return ok, s2
   async def num(v): await pg.evaluate("(v) => { const b = [...document.querySelectorAll('#stage .choices.nums button')].find(b => +b.dataset.k === v); if (b) b.click(); }", v); await pg.wait_for_timeout(700)
   helps = "() => document.querySelectorAll('#stage svg [data-help] *').length"
-  # ---- صائد المنصّف: خطأ الرأس، ثم القوس من الرأس، والخطوة المنجزة تبقى، والحلّ المشترك من التقاطع
+  async def opt(k): await pg.evaluate("(k) => { const b = document.querySelector('#stage .choices .pick[data-k=\"' + k + '\"]'); if (b) b.click(); }", k); await pg.wait_for_timeout(300)
+  async def nx(st): return await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['n'] != nn(st)), 20000)
+  # ---- صائد المنصّف: خطأ الرأس، ثم القوس من الرأس، والخطوة المنجزة تبقى، وفتحة الفرجار يقرّرها الطفل، والسلّم بأخطاء الخطوة الجارية (المراجع A لدفعة ألعاب U8/U7، 4 و8)
   spec = {'t': 'c8BisMake', 'deg': 72, 'q': 'gen.c8.q.bisV'}; await run('m4.u8.d1', spec); G = await pg.evaluate("(s) => c8BisGeo(s)", spec); st = await wk('tap')
   ok, st = await tapw(G['F1'], st); L = await logs()
   check('C8G', ok and L[:1] == [['c8-bis-make', False, True, 'c8BisNotV']], 'صائد المنصّف: الفرجار على غير الرأس خطأ c8BisNotV', [ok, L])
-  ok1, st = await tapw(G['V'], st); ok2, st = await tapw(G['V'], st); L = await logs()
-  check('C8G', ok1 and ok2 and L[1:] == [['c8-bis-make', False, False, 'c8BisArcV']], 'صائد المنصّف: القوس الثاني من الرأس خطأ c8BisArcV', [ok1, ok2, L])
-  has = await pg.evaluate(HAS, G['A']); h = await pg.evaluate("() => document.querySelectorAll('#stage svg path').length")
-  check('C8G', has, 'صائد المنصّف: القوس الأول باقٍ بعد الخطأ، فالسؤال من نقطتي التقاطع', [has, h])
-  ok1, st = await tapw(G['A'], st); ok2, st = await tapw(G['V'], st); await pg.wait_for_timeout(600)
-  tg = await pg.evaluate("([X, Y]) => [(" + HAS + ")(X), (" + HAS + ")(Y), (window.__clips || []).some(c => /^gen\\.c8\\.together\\.bisMake/.test(c))]", [G['X'], G['Y']])
-  check('C8G', ok1 and ok2 and tg == [True, True, True], 'صائد المنصّف: الحلّ المشترك يرسم الأقواس ويترك التقاطع للطفل', [ok1, ok2, tg])
+  ok1, st = await tapw(G['V'], st); ok2, st = await tapw(G['V'], st); L = await logs(); hp0 = await pg.evaluate(helps)
+  check('C8G', ok1 and ok2 and L[1:] == [['c8-bis-make', False, False, 'c8BisArcV']] and hp0 == 0, 'صائد المنصّف: القوس الثاني من الرأس خطأ c8BisArcV، وأول خطأٍ في الخطوة سؤالٌ لا رسم', [ok1, ok2, L, hp0])
+  has = await pg.evaluate(HAS, G['A'])
+  check('C8G', has, 'صائد المنصّف: القوس الأول باقٍ بعد الخطأ، فالسؤال من نقطتي التقاطع', has)
+  ok1, st = await tapw(G['A'], st); k1 = st['auto']['kind'] if st['auto'] else None; await opt('more'); st = await nx(st); await opt('less'); st = await nx(st); await pg.wait_for_timeout(300); hp = await pg.evaluate(helps); L = await logs()
+  check('C8G', ok1 and k1 == 'pick' and [x[3] for x in L[2:]] == ['c8BisOpen', 'c8BisOpen'] and hp > 0, 'صائد المنصّف: تغيير الفتحة قبل القوس الآخر خطأ c8BisOpen، وثانيه شبحا قوسين', [ok1, k1, L, hp])
+  await opt('more'); st = await nx(st); await pg.wait_for_timeout(600)
+  tg = await pg.evaluate("([X, Y]) => [(" + HAS + ")(X), (" + HAS + ")(Y), (window.__clips || []).some(c => /^gen\\.c8\\.together\\.bisMake/.test(c)), document.querySelectorAll('#stage svg [data-help]').length]", [G['X'], G['Y']])
+  check('C8G', tg[:3] == [True, True, True] and tg[3] > 0, 'صائد المنصّف: ثلاثة أخطاء في الفتحة ثم الحلّ المشترك يرسم الأقواس ويبرزها ويترك التقاطع للطفل', tg)
   ok, st = await tapw(G['Y'], st); r = await res(); L = await logs()
-  check('C8G', ok and r['res'] and r['res']['ok'] is False and not r['err'] and L[-1][3] == 'c8BisCross' and len(L) == 4, 'صائد المنصّف: شبيه التقاطع خطأ c8BisCross، ثم الكشف بلا خطأ', [r['res'], r['err'], L])
-  # القراءة: الزاوية كلها خطأٌ بوسمه، ثم الحلّ المشترك في القراءة وحدها يعلّم النصف على التدريج
+  check('C8G', ok and r['res'] and r['res']['ok'] is False and not r['err'] and L[-1][3] == 'c8BisCross' and len(L) == 6, 'صائد المنصّف: ستة أخطاء في الجولة كشف (شبيه التقاطع c8BisCross)', [r['res'], r['err'], L])
+  # القراءة بالمنقلة: لا عدد للزاوية كلها، والتدريج الآخر مشتّت، ثم الحلّ المشترك في القراءة وحدها
   spec = {'t': 'c8BisMake', 'deg': 124, 'q': 'gen.c8.q.bisV'}; await run('m4.u8.d1', spec); G = await pg.evaluate("(s) => c8BisGeo(s)", spec); st = await wk('tap')
-  for k in ('V', 'A', 'B', 'X'): ok, st = await tapw(G[k], st)
-  ch = await pg.evaluate("() => c8HalfCh({ deg: 124, ask: 'half', rk: 0 })"); bad = [c for c in ch if c[0] != 62]
-  check('C8G', st['auto'] and st['auto']['kind'] == 'num' and len(bad) >= 2, 'صائد المنصّف: الخطوات الأربع ثم القراءة', [st['auto'], ch])
+  for k in ('V', 'A'): ok, st = await tapw(G[k], st)
+  await opt('keep'); st = await nx(st)
+  for k in ('B', 'X'): ok, st = await tapw(G[k], st)
+  ch = await pg.evaluate("(s) => ITEM.c8BisMake.make(s).ch", spec); bad = [c for c in ch if c[0] != 62]; tx = await pg.evaluate("() => [...document.querySelectorAll('#stage svg text')].map(t => t.textContent)")
+  check('C8G', st['auto'] and st['auto']['kind'] == 'num' and len(bad) >= 2 and 'protScale' in [c[1] for c in ch] and not any(t.strip() in ('١٢٤', '124') for t in tx), 'صائد المنصّف: الخطوات ثم القراءة، والزاوية كلها غير مكتوبة، والتدريج الآخر مشتّت', [st['auto'], ch])
   for i in range(3):
     await num(bad[i % len(bad)][0]); st = await until(pg, lambda s: s['res'] or (s['auto'] and s['auto']['n'] != nn(st)), 20000)
   L = await logs(); await pg.wait_for_timeout(500); hp = await pg.evaluate(helps); cl = await pg.evaluate("() => (window.__clips || []).filter(c => /^gen\\.c8\\.together/.test(c))")
@@ -335,22 +341,30 @@ async def c8g(b):
         'صائد المنصّف: القراءة الخاطئة بوسمها، والمنصّف باقٍ، والحلّ المشترك يعلّم النصف على التدريج', [L, st['auto'], hp, cl])
   await num(62); r = await res(); L = await logs()
   check('C8G', r['res'] and r['res']['ok'] and L[-1] == ['c8-bis-make', True, False, None], 'صائد المنصّف: ثم القراءة الصحيحة', [r['res'], L])
-  # ---- أين المنتصف؟
-  spec = {'t': 'c8PbMake', 'half': 30, 'h': 16, 'q': 'gen.c8.q.pbEnd1'}; await run('m4.u8.d2', spec); G = await pg.evaluate("(s) => c8PbGeo(s)", spec); st = await wk('tap')
-  ok, st = await tapw(G['M'], st); L = await logs()
-  check('C8G', ok and L[:1] == [['c8-pb-make', False, True, 'c8PbNotEnd']], 'أين المنتصف؟: الفرجار على المنتصف قبل رسمه خطأ c8PbNotEnd', [ok, L])
+  # ---- أين المنتصف؟: الفتحة أولاً، ثم الطرفان والتقاطعان، ثم ن ب والمسطرة على ن أ وأ ب وم ن مكتوبان
+  spec = {'t': 'c8PbMake', 'half': 30, 'h': 16, 'q': 'gen.c8.q.pbEnd1'}; await run('m4.u8.d2', spec); G = await pg.evaluate("(s) => c8PbGeo(s)", spec); st = await wk('pick')
+  await opt('short'); st = await nx(st); L = await logs()
+  check('C8G', L[:1] == [['c8-pb-make', False, True, 'c8PbShort']], 'أين المنتصف؟: فتحةٌ أقصر من نصف القطعة خطأ c8PbShort', L)
+  await opt('long'); st = await nx(st)
   for k in ('B', 'A'): ok, st = await tapw(G[k], st)
   ok, st = await tapw(G['Z'], st); L = await logs()
   check('C8G', ok and L[1:] == [['c8-pb-make', False, False, 'c8PbCross']], 'أين المنتصف؟: البدء بالطرف الآخر صحيح، ونقطةٌ ليست تقاطعاً خطأ c8PbCross', [ok, L])
   has = await pg.evaluate(HAS, G['X1']); check('C8G', has, 'أين المنتصف؟: القوسان باقيان بعد الخطأ، فالسؤال عن التقاطع', has)
   for k in ('X2', 'X1'): ok, st = await tapw(G[k], st)
-  check('C8G', st['auto'] and st['auto']['kind'] == 'num', 'أين المنتصف؟: التقاطعان بأيّ ترتيب ثم القراءة', st['auto'])
+  tx = await pg.evaluate("() => [...document.querySelectorAll('#stage svg text')].map(t => t.textContent)")
+  check('C8G', st['auto'] and st['auto']['kind'] == 'num' and any('٦٠' in t for t in tx) and any('١٦' in t for t in tx) and any('٣٤' in t for t in tx), 'أين المنتصف؟: التقاطعان بأيّ ترتيب ثم القراءة، وأ ب = ٦٠ وم ن = ١٦ ون أ = ٣٤ على المسرح', [st['auto'], tx])
   ch = await pg.evaluate("(s) => ITEM.c8PbMake.make(s).ch", spec); bad = [c for c in ch if c[0] != 34]
-  await num(bad[0][0]); st = await until(pg, lambda s: s['res'] or (s['auto'] and s['auto']['n'] != nn(st)), 20000); L = await logs(); await pg.wait_for_timeout(500); hp = await pg.evaluate(helps)
-  cl = await pg.evaluate("() => (window.__clips || []).filter(c => /^gen\\.c8\\.together/.test(c))")
-  check('C8G', len(L) == 3 and L[-1][3] == bad[0][1] and hp > 0 and len(cl) == 1 and cl[0].startswith('gen.c8.together.pbRead'), 'أين المنتصف؟: القراءة الخاطئة بوسمها، والحلّ المشترك في القراءة يعلّم البعدين متساويين', [L, ch, hp, cl])
+  for i in range(3):
+    await num(bad[i % len(bad)][0]); st = await until(pg, lambda s: s['res'] or (s['auto'] and s['auto']['n'] != nn(st)), 20000)
+    if i == 1: await pg.wait_for_timeout(400); hp2 = await pg.evaluate(helps)
+  L = await logs(); await pg.wait_for_timeout(500); hp = await pg.evaluate(helps); cl = await pg.evaluate("() => (window.__clips || []).filter(c => /^gen\\.c8\\.together/.test(c))")
+  check('C8G', len(L) == 5 and L[2][3] == bad[0][1] and hp2 > 0 and hp > 0 and len(cl) == 1 and cl[0].startswith('gen.c8.together.pbRead'), 'أين المنتصف؟: القراءة الخاطئة بوسمها، والمستوى الثاني قوسٌ من ن، والحلّ المشترك يعلّم البعدين متساويين', [L, ch, hp2, hp, cl])
   await num(34); r = await res(); L = await logs()
   check('C8G', r['res'] and r['res']['ok'] and L[-1] == ['c8-pb-make', True, False, None], 'أين المنتصف؟: ثم ن ب = ن أ', [r['res'], L])
+  spec = {'t': 'c8PbMake', 'half': 40, 'h': 9, 'rot': -24}; await run('m4.u8.d2', spec); G = await pg.evaluate("(s) => c8PbGeo(s)", spec); st = await wk('pick'); await opt('long'); st = await nx(st)
+  ok, st = await tapw(G['M'], st); L = await logs()
+  ok2, st = await tapw(G['Qa'], st); await pg.wait_for_timeout(300); hp = await pg.evaluate("() => document.querySelectorAll('#stage svg [data-help] path').length"); L = await logs()
+  check('C8G', ok and ok2 and [x[3] for x in L] == ['c8PbNotEnd', 'c8PbNotEnd'] and hp > 0 and abs(G['A'][1] - G['B'][1]) > 20, 'أين المنتصف؟: القطعة المائلة، والفرجار على غير الطرف خطأ c8PbNotEnd، وثانيه قوسٌ شبح', [ok, ok2, L, hp, G['A'], G['B']])
   # ---- صائد الوتر
   spec = {'t': 'c8HypHunt', 'a': 24, 'b': 7, 'hy': 25, 'fn': 'sin', 'q': 'gen.c8.q.hypTap'}; await run('m4.u8.d3', spec); st = await wk('tap')
   await pg.evaluate("() => { const t = [...document.querySelectorAll('#stage svg [role=button]')].find(g => g.dataset.ok === 'false'); if (t) t.dispatchEvent(new MouseEvent('click', { bubbles: true })); }"); await pg.wait_for_timeout(900); L = await logs()
@@ -373,7 +387,7 @@ async def c8g(b):
       for x in L:
         if x[1] is False: per[x[0]] = per.get(x[0], 0) + 1
       items = await pg.evaluate("([lid, i]) => LDATA[lid].flow[i].items.length", [lid, i])
-      check('C8G', s2['res'] and not s2['err'] and sum(per.values()) == 4 * items, '%s (%d): كل جولةٍ بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
+      check('C8G', s2['res'] and not s2['err'] and 4 * items <= sum(per.values()) <= 6 * items, '%s (%d): كل جولةٍ بأخطائها حتى الكشف (أربعةٌ في الخطوة أو ستةٌ في الجولة) بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
   check('C8G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
 # M4-U5 الألعاب الحركية (خطة ألعاب المرحلة 4): صائد الكنز في الأرباع، والكاشف، وأين المستقيم؟
@@ -419,9 +433,13 @@ async def c5g(b):
   check('C5G', L[:1] == [['c5-line', False, True, 'c4IntSwap']], 'المستقيم: نقطة الصادات مقلوبة خطأ c4IntSwap', L)
   st = await wk('axPts', nn(st)); await auto('ok'); st = await wk('axPts', nn(st)); await auto('wrong'); L = await logs()
   check('C5G', L[1:] == [['c5-line', False, False, 'c5SlopeSign']], 'المستقيم: الميل المعكوس في النقطة الثانية خطأ c5SlopeSign', L)
-  st = await nxt(st); k3 = st['auto']['kind'] if st['auto'] else None; await place(2, 3); st = await wk('tap', nn(st)); await tapk(False); L = await logs()
+  st = await wk('axPts', nn(st)); await auto('wrong'); st = await nxt(st); await pg.wait_for_timeout(300); hs = await pg.evaluate("() => document.querySelectorAll('#stage svg [data-help]').length")
+  check('C5G', hs > 0 and not st.get('err') and st.get('auto') and st['auto']['kind'] == 'axPts', 'المستقيم: الخطأ الثاني في النقطة الثانية يرسم الميل من نقطة الصادات (المستوى الثاني)', [hs, st])
+  k3 = st['auto']['kind'] if st['auto'] else None; await place(2, 3); st = await wk('tap', nn(st)); await tapk(False); L = await logs()
   check('C5G', k3 == 'axPts' and L[-1:] == [['c5-line', False, False, 'c5NotOn']], 'المستقيم: نقطةٌ ثانية أخرى على المستقيم صحيحة، ونقطةٌ ليست عليه خطأ c5NotOn', [k3, L])
-  st = await nxt(st); await pg.wait_for_timeout(300); tr = await pg.evaluate("() => document.querySelectorAll('#stage svg [role=button]').length"); await tapk(True); r = await res()
+  spec = {'t': 'c5Line', 'm': 2, 'i0': -1, 'cand': [[3, 5], [-2, 1], [2, 1]], 'q': 'ln.01'}; await run('m4.u5.d3', spec); st = await wk('axPts'); await auto('ok'); st = await wk('axPts', nn(st)); await auto('ok'); st = await wk('tap', nn(st))
+  for _ in range(3): await tapk(False); st = await nxt(st)   # ثلاثة أخطاء في الخطوة الأخيرة ثم الحلّ المشترك
+  await pg.wait_for_timeout(300); tr = await pg.evaluate("() => document.querySelectorAll('#stage svg [role=button]').length"); await tapk(True); r = await res()
   check('C5G', tr == 2 and r['res'] and r['res']['ok'], 'المستقيم: الحلّ المشترك يُبعد نقطةً ويُبقي اثنتين، ثم الصحيحة', [tr, r['res']])
   # ---- الدروس الثلاثة: كل جولةٍ بأربعة أخطاء ثم الكشف
   for lid in ('m4.u5.d1', 'm4.u5.d2', 'm4.u5.d3'):
@@ -436,7 +454,7 @@ async def c5g(b):
       for x in L:
         if x[1] is False: per[x[0]] = per.get(x[0], 0) + 1
       items = await pg.evaluate("([lid, i]) => LDATA[lid].flow[i].items.length", [lid, i])
-      check('C5G', s2['res'] and not s2['err'] and sum(per.values()) == 4 * items, '%s (%d): كل جولةٍ بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
+      check('C5G', s2['res'] and not s2['err'] and 4 * items <= sum(per.values()) <= 6 * items, '%s (%d): كل جولةٍ بأخطائها حتى الكشف (أربعةٌ في الخطوة أو ستةٌ في الجولة) بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
   le = await pg.evaluate("() => (LOG.errors || []).map(e => String(e.msg || e.message || e).slice(0, 120))")
   check('C5G', not errs and not le, 'بلا خطأ في الصفحة ولا في سجلّ الأخطاء (LOG.errors)', [errs[:2], le[:2]]); await ctx.close()
 
@@ -462,8 +480,8 @@ async def c6g(b):
   check('C6G', L[:1] == [['c6-chord-dist', False, True, 'c6ChordLen']], 'وتر الدائرة: الطول غير المطلوب خطأ c6ChordLen', L)
   st = await wk('c6Move', nn(st)); k0 = await pg.evaluate("() => window.__c6K()"); await press(1, 3); await done(); st = await wk('num', nn(st)); await num(12); L = await logs()
   check('C6G', k0 == 6 and L[1:] == [['c6-chord-dist', False, False, 'c6HalfDist']], 'وتر الدائرة: من موضعه الأول، ثم نصف الوتر بُعداً خطأ c6HalfDist', [k0, L])
-  st = await nxt(st); await pg.wait_for_timeout(300); hp = await pg.evaluate(helps); k3 = st['auto']['kind'] if st['auto'] else None; await num(9); r = await res(); L = await logs()
-  check('C6G', k3 == 'num' and hp > 0 and r['res'] and r['res']['ok'] and L[-1] == ['c6-chord-dist', True, False, None], 'وتر الدائرة: الموضع باقٍ بعد الخطأ والمستوى الثاني منقول، ثم البعد', [k3, hp, r['res'], L])
+  st = await nxt(st); await pg.wait_for_timeout(300); hp1 = await pg.evaluate(helps); await num(12); st = await nxt(st); await pg.wait_for_timeout(300); hp = await pg.evaluate(helps); k3 = st['auto']['kind'] if st['auto'] else None; await num(9); r = await res(); L = await logs()
+  check('C6G', k3 == 'num' and hp1 == 0 and hp > 0 and r['res'] and r['res']['ok'] and L[-1] == ['c6-chord-dist', True, False, None], 'وتر الدائرة: الموضع باقٍ بعد الخطأ، وأول خطأٍ في البعد سؤالٌ وثانيه المستوى الثاني منقولاً، ثم البعد', [k3, hp1, hp, r['res'], L])
   await run('m4.u6.d1', spec); st = await wk('c6Move')
   for _ in range(3): await press(1, 1); await done(); st = await wk('c6Move', nn(st))
   await pg.wait_for_timeout(300); tm = await pg.evaluate("() => [window.__c6K(), (window.__clips || []).filter(c => /^gen\\.c6\\.together\\.move/.test(c)).length]")
@@ -477,7 +495,9 @@ async def c6g(b):
   spec = {'t': 'c6TanGame', 'mode': 'slide', 'a': 270, 'q': 'tg.01'}; await run('m4.u6.d2', spec); st = await wk('c6Move')
   await press(1, 2); await done(); st = await wk('c6Move', nn(st)); await press(1, 6); await done(); L = await logs()
   check('C6G', [x[3] for x in L] == ['c6Secant', 'c6Miss'], 'المماس: قاطعٌ ثم بعيدٌ عن الدائرة، كلٌّ بوسمه', L)
-  st = await wk('c6Move', nn(st)); await press(1, 4); await done(); st = await wk('num', nn(st)); await num(180); st = await nxt(st); await pg.wait_for_timeout(300)
+  st = await wk('c6Move', nn(st)); await press(1, 4); await done(); st = await wk('num', nn(st))
+  for _ in range(3): await num(180); st = await nxt(st)   # ثلاثة أخطاء في الزاوية ثم الحلّ المشترك (السلّم بأخطاء الخطوة)
+  await pg.wait_for_timeout(300)
   tg = await pg.evaluate("() => [document.querySelectorAll('#stage svg [data-help] *').length, (window.__clips || []).filter(c => /^gen\\.c6\\.together\\.tanAng/.test(c)).length]"); await num(90); r = await res(); L = await logs()
   check('C6G', len(L) > 2 and L[2][3] == 'c6TanStraight' and tg[0] > 0 and tg[1] == 1 and r['res'] and r['res']['ok'], 'المماس: الزاوية المستقيمة خطأ، والحلّ المشترك يضع الزاوية القائمة، ثم 90', [L, tg, r['res']])
   spec = {'t': 'c6TanGame', 'mode': 'pivot', 'op': 10, 'q': 'tg.03'}; await run('m4.u6.d2', spec); st = await wk('c6Move'); await press(1, 3); await done(); st = await wk('num', nn(st)); await num(8); r = await res(); L = await logs()
@@ -489,7 +509,9 @@ async def c6g(b):
   st = await wk('tap', nn(st)); await pg.evaluate("() => { const t = document.querySelector('#stage svg [role=button][data-ok=true]'); if (t) t.dispatchEvent(new MouseEvent('click', { bubbles: true })); }")
   st = await wk('num', nn(st)); await num(80); L = await logs(); st = await nxt(st); k3 = st['auto']['kind'] if st['auto'] else None
   check('C6G', L[1:] == [['c6-center', False, False, 'c6ReadOther']] and k3 == 'num', 'أين المركز؟: التدريج الآخر خطأ، والمركز باقٍ بعد الخطأ', [L, k3])
-  await num(100); st = await wk('num', nn(st)); await num(100); L = await logs(); st = await nxt(st); await pg.wait_for_timeout(300)
+  await num(100); st = await wk('num', nn(st))
+  for _ in range(3): await num(100); st = await nxt(st)
+  L = await logs(); await pg.wait_for_timeout(300)
   tr = await pg.evaluate("() => (window.__clips || []).filter(c => /^gen\\.c6\\.together\\.read/.test(c)).length"); await num(50); r = await res(); L2 = await logs()
   check('C6G', len(L) > 0 and L[-1][3] == 'c6InsEq' and tr == 1 and r['res'] and r['res']['ok'], 'أين المركز؟: المحيطية مثل المركزية خطأ، والحلّ المشترك في القراءة، ثم نصفها', [L, tr, L2])
   await run('m4.u6.d3', spec); st = await wk('tap')
@@ -509,7 +531,7 @@ async def c6g(b):
       for x in L:
         if x[1] is False: per[x[0]] = per.get(x[0], 0) + 1
       items = await pg.evaluate("([lid, i]) => LDATA[lid].flow[i].items.length", [lid, i])
-      check('C6G', s2['res'] and not s2['err'] and sum(per.values()) == 4 * items, '%s (%d): كل جولةٍ بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
+      check('C6G', s2['res'] and not s2['err'] and 4 * items <= sum(per.values()) <= 6 * items, '%s (%d): كل جولةٍ بأخطائها حتى الكشف (أربعةٌ في الخطوة أو ستةٌ في الجولة) بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
   check('C6G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
 # M4-U7 الألعاب الحركية (خطة ألعاب المرحلة 4): كوب الماء، وغلّف العلبة، وثلاثة مخاريط وأسطوانة، ومحوّل الخزان
@@ -541,10 +563,12 @@ async def c7g(b):
   bad = [v for v in M['reads'] if v != M['read']]; await pick(bad[0]); L = await logs()
   check('C7G', L[1:] == [['c7-cup', False, False, 'c7JugRead']], 'كوب الماء: قراءة الكأس بعيداً عن سطح الماء خطأ c7JugRead', L)
   st = await nxt(st); await pg.wait_for_timeout(300); hp = await pg.evaluate(helps)
-  check('C7G', st['auto'] and st['auto']['kind'] == 'pick' and hp > 0, 'كوب الماء: الملء باقٍ بعد الخطأ فالمحاولة تبدأ من الكأس، والمستوى الثاني منقول', [st['auto'], hp])
+  check('C7G', st['auto'] and st['auto']['kind'] == 'pick' and hp == 0, 'كوب الماء: الملء باقٍ بعد الخطأ فالمحاولة تبدأ من الكأس، وأول خطأٍ فيها سؤالٌ لا رسم', [st['auto'], hp])
   await pick(M['read']); st = await wk('pick', nn(st)); badl = [c for c in M['ch'] if c[0] != M['want']][0]; await pick(badl[0]); L = await logs()
   check('C7G', L[-1] == ['c7-cup', False, False, badl[1]], 'كوب الماء: القانون الخاطئ بوسمه', [L, badl])
-  st = await nxt(st); await pg.wait_for_timeout(400); tg = await pg.evaluate("() => [document.querySelectorAll('#stage svg [data-help] text').length, (window.__clips || []).filter(c => /^gen\\.c7\\.together\\.vol/.test(c)).length]")
+  st = await nxt(st); await pg.wait_for_timeout(200); await pick(badl[0]); st = await nxt(st); await pg.wait_for_timeout(300); hp2 = await pg.evaluate(helps)
+  check('C7G', hp2 > 0, 'كوب الماء: الخطأ الثاني في القانون المستوى الثاني رسماً', hp2)
+  await pick(badl[0]); st = await nxt(st); await pg.wait_for_timeout(400); tg = await pg.evaluate("() => [document.querySelectorAll('#stage svg [data-help] text').length, (window.__clips || []).filter(c => /^gen\\.c7\\.together\\.vol/.test(c)).length]")
   await pick(M['want']); r = await res(); L = await logs()
   check('C7G', tg[0] > 0 and tg[1] == 1 and r['res'] and r['res']['ok'] and L[-1] == ['c7-cup', True, False, None], 'كوب الماء: الحلّ المشترك يكتب الحساب في خطوة القانون، ثم الصحيح', [tg, r['res'], L])
   await run('m4.u7.d1', spec); st = await wk('c7Fill')
@@ -555,18 +579,21 @@ async def c7g(b):
   # ---- غلّف العلبة: الجانب وحده، ثم بلا جانب، ثم الطول، والحلّ المشترك
   spec = {'t': 'c7Wrap', 'r': 2, 'h': 6, 'q': 'wr.01'}; M = await pg.evaluate("(s) => ITEM.c7Wrap.make(s)", spec); await run('m4.u7.d2', spec); st = await wk('c7Wrap')
   await face('side'); await done(); L = await logs()
-  check('C7G', L[:1] == [['c7-wrap', False, True, 'saOneBase']], 'غلّف العلبة: الجانب وحده ينسى القاعدتين (saOneBase)', L)
+  check('C7G', L[:1] == [['c7-wrap', False, True, 'c7WrapMiss']], 'غلّف العلبة: الجانب وحده يترك وجهين (c7WrapMiss)', L)
   st = await wk('c7Wrap', nn(st)); await face('lid', 'base'); await done(); L = await logs()
   check('C7G', L[1:] == [['c7-wrap', False, False, 'saNoSide']], 'غلّف العلبة: القاعدتان بلا الجانب خطأ saNoSide', L)
   st = await wk('c7Wrap', nn(st)); await face('lid', 'side', 'base'); await done(); st = await wk('pick', nn(st)); bl = [c for c in M['lens'] if c[0] != M['len']][0]; await pick(bl[0]); L = await logs()
   check('C7G', L[-1] == ['c7-wrap', False, False, bl[1]], 'غلّف العلبة: الوجوه الثلاثة ثم الطول الخاطئ بوسمه', [L, bl])
+  h1 = await pg.evaluate("() => document.querySelectorAll('#stage svg [data-help]').length")
+  for _ in range(2): st = await nxt(st); await pg.wait_for_timeout(200); await pick(bl[0])   # درجة السلّم بأخطاء الخطوة الجارية: ثلاثة أخطاء في الطول ثم الحلّ المشترك
   st = await nxt(st); await pg.wait_for_timeout(300); tg = await pg.evaluate("() => [document.querySelectorAll('#stage svg [data-face][role=button]').length, document.querySelectorAll('#stage svg [data-help] text').length]")
   await pick(M['len']); st = await wk('pick', nn(st)); await pick(M['want']); r = await res(); L = await logs()
-  check('C7G', tg[0] == 0 and tg[1] > 0 and r['res'] and r['res']['ok'] and L[-1] == ['c7-wrap', True, False, None], 'غلّف العلبة: التغليف باقٍ بعد الخطأ، والحلّ المشترك في الطول، ثم الورق كله', [tg, r['res'], L])
+  check('C7G', tg[0] == 0 and tg[1] > 0 and r['res'] and r['res']['ok'] and L[-1] == ['c7-wrap', True, False, None], 'غلّف العلبة: التغليف باقٍ بعد الخطأ، والحلّ المشترك في الطول بعد ثلاثة أخطاء فيه، ثم الورق كله', [tg, r['res'], L])
   spec = {'t': 'c7Wrap', 'r': 2, 'h': 7, 'lid': False, 'q': 'wr.03'}; M = await pg.evaluate("(s) => ITEM.c7Wrap.make(s)", spec); await run('m4.u7.d2', spec); st = await wk('c7Wrap')
-  fs = await pg.evaluate("() => [...document.querySelectorAll('#stage svg [data-face]')].map(g => g.dataset.face).sort()"); await face('side', 'base'); await done(); st = await wk('pick', nn(st)); await pick(M['len']); st = await wk('pick', nn(st))
+  fs = await pg.evaluate("() => [...document.querySelectorAll('#stage svg [data-face]')].map(g => g.dataset.face + g.dataset.need).sort()"); await face('side', 'base', 'lid'); await done(); L0 = await logs()
+  st = await wk('c7Wrap', nn(st)); await face('side', 'base'); await done(); st = await wk('pick', nn(st)); await pick(M['len']); st = await wk('pick', nn(st))
   lid = [c for c in M['ch'] if c[1] == 'saLidAdd']; await pick(lid[0][0] if lid else -1); L = await logs()
-  check('C7G', fs == ['base', 'side'] and bool(lid) and L == [['c7-wrap-open', False, True, 'saLidAdd']], 'غلّف العلبة: العلبة بلا غطاء وجهان، وإضافة الغطاء في الورق خطأ saLidAdd', [fs, M['ch'], L])
+  check('C7G', fs == ['base1', 'lid0', 'side1'] and L0 == [['c7-wrap-open', False, True, 'saLidAdd']] and bool(lid) and L[-1] == ['c7-wrap-open', False, False, 'saLidAdd'], 'غلّف العلبة: فتحة العلبة المفتوحة وجهٌ يُلمس ولا يُغلَّف (saLidAdd)، وإضافة الغطاء في الورق خطأ saLidAdd', [fs, L0, M['ch'], L])
   # ---- ثلاثة مخاريط وأسطوانة
   spec = {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'th.01'}; M = await pg.evaluate("(s) => ITEM.c7Thirds.make(s)", spec); await run('m4.u7.d3', spec); st = await wk('c7Pour')
   await press(1, 2); await done(); st = await wk('c7Pour', nn(st)); await press(1, 4); await done(); L = await logs()
@@ -599,7 +626,7 @@ async def c7g(b):
       for x in L:
         if x[1] is False: per[x[0]] = per.get(x[0], 0) + 1
       items = await pg.evaluate("([lid, i]) => LDATA[lid].flow[i].items.length", [lid, i])
-      check('C7G', s2['res'] and not s2['err'] and sum(per.values()) == 4 * items, '%s (%d): كل جولةٍ بأربعة أخطاء حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
+      check('C7G', s2['res'] and not s2['err'] and 4 * items <= sum(per.values()) <= 6 * items, '%s (%d): كل جولةٍ بأخطائها حتى الكشف (أربعةٌ في الخطوة أو ستةٌ في الجولة) بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
   check('C7G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
 # براهين M4 في السلسلة: المتوازيان لا يُطبقان في الشريط فوق البطاقات، وبطاقة المستوى الثاني بجانب الشكل لا عليه
@@ -725,15 +752,16 @@ async def g87m(b):
   nn = lambda st: st['auto']['n'] if st and st.get('auto') else -1
   async def spot(k): await pg.evaluate("(k) => { const g = document.querySelector('#stage svg [data-spot=\"' + k + '\"]'); if (g) g.dispatchEvent(new MouseEvent('click', { bubbles: true })); }", k); await pg.wait_for_timeout(250)
   okk = "() => [...document.querySelectorAll('#stage svg [data-spot]')].filter(g => g.dataset.ok === 'true').map(g => g.dataset.spot)"
+  async def opt(k): await pg.evaluate("(k) => { const b = [...document.querySelectorAll('#stage .choices .pick')].find(x => x.dataset.k === k); if (b) b.click(); }", k); await pg.wait_for_timeout(300)
   # صائد المنصّف: الرأس، ثم ب أولاً، فالمطلوب أ (L1)
   await run('m4.u8.d1', {'t': 'c8BisMake', 'deg': 80}); st = await wk('tap'); await spot('V'); st = await wk('tap', nn(st))
   ns = await pg.evaluate("() => [...document.querySelectorAll('#stage svg [data-spot]')].map(g => g.dataset.spot)")
   check('G87M', sorted(ns) == ['A', 'B', 'F1', 'V'], 'صائد المنصّف: نقاط الخطوة السابقة تُزال، فلا يبقى إلا مرشّحو الخطوة الجارية', ns)
-  await spot('B'); st = await wk('tap', nn(st))
+  await spot('B'); st = await wk('pick', nn(st)); await opt('keep'); st = await wk('tap', nn(st))   # الفتحة تُبقى ثم القوس الآخر
   f, o2 = await pg.evaluate("() => window.__item ? window.__item.first : null"), await pg.evaluate(okk)
   check('G87M', f == 'B' and o2 == ['A'], 'صائد المنصّف: القوس الأول من ب، فالثاني من أ (بأيّ ترتيب)', [f, o2])
   # أين المنتصف؟: أ ثم ب، ثم التقاطع العلوي أولاً فالمطلوب السفلي (L2)، والأقواس كلها بنصف قطرٍ واحد (L3)
-  await run('m4.u8.d2', {'t': 'c8PbMake', 'half': 4, 'h': 3}); st = await wk('tap'); await spot('A'); st = await wk('tap', nn(st)); await spot('B'); st = await wk('tap', nn(st))
+  await run('m4.u8.d2', {'t': 'c8PbMake', 'half': 4, 'h': 3}); st = await wk('pick'); await opt('long'); st = await wk('tap', nn(st)); await spot('A'); st = await wk('tap', nn(st)); await spot('B'); st = await wk('tap', nn(st))
   rs = await pg.evaluate("() => [...new Set([...document.querySelectorAll('#stage svg path[data-arc]')].map(p => { const m = /A\\s*([\\d.]+)/.exec(p.getAttribute('d') || ''); return m ? Math.round(+m[1] * 10) / 10 : null; }))]")
   check('G87M', len(rs) == 1 and rs[0], 'أين المنتصف؟: أقواس الطرفين الأربعة بنصف قطرٍ واحد (بالفتحة نفسها)', rs)
   await spot('X1'); st = await wk('tap', nn(st)); x1, o3 = await pg.evaluate("() => window.__item ? window.__item.x1 : null"), await pg.evaluate(okk)

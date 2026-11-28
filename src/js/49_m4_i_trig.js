@@ -187,6 +187,8 @@ function c8Glyph(g, P, E) { g.innerHTML = ''; const d = Math.hypot(E[0] - P[0], 
 async function c8Sweep(svg, P, r, a0, a1, anim) { const arc = el('path', { fill: 'none', stroke: C8.arc, 'stroke-width': 2.6, 'pointer-events': 'none', 'data-arc': '' }, svg);
   const at = u => arc.setAttribute('d', angArc(P, r, a0, a0 + (a1 - a0) * u + .01)); if (!anim) { at(1); return arc; }
   const cg = el('g', { 'pointer-events': 'none' }, svg); await symTween(FAST ? 20 : 650, u => { at(u); c8Glyph(cg, P, angP(P, a0 + (a1 - a0) * u, r)); }); cg.remove(); SFX.tick(); return arc; }
+/* مجموعةٌ مقصوصةٌ على الإطار الورقي: أقواس المساعدة الشبحية لا تخرج عنه (RUNGG) */
+function c8Clip(svg, parent) { const fr = svg.querySelector('rect[x="20"][y="14"][width="320"]'); if (!fr) return parent; let cp = svg.querySelector('#c8fr'); if (!cp) { let d = svg.querySelector('defs') || el('defs', {}, svg); svg.insertBefore(d, svg.firstChild); cp = el('clipPath', { id: 'c8fr' }, d); el('rect', { x: 20, y: 14, width: 320, height: fr.getAttribute('height'), rx: 13 }, cp);   /* rx 13: لا يُحسب هو الإطارَ في فحص الإطار */ } return el('g', { 'clip-path': 'url(#c8fr)' }, parent); }
 const c8Dir = (P, X) => Math.atan2(P[1] - X[1], X[0] - P[0]) * 180 / Math.PI;
 /* نقاطٌ يُلمس منها واحدة (tapOne): دوائر 12 وحدة؛ ok مفتاحٌ أو قائمة */
 function c8Spots(svg, cand, ok) { const T = cand.map(([k, P]) => { const t = el('g', { 'data-spot': k }, svg); el('circle', { cx: P[0], cy: P[1], r: 12, fill: 'none', stroke: C8.ink, 'stroke-width': 2.4 }, t); return { g: t, k, label: labelText('c9Spot') }; });   /* حلقةٌ بلا تعبئة: لا تغطّي «أ» و«ب» ووسم الزاوية (المراجع B لدفعة ألعاب U8/U7، 10) */
@@ -205,39 +207,44 @@ async function c8BisStep(svg, G, item, i, anim) {   /* الخطوة i من ال�
   else { const Q = c8Ray(G.V, G.r0 + G.d / 2, c8Fit(G.V, G.r0 + G.d / 2, 230)); geoLine(svg, G.V[0], G.V[1], Q[0], Q[1], { color: C8.bis, w: 3.2 }); pfDot(svg, G.X); if (anim) SFX.tick(); } }
 const c8BisArcs = async (svg, G, item, upto) => { for (let i = 1; i <= upto; i++) await c8BisStep(svg, G, item, i, false); };
 ITEM.c8BisMake = {
-  make(spec) { const ch = c8HalfCh({ deg: spec.deg, ask: 'half', rk: spec.rk ?? 0 }); return { ...spec, step: 0, want: spec.deg / 2, nums: ch.map(c => c[0]), ch, tag: 'c8-bis-make' }; },
+  make(spec) { const d = spec.deg, h = d / 2, ch = rkPick(h, [[180 - h, 'protScale'], [d, 'bisNoHalf']], spec.rk ?? 0);   /* كـ bmk: قراءة التدريج الآخر مشتّت (المراجع A لدفعة ألعاب U8/U7، 5ب) */ return { ...spec, step: 0, want: spec.deg / 2, nums: ch.map(c => c[0]), ch, tag: 'c8-bis-make' }; },
   async ask(item, mode, tries) { item.__try = tries; const svg = m3Stage(250), pg = el('g', {}, svg), G = c8BisGeo(item), ctx = { svg, G }; let live = true; const isLive = () => live && svg.isConnected;   /* pg: المنقلة تحت الإنشاء */
-    c8Angle(el('g', { 'pointer-events': 'none' }, svg), G.V, G.d, { rot: G.r0, bis: false }); const wl = el('g', { 'pointer-events': 'none' }, svg); arArc(wl, G.V, G.r0, G.r0 + G.d, { r: 34, col: C8.ray, deg: G.d, dl: 20, fs: 14, lt: .82 });   /* وسم الزاوية قرب ضلعها الثاني، فلا يقطعه المنصّف */
-    const tgB = tries >= 3 && item.step < 4; if (tgB) { item.step = Math.max(item.step, 3); item.first = item.first || 'A'; }   /* الحلّ المشترك: القوس من الرأس والقوسان، والتقاطع والقراءة للطفل */
+    c8Angle(el('g', { 'pointer-events': 'none' }, svg), G.V, G.d, { rot: G.r0, bis: false }); const wl = el('g', { 'pointer-events': 'none' }, svg); arArc(wl, G.V, G.r0, G.r0 + G.d, { r: 34, col: C8.ray, lt: .82 });   /* القوس بلا عدد: النصف يُقرأ بالمنقلة لا يُقسم (المراجع A لدفعة ألعاب U8/U7، 5أ) */   /* وسم الزاوية قرب ضلعها الثاني، فلا يقطعه المنصّف */
+    const tgB = tries >= 3 && item.step < 4; if (tgB) { item.step = Math.max(item.step, 3); item.first = item.first || 'A'; item.open = true; }   /* الحلّ المشترك: القوس من الرأس والقوسان، والتقاطع والقراءة للطفل */
     await c8BisArcs(svg, G, item, item.step); if (tgB) { const m = helpG(svg); for (const P of [G.A, G.B]) { const a = c8Dir(P, G.X); el('path', { d: angArc(P, G.r2, a - 18, a + 18), fill: 'none', stroke: THINK_INK, 'stroke-width': 5, opacity: .55 }, m); } hlRing(m, G.X, 17); await S('gen.c8.together.bisMake'); }   /* القوسان بارزان وحلقةٌ حول ملتقاهما، واللمس للطفل (المراجع B لدفعة ألعاب U8/U7، 7) */
     const Q = { 0: ['gen.c8.q.bisV', [['V', G.V], ['F1', G.F1], ['F2', G.F2]], 'V'], 1: ['gen.c8.q.bisArc1', [['A', G.A], ['B', G.B], ['V', G.V], ['F1', G.F1]], ['A', 'B']], 2: ['gen.c8.q.bisArc2', null, null], 3: ['gen.c8.q.bisX', [['X', G.X], ['Y', G.Y], ['W', G.W]], 'X'] };
-    while (item.step < 4) { const st = item.step; let [q, cand, ok] = Q[st]; if (st === 2) { const o = item.first === 'A' ? 'B' : 'A'; cand = [[o, G[o]], ['V', G.V], ['F1', G.F1]]; ok = o; }   /* الشبيه على الضلع الآخر بعيداً عن نقطة التقاطع */
-      if (!(tries >= 3 && st === 3)) c8Ask(st === 0 && tries === 0 ? item.q || q : q, isLive); else c8Ask('gen.c8.q.bisX', isLive);
+    while (item.step < 4) { const st = item.step; let [q, cand, ok] = Q[st];
+      if (st === 2 && !item.open) {   /* قبل القوس الآخر يقرّر الطفل الفتحة: تغييرها يُبعد التقاطع عن المنصّف (المراجع A لدفعة ألعاب U8/U7، 4) */
+        c8Ask('gen.c8.q.bisOpen', isLive); const k = await choosePick(shuffle([['keep', labelText('c8OpenKeep'), '<i></i>', 'gen.c8.open.keep'], ['more', labelText('c8OpenMore'), '<i></i>', 'gen.c8.open.more'], ['less', labelText('c8OpenLess'), '<i></i>', 'gen.c8.open.less']]), 'keep');
+        document.querySelectorAll('#stage .choices').forEach(x => x.remove()); hush(); if (k !== 'keep') { live = false; return { ans: 'open|' + k, ctx }; } item.open = true; tapAnswered(); } if (st === 2) { const o = item.first === 'A' ? 'B' : 'A'; cand = [[o, G[o]], ['V', G.V], ['F1', G.F1]]; ok = o; }   /* الشبيه على الضلع الآخر بعيداً عن نقطة التقاطع */
+      c8Ask(st === 0 && tries === 0 ? item.q || q : q, isLive);
       const k = await c8Spots(svg, cand, ok); hush(); if (![].concat(ok).includes(k)) { live = false; return { ans: `e|${st}|${k}`, ctx }; }
       if (st === 1) item.first = k; item.step = st + 1; await c8BisStep(svg, G, item, item.step, true); }   /* الفرجار يرسم الخطوة الجديدة أمامه */
     /* التحقّق بالمنقلة: النصف */
     wl.remove(); const plab = protAt(pg, G.V, G.r0, { R: 96, step: 30 }).lab; svg.appendChild(plab); arArc(el('g', { 'data-prot': 'q', 'pointer-events': 'none' }, svg), G.V, G.r0, G.r0 + G.d / 2, { r: 24, col: C8.bis, lab: '؟', dl: 14, fs: 15, fill: true }); c9LabTop(svg, () => plab);   /* أعداد المنقلة فوق المساعدة المنقولة والحلّ المشترك، و«؟» يُرفع مع المنقلة (المراجع B لدفعة ألعاب U8/U7، 3ب و12) */   /* وسم الزاوية يُرفع فلا يقع على أعداد المنقلة، و«؟» داخل تدريجها */
     if (tries >= 3 && !tgB) { el('path', { d: angArc(G.V, 96 - 19, G.r0, G.r0 + G.d / 2), fill: 'none', stroke: THINK_INK, 'stroke-width': 4, opacity: .8, 'pointer-events': 'none' }, helpG(svg)); await S('gen.c8.together.bisRead'); }   /* والخطأ في القراءة وحدها: النصف معلَّمٌ على التدريج من صفره، والعدد للطفل */
     else c8Ask('gen.c8.q.bisRead', isLive); const np = numberPick(shuffle(item.nums), item.want, { west: true, word: degw }); const k = await np.p; live = false; document.querySelectorAll('#stage .choices').forEach(x => x.remove()); return { ans: 'read|' + k, ctx }; },
-  judge(item, a) { const [w, st, k] = String(a).split('|'); if (w === 'read') return +st === item.want ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => v === +st) || [])[1] || 'bisOff' };
+  judge(item, a) { const [w, st, k] = String(a).split('|'); if (w === 'open') return { ok: false, err: 'c8BisOpen' }; if (w === 'read') return +st === item.want ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => v === +st) || [])[1] || 'bisOff' };
     return { ok: false, err: +st === 0 ? 'c8BisNotV' : +st === 3 ? 'c8BisCross' : k === 'V' ? 'c8BisArcV' : 'c8BisArcFar' }; },
   onOk(item, r) { SFX.good(); const c = r && r.ctx; if (c && c.svg.isConnected) { c.svg.querySelectorAll('[data-prot], [data-prot-lab]').forEach(e => e.remove()); for (const [a0, a1] of [[c.G.r0, c.G.r0 + c.G.d / 2], [c.G.r0 + c.G.d / 2, c.G.r0 + c.G.d]]) arArc(c.svg, c.G.V, a0, a1, { r: 44, col: C8.bis, deg: item.want, dl: 18, fs: 14, fill: true }); } },   /* المنقلة تُرفع، والنصفان متساويان */
   onWrong() { SFX.soft(); },
   async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), G = c.G;
-      if (err === 'c8BisNotV') { hlRing(m, G.V, 14); for (const P of [G.F1, G.E2]) hlSeg(m, G.V, P, H2C[0]); }   /* القوس الأول يقطع الضلعين على البعد نفسه من الرأس */
-      else if (err === 'c8BisArcV' || err === 'c8BisArcFar') { hlRing(m, G.A, 12, H2C[0]); hlRing(m, G.B, 12, H2C[1]); }   /* نقطتا التقاطع */
+      const k = String(r.ans).split('|')[2], P = k && G[k], gm = c8Clip(c.svg, m), ghost = (Q0, R, a0, a1) => el('path', { d: angArc(Q0, R, a0, a1), fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '6 5', opacity: .8 }, gm);   /* قوسٌ شبحٌ من النقطة التي لمسها، لا حلقة على الجواب (المراجع A لدفعة ألعاب U8/U7، 2) */
+      if (err === 'c8BisNotV') { for (const Q1 of [G.F1, G.E2]) hlSeg(m, G.V, Q1, H2C[0]); if (P) { const a = c8Dir(P, G.V); ghost(P, G.r1, a - 60, a + 60); } }   /* هل يقطع قوسٌ من هنا الضلعين على بعدٍ واحد؟ */
+      else if ((err === 'c8BisArcV' || err === 'c8BisArcFar') && P) { const a = c8Dir(P, G.X); ghost(P, G.r2, a - 24, a + 24); }   /* قوسٌ من النقطة الخاطئة لا يلقاه قوسٌ مثله داخل الزاوية */
+      else if (err === 'c8BisOpen') { const P1 = G[item.first || 'A'], P2 = G[item.first === 'B' ? 'A' : 'B'], a1 = c8Dir(P1, G.X), a2 = c8Dir(P2, G.X); ghost(P1, G.r2, a1 - 22, a1 + 22); ghost(P2, G.r2 * (String(r.ans).endsWith('less') ? .8 : 1.25), a2 - 22, a2 + 22); }   /* فتحتان مختلفتان: التقاطع بعيدٌ عن المنصّف */
       else if (err === 'c8BisCross') { for (const P of [G.A, G.B]) { const a = c8Dir(P, G.X); el('path', { d: angArc(P, G.r2, a - 18, a + 18), fill: 'none', stroke: THINK_INK, 'stroke-width': 5, opacity: .55 }, m); } }   /* القوسان بارزان: أين يلتقيان؟ */
       else for (const [i, [a0, a1]] of [[G.r0, G.r0 + G.d / 2], [G.r0 + G.d / 2, G.r0 + G.d]].entries()) el('path', { d: angArc(G.V, 58, a0, a1), fill: 'none', stroke: H2C[i], 'stroke-width': 6, opacity: .7 }, m); }   /* القسمان المتساويان */
-    await S({ c8BisNotV: 'gen.c8.hint.bisV', c8BisArcV: 'gen.c8.hint.bisArc', c8BisArcFar: 'gen.c8.hint.bisArc', c8BisCross: 'gen.c8.hint.bisX' }[err] || 'gen.c8.hint.half.half'); },
+    await S({ c8BisNotV: 'gen.c8.hint.bisV', c8BisArcV: 'gen.c8.hint.bisArc', c8BisArcFar: 'gen.c8.hint.bisArc', c8BisCross: 'gen.c8.hint.bisX', c8BisOpen: 'gen.c8.hint.bisOpen' }[err] || 'gen.c8.hint.half.half'); },
   async together() {},
   async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { item.first = item.first || 'A'; c.svg.querySelectorAll('[data-prot], [data-prot-lab]').forEach(e => e.remove()); for (let i = item.step + 1; i <= 4; i++) await c8BisStep(c.svg, c.G, item, i, false); arArc(c.svg, c.G.V, c.G.r0, c.G.r0 + c.G.d / 2, { r: 44, col: C8.ok, deg: item.want, dl: 18, fs: 14 }); }
-    item.step = 4; await S('gen.ci4.reveal.ang'); await sayDeg(item.want); },
-  praise: () => 'praisePlace', twin(item) { return item.twin || null; },
+    item.step = 4; await S('gen.c8.reveal.half'); await sayDeg(item.want); },   /* «نصف الزاوية» لا «الزاوية» (المراجع A لدفعة ألعاب U8/U7، 5ج) */
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 
 /* ---------- د2 «أين المنتصف؟» (c8PbMake): half، h؛ الفرجار من الطرفين بالفتحة نفسها، ثم التقاطعان فالعمود، ثم البعد عن الطرف الآخر ---------- */
-function c8PbGeo(item) { const u = Math.min(100 / item.half, 50 / item.h), M = [180, 150], hw = item.half * u, dy = 64, r = Math.hypot(hw, dy);   /* التقاطعان داخل الإطار، ون تحت الأعلى منهما */
-  return { u, M, A: [M[0] - hw, M[1]], B: [M[0] + hw, M[1]], r, X1: [M[0], M[1] - dy], X2: [M[0], M[1] + dy], N: [M[0], M[1] - item.h * u], Qa: [M[0] + hw * .5, M[1] - 56], Z: [M[0] + Math.max(64, hw * .7), M[1] - dy * .75], na: Math.round(Math.hypot(item.half, item.h)) }; }
+function c8PbGeo(item) { const u = Math.min(100 / item.half, 50 / item.h), M = [180, 150], hw = item.half * u, dy = 64, r = Math.hypot(hw, dy), a = (item.rot || 0) * Math.PI / 180, R = (x, y) => [M[0] + x * Math.cos(a) - y * Math.sin(a), M[1] + x * Math.sin(a) + y * Math.cos(a)];   /* التقاطعان داخل الإطار، ون تحت الأعلى منهما؛ وrot: القطعة مائلة (المراجع A لدفعة ألعاب U8/U7، 13) */
+  return { u, M, rot: item.rot || 0, A: R(-hw, 0), B: R(hw, 0), r, X1: R(0, -dy), X2: R(0, dy), N: R(0, -item.h * u), Qa: R(hw * .5, -56), Z: R(Math.max(64, hw * .7), -dy * .75), na: Math.round(Math.hypot(item.half, item.h)) }; }
 async function c8PbStep(svg, G, item, i, anim) {   /* 1 و2 القوسان من الطرفين (والتقاطعان بعد الثاني)، 3 التقاطع الأول مُعلَّماً، 4 العمود */
   if (i <= 2) { const P = G[i === 1 ? item.first || 'A' : item.first === 'B' ? 'A' : 'B']; for (const X of [G.X1, G.X2]) { const a = c8Dir(P, X); await c8Sweep(svg, P, G.r, a - 9, a + 9, anim); } if (i === 2) [G.X1, G.X2].forEach(X => pfDot(svg, X)); }
   else if (i === 3) hlRing(svg, G[item.x1 || 'X1'], 14, C8.ok);
@@ -247,35 +254,44 @@ ITEM.c8PbMake = {
   make(spec) { const G = c8PbGeo(spec); /*T*/if (TESTHOOK && G.na * G.na !== spec.half * spec.half + spec.h * spec.h) testBug('c8PbMake: ن أ ليس عدداً صحيحاً');/*/T*/
     const ch = rkPick(G.na, [[spec.half + spec.h, 'pyAdd'], [spec.half, 'pbHalf'], [spec.h, 'pbLeg'], [2 * spec.half, 'pbWhole']], spec.rk ?? 0); return { ...spec, step: 0, na: G.na, want: G.na, nums: ch.map(c => c[0]), ch, tag: 'c8-pb-make' }; },
   async ask(item, mode, tries) { item.__try = tries; const svg = m3Stage(250), G = c8PbGeo(item), ctx = { svg, G }; let live = true; const isLive = () => live && svg.isConnected;
-    geoLine(svg, G.A[0], G.A[1], G.B[0], G.B[1], { color: C8.ink, w: 3.4 }); [G.A, G.B].forEach(X => pfDot(svg, X)); pfLab(svg, G.A[0] - 12, G.A[1] + 6, 'أ', { fs: 15 }); pfLab(svg, G.B[0] + 12, G.B[1] + 6, 'ب', { fs: 15 });
-    const tgP = tries >= 3 && item.step < 4; if (tgP) { item.step = Math.max(item.step, 2); item.first = item.first || 'A'; }   /* الحلّ المشترك: القوسان من الطرفين، والتقاطعان والقياس للطفل */
-    await c8PbArcs(svg, G, item, item.step); if (tgP) { const m = helpG(svg); for (const P of [G.A, G.B]) for (const X of [G.X1, G.X2]) { const a = c8Dir(P, X); el('path', { d: angArc(P, G.r, a - 16, a + 16), fill: 'none', stroke: THINK_INK, 'stroke-width': 5, opacity: .55 }, m); } for (const k of ['X1', 'X2']) if (item.step < 3 || item.x1 !== k) hlRing(m, G[k], 17); await S('gen.c8.together.pbMake'); }   /* الأقواس بارزة وحلقةٌ حول كل تقاطعٍ لم يُلمس، واللمس للطفل (المراجع B لدفعة ألعاب U8/U7، 7) */
+    geoLine(svg, G.A[0], G.A[1], G.B[0], G.B[1], { color: C8.ink, w: 3.4 }); [G.A, G.B].forEach(X => pfDot(svg, X)); const L0 = Math.hypot(G.B[0] - G.A[0], G.B[1] - G.A[1]), ux = (G.B[0] - G.A[0]) / L0, uy = (G.B[1] - G.A[1]) / L0; pfLab(svg, G.A[0] - 14 * ux, G.A[1] - 14 * uy + 6, 'أ', { fs: 15 }); pfLab(svg, G.B[0] + 14 * ux, G.B[1] + 14 * uy + 6, 'ب', { fs: 15 });   /* على امتداد القطعة ولو مالت */
+    const tgP = tries >= 3 && item.step < 4; if (tgP) { item.step = Math.max(item.step, 2); item.first = item.first || 'A'; item.open = true; }   /* الحلّ المشترك: القوسان من الطرفين، والتقاطعان والقياس للطفل */
+    await c8PbArcs(svg, G, item, item.step); if (tgP) { const m = c8Clip(svg, helpG(svg)); for (const P of [G.A, G.B]) for (const X of [G.X1, G.X2]) { const a = c8Dir(P, X); el('path', { d: angArc(P, G.r, a - 16, a + 16), fill: 'none', stroke: THINK_INK, 'stroke-width': 5, opacity: .55 }, m); } for (const k of ['X1', 'X2']) if (item.step < 3 || item.x1 !== k) hlRing(m, G[k], 17); await S('gen.c8.together.pbMake'); }   /* الأقواس بارزة وحلقةٌ حول كل تقاطعٍ لم يُلمس، واللمس للطفل (المراجع B لدفعة ألعاب U8/U7، 7) */
+    if (item.step === 0 && !item.open) {   /* فتحة الفرجار يختارها الطفل: أقصر من نصف القطعة لا يلتقي القوسان (المراجع A لدفعة ألعاب U8/U7، 4) */
+      c8Ask(tries === 0 && item.q ? 'gen.c8.q.pbOpen' : 'gen.c8.q.pbOpen', isLive); const k = await choosePick(shuffle([['long', labelText('c8OpenLong'), '<i></i>', 'gen.c8.open.long'], ['short', labelText('c8OpenShort'), '<i></i>', 'gen.c8.open.short']]), 'long');
+      document.querySelectorAll('#stage .choices').forEach(x => x.remove()); hush(); if (k !== 'long') { live = false; return { ans: 'open|' + k, ctx }; } item.open = true; tapAnswered(); }
     while (item.step < 4) { const st = item.step; let q, cand, ok;
       if (st === 0) { q = 'gen.c8.q.pbEnd1'; cand = [['A', G.A], ['B', G.B], ['M', G.M], ['Q', G.Qa]]; ok = ['A', 'B']; }
       else if (st === 1) { const o = item.first === 'A' ? 'B' : 'A'; q = 'gen.c8.q.pbEnd2'; cand = [[o, G[o]], ['M', G.M], ['Q', G.Qa]]; ok = o; }
       else if (st === 2) { q = 'gen.c8.q.pbX1'; cand = [['X1', G.X1], ['X2', G.X2], ['Z', G.Z]]; ok = ['X1', 'X2']; }
       else { const o = item.x1 === 'X1' ? 'X2' : 'X1'; q = 'gen.c8.q.pbX2'; cand = [[o, G[o]], ['Z', G.Z], ['M', G.M]]; ok = o; }
-      c8Ask(st === 0 && tries === 0 ? item.q || q : q, isLive); const k = await c8Spots(svg, cand, ok); hush();
+      c8Ask(q, isLive); const k = await c8Spots(svg, cand, ok); hush();
       if (![].concat(ok).includes(k)) { live = false; return { ans: `e|${st}|${k}`, ctx }; }
       if (st === 0) item.first = k; if (st === 2) item.x1 = k; item.step = st + 1; await c8PbStep(svg, G, item, item.step, true); }
-    /* البعدان: ن على العمود، ون أ مقيسٌ، فكم ن ب؟ */
-    geoLine(svg, G.N[0], G.N[1], G.A[0], G.A[1], { color: C8.opp, w: 2.6 }); geoLine(svg, G.N[0], G.N[1], G.B[0], G.B[1], { color: C8.opp, w: 2.6, dash: '6 4' }); pfDot(svg, G.N); pfLab(svg, G.N[0] - 14, G.N[1] + 4, 'ن', { fs: 15 });   /* يسار العمود، بعيداً عن أقواس التقاطع */
-    { const P = [(G.N[0] + G.A[0]) / 2 - 14, (G.N[1] + G.A[1]) / 2 - 6]; preLab(svg, P[0], P[1], MS(String(item.na)), { fs: 16, col: C8.opp }); const Q = [(G.N[0] + G.B[0]) / 2 + 14, (G.N[1] + G.B[1]) / 2 - 6]; preLab(svg, Q[0], Q[1], '؟', { fs: 18, col: C8.q }); }
+    /* البعدان: ن على العمود، ون أ مقيسٌ بالمسطرة، وأ ب وم ن مكتوبان (المشتّتات أعدادٌ يراها: القطعة كلها والارتفاع، المراجع A لدفعة ألعاب U8/U7، 3)، فكم ن ب؟ */
+    geoLine(svg, G.N[0], G.N[1], G.A[0], G.A[1], { color: C8.opp, w: 2.6 }); geoLine(svg, G.N[0], G.N[1], G.B[0], G.B[1], { color: C8.opp, w: 2.6, dash: '6 4' }); pfDot(svg, G.N); pfLab(svg, G.N[0] - 14 * ux - 4, G.N[1] - 14 * uy - 2, 'ن', { fs: 15 });
+    { const nx = -uy, ny = ux, ab = [G.M[0] + nx * 24, G.M[1] + ny * 24 + 5]; preLab(svg, ab[0], ab[1], labelText('c8AB').replace('N', MS(String(2 * item.half))), { fs: 14, col: C8.ink, dir: 'rtl' });   /* تحت القطعة */
+      const mn = [G.M[0] + (G.N[0] - G.M[0]) * .28 + 30 * ux, G.M[1] + (G.N[1] - G.M[1]) * .28 + 30 * uy + 5];   /* قرب م، بعيداً عن «؟» على ن ب */ preLab(svg, mn[0], mn[1], labelText('c8MN').replace('N', MS(String(item.h))), { fs: 13, col: C8.bis, dir: 'rtl' });
+      geoLine(svg, G.M[0], G.M[1], G.N[0], G.N[1], { color: C8.bis, w: 2.2, dash: '3 3' });
+      c5Ruler(svg, { P: (x, y) => [x, y], c: G.u * 5, tk: [] }, G.N, G.A, MS(String(item.na)));   /* المسطرة على ن أ وقراءتها */
+      const Q = [(G.N[0] + G.B[0]) / 2 + 14, (G.N[1] + G.B[1]) / 2 - 6]; preLab(svg, Q[0], Q[1], '؟', { fs: 18, col: C8.q }).dataset.pbq = 1; }
     if (tries >= 3 && !tgP) { const h = helpG(svg); preTicks(h, G.N, G.A, 1, THINK_INK); preTicks(h, G.N, G.B, 1, THINK_INK); await S('gen.c8.together.pbRead'); }   /* والخطأ في القراءة وحدها: البعدان معلَّمان متساويين */
     else c8Ask('gen.c8.q.pbRead', isLive); const np = numberPick(shuffle(item.nums), item.want, { west: true }); const k = await np.p; live = false; document.querySelectorAll('#stage .choices').forEach(x => x.remove()); return { ans: 'read|' + k, ctx }; },
-  judge(item, a) { const [w, st, k] = String(a).split('|'); if (w === 'read') return +st === item.want ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => v === +st) || [])[1] || 'pbOff' };
+  judge(item, a) { const [w, st, k] = String(a).split('|'); if (w === 'open') return { ok: false, err: 'c8PbShort' }; if (w === 'read') return +st === item.want ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => v === +st) || [])[1] || 'pbOff' };
     return { ok: false, err: +st < 2 ? 'c8PbNotEnd' : 'c8PbCross' }; },
   onOk(item, r) { SFX.good(); const c = r && r.ctx; if (c && c.svg.isConnected) { preTicks(c.svg, c.G.N, c.G.A, 1, C8.ok); preTicks(c.svg, c.G.N, c.G.B, 1, C8.ok); } },   /* البعدان متساويان */
   onWrong() { SFX.soft(); },
   async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), G = c.G;
-      if (err === 'c8PbNotEnd') { hlRing(m, G.A, 13, H2C[0]); hlRing(m, G.B, 13, H2C[1]); }   /* الطرفان */
-      else if (err === 'c8PbCross') { for (const P of [G.A, G.B]) for (const X of [G.X1, G.X2]) { const a = c8Dir(P, X); el('path', { d: angArc(P, G.r, a - 16, a + 16), fill: 'none', stroke: THINK_INK, 'stroke-width': 5, opacity: .55 }, m); } }   /* الأقواس بارزة */
-      else { hlSeg(m, G.M, G.A, H2C[0]); hlSeg(m, G.M, G.N, H2C[1]); hlSeg(m, G.N, G.A, H2C[2]); } }   /* نصف القطعة والارتفاع والبعد */
-    await S({ c8PbNotEnd: 'gen.c8.hint.pbEnd', c8PbCross: 'gen.c8.hint.pbX' }[err] || 'gen.c8.hint.pb.nb'); },
+      const k = String(r.ans).split('|')[2], P = k === 'Q' ? G.Qa : G[k], gm = c8Clip(c.svg, m);
+      if (err === 'c8PbNotEnd' && P) { for (const X of [G.X1, G.X2]) { const a = c8Dir(P, X); el('path', { d: angArc(P, G.r, a - 22, a + 22), fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '6 5', opacity: .8 }, gm); } }   /* قوسٌ شبحٌ من النقطة التي لمسها: لا قوس مثله يلقاه (لا حلقة على الجواب، المراجع A لدفعة ألعاب U8/U7، 2) */
+      else if (err === 'c8PbShort') { const rs = Math.hypot(G.M[0] - G.A[0], G.M[1] - G.A[1]) * .62; for (const P2 of [G.A, G.B]) for (const X of [G.X1, G.X2]) { const a = c8Dir(P2, X); el('path', { d: angArc(P2, rs, a - 24, a + 24), fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '6 5', opacity: .8 }, gm); } }   /* قوسان قصيران لا يلتقيان */
+      else if (err === 'c8PbCross') { const gm2 = c8Clip(c.svg, m); for (const P of [G.A, G.B]) for (const X of [G.X1, G.X2]) { const a = c8Dir(P, X); el('path', { d: angArc(P, G.r, a - 16, a + 16), fill: 'none', stroke: THINK_INK, 'stroke-width': 5, opacity: .55 }, gm2); } }   /* الأقواس بارزة */
+      else { const rr = Math.hypot(G.A[0] - G.N[0], G.A[1] - G.N[1]), aA = c8Dir(G.N, G.A), aB = c8Dir(G.N, G.B); el('path', { d: angArc(G.N, rr, Math.min(aA, aB) - 8, Math.max(aA, aB) + 8), fill: 'none', stroke: THINK_INK, 'stroke-width': 3, 'stroke-dasharray': '6 5', opacity: .8 }, gm); ciRule(m, 180, [24, 236], labelText('c8AskPbEq'), C8.hl, 15); } }   /* قوسٌ من ن بفتحة ن أ: أين يمرّ؟ (لا فيثاغورس بضلعين غير مكتوبين) */
+    await S({ c8PbNotEnd: 'gen.c8.hint.pbEnd', c8PbCross: 'gen.c8.hint.pbX', c8PbShort: 'gen.c8.hint.pbShort' }[err] || 'gen.c8.hint.pbRead'); },
   async together() {},
-  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { item.first = item.first || 'A'; for (let i = item.step + 1; i <= 4; i++) await c8PbStep(c.svg, c.G, item, i, false); preLab(c.svg, (c.G.N[0] + c.G.B[0]) / 2 + 30, (c.G.N[1] + c.G.B[1]) / 2 + 8, MS(String(item.na)), { fs: 16, col: C8.ok }); }
+  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { item.first = item.first || 'A'; for (let i = item.step + 1; i <= 4; i++) await c8PbStep(c.svg, c.G, item, i, false); { const q = c.svg.querySelector('[data-pbq]'); if (q) { q.textContent = MS(String(item.na)); q.setAttribute('fill', C8.ok); } }   /* الجواب مكان «؟» داخل الإطار */ }
     item.step = 4; await S('gen.ci4.reveal.half', { noGap: true }); await S(numw(item.na), { append: true }); },
-  praise: () => 'praisePlace', twin(item) { return item.twin || null; },
+  praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };
 
 /* ---------- د3 «صائد الوتر» (c8HypHunt): a، b، hy، fn، flip؛ يلمس الوتر على المثلث، ثم النسبة ---------- */
@@ -289,13 +305,13 @@ ITEM.c8HypHunt = {
       c8Ask(tries === 0 ? item.q || 'gen.c8.q.hypTap' : 'gen.c8.q.hypTap', isLive); const k = await tapOne(S3, { ok: 'hyp', pad: 44 }); hush(); S3.forEach(t => t.g.remove());   /* الأضلاع لم تعد أهدافاً في سؤال النسبة (المراجع B لدفعة ألعاب U8/U7، 9) */ if (k !== 'hyp') { live = false; ctx.side = k; return { ans: 'side|' + k, ctx }; } item.step = 1; SFX.tick(); }
     geoLine(svg, T.A[0], T.A[1], T.B[0], T.B[1], { color: C8.hyp, w: 7 }); c8Sides(svg, T, { adj: MS(String(item.a)), opp: MS(String(item.b)), hyp: MS(String(item.hy)) }, { flip: item.flip }); c8FnLabel(svg, 270, 40, item.fn, null, { tail: '؟ =' });
     if (tries >= 3) { const o = item.flip ? item.a : item.b, j = item.flip ? item.b : item.a, rr = { sin: [o, item.hy], cos: [j, item.hy], tan: [o, j] }[item.fn]; ciEq(helpG(svg), 110, 40, `${rr[0]} ÷ ${rr[1]} = ؟`, C8.hl, 17); await S('gen.c8.together.ratio'); }
-    else c8Ask('gen.c8.q.hypRatio', isLive);
+    else c8Ask('gen.c8.q.hypRatio.' + item.fn, isLive);   /* السؤال يسمّي الدالة (المراجع A لدفعة ألعاب U8/U7، 15) */
     const k = await choosePick(shuffle(item.ch.map(([v]) => [String(v), MS(String(v)), '<i></i>', 'gen.c8.v.' + c8Key(v)])), String(item.want)); live = false; document.querySelectorAll('#stage .choices').forEach(x => x.remove()); return { ans: 'ratio|' + k, ctx }; },
   judge(item, a) { const [w, k] = String(a).split('|'); if (w === 'side') return { ok: false, err: 'c8HypLeg' }; return k === String(item.want) ? { ok: true } : { ok: false, err: (item.ch.find(([v]) => String(v) === k) || [])[1] || 'trigOff' }; },
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
-  async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), T = c.T; hlRing(m, T.C, 14); hlRing(m, item.flip ? T.B : T.A, 14, H2C[1]);   /* القائمة: الوتر يقابلها */
-      ciRule(m, 180, [24, 236, [0, 24], [400, 24]], labelText(err === 'c8HypLeg' ? 'c8AskSides' : 'c8AskRatio'), C8.hl, 15); }
-    await S(err === 'c8HypLeg' ? 'gen.c8.hint.which' : 'gen.c8.hint.ratio.' + item.fn); },
+  async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), T = c.T; hlRing(m, T.C, 14); if (err !== 'c8HypLeg') hlRing(m, item.flip ? T.B : T.A, 14, H2C[1]);   /* القائمة: الوتر يقابلها */
+      ciRule(m, 180, [24, 236, [0, 24], [400, 24]], labelText(err === 'c8HypLeg' ? 'c8AskHyp' : 'c8AskRatio'), C8.hl, 15); }
+    await S(err === 'c8HypLeg' ? 'gen.c8.hint.hypLeg' : 'gen.c8.hint.ratio.' + item.fn); },   /* «أيّ ضلعٍ يقابل القائمة؟» بلا «الضلع الملوّن» (المراجع A لدفعة ألعاب U8/U7، 10أ) */
   async together() {},
   async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) geoLine(c.svg, c.T.A[0], c.T.A[1], c.T.B[0], c.T.B[1], { color: C8.ok, w: 7 }); item.step = 1; await S('gen.c8.reveal.ratio', { noGap: true }); await S('gen.c8.v.' + c8Key(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },

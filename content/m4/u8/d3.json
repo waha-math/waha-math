@@ -197,29 +197,29 @@
    "items": [
     {
      "t": "c8HypHunt",
-     "a": 24,
-     "b": 7,
-     "hy": 25,
+     "a": 48,
+     "b": 55,
+     "hy": 73,
      "fn": "sin",
      "rk": 0,
      "q": "gen.c8.q.hypTap"
     },
     {
      "t": "c8HypHunt",
-     "a": 12,
-     "b": 5,
-     "hy": 13,
-     "fn": "tan",
+     "a": 63,
+     "b": 16,
+     "hy": 65,
+     "fn": "cos",
      "rk": 1,
      "q": "gen.c8.q.hypTap",
      "flip": true
     },
     {
      "t": "c8HypHunt",
-     "a": 20,
-     "b": 21,
-     "hy": 29,
-     "fn": "tan",
+     "a": 36,
+     "b": 77,
+     "hy": 85,
+     "fn": "cos",
      "rk": 2,
      "q": "gen.c8.q.hypTap"
     }
