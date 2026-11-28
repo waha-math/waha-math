@@ -366,6 +366,14 @@ export const factOf = it => { const t = it.t;
   if (t === 'perpArea') return `ppa|${[it.x1 + it.x2, it.y1 + it.y2].sort((x, y) => x - y)}`;   /* القطران بطوليهما */
   if (t === 'simMiss') return `sim|${it.s.join(',')}|${it.k}|${it.ask}`;
   if (t === 'pyHyp') return `pyh|${[it.a, it.b].sort((x, y) => x - y)}`;
+  /* ألعاب U3/U4 الحركية (D288 (2)) بمفاتيح بنودها: القطع المتطابقة كـ«أيّها يطابق؟»، والتكبير بالبعدين والمعامل، والقطران بخصائصها، والمربّعات والوتر والضلع */
+  if (t === 'cgPieceGame') return `cgp|${cgS(it.orig)}|${it.cands.map(cgS).sort().join(' ')}`;
+  if (t === 'cgAngGame') return `cga|${it.cs}|${it.p}|${it.L}|${it.th}`;
+  if (t === 'enZoomGame') return `end|${[it.w, it.h].sort((x, y) => x - y)}|${(it.ks || [it.k])[0]}`;
+  if (t === 'qdDetGame') return `qdg|${['mid', 'eq', 'perp'].map(k => it.info[k] ? 1 : 0).join('')}`;
+  if (t === 'pyGridGame') return it.mode === 'leg' ? `pysl|${it.a},${it.b}` : `pys|${[it.a, it.b].sort((x, y) => x - y)}`;
+  if (t === 'pyRightGame') { for (let o = 0; o < 4; o++) { const T = it.s.filter((_, i) => i !== o).sort((x, y) => x - y); if (T[0] * T[0] + T[1] * T[1] === T[2] * T[2]) return `pir|${T.join(',')}`; } return null; }
+  if (t === 'pyPumpGame') return it.mode === 'leg' ? `pyl|${it.L}|${it.h}` : `pyh|${[it.h, it.x].sort((x, y) => x - y)}`;
   if (t === 'coDist2') return `cd2|${it.a.join(',')}|${it.b.join(',')}`;
   if (t === 'ciInsc') return `cin|${it.cen}`;
   if (t === 'cylVol') return `cyl|${it.r}|${it.h}|${it.u}`;
@@ -717,6 +725,7 @@ export function d240(lessons, code, MAKERS) {
     /* اللعبة الحركية: ما يراه الطفل في جولاتها (خطوات الكنز بأيّ مرآةٍ بدأ) لا يُقاس بعدها (المراجع A لدفعة ألعاب U9، 6) */
     motion: s => (s.items || []).flatMap(it => {   /* خطوات الجولة كلٌّ بمفتاح بندها (المراجع A لدفعة U6/U5، 6): ربع الكنز، ورأس القائمة، والمعادلة ونقطة القطع */
       if (it.t === 'c5Hunt') return [`c4q|${it.x},${it.y}`, `c4p|pt|${it.x},${it.y}`];
+      if (it.t === 'enZoomGame') return (it.ks || []).slice(1).map(k => `end|${[it.w, it.h].sort((x, y) => x - y)}|${k}`);   /* المعامل الثاني في الجولة نفسها */
       if (it.t === 'c5Detect') return [`c4p|corner|${c4PP(it.a, it.b)}`];
       if (it.t === 'c5Line') return [...(it.pt ? [] : [`c4e|${it.m},${it.i0}`]), `c4p|int|${it.m},${it.i0}`];
       if (it.t !== 'c9Trs') return []; const V = ([x, y]) => [-x, y], H = ([x, y]) => [x, -y], eq = (a, b) => a[0] === b[0] && a[1] === b[1], out = [];
