@@ -34,7 +34,7 @@ ITEM.c5Hunt = {
       const w = await c4Walk(c.svg, c.Pl, item.x, item.y, { ms: 230, upTo: 'x', dir: true }); await S('gen.c4.hint.pt'); w.remove(); return; }
     await S(err === 'c5Quad' ? 'gen.c5.hint.quad' : 'gen.c4.hint.pt'); },
   async together() {},
-  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { await c4Walk(c.svg, c.Pl, item.x, item.y, { ms: 140 }); c9Chest(c.svg, c.Pl.P(...item.want), true); }
+  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { await c4Walk(c.svg, c.Pl, item.x, item.y, { ms: 140 }); const P = c.Pl.P(...item.want); c4Hide(c.Pl, [[P[0] - 16, P[1] - 18, P[0] + 16, P[1] + 14]]); c9Chest(c.svg, P, true); }   /* عدد المحور تحت الصندوق يُخفى (RUNGG) */
     item.step = 2; await S('gen.c4.reveal.pt', { noGap: true }); await S('gen.c4.go.' + preKey(item.want), { append: true }); },
   praise: () => 'praisePlace', twin(item) { return item.twin || null; },
 };
@@ -44,9 +44,13 @@ function c5Ruler(g, Pl, a, b, txt) { const A = Pl.P(...a), B = Pl.P(...b), L = M
   el('rect', { x: A[0], y: A[1] - 16, width: L, height: 12, rx: 3, fill: 'rgba(246,217,138,.85)', stroke: '#b9813f', 'stroke-width': 1.4 }, r);
   for (let i = 0; i * u <= L + .5; i++) geoLine(r, A[0] + i * u, A[1] - 16, A[0] + i * u, A[1] - (i % 5 ? 11 : 8), { color: '#6e4a22', w: 1.2 });
   const M = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], K = Pl.P(b[0], a[1]), s0 = (K[0] - M[0]) * (A[1] - B[1]) + (K[1] - M[1]) * (B[0] - A[0]) > 0 ? -1 : 1, nx = s0 * (A[1] - B[1]) / L, ny = s0 * (B[0] - A[0]) / L;
-  const lb = preLab(g, M[0] + nx * 32, M[1] + ny * 32 + 5, txt, { fs: 15, col: '#6e4a22' });   /* العدد في الجهة البعيدة عن رأس القائمة، وعددُ المحور تحته يُخفى */
+  const sv0 = g.ownerSVGElement || g, tks = new Set((Pl.tk || []).map(x => x.t)), others = [...sv0.querySelectorAll('text')].filter(t => !tks.has(t) && !r.contains(t) && !t.closest('[data-help]') && t.getAttribute('visibility') !== 'hidden' && t.textContent.trim()).map(t => t.getBoundingClientRect());
+  let lb = null, best = null; for (const k of [32, 46, 60, -32, -46, -60]) { if (lb) lb.remove(); lb = preLab(g, M[0] + nx * k, M[1] + ny * k + 5, txt, { fs: 15, col: '#6e4a22' }); const b = lb.getBoundingClientRect(), ov = others.reduce((a, o) => a + Math.max(0, Math.min(o.right, b.right) - Math.max(o.left, b.left)) * Math.max(0, Math.min(o.bottom, b.bottom) - Math.max(o.top, b.top)), 0); if (!best || ov < best[1]) best = [k, ov]; if (!ov) break; }
+  if (best && best[1]) { lb.remove(); lb = preLab(g, M[0] + nx * best[0], M[1] + ny * best[0] + 5, txt, { fs: 15, col: '#6e4a22' }); }   /* العدد في الجهة البعيدة عن رأس القائمة (أو أبعد، أو في الأخرى) حيث لا نصّ، وعددُ المحور تحته يُخفى */
   try { const b = lb.getBBox(); c4Hide(Pl, [[b.x - 3, b.y - 2, b.x + b.width + 3, b.y + b.height + 2]]); } catch (e) {}
-  c9Hush(Pl, ([x, y]) => { const u = Math.max(0, Math.min(1, ((x - A[0]) * (B[0] - A[0]) + (y - A[1]) * (B[1] - A[1])) / (L * L))); return Math.hypot(x - A[0] - u * (B[0] - A[0]), y - A[1] - u * (B[1] - A[1])) < 22; }); return r; }   /* مسطرةٌ على الوتر بوحدات المستوى، وأعداد المحورين تحتها تُخفى */
+  c9Hush(Pl, ([x, y]) => { const u = Math.max(0, Math.min(1, ((x - A[0]) * (B[0] - A[0]) + (y - A[1]) * (B[1] - A[1])) / (L * L))); return Math.hypot(x - A[0] - u * (B[0] - A[0]), y - A[1] - u * (B[1] - A[1])) < 22; });
+  try { const R = r.getBoundingClientRect(), sv = g.ownerSVGElement || g; for (const t of [...sv.querySelectorAll('text')]) { if (r.contains(t) || t === lb || t.closest('[data-help]')) continue; const b = t.getBoundingClientRect(); if (b.width && b.left < R.right && b.right > R.left && b.top < R.bottom && b.bottom > R.top) { const top = t.parentNode === sv ? t : [...sv.children].find(n => n.contains(t)); if (top && top !== r && !top.contains(r)) { const q = top.getBoundingClientRect(); if (top === t || q.width * q.height < 4 * b.width * b.height + 900) sv.appendChild(top); }  } } } catch (e) {}   /* اسم النقطة فوق المسطرة لا تحتها (RUNGG) */
+  return r; }   /* مسطرةٌ على الوتر بوحدات المستوى، وأعداد المحورين تحتها تُخفى */
 /* اختيار الوتر ووسم الخطأ كبند المسافة (ITEM.c4Dist)، ومن خياراته نفسها */
 const c5DistPick = item => item.dec ? choosePick(shuffle(item.cands.map(v => [pyKey(v), pyTxt(v), '<i></i>', 'gen.py.v.' + pyKey(v)])), item.want) : numberPick(shuffle(item.nums), item.want, { west: true }).p;
 const c5DistErr = (it, k) => it.dec ? 'pyOff' : k === it.dx + it.dy ? 'coDistAdd' : k === it.alt ? 'c4DistSign' : k === it.dx * it.dx + it.dy * it.dy ? 'pyNoRoot' : k === Math.max(it.dx, it.dy) || k === Math.min(it.dx, it.dy) ? 'c4DistOne' : k === Math.abs(it.dx - it.dy) ? 'c4DistSub' : 'coDistOff2';
@@ -70,7 +74,8 @@ ITEM.c5Detect = {
       else { c4Legs(m, c.Pl, item.a, item.b); ciRule(m, 180, [22, 248], labelText('c4RuleDist'), C4.hl || SO.hl, 15); } c9HelpHide(c.svg, c.Pl); }
     await S(err === 'c4CornerOff' ? 'gen.c4.hint.corner' : 'gen.c4.hint.dist'); },
   async together() {},
-  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { c4RunRise(helpG(c.svg), c.Pl, item.a, item.b, { abs: true }); c5Ruler(c.svg, c.Pl, item.a, item.b, item.dec ? '≈ ' + pyTxt(item.r) : MS(String(item.want))); }
+  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { if (item.step < 1) { const K = item.corner; c4Dot(c.svg, c.Pl, ...K, { col: C4.ok || SO.ok }); c4RunRise(c.svg, c.Pl, item.a[1] === K[1] ? item.a : item.b, item.a[1] === K[1] ? item.b : item.a, { abs: true }); }   /* الضلعان كما في البند (ولا يُعادان إن رُسما) */
+      c5Ruler(c.svg, c.Pl, item.a, item.b, item.dec ? '≈ ' + pyTxt(item.r) : MS(String(item.want))); }
     item.step = 2; await S('gen.c4.reveal.dist', { noGap: true }); await S(item.dec ? 'gen.py.v.' + item.want : numw(item.want), { append: true }); },
   praise: () => 'praiseThink', twin(item) { return item.twin || null; },
 };

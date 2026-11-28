@@ -283,7 +283,7 @@ ITEM.c9Trs = {
       { let live = true; const qa = () => S('gen.c9.q.trCell'); if (tries < 3) { qa(); REPLAY_HOOK = qa; REPLAY_HOOK.live = () => live && svg.isConnected; }
         const bad = c9WrongImg({ pts: [item.cur], img: [q], xf: mir, n: Pl.n })[0], cp = c9PlaceOne(svg, Pl, q, bad, { guard: svg.__lastDown }); ph.style.display = 'none'; const cell = await cp; ph.style.display = ''; live = false; REPLAY_HOOK = null; hush(); ctx.cell = cell;   /* «تمّ» الحقيقي مكان المحجوز في المهمة نفسها (يُخفى المحجوز ولا يُمحى)، ثم يعود المحجوز حتى المسرح التالي */
         if (!c9Eq(cell, q)) return { ans: `cell|${mir}|${preKey(cell)}`, ctx }; }
-      ctx.dot.remove(); (await c9Flip(svg, Pl, item.cur, q, mir)).remove(); item.cur = q; ctx.dot = c4Dot(svg, Pl, ...q, { pair: true, col: C9.org }); SFX.tick();
+      ctx.dot.remove(); (await c9Flip(svg, Pl, item.cur, q, mir)).remove(); item.cur = q; tapAnswered(); ctx.dot = c4Dot(svg, Pl, ...q, { pair: true, col: C9.org }); SFX.tick();
       if (c9Eq(q, item.goal)) return { ans: 'goal', ctx };
       first = false; HELP_CARRY = null; await sleep(FAST ? 10 : 450); } },   /* ما رُسم للمساعدة يخصّ الموضع السابق */
   judge(item, a) { if (a === 'goal') return { ok: true }; const [k, mir, c] = String(a).split('|');
@@ -326,7 +326,7 @@ ITEM.c9Whl = {
         const ix = sx < 0 ? 24 : 3, iy = sy < 0 ? 21 : 3; el('rect', { x: x0 + 3, y: y0 + 3, width: Pl.n * Pl.c - 6, height: Pl.m * Pl.c - 6, fill: 'transparent' }, g);
         el('rect', { x: sx < 0 ? x0 + 3 : x0 + ix, y: sy < 0 ? y0 + iy : y0 + 3, width: Pl.n * Pl.c - ix - 3, height: Pl.m * Pl.c - iy - 3, rx: 8, fill: C9.hl, opacity: .12, 'data-tint': '', 'pointer-events': 'none' }, g);   /* الهدف الربع كلّه، والتظليل لا يغطّي أعداد المحورين (المراجع B لإغلاق ألعاب U9، 7) */ return { g, k: q, label: labelText('c4Q.' + q) }; });
       let live = true; const qa = () => S(item.q || 'gen.c9.q.whPred'); qa(); REPLAY_HOOK = qa; REPLAY_HOOK.live = () => live && svg.isConnected;
-      const q = await tapOne(T, { ok: wantQ, pad: false, pulse: false }); live = false; REPLAY_HOOK = null; hush(); item.pred = q;
+      const q = await tapOne(T, { ok: wantQ, pad: false, pulse: false }); live = false; REPLAY_HOOK = null; hush(); item.pred = q; tapAnswered();   /* خطوةٌ وسطى قُبلت: اللمسة الثانية لا تجيب ما بعدها (X-01، المراجع B لدفعة ألعاب U8/U7، 1) */
       T.forEach(t => { if (t.k !== q) t.g.remove(); else { t.g.querySelector('rect[data-tint]').setAttribute('opacity', .3); ['role', 'tabindex', 'aria-label'].forEach(a => t.g.removeAttribute(a)); t.g.style.cursor = ''; } });
       logAttempt({ scene: 'game', mode, type: 'c9Whl', tag: 'c9-wheel-predict', ans: q, ok: q === wantQ, firstTry: true, try: 1 }); SFX.tick(); }   /* التوقّع يُسجَّل ولا يُحكم عليه بسلّم: يُرى ما يصل إليه */
     else if (tries === 0) item.pred = null;
@@ -403,7 +403,7 @@ ITEM.c9DrA = {
     if (tries < 3 && !item.zeroOk) { let live = true; const qa = () => S(tries ? 'gen.c9.q.prot' : item.q || 'gen.c9.q.prot'); qa(); REPLAY_HOOK = qa; REPLAY_HOOK.live = () => live && svg.isConnected;
       const St = dqSteps(['c9TurnCw', 'c9TurnCcw'], d => { const n = Math.max(-40, Math.min(40, beta + 10 * d)); if (n === beta) return false; beta = n; draw(); return true; }, { icons: [c9TurnIcon(-1), c9TurnIcon(1)] });
       AUTO({ kind: 'c9Prot', ok: () => { beta = item.zero; draw(); rulDoneBtn().click(); }, wrong: () => { beta = item.b0; draw(); rulDoneBtn().click(); } });
-      await rulDone(() => { live = false; REPLAY_HOOK = null; St.off(); }); ctx.beta = beta; if (!item.okB.includes(((beta % 360) + 540) % 360 - 180)) return { ans: 'zero|' + beta, ctx }; item.zeroOk = true; }   /* وضعُها الصحيح يبقى للمحاولة التالية (المراجع A لإغلاق ألعاب U9، 8) */
+      await rulDone(() => { live = false; REPLAY_HOOK = null; St.off(); }); ctx.beta = beta; if (!item.okB.includes(((beta % 360) + 540) % 360 - 180)) return { ans: 'zero|' + beta, ctx }; item.zeroOk = true; tapAnswered(); }   /* (X-01 للخطوة الوسطى) وضعُها الصحيح يبقى للمحاولة التالية (المراجع A لإغلاق ألعاب U9، 8) */
     else if (item.zeroOk && tries < 3) ctx.beta = beta;
     else { el('path', { d: angArc(D.O, 96 - 19, item.zero, item.zero + item.th - 10), fill: 'none', stroke: THINK_INK, 'stroke-width': 4, opacity: .8 }, helpG(svg)); await S('gen.c9.together.prot'); }   /* الحلّ المشترك: المنقلة موضوعة، والتدريج الخارجي يُبرز من صفره ويقف قبل الجواب؛ والقراءة للطفل */
     ctx.beta = beta; let live = true; const qr = () => S('gen.c9.q.protRead'); if (tries < 3) qr(); REPLAY_HOOK = qr; REPLAY_HOOK.live = () => live && svg.isConnected;

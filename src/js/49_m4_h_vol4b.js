@@ -21,7 +21,7 @@ function c7CupDraw(svg, item, G) { const g = el('g', { 'pointer-events': 'none' 
   el('rect', { x: J.x, y: J.y0, width: J.w, height: jh, rx: 6, fill: '#fbfdff', stroke: C7.edge, 'stroke-width': 2.6 }, jg);
   for (let v = G.jStep; v < G.jTop; v += G.jStep) { const y = J.y1 - jh * v / G.jTop, big = v % (2 * G.jStep) === 0 || G.jTop / G.jStep <= 7; geoLine(jg, J.x + J.w - (big ? 16 : 9), y, J.x + J.w, y, { color: C7.edge, w: 1.8 }); if (big) preLab(jg, J.x + J.w + 6, y + 5, MS(String(v)), { fs: 12, anchor: 'start', col: C7.edge }); }
   preLab(jg, J.x + J.w / 2, J.y0 - 8, labelText('voCm3'), { fs: 12, col: C7.edge });
-  return { g, F, jg, cw: el('g', { 'pointer-events': 'none' }, svg), jw: el('g', { 'pointer-events': 'none' }, svg), lab: el('g', { 'pointer-events': 'none' }, svg) }; }
+  return { g, F, jg, cw: el('g', { 'pointer-events': 'none' }, svg), jw: el('g', { 'pointer-events': 'none', 'data-jw': 1 }, svg), lab: el('g', { 'pointer-events': 'none' }, svg) }; }
 function c7CupWater(D, G, n, item) { D.cw.innerHTML = ''; if (!n) return; const F = D.F, lh = G.H / item.h, hh = Math.min(n, item.h) * lh;
   el('rect', { x: F.cx - F.rx, y: F.bot - hh, width: 2 * F.rx, height: hh, fill: C7.water }, D.cw);
   for (let i = 1; i <= Math.min(n, item.h); i++) el('path', { d: `M${F.cx - F.rx} ${F.bot - i * lh} A${F.rx} ${F.ry} 0 0 0 ${F.cx + F.rx} ${F.bot - i * lh}`, fill: 'none', stroke: C7.edge, 'stroke-width': 1.4, opacity: .55 }, D.cw);   /* حدّ كل طبقة */
@@ -42,7 +42,7 @@ ITEM.c7Cup = {
       else c7Q('gen.c7.q.cupRead', isLive);
       const k = +(await c7Pick(item.reads.map(v => [v]), item.read, 'cm3')); c7PickOff(); if (k !== item.read) { live = false; return { ans: 'read|' + k, ctx }; }   /* بجملها المسموعة (أعداد الكأس فوق المئة) */
       item.step = 2; preLab(D.lab, G.J.x + G.J.w / 2, G.J.y0 - 24, '≈ ' + MS(String(item.read)), { fs: 15, col: C7.ok }); SFX.tick(); }
-    c7PiNote(D.lab, 52, 244); if (TG(2)) { ciEq(helpG(svg), 130, 36, `3.14 × ${G.r} × ${G.r} × ${item.h} = ؟`, C7.hl, 15); await S('gen.c7.together.vol'); } else c7Q('gen.c7.q.cupLaw', isLive);   /* القانون: والحساب مكتوبٌ في الثالثة */
+    c7PiNote(D.lab, 52, 238); if (TG(2)) { ciEq(helpG(svg), 130, 36, `3.14 × ${G.r} × ${G.r} × ${item.h} = ؟`, C7.hl, 15); await S('gen.c7.together.vol'); } else c7Q('gen.c7.q.cupLaw', isLive);   /* القانون: والحساب مكتوبٌ في الثالثة */
     const k = await c7Pick(item.ch, item.want, 'cm3'); live = false; c7PickOff(); return { ans: 'law|' + k, ctx }; },
   judge(item, a) { const [w, v] = String(a).split('|');
     if (w === 'fill') return { ok: false, err: +v < item.h ? 'c7FillShort' : 'c7FillOver' }; if (w === 'read') return { ok: false, err: 'c7JugRead' };
@@ -51,8 +51,8 @@ ITEM.c7Cup = {
   onWrong() { SFX.soft(); },
   async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), F = c.D.F, G = c.G;
       if (err === 'c7FillShort' || err === 'c7FillOver') { geoLine(m, F.cx - F.rx - 6, F.top, F.cx + F.rx + 6, F.top, { color: THINK_INK, w: 3, dash: '6 4' }); hlSeg(m, [F.cx - F.rx - 22, F.top], [F.cx - F.rx - 22, F.bot], H2C[1]); ciRule(m, 180, [30], labelText('c7AskFill'), C7.hl, 15); }   /* الحافّة والارتفاع */
-      else if (err === 'c7JugRead') { const J = G.J, y = J.y1 - (J.y1 - J.y0) * G.V / G.jTop; geoLine(m, J.x - 6, y, J.x + J.w + 4, y, { color: THINK_INK, w: 2.4, dash: '5 4' }); ciRule(m, 180, [30], labelText('c7AskJug'), C7.hl, 15); }
-      else { el('ellipse', { cx: F.cx, cy: F.top, rx: F.rx, ry: F.ry, fill: H2C[0], opacity: .35 }, m); hlSeg(m, [F.cx - F.rx - 22, F.top], [F.cx - F.rx - 22, F.bot], H2C[1]); ciRule(m, 180, [30], labelText('c7Ask.cyl'), C7.hl, 15); } }
+      else if (err === 'c7JugRead') { const J = G.J, y = J.y1 - (J.y1 - J.y0) * G.V / G.jTop; geoLine(m, J.x - 6, y, J.x + J.w + 4, y, { color: THINK_INK, w: 2.4, dash: '5 4' }); ciRule(m, 120, [30, 246, 128, 200], labelText('c7AskJug'), C7.hl, 13); }
+      else { el('ellipse', { cx: F.cx, cy: F.top, rx: F.rx, ry: F.ry, fill: H2C[0], opacity: .35 }, m); hlSeg(m, [F.cx - F.rx - 22, F.top], [F.cx - F.rx - 22, F.bot], H2C[1]); ciRule(m, 120, [30, 246, 128, 200], labelText('c7AskCup'), C7.hl, 14); } }   /* يسار الكأس: لا تغطّي أعداد تدريجه (RUNGG) */
     await S(err === 'c7FillShort' || err === 'c7FillOver' ? 'gen.c7.hint.fill' : err === 'c7JugRead' ? 'gen.c7.hint.jug' : 'gen.c7.hint.vol.cyl'); },
   async together() {},
   async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { c7JugFill(c.D, c.G, c.G.V); ciEq(c.svg, 130, 36, `3.14 × ${c.G.r} × ${c.G.r} × ${item.h} = ${item.want}`, C7.ok, 15); }
@@ -86,7 +86,7 @@ ITEM.c7Wrap = {
     const faces = Object.keys(D.P), on = Object.fromEntries(faces.map(f => [f, item.step >= 1])), t0 = item.step, TG = k => tries >= 3 && t0 === k, tg = TG(0); if (tg) faces.forEach(f => { on[f] = f !== 'base'; });   /* الحلّ المشترك: غلّفنا ما عدا القاع */
     let N = c7WrapPaper(D, Q, item, on);
     if (item.step === 0) { c7Q(tg ? 'gen.c7.together.wrap' : tries === 0 ? item.q || 'gen.c7.q.wrap' : 'gen.c7.q.wrap', isLive);
-      const T = faces.map(f => ({ g: D.P[f], f })); T.forEach(t => { t.g.setAttribute('role', 'button'); t.g.setAttribute('tabindex', 0); t.g.setAttribute('aria-label', plain(G(labelText('c7Face.' + t.f)))); t.g.style.cursor = 'pointer'; hitPad(t.g, 56);
+      const T = faces.map(f => ({ g: D.P[f], f })); T.forEach(t => { t.g.dataset.face = t.f; t.g.setAttribute('role', 'button'); t.g.setAttribute('tabindex', 0); t.g.setAttribute('aria-label', plain(G(labelText('c7Face.' + t.f)))); t.g.style.cursor = 'pointer'; hitPad(t.g, 56);
         t.g.onclick = () => { on[t.f] = !on[t.f]; N = c7WrapPaper(D, Q, item, on); SFX.tick(); /*T*/window.__c7W = faces.filter(f => on[f]).join(',');/*/T*/ }; });
       routeClicks(T.map(t => t.g)); /*T*/window.__c7W = faces.filter(f => on[f]).join(',');/*/T*/
       AUTO({ kind: 'c7Wrap', ok: () => { faces.forEach(f => { on[f] = true; }); N = c7WrapPaper(D, Q, item, on); rulDoneBtn().click(); }, wrong: () => { faces.forEach(f => { on[f] = f === 'side'; }); N = c7WrapPaper(D, Q, item, on); rulDoneBtn().click(); } });
@@ -96,7 +96,7 @@ ITEM.c7Wrap = {
       if (TG(1)) { ciEq(helpG(svg), 258, 30, `2 × 3.14 × ${item.r} = ؟`, C7.hl, 15); await S('gen.c7.together.len'); } else c7Q('gen.c7.q.wrapLen', isLive);
       const k = await c7Pick(item.lens, item.len, 'cm'); c7PickOff(); h.remove(); if (k !== String(item.len)) { live = false; return { ans: 'len|' + k, ctx }; } item.step = 2; SFX.tick(); }
     preLab(D.net, N.x0 + N.w / 2, N.y0 + N.hh / 2 + 6, c7Txt(item.len, 'cm'), { fs: 13, col: C7.r });
-    c7PiNote(D.net, 196, 244); if (TG(2)) { ciEq(helpG(svg), 180, 30, (item.lid === false ? `3.14 × ${item.r} × ${item.r}` : `2 × 3.14 × ${item.r} × ${item.r}`) + ` + ${item.len} × ${item.h} = ؟`, C7.hl, 14); await S('gen.c7.together.sa'); } else c7Q('gen.c7.q.wrapAll', isLive);
+    c7PiNote(D.net, 34, 238); if (TG(2)) { ciEq(helpG(svg), 214, 240, (item.lid === false ? `3.14 × ${item.r} × ${item.r}` : `2 × 3.14 × ${item.r} × ${item.r}`) + ` + ${item.len} × ${item.h} = ؟`, C7.hl, 13);   /* تحتُ، والحاشية يساراً (RUNGG، والمراجع B لدفعة ألعاب U8/U7، 3د و16) */ await S('gen.c7.together.sa'); } else c7Q('gen.c7.q.wrapAll', isLive);
     const k = await c7Pick(item.ch, item.want, 'cm2'); live = false; c7PickOff(); return { ans: 'all|' + k, ctx }; },
   judge(item, a) { const [w, v] = String(a).split('|');
     if (w === 'wrap') return { ok: false, err: v.split(',').includes('side') ? 'saNoSide' : 'saOneBase' };   /* القاع أو الغطاء ناقص: «ينسى إحدى القاعدتين» */
@@ -105,7 +105,7 @@ ITEM.c7Wrap = {
   onOk() { SFX.good(); }, onWrong() { SFX.soft(); },
   async hint2(item, r, err) { const c = r && r.ctx; if (c && c.svg && c.svg.isConnected) { const m = helpG(c.svg), Q = c.Q;
       if (err === 'saOneBase' || err === 'saNoSide') { for (const f of Object.keys(c.D.P)) { const b = c.D.P[f].getBBox(); el('rect', { x: b.x - 4, y: b.y - 4, width: b.width + 8, height: b.height + 8, rx: 8, fill: 'none', stroke: H2C[f === 'side' ? 1 : 0], 'stroke-width': 3, 'stroke-dasharray': '6 4' }, m); } ciRule(m, 180, [30, 246], labelText('c7AskWrap'), C7.hl, 15); }   /* كل وجهٍ في إطار: كم وجهاً؟ */
-      else { hlSeg(m, [Q.cx - Q.rx, Q.top], [Q.cx + Q.rx, Q.top], H2C[0]); ciRule(m, 180, [30, 246], labelText('c7AskSA.' + (err && /^len/.test(err) ? 'len' : 'sa')), C7.hl, 15); } }
+      else { hlSeg(m, [Q.cx - Q.rx, Q.top], [Q.cx + Q.rx, Q.top], H2C[0]); ciRule(m, 180, [30, 246, 128, 200], labelText('c7AskSA.' + (err && /^len/.test(err) ? 'len' : 'sa')), C7.hl, 15); } }
     await S(err === 'saOneBase' || err === 'saNoSide' ? 'gen.c7.hint.wrap' : err && /^len/.test(err) ? 'gen.c7.hint.sa.len' : 'gen.c7.hint.sa.sa'); },
   async together() {},
   async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { const on = Object.fromEntries(Object.keys(c.D.P).map(f => [f, true])); const N = c7WrapPaper(c.D, c.Q, item, on); preLab(c.D.net, N.x0 + N.w / 2, N.y0 + N.hh / 2 + 6, c7Txt(item.len, 'cm'), { fs: 13, col: C7.ok }); }
@@ -188,7 +188,7 @@ ITEM.c7Tank = {
       else ciRule(m, 180, [82], labelText(item.to === 'm3' ? 'c7AskM3' : 'c7AskL'), C7.hl, 15); }
     await S(err === 'c7FillShort' || err === 'c7FillOver' ? 'gen.c7.hint.tank' : item.step <= 1 ? 'gen.c7.hint.tankL' : 'gen.c7.hint.conv'); },
   async together() {},
-  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { c7TankWater(c.D, c.T, c.T.layers); preLab(c.D.lab, 180, 58, c7Txt(item.L, 'L') + ' = ' + c7Txt(item.want, item.to), { fs: 15, col: C7.ok, dir: 'rtl' }); }
+  async reveal(item, r) { const c = r && r.ctx; if (c && c.svg.isConnected) { c7TankWater(c.D, c.T, c.T.layers); if (item.step < 2) preLab(c.D.lab, 180, 58, c7Txt(item.L, 'L'), { fs: 15, col: C7.ok }); preLab(c.D.lab, 180, 82, c7Txt(item.L, 'L') + ' = ' + c7Txt(item.want, item.to), { fs: 15, col: C7.ok, dir: 'rtl' }); }   /* تحت لترات الطبقات لا فوقها (RUNGG) */
     item.step = 3; await S('gen.ci.reveal.calc', { noGap: true }); await S(c7Line(item.want, item.to), { append: true }); },
   praise: () => 'praiseMeasure', twin(item) { return item.twin || null; },
 };

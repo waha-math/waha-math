@@ -9,6 +9,12 @@
 #   DRAW   «أيّ الجملتين تناسب الصورة؟»: السهم برأس؛ والمكعب الأبيض بحدٍّ غير أبيض.
 #   PFL    براهين السلسلة: المتوازيان بالارتفاع المتاح، وبطاقة المستوى الثاني بجانب الشكل لا عليه
 #   C5G    ألعاب M4-U5 الحركية (D288 (2)): الربع ثم النقطة، ورأس القائمة ثم الوتر، ونقطتا المستقيم ثم نقطةٌ عليه
+#   X01G   لمستان بالإصبع بفاصل 150 م.ث على خطوةٍ وسطى في لعبة حركية (نمط #test): الثانية لا تجيب سؤال الخطوة التالية
+#   HELPG  خطآن ثم صوابٌ في الخطوة الأولى من كل بندٍ حركي في م4: لا مساعدة باقية في انتظار الخطوة الثانية
+#   HOLDG  الرسم في موضعه ومقياسه بين انتظارات الجولة في كل لعبةٍ حركية من م4 (ثلاثة أحجام)
+#   RUNGG  كل خطوةٍ s من كل بندٍ حركي في م4: ما قبلها صحيح ثم أربعة أخطاء فيها حتى الكشف، وTEXTOV في كل انتظار وبعد الكشف (RUNG_ONLY لبعض الوحدات)
+#   G87M   ما تدّعيه ألعاب U8/U7: القوسان والتقاطعان بأيّ ترتيب وبفتحةٍ واحدة، والكأس بحجمه، ولترات الطبقة، و«تمّ» بلا طبقة، والعدّ المكتوب
+#   TOGG   الحلّ المشترك في كل خطوةٍ من كل بندٍ حركي في U5–U8 يرسم مساعدته
 #   C6G    ألعاب M4-U6 الحركية (D288 (2)): يحرّك الوتر والمسطرة، ويجد المركز ويقرأ المنقلة؛ الخطأ المقصود، والخطوات تبقى، والحلّ المشترك
 #   C7G    ألعاب M4-U7 الحركية (D288 (2)): يملأ ويصبّ ويغلّف ثم يحسب؛ الخطأ المقصود في كل خطوة، والخطوات تبقى، والحلّ المشترك من حيث وقف الطفل
 #   C8G    ألعاب M4-U8 الحركية (D288 (2)): الخطأ المقصود في كل خطوة، والخطوات المنجزة تبقى، والحلّ المشترك من حيث وقف الطفل، والقراءة بوسمها
@@ -617,10 +623,214 @@ async def pfl(b):
       check('PFL', m[1] == 0 and m[2] >= 13, '%s/%d: نصّ المستوى الثاني لا يقطع الشكل، وخطّه 13 فأكثر' % (pf, v), m)
   check('PFL', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
+# مساعدة الخطوة تُمحى حين تُنجز: في كل بندٍ من الألعاب الحركية لـ م4، خطآن في الخطوة الأولى (المستوى الثاني منقول) ثم صوابها، فلا [data-help] في انتظار الخطوة الثانية
+async def helpg(b):
+  """المراجع B لدفعة ألعاب U8/U7، 2: كانت تبقى في الألعاب السبع فتشير إلى مشتّت الخطوة التالية أو تغطّي معطاها"""
+  ctx, pg, errs = await page(b)
+  items = await pg.evaluate("() => Object.keys(LDATA).filter(l => /^m4\\./.test(l)).flatMap(l => LDATA[l].flow.filter(s => s.scene === 'motion').flatMap(s => s.items.map(it => [l, it])))")
+  nn = lambda st: st['auto']['n'] if st and st.get('auto') else -1
+  async def nxt(after): return await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['n'] != after), 20000)
+  bad, seen = [], 0
+  for lid, spec in items:
+    await pg.evaluate("() => { hush(); LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, spec, 'practice']); st = await nxt(-1)
+    if not st or not st.get('auto'): continue
+    k0 = st['auto']['kind']
+    for _ in range(2): await pg.evaluate("() => window.__auto && window.__auto.wrong()"); st = await nxt(nn(st))
+    if not st or not st.get('auto') or st['auto']['kind'] != k0: continue
+    s0 = await pg.evaluate("() => window.__item ? window.__item.step : null"); await pg.evaluate("() => window.__auto && window.__auto.ok()"); st = await nxt(nn(st))
+    if not st or not st.get('auto'): continue
+    await pg.wait_for_timeout(120); s1, h = await pg.evaluate("() => [window.__item ? window.__item.step : null, document.querySelectorAll('#stage svg [data-help]').length]")
+    if s0 is None or s1 is None or s1 <= s0: continue
+    seen += 1
+    if h: bad.append([lid, spec.get('t'), s0, s1, h])
+    await pg.evaluate("() => { hush(); show('home'); }")
+  check('HELPG', seen >= 20 and not bad, 'مساعدة الخطوة الأولى (خطآن ثم صوابها) لا تبقى في انتظار الخطوة الثانية، في %d بنداً' % seen, bad[:6])
+  check('HELPG', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
+
+# الرسم ثابتٌ بين انتظارات الجولة في اللعبة الحركية نفسها (SCENES.motion): موضعه ومقياسه حين تتبدّل الأزرار تحته
+async def holdg(b):
+  """المراجع B لدفعة ألعاب U8/U7، 4: نزل 24 بكسلاً وصعد 59 على iPhone SE، و80 مع تصغيرٍ على Pixel 5، بين خطوات الجولة"""
+  for vp in ((320, 568), (393, 851), (640, 360)):
+    ctx = await b.new_context(viewport={'width': vp[0], 'height': vp[1]}); pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+    await pg.goto('file://' + FILE + '#fast&seed=5'); await pg.wait_for_timeout(250)
+    await pg.evaluate("""([kid]) => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([kid])); localStorage.setItem('hp_kid', JSON.stringify(kid.id));
+      localStorage.setItem('hp_settings:' + kid.id, JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:' + kid.id, JSON.stringify({ schema: 3, unlockAll: true })); }""", [KID])
+    await pg.reload(); await pg.wait_for_timeout(400)
+    games = await pg.evaluate("() => Object.keys(LDATA).filter(l => /^m4\\./.test(l)).flatMap(l => LDATA[l].flow.map((s, i) => [l, i, s.scene]).filter(x => x[2] === 'motion'))")
+    bad, n = [], 0
+    for lid, i0, _ in games:
+      await pg.evaluate("() => { hush(); }"); await pg.evaluate(START, [lid, i0, 'game']); last, per = -1, {}
+      for _ in range(400):
+        st = await pg.evaluate(ST)
+        if st['res'] or st['err']: break
+        a = st['auto']
+        if a and a['n'] != last:
+          last = a['n']; await pg.wait_for_timeout(80)
+          g = await pg.evaluate("() => { const sv = document.querySelector('#stage svg'), r = sv && sv.getBoundingClientRect(); return [window.__itemSeq || 0, r ? Math.round(r.top) : null, r ? Math.round(r.height) : null]; }")
+          per.setdefault(g[0], []).append(g[1:]); n += 1
+          await pg.evaluate("() => window.__auto && window.__auto.ok()")
+        await pg.wait_for_timeout(30)
+      for seq, v in per.items():
+        if len(v) > 1 and (max(x[0] for x in v) - min(x[0] for x in v) > 2 or max(x[1] for x in v) - min(x[1] for x in v) > 2): bad.append([lid, seq, v[:5]])
+    check('HOLDG', n > 40 and not bad, '%dx%d: الرسم في موضعه ومقياسه بين انتظارات الجولة في الألعاب الحركية (%d انتظاراً)' % (vp[0], vp[1], n), bad[:5])
+    check('HOLDG', not errs, 'بلا خطأ في الصفحة (%dx%d)' % vp, errs[:2]); await ctx.close()
+
+# درجات السلّم في كل خطوة: لكل بندٍ حركي في م4 ولكل خطوةٍ s فيه، ما قبلها صحيح ثم أربعة أخطاء فيها حتى الكشف؛ وفحص TEXTOV (من auto_run) في كل انتظار وبعد الكشف
+async def rungg(b):
+  """المراجع B لدفعة ألعاب U8/U7، 3 و8: السائقون يخطئون في الخطوة الأولى دائماً، فلا يبلغ فحصٌ الدرجات اللاحقة في الخطوات اللاحقة (نصٌّ فوق نصّ، والكشف فوق الحلّ المشترك)"""
+  import re as _re
+  TX = _re.search(r'^TEXTOV = """(.*?)"""', open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'auto_run.py')).read(), _re.S | _re.M).group(1)
+  ctx = await b.new_context(viewport={'width': 320, 'height': 568}); pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+  await pg.goto('file://' + FILE + '#fast&seed=5'); await pg.wait_for_timeout(250)
+  await pg.evaluate("""([kid]) => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([kid])); localStorage.setItem('hp_kid', JSON.stringify(kid.id));
+    localStorage.setItem('hp_settings:' + kid.id, JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:' + kid.id, JSON.stringify({ schema: 3, unlockAll: true })); }""", [KID])
+  await pg.reload(); await pg.wait_for_timeout(400)
+  only = os.environ.get('RUNG_ONLY', 'm4.u5.,m4.u6.,m4.u7.,m4.u8.,m4.u9.').split(',')
+  await pg.evaluate("(src) => { window.__tx = eval('(' + src + ')'); window.__onReveal = () => { window.__revTX = (window.__revTX || []).concat(window.__tx()); }; }", TX)   # المسرح بعد الكشف مباشرةً، قبل أن يبدأ التوأم
+  items = await pg.evaluate("(only) => Object.keys(LDATA).filter(l => only.some(o => l.startsWith(o))).flatMap(l => LDATA[l].flow.filter(s => s.scene === 'motion').flatMap(s => s.items.map(it => [l, it])))", only)
+  bad, n = {}, 0
+  for lid, spec in items:
+    for S in range(5):
+      await pg.evaluate("() => { hush(); show('home'); window.__revTX = null; }"); await pg.evaluate(START, [lid, spec, 'practice']); last, wr, reached = -1, 0, False
+      for _ in range(500):
+        st = await pg.evaluate("() => [window.__auto ? window.__auto.n : null, window.__item ? window.__item.step : null, window.__res, window.__err]")
+        if st[2] or st[3]: break
+        if st[0] is not None and st[0] != last:
+          last = st[0]; await pg.wait_for_timeout(60)
+          if st[1] is not None and st[1] < S and wr == 0: await pg.evaluate("() => window.__auto.ok()"); continue
+          if wr >= 4: await pg.evaluate("() => window.__auto.ok()"); continue   # التوأم بعد الكشف يُجاب صحيحاً
+          reached = True; n += 1
+          for f in await pg.evaluate(TX):
+            if f.startswith('نصٌّ فوق نقطة') and not lid.startswith(('m4.u9.', 'm4.u10.')): continue
+            bad.setdefault((lid, spec.get('t'), S, f[:60]), wr)
+          await pg.evaluate("() => window.__auto.wrong()"); wr += 1
+        await pg.wait_for_timeout(25)
+      if reached and wr >= 4:
+        await pg.wait_for_timeout(150)
+        for f in (await pg.evaluate("() => window.__revTX") or []):
+          if f.startswith('نصٌّ فوق نقطة') and not lid.startswith(('m4.u9.', 'm4.u10.')): continue
+          bad.setdefault((lid, spec.get('t'), S, f[:60]), 'كشف')
+      if not reached: break
+  B = [list(k) + [v] for k, v in bad.items()]
+  if os.environ.get('RUNG_OUT'): json.dump(B, open(os.environ['RUNG_OUT'], 'w'), ensure_ascii=False, indent=0)   # القائمة كاملة
+  check('RUNGG', n > (200 if 'RUNG_ONLY' not in os.environ else 10) and not B, 'لا نصّ فوق نصّ ولا خارج الإطار ولا مساعدة تغطّي معطًى في درجات السلّم لكل خطوة، ولا بعد الكشف (%d انتظاراً)' % n, B[:40])
+  check('RUNGG', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
+
+# ما تدّعيه ألعاب U8/U7 ولا يقتله فحص (المراجع B لدفعة ألعاب U8/U7، 8: الطفرات الحيّة L1–L13): الترتيب والفتحة والكأس واللترات و«تمّ» بلا طبقة والعدّ
+async def g87m(b):
+  """القوسان والتقاطعان بأيّ ترتيب، والأقواس بنصف قطرٍ واحد، والكأس بحجمه، ولترات الطبقة، و«تمّ» بلا طبقة لا يُحسب، والعدّ المكتوب = __c7N"""
+  ctx, pg, errs = await page(b)
+  async def run(lid, spec): await pg.evaluate("() => { hush(); LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, spec, 'practice'])
+  async def wk(kind, after=-1): return await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['kind'] == kind and s['auto']['n'] != after), 20000)
+  nn = lambda st: st['auto']['n'] if st and st.get('auto') else -1
+  async def spot(k): await pg.evaluate("(k) => { const g = document.querySelector('#stage svg [data-spot=\"' + k + '\"]'); if (g) g.dispatchEvent(new MouseEvent('click', { bubbles: true })); }", k); await pg.wait_for_timeout(250)
+  okk = "() => [...document.querySelectorAll('#stage svg [data-spot]')].filter(g => g.dataset.ok === 'true').map(g => g.dataset.spot)"
+  # صائد المنصّف: الرأس، ثم ب أولاً، فالمطلوب أ (L1)
+  await run('m4.u8.d1', {'t': 'c8BisMake', 'deg': 80}); st = await wk('tap'); await spot('V'); st = await wk('tap', nn(st))
+  ns = await pg.evaluate("() => [...document.querySelectorAll('#stage svg [data-spot]')].map(g => g.dataset.spot)")
+  check('G87M', sorted(ns) == ['A', 'B', 'F1', 'V'], 'صائد المنصّف: نقاط الخطوة السابقة تُزال، فلا يبقى إلا مرشّحو الخطوة الجارية', ns)
+  await spot('B'); st = await wk('tap', nn(st))
+  f, o2 = await pg.evaluate("() => window.__item ? window.__item.first : null"), await pg.evaluate(okk)
+  check('G87M', f == 'B' and o2 == ['A'], 'صائد المنصّف: القوس الأول من ب، فالثاني من أ (بأيّ ترتيب)', [f, o2])
+  # أين المنتصف؟: أ ثم ب، ثم التقاطع العلوي أولاً فالمطلوب السفلي (L2)، والأقواس كلها بنصف قطرٍ واحد (L3)
+  await run('m4.u8.d2', {'t': 'c8PbMake', 'half': 4, 'h': 3}); st = await wk('tap'); await spot('A'); st = await wk('tap', nn(st)); await spot('B'); st = await wk('tap', nn(st))
+  rs = await pg.evaluate("() => [...new Set([...document.querySelectorAll('#stage svg path[data-arc]')].map(p => { const m = /A\\s*([\\d.]+)/.exec(p.getAttribute('d') || ''); return m ? Math.round(+m[1] * 10) / 10 : null; }))]")
+  check('G87M', len(rs) == 1 and rs[0], 'أين المنتصف؟: أقواس الطرفين الأربعة بنصف قطرٍ واحد (بالفتحة نفسها)', rs)
+  await spot('X1'); st = await wk('tap', nn(st)); x1, o3 = await pg.evaluate("() => window.__item ? window.__item.x1 : null"), await pg.evaluate(okk)
+  check('G87M', x1 == 'X1' and o3 == ['X2'], 'أين المنتصف؟: التقاطع الأول محفوظ، فالمطلوب بعده الآخر (بأيّ ترتيب)', [x1, o3])
+  # كوب الماء: «تمّ» بلا طبقة لا يُحسب (L7)، ثم الكأس بعد الصبّ بحجم الأسطوانة (L5)
+  spec = {'t': 'c7Cup', 'r': 2, 'h': 7, 'q': 'cp.01'}; await run('m4.u7.d1', spec); st = await wk('c7Fill')
+  await pg.evaluate("() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }"); await pg.wait_for_timeout(500); st2 = await pg.evaluate(ST); n0 = await pg.evaluate("() => LOG.attempts.length")
+  check('G87M', n0 == 0 and st2['auto'] and st2['auto']['kind'] == 'c7Fill' and st2['auto']['n'] == nn(st), 'الملء: «تمّ» بلا طبقة لا يُحسب جواباً ولا يمضي', [n0, st2['auto']])
+  await pg.evaluate("() => window.__auto.ok()"); st = await wk('pick', nn(st)); await pg.wait_for_timeout(300)
+  v = await pg.evaluate("(s) => { const G = c7CupGeo(ITEM.c7Cup.make(s)), r = document.querySelector('#stage svg [data-jw] rect'); if (!r) return null; return [(+r.getAttribute('height') + 2) / (G.J.y1 - G.J.y0) * G.jTop, G.V]; }", spec)
+  check('G87M', v and abs(v[0] - v[1]) < .02 * v[1], 'كوب الماء: الكأس بعد الصبّ بحجم الأسطوانة', v)
+  # ثلاثة مخاريط: العدّ المكتوب بعد كل تعبئة = ما صُبّ (L10)
+  await run('m4.u7.d3', {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'th.01'}); st = await wk('c7Pour'); cn = []
+  for _ in range(2):
+    await pg.evaluate("() => { const b = document.querySelectorAll('#stage .choices.icons .pick')[1]; if (b) b.click(); }"); await pg.wait_for_timeout(300)
+    cn.append(await pg.evaluate("() => [window.__c7N ? window.__c7N() : null, [...document.querySelectorAll('#stage svg text')].map(t => t.textContent).filter(t => / ×$/.test(t))]"))
+  check('G87M', all(c[1] == [str(c[0]).translate(str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')) + ' ×'] for c in cn), 'ثلاثة مخاريط: العدّ المكتوب هو ما صُبّ', cn)
+  # محوّل الخزان: لترات الطبقة المكتوبة = الطول × العرض × 10 ÷ 1000 (L6)
+  spec = {'t': 'c7Tank', 'a': 30, 'b': 20, 'c': 40, 'to': 'cm3'}; await run('m4.u7.d4', spec); st = await wk('c7Tank')
+  per, tx = await pg.evaluate("(s) => c7TankGeo(ITEM.c7Tank.make(s)).per", spec), await pg.evaluate("() => [...document.querySelectorAll('#stage svg text')].map(t => t.textContent)")
+  w = str(per).replace('.', '٫').translate(str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩'))
+  tx = [re.sub('[\u064b-\u0652]', '', t) for t in tx]
+  check('G87M', per == 30 * 20 * 10 / 1000 and any(('= ' + w + ' لتر') in t or ('= ' + str(per).rstrip('0').rstrip('.') + ' لتر') in t for t in tx), 'محوّل الخزان: لترات الطبقة المكتوبة صحيحة (%s)' % w, [per, [t for t in tx if 'لتر' in t]])
+  # غلّف العلبة: بعد «تمّ» لا وجه هدفاً (L8)
+  await run('m4.u7.d2', {'t': 'c7Wrap', 'r': 2, 'h': 6, 'rk': 0, 'q': 'wr.01'}); st = await wk('c7Wrap'); await pg.evaluate("() => window.__auto.ok()"); st = await wk('pick', nn(st))
+  nf = await pg.evaluate("() => document.querySelectorAll('#stage svg [data-face][role=button], #stage svg [data-face][tabindex]').length")
+  check('G87M', nf == 0, 'غلّف العلبة: الوجوه ليست أهدافاً بعد «تمّ»', nf)
+  # صائد الوتر: لمسةٌ على 14 بكسلاً داخل المثلث من ضلعٍ قائم له لا للوتر، وعلى 14 من الوتر للوتر (خارج شريط الخطّ نفسه) (المراجع B، 5)
+  await run('m4.u8.d3', {'t': 'c8HypHunt', 'a': 4, 'b': 3, 'hy': 5, 'fn': 'sin'}); st = await wk('tap')
+  rt = await pg.evaluate("""() => { const G = [...document.querySelectorAll('#stage svg g[role=button]')], seg = g => { const l = g.querySelector('line'), sv = g.ownerSVGElement, m = sv.getScreenCTM(); return [[+l.getAttribute('x1'), +l.getAttribute('y1')], [+l.getAttribute('x2'), +l.getAttribute('y2')]].map(p => new DOMPoint(p[0], p[1]).matrixTransform(m)); };
+      const S = G.map(g => [g, seg(g)]), hz = S.find(([, [P, Q]]) => Math.abs(P.y - Q.y) < 1), hy = S.find(([, [P, Q]]) => Math.abs(P.y - Q.y) > 1 && Math.abs(P.x - Q.x) > 1); if (!hz || !hy) return null;
+      const [P, Q] = hz[1], M = [(P.x + Q.x) / 2, (P.y + Q.y) / 2 - 14], [A, B] = hy[1], H = [(A.x + B.x) / 2, (A.y + B.y) / 2], nx = -(B.y - A.y), ny = B.x - A.x, L = Math.hypot(nx, ny), s = ((M[0] - H[0]) * nx + (M[1] - H[1]) * ny) > 0 ? 1 : -1, H7 = [H[0] + s * 14 * nx / L, H[1] + s * 14 * ny / L];
+      return [G[0].__route(M[0], M[1]) === hz[0], G[0].__route(H7[0], H7[1]) === hy[0]]; }""")
+  check('G87M', rt == [True, True], 'صائد الوتر: اللمسة لأقرب ضلعٍ إلى الإصبع', rt)
+  check('G87M', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
+
+# الحلّ المشترك في كل خطوة: لكل بندٍ حركي في م4 ولكل خطوةٍ s، ما قبلها صحيح ثم ثلاثة أخطاء فيها، فالمحاولة الرابعة فيها مساعدةٌ مرسومة ([data-help]) أو حالٌ أكملناها
+async def togg(b):
+  """المراجع B لدفعة ألعاب U8/U7، 7 و8 (L11–L13): الحلّ المشترك فارغٌ في خطوات التقاطع، ولا فحص يرى الحلّ المشترك في الخطوات اللاحقة"""
+  ctx, pg, errs = await page(b)
+  only = os.environ.get('RUNG_ONLY', 'm4.u5.,m4.u6.,m4.u7.,m4.u8.').split(',')
+  items = await pg.evaluate("(only) => Object.keys(LDATA).filter(l => only.some(o => l.startsWith(o))).flatMap(l => LDATA[l].flow.filter(s => s.scene === 'motion').flatMap(s => s.items.map(it => [l, it])))", only)
+  # حلٌّ مشترك بالحال لا بالرسم: الربعان الباقيان، ونقطةٌ مُبعَدة، وحركةٌ واحدة باقية، وطبقةٌ قبل الحافّة، وما عدا القاع مغلَّف
+  STATE_TG = {('c5Hunt', 0), ('c5Line', 2), ('c6ChordGame', 0), ('c6TanGame', 0), ('c7Cup', 0), ('c7Wrap', 0), ('c7Thirds', 0), ('c7Tank', 0)}
+  bad, n = [], 0
+  for lid, spec in items:
+    for S in range(5):
+      await pg.evaluate("() => { hush(); LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, spec, 'practice']); last, wr, got = -1, 0, None
+      for _ in range(400):
+        st = await pg.evaluate("() => [window.__auto ? window.__auto.n : null, window.__item ? window.__item.step : null, window.__res, window.__err, window.__auto ? window.__auto.kind : null]")
+        if st[2] or st[3]: break
+        if st[0] is not None and st[0] != last:
+          last = st[0]; await pg.wait_for_timeout(80)
+          if st[1] is not None and st[1] < S and wr == 0: await pg.evaluate("() => window.__auto.ok()"); continue
+          if wr == 3: got = await pg.evaluate("() => [document.querySelectorAll('#stage svg [data-help]').length, (window.__clips || []).slice(-3).join(' ')]"); got.append(st[4]); break
+          await pg.evaluate("() => window.__auto.wrong()"); wr += 1
+        await pg.wait_for_timeout(25)
+      if got is None:
+        if wr == 0: break
+        continue
+      n += 1
+      if not got[0] and (spec.get('t'), S) not in STATE_TG: bad.append([lid, spec.get('t'), S, got[2], got[1][-60:]])
+  if os.environ.get('RUNG_OUT'): json.dump(bad, open(os.environ['RUNG_OUT'], 'w'), ensure_ascii=False)
+  check('TOGG', n > (60 if 'RUNG_ONLY' not in os.environ else 2) and not bad, 'الحلّ المشترك يرسم مساعدته في كل خطوة (%d خطوة)' % n, bad[:12])
+  check('TOGG', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
+
+# X-01 في خطوات الألعاب الحركية: لمستان حقيقيتان بالإصبع بفاصل 150 م.ث (نمط #test، فالحارس معطّل في السريع) على «تمّ» أو على خيارٍ صحيح في خطوةٍ وسطى
+async def x01g(b):
+  """الثانية لا تجيب سؤال الخطوة التالية: السجلّ فارغ والخطوة تقدّمت واحدةً فقط (المراجع B لدفعة ألعاب U8/U7، 1: أجابت الثانية في 54 من 63 تجربة)"""
+  ctx = await b.new_context(viewport={'width': 320, 'height': 568}, has_touch=True, is_mobile=True, device_scale_factor=2); pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+  await pg.goto('file://' + FILE + '#test&seed=5'); await pg.wait_for_timeout(250)
+  await pg.evaluate("""([kid]) => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([kid])); localStorage.setItem('hp_kid', JSON.stringify(kid.id));
+    localStorage.setItem('hp_settings:' + kid.id, JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:' + kid.id, JSON.stringify({ schema: 3, unlockAll: true })); }""", [KID])
+  await pg.reload(); await pg.wait_for_timeout(400)
+  async def run(lid, spec): await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, spec, 'practice'])
+  async def wk(kind, after=-1): return await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['kind'] == kind and s['auto']['n'] != after), 40000)
+  nn = lambda st: st['auto']['n'] if st and st.get('auto') else -1
+  async def dbl(sel):
+    xy = await pg.evaluate("(sel) => { const e = document.querySelector(sel); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }", sel)
+    if not xy: return False
+    await pg.wait_for_timeout(700); await pg.touchscreen.tap(*xy); await pg.wait_for_timeout(150); await pg.touchscreen.tap(*xy); await pg.wait_for_timeout(1500); return True
+  async def state(): return await pg.evaluate("() => [window.__item ? window.__item.step : null, LOG.attempts.map(a => [a.ok, a.err, a.ans])]")
+  # كوب الماء: القراءة الصحيحة مرّتين (الخيارات التالية في مكانها)
+  await run('m4.u7.d1', {'t': 'c7Cup', 'r': 2, 'h': 7, 'q': 'cp.01'}); st = await wk('c7Fill'); await pg.evaluate("() => window.__auto.ok()"); st = await wk('pick', nn(st))
+  t = await dbl("#stage .choices .pick[data-ok=true]"); s1 = await state()
+  check('X01G', t and s1[0] == 2 and not s1[1], 'كوب الماء: لمستان على القراءة الصحيحة تقدّمان خطوةً واحدة ولا تجيبان سؤال القانون', s1)
+  # ثلاثة مخاريط: «تمّ» مرّتين بعد ثلاث تعبئات
+  await pg.evaluate("() => hush()"); await run('m4.u7.d3', {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'th.01'}); st = await wk('c7Pour')
+  for _ in range(3): await pg.evaluate("() => { const b = document.querySelectorAll('#stage .choices.icons .pick')[1]; if (b) b.click(); }"); await pg.wait_for_timeout(1300)
+  t = await dbl("#stage .pick.done"); s2 = await state()
+  check('X01G', t and s2[0] == 1 and not s2[1], 'ثلاثة مخاريط: «تمّ» مرّتين يقدّم خطوةً واحدة ولا يجيب سؤال الحساب', s2)
+  check('X01G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
+
 async def main():
   async with async_playwright() as p:
     b = await p.chromium.launch()
-    for k, f in (('STORY', story), ('MINUS', minus), ('OFFER', offer), ('FRAME', frame), ('TEN', ten), ('DRAW', draw), ('C9G', c9g), ('C8G', c8g), ('C7G', c7g), ('C6G', c6g), ('C5G', c5g), ('PFL', pfl)):
+    for k, f in (('STORY', story), ('MINUS', minus), ('OFFER', offer), ('FRAME', frame), ('TEN', ten), ('DRAW', draw), ('C9G', c9g), ('C8G', c8g), ('C7G', c7g), ('C6G', c6g), ('C5G', c5g), ('X01G', x01g), ('HELPG', helpg), ('HOLDG', holdg), ('RUNGG', rungg), ('G87M', g87m), ('TOGG', togg), ('PFL', pfl)):
       if not on(k): continue
       try: await f(b)
       except Exception as e: check(k, False, 'توقّف القسم باستثناء', str(e)[:300])   # (على النسخة القديمة يمضي البند إلى «كم؟» فلا تُلمس أزرار البناء)

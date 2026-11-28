@@ -68,7 +68,7 @@ ITEM.c6TanGame = {
     const F = c6TnDraw(G, g, G.kt), T = F.pts[0], h = el('g', { 'pointer-events': 'none' }, svg); ctx.F = F; c6Seg(h, G.O, T, C6.r, 3);
     if (pv) { c6Num(h, (G.O[0] + T[0]) / 2 - 10, (G.O[1] + T[1]) / 2 - 6, 6, { col: C6.r, fs: 15 }); c6Num(h, (G.P[0] + T[0]) / 2 + 12, (G.P[1] + T[1]) / 2 - 8, '؟', { col: C6.q, fs: 18 }); }
     else { const a = Math.atan2(G.O[1] - T[1], T[0] - G.O[0]) * 180 / Math.PI; el('path', { d: angArc(T, 18, a + 180, a + 270), fill: 'none', stroke: C6.q, 'stroke-width': 2.4 }, h); c6Num(h, ...angP(T, a + 225, 34), '؟', { col: C6.q, fs: 17 }); }
-    if (tries >= 3 && t0 === 1) { if (pv) ciEq(helpG(svg), 180, 30, `${item.op} × ${item.op} − 6 × 6 = ؟ × ؟`, C6.hl, 15); else preRight(helpG(svg), T, G.O, angP(T, Math.atan2(G.O[1] - T[1], T[0] - G.O[0]) * 180 / Math.PI + 270, 30), 14); await S(pv ? 'gen.c6.together.tanLen' : 'gen.c6.together.tanAng'); }
+    if (tries >= 3 && t0 === 1) { if (pv) ciEq(helpG(svg), 180, 244, `${item.op} × ${item.op} − 6 × 6 = ؟ × ؟`, C6.hl, 15);   /* تحت، بعيداً عن «نقاط مشتركة» (RUNGG) */ else preRight(helpG(svg), T, G.O, angP(T, Math.atan2(G.O[1] - T[1], T[0] - G.O[0]) * 180 / Math.PI + 270, 30), 14); await S(pv ? 'gen.c6.together.tanLen' : 'gen.c6.together.tanAng'); }
     else c6Q(pv ? 'gen.c6.q.tanLen' : 'gen.c6.q.tanAng', isLive);
     const np = c6Pick(item.nums.map(([v]) => v), item.want, !pv); const k = await np.p; live = false; c6Off(); return { ans: 'calc|' + k, ctx }; },
   judge(item, a) { const [w, v] = String(a).split('|'); if (w === 'move') return { ok: false, err: v === 'sec' ? 'c6Secant' : 'c6Miss' };
@@ -93,7 +93,7 @@ ITEM.c6CenGame = {
   async ask(item, mode, tries) { item.__try = tries; const svg = m3Stage(262), G = c6CnGeo(item), pg = el('g', {}, svg), g = el('g', { 'pointer-events': 'none' }, svg); let live = true; const isLive = () => live && svg.isConnected, t0 = item.step, ctx = { svg, G };
     el('circle', { cx: G.O[0], cy: G.O[1], r: G.R, fill: C6.disc, stroke: C6.ink, 'stroke-width': 3 }, g); el('path', { d: angArc(G.O, G.R, G.a1, G.a2), fill: 'none', stroke: C6.arc, 'stroke-width': 5 }, g);   /* القوس المقابل */
     c6Seg(g, G.P, G.A, C6.ch, 3); c6Seg(g, G.P, G.B, C6.ch, 3); [G.A, G.B, G.P].forEach(X => pfDot(g, X));
-    const lab = el('g', { 'pointer-events': 'none' }, svg); let pl = null; const prot = (V, base, PR) => { pg.innerHTML = ''; if (pl) pl.remove(); pl = protAt(pg, V, base, { R: PR, step: 30, fs: 1 }).lab; svg.appendChild(pl); };   /* داخل الإطار: 64 على المركز و50 على رأس المحيطية */
+    const lab = el('g', { 'pointer-events': 'none' }, svg); let pl = null; const prot = (V, base, PR) => { pg.innerHTML = ''; if (pl) pl.remove(); pl = protAt(pg, V, base, { R: PR, step: 30, fs: 1, inner: PR >= 64 }).lab; svg.appendChild(pl); };   /* داخل الإطار: 64 على المركز و56 على رأس المحيطية بحلقة أعدادٍ واحدة (الحلقتان على 50 تتراكبان، RUNGG) */
     if (item.step >= 1) { c6Seg(g, G.O, G.A, C6.r, 3); c6Seg(g, G.O, G.B, C6.r, 3); pfDot(g, G.O); }
     if (item.step === 0) { const tg = tries >= 3; let cand = G.cand;
       if (tg) { const x = cand.find(c => c[0] !== 'O' && !(item.tried || []).includes(c[0])) || cand[1], h = helpG(svg); c6Seg(h, x[1], G.A, THINK_INK, 2.4, '5 4'); c6Seg(h, x[1], G.B, THINK_INK, 2.4, '5 4'); cand = cand.filter(c => c !== x); await S('gen.c6.together.cen'); }   /* جرّبنا نقطةً: شعاعاها غير متساويين */
@@ -106,8 +106,8 @@ ITEM.c6CenGame = {
       if (tries >= 3 && t0 === 1) { el('path', { d: angArc(G.O, 64 - 14, G.a1, G.a2), fill: 'none', stroke: THINK_INK, 'stroke-width': 4, opacity: .8 }, helpG(svg)); await S('gen.c6.together.read'); } else c6Q('gen.c6.q.cenRead', isLive);
       const np = c6Pick(item.cens.map(([v]) => v), item.cen, true); const k = await np.p; c6Off(); if (k !== item.cen) { live = false; return { ans: 'cr|' + k, ctx }; } item.step = 2; SFX.tick(); }
     lab.innerHTML = ''; arArc(lab, G.O, G.a1, G.a2, { r: 22, col: C6.r, deg: item.cen, dl: 16, fs: 14 }); const pa = Math.atan2(G.P[1] - G.A[1], G.A[0] - G.P[0]) * 180 / Math.PI, pb = Math.atan2(G.P[1] - G.B[1], G.B[0] - G.P[0]) * 180 / Math.PI, na = ((pa % 360) + 360) % 360, nb = ((pb % 360) + 360) % 360, lo = Math.abs(((nb - na + 360) % 360) - item.want) < 1 ? na : nb;   /* المحيطية من رأسها P: من الشعاع الذي يدور منه بعكس العقارب */
-    prot(G.P, lo, 50); arArc(lab, G.P, lo, lo + item.want, { r: 18, col: C6.ch, fill: true });
-    if (tries >= 3 && t0 === 2) { el('path', { d: angArc(G.P, 50 - 12, lo, lo + item.want), fill: 'none', stroke: THINK_INK, 'stroke-width': 4, opacity: .8 }, helpG(svg)); await S('gen.c6.together.read'); } else c6Q('gen.c6.q.insRead', isLive);
+    prot(G.P, lo, 56); arArc(lab, G.P, lo, lo + item.want, { r: 18, col: C6.ch, fill: true });
+    if (tries >= 3 && t0 === 2) { el('path', { d: angArc(G.P, 56 - 12, lo, lo + item.want), fill: 'none', stroke: THINK_INK, 'stroke-width': 4, opacity: .8 }, helpG(svg)); await S('gen.c6.together.read'); } else c6Q('gen.c6.q.insRead', isLive);
     const np = c6Pick(item.ins.map(([v]) => v), item.want, true); const k = await np.p; live = false; c6Off(); return { ans: 'ir|' + k, ctx }; },
   judge(item, a) { const [w, v] = String(a).split('|'); if (w === 'cen') return { ok: false, err: 'c6NotCenter' };
     if (w === 'cr') return { ok: false, err: (item.cens.find(([x]) => x === +v) || [])[1] || 'c6CenOff' };

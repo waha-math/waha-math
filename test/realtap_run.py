@@ -68,7 +68,7 @@ CENTER_OF = """(sel) => { const e = document.querySelector(sel); if (!e) return 
     r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) } : { l: b.left, t: b.top, r: b.right, b: b.bottom }; }
   if (!r) { const b = e.getBoundingClientRect(); r = { l: b.left, t: b.top, r: b.right, b: b.bottom }; } return [(r.l + r.r) / 2, (r.t + r.b) / 2]; }"""
 
-HTMLK = ('pick', 'card', 'num'); STEPK = {'dqBal': '__dqS', 'dqPerp': '__dqTh', 'htFoot': '__htAt', 'htTune': '__htH', 'kiteTune': '__a2R', 'c9Turn': '__c9K', 'c9Prot': ('__c9B', 'zero'), 'c7Fill': ('__c7N', 'fillN'), 'c7Pour': ('__c7N', 'pourN'), 'c7Tank': ('__c7N', 'tankN'), 'c6Move': ('__c6K', 'moveN')}   # (المُحدِّد، وحقل الهدف في البند إن لم يكن want)   # وطائرة المعيّن (المراجع B لبوابة S3-U4/U5، 11)، وزرّا «عجلة الدوران» والمنقلة في «الباب الدوّار» (المراجع B لدفعة ألعاب U9، 7)
+HTMLK = ('pick', 'card', 'num'); FACEK = ('c7Wrap',); STEPK = {'dqBal': '__dqS', 'dqPerp': '__dqTh', 'htFoot': '__htAt', 'htTune': '__htH', 'kiteTune': '__a2R', 'c9Turn': '__c9K', 'c9Prot': ('__c9B', 'zero'), 'c7Fill': ('__c7N', 'fillN'), 'c7Pour': ('__c7N', 'pourN'), 'c7Tank': ('__c7N', 'tankN'), 'c6Move': ('__c6K', 'moveN')}   # (المُحدِّد، وحقل الهدف في البند إن لم يكن want)   # وطائرة المعيّن (المراجع B لبوابة S3-U4/U5، 11)، وزرّا «عجلة الدوران» والمنقلة في «الباب الدوّار» (المراجع B لدفعة ألعاب U9، 7)
 PICK_OK = """() => { const b = [...document.querySelectorAll('#stage .choices .pick')].filter(x => !x.disabled && x.offsetParent && !x.classList.contains('done')); const e = b.find(x => x.dataset.ok === 'true') || b[0]; if (!e) return null;
   e.scrollIntoView({ block: 'nearest' }); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"""
 STEP_BTN = "(i) => { const e = document.querySelectorAll('#stage .choices.icons .pick')[i]; if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
@@ -450,10 +450,17 @@ async def run(p, dev):
             await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")   # يكمل بخطّاف البند ليتابع الدرس
           continue
         # م3 وم4: أزرار HTML (الخيارات والبطاقات والأعداد) تُلمس في مركز الصحيح منها، وأزرار الضبط تُلمس حتى القيمة المطلوبة ثم «تمّ» (المراجع B لبوابة S3-U2/U3، 11: كانت تُجاب كلها بالخطّاف)
-        if lid.startswith(('m3.', 'm4.')) and (k in HTMLK or k in STEPK) and htmln.setdefault((lid, k), [0])[0] < 4 and not htmln[(lid, k)].__setitem__(0, htmln[(lid, k)][0] + 1):   # أربعة انتظارات من كل نوع في كل درس: يكفي اللمس الحقيقي، ولا يطول التشغيل
+        if lid.startswith(('m3.', 'm4.')) and (k in HTMLK or k in STEPK or k in FACEK) and htmln.setdefault((lid, k), [0])[0] < 4 and not htmln[(lid, k)].__setitem__(0, htmln[(lid, k)][0] + 1):   # أربعة انتظارات من كل نوع في كل درس: يكفي اللمس الحقيقي، ولا يطول التشغيل
           await pg.wait_for_timeout(120); tried[k] = tried.get(k, 0) + 1
           if k in HTMLK:
             xy = await pg.evaluate(PICK_OK)
+            if xy: await tap(*xy)
+          elif k in FACEK:   # «غلّف العلبة»: يلمس بالإصبع كل وجهٍ لم يُغلَّف (مركز رسمه) ثم «تمّ» (المراجع B لدفعة ألعاب U8/U7، 14)
+            for _ in range(6):
+              miss = await pg.evaluate("() => { const on = String(window.__c7W || '').split(',').filter(Boolean); const all = [...document.querySelectorAll('#stage svg [role=button][data-face]')]; const e = all.find(x => !on.includes(x.dataset.face)); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }")
+              if not miss: break
+              await tap(*miss); await pg.wait_for_timeout(120)
+            xy = await pg.evaluate(DONE_BTN)
             if xy: await tap(*xy)
           else:
             for _ in range(40):
@@ -468,7 +475,7 @@ async def run(p, dev):
           if not await gone(st['n']):
             bad.append((dev, st['scene'], k + ' (html)')); await pg.screenshot(path=os.path.join(HERE, 'out', 'realtap_%s_%s.png' % (dev.replace(' ', ''), st['scene'].replace(':', '_').replace('.', '_'))))
             await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }")
-          elif k in ('c7Fill', 'c7Pour', 'c7Tank', 'c6Move'):   # والملء بالزرّين يمضي إلى الخطوة التالية (الكأس أو الحساب) لا إلى خطأ
+          elif k in ('c7Fill', 'c7Pour', 'c7Tank', 'c6Move', 'c7Wrap'):   # والملء بالزرّين يمضي إلى الخطوة التالية (الكأس أو الحساب) لا إلى خطأ
             await pg.wait_for_timeout(600); r2 = await pg.evaluate("() => [LOG.attempts.length ? LOG.attempts[LOG.attempts.length - 1].ok : null, window.__auto ? window.__auto.kind : null]")
             if r2[1] not in ('num', 'pick') and r2[0] is not True: bad.append((dev, st['scene'], k + ' (not ok: %s)' % r2))
           elif k in ('c9Turn', 'c9Prot'):   # والزرّان أوصلا إلى الجواب حقاً: العجلة صحيحة في السجل، والمنقلة تمضي إلى القراءة (المراجع B لإغلاق ألعاب U9، 2)
