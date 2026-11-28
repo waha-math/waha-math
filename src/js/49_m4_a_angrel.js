@@ -148,7 +148,7 @@ function arTurnH2(svg, md) { const m = helpG(svg); if (md === 'comp' || md === '
 function arGhost(g0, V, a1, a2, deg) { const m = el('g', { 'data-help': 1, 'pointer-events': 'none' }, g0);
   el('path', { d: `M${V[0]} ${V[1]} L${angP(V, a1, 30)[0]} ${angP(V, a1, 30)[1]} ${angArc(V, 30, a1, a2).replace(/^M[^A]*/, '')} Z`, fill: AR.hl, opacity: .16 }, m);
   el('path', { d: angArc(V, 30, a1, a2), fill: 'none', stroke: AR.hl, 'stroke-width': 3, 'stroke-dasharray': '6 5' }, m);
-  const t = angP(V, (a1 + a2) / 2, 48); degText(m, t[0], t[1] + 6, deg, { size: 15, color: AR.hl }); return m; }
+  if (deg != null) { const t = angP(V, (a1 + a2) / 2, 48); degText(m, t[0], t[1] + 6, deg, { size: 15, color: AR.hl }); } return m; }   /* بلا عدد: الحلّ المشترك يترك العدد للطفل */
 ITEM.arTurn = {
   make(spec) { const want = spec.mode === 'comp' ? 90 : spec.mode === 'supp' ? 180 : spec.want; return { ...spec, want, tag: 'ar-turn-' + spec.mode }; },
   async ask(item, mode, tries) { const svg = m3Stage(278), host = el('g', {}, svg), m = item.mode;   /* 278: زرّا الدوران داخل الإطار */ let v = m === 'comp' || m === 'supp' ? item.a + 20 : item.start || 60, reg = null;

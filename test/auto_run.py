@@ -411,7 +411,7 @@ async def main():
     print('squeezed stages:', len(squeeze)); [print(' ', *k, v) for k, v in list(squeeze.items())[:30]]
     print('clipped texts:', len(clipt)); [print(' ', *k) for k in list(clipt)[:20]]
     TXSTRICT = ('m3.', 'm4.u1.', 'm4.u2.', 'm4.u3.', 'm4.u4.', 'm4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.', 'm4.u9.', 'm4.u10.', 'ws:m4.u9')   # م3 وما أُغلقت بوابته من م4 تُفحص (M4-U1/U2)، والباقي من م4 يُطبع للعلم حتى تُراجَع بوابته
-    COVERSTRICT = ('m4.u3.', 'm4.u4.', 'm4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.', 'm4.u9.', 'm4.u10.')   # الشكل المعتم فوق نصّ: صارمٌ في الوحدتين، وللعلم في غيرهما حتى تُراجَع (44 في م3 وU1/U2 عند إضافته)
+    COVERSTRICT = ('m4.u1.', 'm4.u2.', 'm4.u3.', 'm4.u4.', 'm4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.', 'm4.u9.', 'm4.u10.')   # الشكل المعتم فوق نصّ: صارمٌ في الوحدتين، وللعلم في غيرهما حتى تُراجَع (44 في م3 وU1/U2 عند إضافته)
     PTSTRICT = ('m4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.', 'm4.u9.', 'm4.u10.', 'ws:m4.u9')   # نصٌّ فوق نقطة: صارمٌ من U5 (المراجع B لدفعة U6/U5، 10)، وللعلم في غيرها حتى تُراجَع
     textov3 = {k: v for k, v in textov.items() if k[0].startswith(TXSTRICT) and (not str(k[2]).startswith('شكلٌ يغطّي') or k[0].startswith(COVERSTRICT)) and (not str(k[2]).startswith('نصٌّ فوق نقطة') or k[0].startswith(PTSTRICT))}; contr3 = {k: v for k, v in contr.items() if k[0].startswith(TXSTRICT)}
     if os.environ.get('DARK') == '1': print('low contrast (dark):', len(contr3), '(m4: %d)' % (len(contr) - len(contr3))); [print(' ', *k) for k in list(contr)[:20]]

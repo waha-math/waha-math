@@ -353,6 +353,11 @@ export const factOf = it => { const t = it.t;
   if (t === 'polyReg') return `prg|${it.n}|${it.ask}`;
   if (t === 'isoTrap') return `itp|${it.a}|${it.ask}`;
   if (t === 'polyBuild') return `pbd|${it.sum}`;
+  /* ألعاب U2 الحركية (D288 (2)) بمفاتيح بنودها */
+  if (t === 'prChainGame') return `pfc|${it.pf}|${it.v || 0}`;
+  if (t === 'prFixGame') return `pfr|${it.pf}|${it.v || 0}|${it.miss[0]}`;
+  if (t === 'ineqGame') return `ipk|g|${[...it.s].sort((x, y) => x - y)}|${(it.fixed || []).join(',')}`;
+  if (t === 'polyGame') return it.sum ? `pbd|${it.sum}` : `psm|${it.n}`;
   if (t === 'reason' && it.pic && it.pic.kind === 'pfpic') return pfpicK(it.pic);
   if (t === 'cgCase') return `cgc|${it.cs}|${it.v || 0}`;
   if (t === 'pySq') return `pys|${[it.a, it.b].sort((x, y) => x - y)}`;   /* مفاتيح دلالية (المراجع A لبوابة M4-U3/U4، 2): الضلعان مرتّبين */
@@ -440,6 +445,9 @@ export const factOf = it => { const t = it.t;
   if (t === 'arTrCalc') return artK(it.phi, it.given, it.ask);
   if (t === 'arPar') return `arq|${it.phi}|${it.tilt}`;
   if (t === 'arTurn') return `aru|${it.mode}|${it.a ?? ''}|${it.want ?? ''}`;
+  if (t === 'arCompGame') return `arc|${it.a}|${it.k}`;   /* ألعاب U1 الحركية (D288 (2)) بمفاتيح بنودها */
+  if (t === 'arVertGame') return arvK(it.want, 1, 3);
+  if (t === 'arTrGame') return it.tilt ? `arq|${it.want}|${it.tilt}` : artK(it.want, 2, 6);
   if (t === 'reason' && it.pic && it.pic.kind === 'arpic') return arpicK(it.pic);
   /* S3-U10: المسألة العددية لا عرضها (المراجع A لبوابة S3-U10، 5 و6 و16): جدول النسب وحكم التكافؤ زوجُ نسبتين بلا سياقٍ ولا ترتيب،
      والتكبير بالضلعين مرتّبين بلا الشكل (والرسم كالأبعاد)، ومساحة المكبَّر بعددها والمعامل، ورسم الطول بالمقياس تحويلٌ إلى الورق */
@@ -725,6 +733,11 @@ export function d240(lessons, code, MAKERS) {
     /* اللعبة الحركية: ما يراه الطفل في جولاتها (خطوات الكنز بأيّ مرآةٍ بدأ) لا يُقاس بعدها (المراجع A لدفعة ألعاب U9، 6) */
     motion: s => (s.items || []).flatMap(it => {   /* خطوات الجولة كلٌّ بمفتاح بندها (المراجع A لدفعة U6/U5، 6): ربع الكنز، ورأس القائمة، والمعادلة ونقطة القطع */
       if (it.t === 'c5Hunt') return [`c4q|${it.x},${it.y}`, `c4p|pt|${it.x},${it.y}`];
+      if (it.t === 'arCompGame' && it.then) return [`arc|${it.a}|supp`];
+      if (it.t === 'prChainGame') return [`pfr|${it.pf}|${it.v || 0}|${it.rs}`];   /* والسبب المسؤول في الجولة */
+      if (it.t === 'prFixGame') return it.miss.slice(1).map(n => `pfr|${it.pf}|${it.v || 0}|${n}`);
+      if (it.t === 'polyGame') return it.sum ? [] : [`ptr|${it.n}`];   /* والمكمّلة في الجولة نفسها */
+      if (it.t === 'arVertGame' && it.all) return [arvK(it.want, 1, 2)];
       if (it.t === 'enZoomGame') return (it.ks || []).slice(1).map(k => `end|${[it.w, it.h].sort((x, y) => x - y)}|${k}`);   /* المعامل الثاني في الجولة نفسها */
       if (it.t === 'c5Detect') return [`c4p|corner|${c4PP(it.a, it.b)}`];
       if (it.t === 'c5Line') return [...(it.pt ? [] : [`c4e|${it.m},${it.i0}`]), `c4p|int|${it.m},${it.i0}`];

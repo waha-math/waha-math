@@ -1048,6 +1048,13 @@ RUNTIME = [
   ('G65 A10 المماس: ركن الورقة في أيّ موضع', "if (k !== 'T') { live = false; ctx.spot = k;", 'if (false) { live = false; ctx.spot = k;', ['test/games_run.py', '{F}'], {'ONLY': 'C6G'}, 'FAIL C6G المماس: ركن الورقة'),
   ('G65 B3x صائد الكنز: بلا حارس اللمسة الثانية', '{ guard: t0 === 0 ? svg.__lastDown : null }', '{ guard: null }', ['test/games_run.py', '{F}'], {'ONLY': 'X01G'}, 'FAIL X01G صائد الكنز: لمستان'),
   ('G65 B6x المستقيم: نقطة الطفل مرشّحٌ خاطئ', 'for (const p of [[0, item.i0], item.p2 || [1, item.m + item.i0]]) if (!cand.some', 'for (const p of []) if (!cand.some', ['test/games_run.py', '{F}'], {'ONLY': 'C5G'}, 'FAIL C5G المستقيم: لمس نقطة الطفل'),
+  # ألعاب M4-U1 وM4-U2 الحركية (D288 (2))
+  ('G12 القطع الذكية: المتساوي فجوةٌ لا تساوٍ', "err: x + y === z ? 'ineqEqual' : 'ineqGap'", "err: 'ineqGap'", ['test/games_run.py', '{F}'], {'ONLY': 'C12G'}, 'FAIL C12G القطع الذكية: ١ و٢ و٣'),
+  ('G12 سلسلة السبب: النتيجة أولاً ترتيبٌ عامّ', "err: +v === 2 ? 'pfJump' : 'pfOrder'", "err: 'pfOrder'", ['test/games_run.py', '{F}'], {'ONLY': 'C12G'}, 'FAIL C12G سلسلة السبب: النتيجة أولاً'),
+  ('G12 بنّاء المضلعات: الأضلاع في ١٨٠ بلا وسمها', "[[n * 180, 'polyNx180'],", "[[n * 180, 'polyTriOff'],", ['test/games_run.py', '{F}'], {'ONLY': 'C12G'}, 'FAIL C12G بنّاء المضلعات: ستة في مئة وثمانين'),
+  ('G12 أغلق البرهان: السبب الأول يُمحى بعد خطأ الثاني', "open = mi >= item.step, cur = mi === item.step;", "open = mi >= 0, cur = mi === item.step;", ['test/games_run.py', '{F}'], {'ONLY': 'C12G'}, 'FAIL C12G أغلق البرهان: السبب الأول يبقى مكتوباً'),
+  ('G12 حجز الدرجات بلا كلماتها يسقط إلى صفر', "(k !== 'ndeg' || GL[degw(v)])", "true", ['test/games_run.py', '{F}'], {'ONLY': 'HOLDG', 'RUNG_ONLY': 'm4.u2.'}, 'FAIL HOLDG 393x851'),
+  ('G12 العودان المعلومان: الحلّ المشترك لا يُبعد', "dim = bad.filter(i => i !== keep); }", "dim = []; }", ['test/games_run.py', '{F}'], {'ONLY': 'C12G'}, 'FAIL C12G القطع الذكية (عودان معلومان): الحلّ المشترك'),
   ('G65 B5x الخروج يترك حال اللعبة', 'function show(id) { if (MOTION_UNDO) MOTION_UNDO();', 'function show(id) {', ['test/games_run.py', '{F}'], {'ONLY': 'C6G'}, 'FAIL C6G الخروج من اللعبة إلى الخريطة'),
   # ألعاب M4-U7 الحركية (خطة ألعاب المرحلة 4)
   ('G كوب الماء: الحافّة لا تُفحص', "if (n !== item.h) { live = false; return { ans: 'fill|' + n, ctx }; } item.step = 1; SFX.tick();\n      await symTween", "if (false) { live = false; return { ans: 'fill|' + n, ctx }; } item.step = 1; SFX.tick();\n      await symTween", ['test/games_run.py', '{F}'], {'ONLY': 'C7G'}, 'FAIL C7G كوب الماء: «تمّ» قبل الحافّة'),

@@ -96,7 +96,7 @@ const PF_CY = i => 152 + i * 74;   /* تحت بطاقة المعطى والشك�
 /* ما تعتمد عليه كل خطوة: [] الرسم نفسه (المعلوم)، أو أرقام الخطوات قبلها (المستوى الثاني في سلسلة السبب وأغلق البرهان: المراجع B لبوابة M4-U1/U2، 8) */
 const PF_DEP = k => k === 'tri' || k === 'poly' ? [[], [0], [0, 1]] : [[], [], [0, 1]];
 function pfFigGlow(m, fig) { let b = null; try { b = fig.getBBox(); } catch (e) {} if (!b || !b.width) return null;
-  const x0 = Math.max(24, b.x - 8), x1 = Math.min(336, b.x + b.width + 8), y0 = Math.max(18, b.y - 6), y1 = b.y + b.height + 6;
+  const vb = fig.ownerSVGElement && fig.ownerSVGElement.viewBox && fig.ownerSVGElement.viewBox.baseVal, H = vb && vb.height ? vb.height : 1e4, x0 = Math.max(24, b.x - 8), x1 = Math.min(336, b.x + b.width + 8), y0 = Math.max(18, b.y - 6), y1 = Math.min(H - 18, b.y + b.height + 6);   /* داخل الإطار الورقي (أسفله H − 14) */
   const r = 12; el('path', { d: `M${x0 + r} ${y0} H${x1 - r} A${r} ${r} 0 0 1 ${x1} ${y0 + r} V${y1 - r} A${r} ${r} 0 0 1 ${x1 - r} ${y1} H${x0 + r} A${r} ${r} 0 0 1 ${x0} ${y1 - r} V${y0 + r} A${r} ${r} 0 0 1 ${x0 + r} ${y0} Z`,
     fill: 'rgba(242,201,76,.10)', stroke: PF.hl, 'stroke-width': 2.4, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m); return [x0, y0, x1, y1]; }
 /* المعطى والمطلوب: الخطوة الأولى الثابتة في البرهان المكتوب (D288 (1)، A26 لبوابة M4-U1/U2): سطران في بطاقةٍ منقّطة */
@@ -139,7 +139,7 @@ ITEM.prChain = {
 const PF_ERR = { measure: 'pfMeasure', measureS: 'pfMeasure', measureT: 'pfMeasure', looks: 'pfLooks', looksS: 'pfLooks', looksL: 'pfLooks', circ: 'pfCircular', conSmall: 'conOpen', conAny: 'conOpen' };   /* وفتحة الفرجار في خطوات الإنشاء (المراجع A لبوابة M4-U7/U8، 13) */   /* والقياس والنظر من جنس الخطوة: أضلاع، أو مثلثات، أو طول (المراجع A لبوابة M4-U3/U4، 9) */
 ITEM.prReason = {
   make(spec) { /*T*/if (TESTHOOK && spec.cands[0] !== PF_PROOFS[spec.pf].rs[spec.step]) testBug('prReason: السبب الأول ليس سبب الخطوة');/*/T*/ return { ...spec, want: spec.cands[0], tag: 'pf-reason-' + spec.pf }; },
-  async ask(item, mode, tries) { const svg = m3Stage(166), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; svg.style.minHeight = '90px'; pfFitFig(g, item.pf, 18, 146, { v, sMax: .72, y0: 10, s: .72 });   /* على الورقة: تُقرأ في الوضع الداكن (المراجع B لبوابة M4-U1/U2، 3) */
+  async ask(item, mode, tries) { const sh = innerHeight <= 600, svg = m3Stage(166), g = el('g', { 'pointer-events': 'none' }, svg), v = item.v || 0; svg.style.minHeight = sh ? '60px' : '90px';   /* أقصر الشاشات: مسرحٌ أقصر بشكلٍ أصغر، فتظهر البطاقات الثلاث ولا يُعصر الرسم */ pfFitFig(g, item.pf, 18, 146, { v, sMax: .72, y0: 10, s: .72 });   /* على الورقة: تُقرأ في الوضع الداكن (المراجع B لبوابة M4-U1/U2، 3) */
     const rows = pfRows(item.pf, v, item.step);   /* المعطى والخطوات الثلاث نصوصاً في الصفحة بخطٍّ يُقرأ على أضيق شاشة (D288 (1)؛ B-7 وB-11 لبوابتي U1/U2 وU3/U4) */
     if (tries >= 3) { await S('gen.pf.together.reason'); } else await S(item.q || 'gen.pf.q.reason');
     const cp = cardPick(item.cands.map((o, i) => ({ id: 'gen.pf.rs.' + o, k: o, ok: i === 0 })), { intro: item.q || 'gen.pf.q.reason', cls: item.cands.length <= 3 ? 'row3' : '' });   /* بالعرض: الأسباب الثلاثة في صفٍّ واحد، فيبقى للشكل ارتفاعه تحت الخطوات (X-03) */ const c = await cp.p; cp.done(); return { ans: c.k, ctx: { svg, cp, c, fig: g, rows } }; },

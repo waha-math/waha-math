@@ -730,6 +730,101 @@ async def pfl(b):
   check('PFL', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
 # M4-U4 وM4-U3 الألعاب الحركية (خطة ألعاب المرحلة 4): مربعات الشبكة، والقائم أم لا؟، ومضخة الماء؛ والقطع المتطابقة، وأين الزاوية؟، ومكبّر الصور، ومحقّق الرباعيات
+async def c12g(b):
+  """ألعاب M4-U1 وM4-U2 الحركية (D288 (2)): في كل خطوةٍ من كل جولة خطأٌ واحد بوسمٍ خاصّ والخطوات المنجزة باقية والجولة تتمّ بعده؛ والأخطاء المقصودة
+  بأعيانها (المتساوي ineqEqual، والفجوة ineqGap، والقفز إلى النتيجة pfJump، والأضلاع في ١٨٠ polyNx180، والنظر pfLooks)؛ والدرجات حتى الكشف في الدروس السبعة"""
+  ctx, pg, errs = await page(b)
+  async def logs(): return await pg.evaluate("() => LOG.attempts.map(x => [x.tag, x.ok, x.firstTry === undefined ? null : x.firstTry, x.err || null])")
+  nn = lambda st: st['auto']['n'] if st and st.get('auto') else -1
+  async def wk(after=-1): return await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['n'] != after), 20000)
+  async def res(): return await until(pg, lambda s: s['res'] or s['err'], 30000)
+  async def act(k): await pg.evaluate("(k) => { const a = window.__auto; if (a) a[k](); }", k)
+  async def tap(sel): await pg.evaluate("(s) => { const g = document.querySelector('#stage svg ' + s); if (g) g.dispatchEvent(new MouseEvent('click', { bubbles: true })); }", sel); await pg.wait_for_timeout(450)
+  async def press(i, k):
+    for _ in range(k): await pg.evaluate("(i) => { const b = document.querySelectorAll('#stage .choices.icons .pick')[i]; if (b) b.click(); }", i); await pg.wait_for_timeout(40)
+  async def done(): await pg.wait_for_timeout(150); await pg.evaluate("() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }"); await pg.wait_for_timeout(500)
+  async def num(v): await pg.evaluate("(v) => { const b = [...document.querySelectorAll('#stage .choices.nums button')].find(b => +b.dataset.k === v); if (b) b.click(); }", v); await pg.wait_for_timeout(600)
+  async def opt(k): await pg.evaluate("(k) => { const b = [...document.querySelectorAll('#stage .choices .pick')].find(x => x.dataset.k === k); if (b) b.click(); }", k); await pg.wait_for_timeout(600)
+  step = "() => window.__item ? window.__item.step : null"
+  LIDS = ('m4.u1.d1', 'm4.u1.d2', 'm4.u1.d3', 'm4.u2.d1', 'm4.u2.d2', 'm4.u2.d3', 'm4.u2.d4')
+  specs = {lid: await pg.evaluate("(lid) => LDATA[lid].flow.filter(s => s.scene === 'motion').flatMap(s => s.items)", lid) for lid in LIDS}
+  async def run(lid, spec): await pg.evaluate("() => { hush(); LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, spec, 'practice']); return await wk()
+  # ---- كل خطوة: خطأٌ واحد بوسمه، ثم تبقى الخطوة وتتمّ الجولة
+  for lid in LIDS:
+    for ri, spec in enumerate(specs[lid]):
+      st = await run(lid, spec); n = 0; ok_path = []
+      while st and not st['res'] and st.get('auto'):
+        ok_path.append(await pg.evaluate(step)); await act('ok'); st = await wk(nn(st)); n += 1
+        if n > 40: break
+      nsteps = (max([x for x in ok_path if x is not None] + [0]) + 1) if ok_path else 1
+      for S in range(nsteps):
+        st = await run(lid, spec); hit = None
+        for _ in range(40):
+          if not st or st['res'] or not st.get('auto'): break
+          if await pg.evaluate(step) == S and hit is None:
+            hit = S; await act('wrong'); st = await wk(nn(st)); L = await logs()
+            for _ in range(3):   # اختيارٌ من عدّة لمسات (الأعواد الثلاثة): المحاولة تُسجَّل حين تكتمل
+              if L or not st or st['res'] or not st.get('auto'): break
+              await act('ok'); st = await wk(nn(st)); L = await logs()
+            s1 = await pg.evaluate(step)
+            check('C12G', L and L[-1][1] is False and L[-1][3] not in (None, 'generic') and (s1 is None or s1 >= S), '%s ج%d الخطوة %d: الخطأ بوسمٍ خاصّ والخطوة باقية' % (lid, ri + 1, S), [L[-1:], s1])
+            continue
+          await act('ok'); st = await wk(nn(st))
+        r = st if st and st['res'] else await res()
+        check('C12G', r['res'] and r['res']['ok'] and not r['res']['first'], '%s ج%d الخطوة %d: الجولة تتمّ صحيحةً بعد الخطأ' % (lid, ri + 1, S), r['res'])
+  # ---- القطع الذكية: ١+٢=٣ يساوي، و١+٢<٤ فجوة، ثم ٢ و٣ و٤ تلتقي، و«يساوي» في المقارنة خطأ
+  sp = specs['m4.u2.d3'][0]; await run('m4.u2.d3', sp)
+  for i in (0, 1, 2): await tap('[data-stick="%d"]' % i)
+  await pg.wait_for_timeout(600); L = await logs(); check('C12G', L[-1:] and L[-1][3] == 'ineqEqual', 'القطع الذكية: ١ و٢ و٣ تتساوى فلا تلتقي، خطأ ineqEqual', L)
+  await wk()
+  for i in (0, 1, 3): await tap('[data-stick="%d"]' % i)
+  await pg.wait_for_timeout(600); L = await logs(); check('C12G', L[-1:] and L[-1][3] == 'ineqGap', 'القطع الذكية: ١ و٢ و٤ تبقى بينها فجوة، خطأ ineqGap', L)
+  await wk()
+  for i in (1, 2, 3): await tap('[data-stick="%d"]' % i)
+  await pg.wait_for_timeout(600); s1 = await pg.evaluate(step); await opt('eq'); L = await logs()
+  check('C12G', s1 == 1 and L[-1][3] == 'ineqEqual', 'القطع الذكية: ٢ و٣ و٤ تلتقي فالمقارنة، و«يساوي» خطأ ineqEqual', [s1, L])
+  await wk(); await opt('gt'); r = await res(); check('C12G', r['res'] and r['res']['ok'], 'القطع الذكية: المجموع أكبر', r['res'])
+  # ---- العودان المعلومان: العود الثالث ١١ يساوي مجموعهما، والحلّ المشترك يُبعد الأعواد التي لا تُغلقه إلا واحداً
+  sp = specs['m4.u2.d3'][2]; await run('m4.u2.d3', sp); await tap('[data-stick="5"]'); await pg.wait_for_timeout(600); L = await logs()
+  check('C12G', L[-1:] and L[-1][3] == 'ineqEqual', 'القطع الذكية (عودان معلومان): ١١ = ٤ + ٧ خطأ ineqEqual', L)
+  for _ in range(2): st = await wk(); await tap('[data-stick="5"]'); await pg.wait_for_timeout(500)
+  st = await wk(); await pg.wait_for_timeout(300); dimd = await pg.evaluate("() => [...document.querySelectorAll('#stage svg [data-stick]')].filter(g => g.getAttribute('opacity') === '0.3').map(g => +g.dataset.stick)")
+  check('C12G', sorted(dimd) == [0, 5], 'القطع الذكية (عودان معلومان): الحلّ المشترك يُبعد ٢ و١١ ويُبقي ٣ و٥', dimd)
+  # ---- سلسلة السبب: النتيجة أولاً قفزٌ pfJump، والسبب «تبدوان متساويتين» خطأ pfLooks
+  sp = specs['m4.u2.d1'][0]; await run('m4.u2.d1', sp); await tap('[data-step="2"]'); await pg.wait_for_timeout(600); L = await logs()
+  check('C12G', L[-1:] and L[-1][3] == 'pfJump', 'سلسلة السبب: النتيجة أولاً خطأ pfJump', L)
+  st = await wk(); await tap('[data-step="0"]'); st = await wk(nn(st)); await tap('[data-step="1"]'); st = await wk(nn(st)); s1 = await pg.evaluate(step)
+  await tap('[data-rs="looks"]'); await pg.wait_for_timeout(600); L = await logs()
+  check('C12G', s1 == 2 and L[-1][3] == 'pfLooks', 'سلسلة السبب: الخطوتان بترتيبهما ثم «تبدوان متساويتين» سبباً خطأ pfLooks', [s1, L])
+  # ---- أغلق البرهان: القياس سبباً pfMeasure، والسبب الأول باقٍ بعد خطأ الثاني
+  sp = specs['m4.u2.d2'][0]; await run('m4.u2.d2', sp); await opt('measure'); L = await logs()
+  check('C12G', L[-1:] and L[-1][3] == 'pfMeasure', 'أغلق البرهان: «قسناهما بالمنقلة» خطأ pfMeasure', L)
+  await wk(); await opt('line'); await pg.wait_for_timeout(300); s1 = await pg.evaluate(step); await opt('looks'); L = await logs(); await wk(); s2 = await pg.evaluate(step)
+  why = await pg.evaluate("() => [...document.querySelectorAll('#stage .pfrow .why')].map(w => w.textContent)")
+  check('C12G', s1 == 1 and L[-1][3] == 'pfLooks' and s2 == 1 and why and '؟' not in why[0], 'أغلق البرهان: السبب الأول يبقى مكتوباً بعد خطأ الثاني (pfLooks)', [s1, s2, L, why])
+  # ---- بنّاء المضلعات: أربعة مثلثات للسداسي، والأضلاع عدداً للمثلثات خطأ polyTriN، والأضلاع في ١٨٠ خطأ polyNx180
+  sp = specs['m4.u2.d4'][0]; await run('m4.u2.d4', sp); await press(1, 3); await done(); s1 = await pg.evaluate(step)
+  await num(6); L = await logs(); check('C12G', s1 == 1 and L[-1:] and L[-1][3] == 'polyTriN', 'بنّاء المضلعات: السداسي أربعة مثلثات، و«ستة» خطأ polyTriN', [s1, L])
+  await wk(); await num(4); await pg.wait_for_timeout(200); await num(1080); L = await logs(); check('C12G', L[-1][3] == 'polyNx180', 'بنّاء المضلعات: ستة في مئة وثمانين خطأ polyNx180', L)
+  await wk(); await num(720); r = await res(); check('C12G', r['res'] and r['res']['ok'], 'بنّاء المضلعات: سبعمئة وعشرون', r['res'])
+  sp = specs['m4.u2.d4'][1]; await run('m4.u2.d4', sp); await press(1, 4); await done(); L = await logs(); s1 = await pg.evaluate(step)
+  check('C12G', L[-1:] and L[-1][1] is False and s1 == 0, 'بنّاء المضلعات: مثلثٌ ناقص لا ينطبق على الإطار الثماني فلا تنتهي الخطوة', [L, s1])
+  # ---- الدروس السبعة: كل جولةٍ بأخطائها حتى الكشف
+  for lid in LIDS:
+    for i in await pg.evaluate("(lid) => LDATA[lid].flow.map((s, i) => s.scene === 'motion' ? i : -1).filter(i => i >= 0)", lid):
+      await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, [lid, i, 'game']); last = None
+      for _ in range(300):
+        s2 = await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['n'] != last), 20000)
+        if s2['res'] or s2['err'] or not s2['auto']: break
+        last = s2['auto']['n']; await pg.wait_for_timeout(120)
+        await pg.evaluate("() => { const a = window.__auto; if (a) (a.wrong || a.ok)(); }")
+      L = await logs(); per = {}
+      for x in L:
+        if x[1] is False: per[x[0]] = per.get(x[0], 0) + 1
+      items = await pg.evaluate("([lid, i]) => LDATA[lid].flow[i].items.length", [lid, i])
+      check('C12G', s2['res'] and not s2['err'] and 4 * items <= sum(per.values()) <= 6 * items, '%s (%d): كل جولةٍ بأخطائها حتى الكشف بلا خطأ في الصفحة' % (lid, i), [s2['res'], s2['err'], per])
+  check('C12G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
+
 async def c34g(b):
   """ألعاب M4-U4 وM4-U3 الحركية (D288 (2)): الخطأ المقصود في كل خطوة بوسمه، والخطوات المنجزة تبقى بعد الخطأ، والخطوة الوسطى لا تُنهي الجولة،
   والدرجات الأربع حتى الكشف في كل جولةٍ من الدروس السبعة بلا خطأ في الصفحة"""
@@ -899,7 +994,7 @@ async def rungg(b):
   await pg.evaluate("""([kid]) => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([kid])); localStorage.setItem('hp_kid', JSON.stringify(kid.id));
     localStorage.setItem('hp_settings:' + kid.id, JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:' + kid.id, JSON.stringify({ schema: 3, unlockAll: true })); }""", [KID])
   await pg.reload(); await pg.wait_for_timeout(400)
-  only = os.environ.get('RUNG_ONLY', 'm4.u3.,m4.u4.,m4.u5.,m4.u6.,m4.u7.,m4.u8.,m4.u9.').split(',')
+  only = os.environ.get('RUNG_ONLY', 'm4.u1.,m4.u2.,m4.u3.,m4.u4.,m4.u5.,m4.u6.,m4.u7.,m4.u8.,m4.u9.').split(',')
   await pg.evaluate("(src) => { window.__tx = eval('(' + src + ')'); window.__onReveal = () => { window.__revTX = (window.__revTX || []).concat(window.__tx()); }; }", TX)   # المسرح بعد الكشف مباشرةً، قبل أن يبدأ التوأم
   items = await pg.evaluate("(only) => Object.keys(LDATA).filter(l => only.some(o => l.startsWith(o))).flatMap(l => LDATA[l].flow.filter(s => s.scene === 'motion').flatMap(s => s.items.map(it => [l, it])))", only)
   bad, n = {}, 0
@@ -989,10 +1084,10 @@ async def g87m(b):
 async def togg(b):
   """المراجع B لدفعة ألعاب U8/U7، 7 و8 (L11–L13): الحلّ المشترك فارغٌ في خطوات التقاطع، ولا فحص يرى الحلّ المشترك في الخطوات اللاحقة"""
   ctx, pg, errs = await page(b)
-  only = os.environ.get('RUNG_ONLY', 'm4.u3.,m4.u4.,m4.u5.,m4.u6.,m4.u7.,m4.u8.').split(',')
+  only = os.environ.get('RUNG_ONLY', 'm4.u1.,m4.u2.,m4.u3.,m4.u4.,m4.u5.,m4.u6.,m4.u7.,m4.u8.').split(',')
   items = await pg.evaluate("(only) => Object.keys(LDATA).filter(l => only.some(o => l.startsWith(o))).flatMap(l => LDATA[l].flow.filter(s => s.scene === 'motion').flatMap(s => s.items.map(it => [l, it])))", only)
   # حلٌّ مشترك بالحال لا بالرسم: الربعان الباقيان، ونقطةٌ مُبعَدة، وحركةٌ واحدة باقية، وطبقةٌ قبل الحافّة، وما عدا القاع مغلَّف
-  STATE_TG = {('c5Hunt', 0), ('c5Line', 2), ('c6ChordGame', 0), ('c6TanGame', 0), ('c7Cup', 0), ('c7Wrap', 0), ('c7Thirds', 0), ('c7Tank', 0), ('pyPumpGame', 1), ('qdDetGame', 0)}   # والمضخة قبل موضعها بضغطة، والبطاقات مقلوبةٌ كلها
+  STATE_TG = {('c5Hunt', 0), ('c5Line', 2), ('c6ChordGame', 0), ('c6TanGame', 0), ('c7Cup', 0), ('c7Wrap', 0), ('c7Thirds', 0), ('c7Tank', 0), ('pyPumpGame', 1), ('qdDetGame', 0), ('arCompGame', 0), ('arVertGame', 0), ('arTrGame', 0), ('polyGame', 0), ('prChainGame', 0), ('prFixGame', 0), ('prFixGame', 1), ('prFixGame', 2), ('ineqGame', 0)}   # والدوران قبل موضعه بضغطة، ومثلثٌ واحد باقٍ، والنتيجة مُبعَدةٌ باهتة، والخطوات المعتمد عليها مُعلَّمةٌ في الصفحة وسببٌ مُبعَد   # والمضخة قبل موضعها بضغطة، والبطاقات مقلوبةٌ كلها
   bad, n = [], 0
   for lid, spec in items:
     for S in range(5):
@@ -1049,7 +1144,7 @@ async def x01g(b):
 async def main():
   async with async_playwright() as p:
     b = await p.chromium.launch()
-    for k, f in (('STORY', story), ('MINUS', minus), ('OFFER', offer), ('FRAME', frame), ('TEN', ten), ('DRAW', draw), ('C9G', c9g), ('C8G', c8g), ('C7G', c7g), ('C6G', c6g), ('C5G', c5g), ('C34G', c34g), ('X01G', x01g), ('HELPG', helpg), ('HOLDG', holdg), ('RUNGG', rungg), ('G87M', g87m), ('TOGG', togg), ('PFL', pfl)):
+    for k, f in (('STORY', story), ('MINUS', minus), ('OFFER', offer), ('FRAME', frame), ('TEN', ten), ('DRAW', draw), ('C9G', c9g), ('C8G', c8g), ('C7G', c7g), ('C6G', c6g), ('C5G', c5g), ('C34G', c34g), ('C12G', c12g), ('X01G', x01g), ('HELPG', helpg), ('HOLDG', holdg), ('RUNGG', rungg), ('G87M', g87m), ('TOGG', togg), ('PFL', pfl)):
       if not on(k): continue
       try: await f(b)
       except Exception as e: check(k, False, 'توقّف القسم باستثناء', str(e)[:300])   # (على النسخة القديمة يمضي البند إلى «كم؟» فلا تُلمس أزرار البناء)

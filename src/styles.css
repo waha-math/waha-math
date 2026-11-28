@@ -323,6 +323,10 @@ html.lpause #confetti { visibility: hidden; }
 @media (max-height: 600px) {
   .choices.cards .card { font-size: 16px; line-height: 1.45; padding: 4px 8px; }
   .choices.icons .pick { font-size: 15px; line-height: 1.35; padding: 4px 6px; gap: 0; } .choices.icons .pick svg { max-width: 40px; max-height: 40px; }
+  /* خطوات البرهان مضغوطةً كما بالعرض: كانت البطاقة الثالثة في «أغلق البرهان» تحت حافّة المسرح (البطاقات 522 والمسرح 488 على iPhone SE) */
+  #lesson .pfsteps { gap: 2px; padding: 0 8px 2px; } #lesson .pfrow { font-size: 13.5px; line-height: 1.25; padding: 1px 8px; } #lesson .pfrow .why { font-size: 12px; } #lesson .pfrow.given { font-size: 12.5px; }   /* #lesson: القواعد العامة بعدها في الملف كانت تغلبها */
+  /* وأسباب البرهان الثلاثة في صفٍّ واحد (كما بالعرض): ثلاث بطاقاتٍ بعضها فوق بعض كانت تعصر الشكل حتى تصغر أعداد زواياه عن القراءة (iPhone SE) */
+  #lesson .stage > .choices.cards.row3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } #lesson .stage > .choices.cards.row3 .card { font-size: 14px; line-height: 1.4; padding: 3px 5px; }
 }
 /* الهاتف بالعرض (مراجعة الخصم X-03: كان الرسم المسؤول عنه يختفي تحت الخيارات في 346 من 825 انتظاراً، ولا يظهر في 58):
    عمودان. على اليمين المرشد وفقاعته والزرّ الكبير، وعلى اليسار المسرح بارتفاع الشاشة كلّه؛ والرسم يملأ ما بقي منه فوق خياراتٍ مضغوطة
@@ -349,7 +353,7 @@ html.lpause #confetti { visibility: hidden; }
   .stage > .choices.rbbar .pick { min-height: 56px; } .go, .help { min-height: 56px; }   /* D255: 56 بكسلاً للمس بالعرض أيضاً (المراجع B لبوابة U6/U7، 25) */
   /* لوحة الأرقام بالعرض: ستة في الصف وصفّان، فيبقى الرسم ظاهراً (Gate X-03: كان 90 بكسلاً تحت أربعة صفوف) */
   .stage > .choices.numpad { grid-template-columns: repeat(6, minmax(56px, 1fr)); } .numpad .npk { min-height: 56px; } .numpad .npv { min-height: 38px; font-size: 26px; }
-  .pfsteps { gap: 2px; padding: 0 8px 2px; } .pfrow { font-size: 13.5px; line-height: 1.25; padding: 1px 8px; } .pfrow .why { font-size: 12px; } .pfrow.given { font-size: 12.5px; }   .stage > .choices.cards.row3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stage > .choices.cards.row3 .card { font-size: 14px; line-height: 1.45; padding: 3px 5px; }   /* خطوات البرهان بالعرض أصغر، فيبقى للشكل ارتفاعه (X-03) */
+  #lesson .pfsteps { gap: 2px; padding: 0 8px 2px; } #lesson .pfrow { font-size: 13.5px; line-height: 1.25; padding: 1px 8px; } #lesson .pfrow .why { font-size: 12px; } #lesson .pfrow.given { font-size: 12.5px; }   /* #lesson: القواعد العامة بعدها في الملف كانت تغلبها */   .stage > .choices.cards.row3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stage > .choices.cards.row3 .card { font-size: 14px; line-height: 1.45; padding: 3px 5px; }   /* خطوات البرهان بالعرض أصغر، فيبقى للشكل ارتفاعه (X-03) */
 }
 @media (max-width: 340px) { #who { display: none; } #talk { grid-template-columns: 1fr; } .cover .talk { grid-template-columns: 64px 1fr; } .cover .talk .who { width: 64px; height: 74px; }
   .avatars { gap: 8px; } .av { min-height: 62px; padding: 4px; } }   /* صور الملف الأربع في 288 بكسلاً، لا تخرج عن الشاشة */
