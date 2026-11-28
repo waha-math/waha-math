@@ -390,7 +390,7 @@ export const factOf = it => { const t = it.t;
   if (t === 'ci4TanLen') return `c6l|${it.r}|${it.op}|${it.ask}`;
   if (t === 'ci4TanAng') return `c6a|${it.th}`;
   if (t === 'c6ChordGame') return it.L == null ? `c6diam|${it.r}` : `c6h|${it.r}|${Math.round(Math.sqrt(it.r * it.r - it.L * it.L / 4))}`;   /* ألعاب U6 الحركية (D288 (2)) بمفاتيح بنودها */
-  if (t === 'c6TanGame') return it.mode === 'pivot' ? `c6l|6|${it.op}|len` : `c6tg|${it.a ?? 270}`;
+  if (t === 'c6TanGame') return it.mode === 'pivot' ? `c6l|${it.r ?? 6}|${it.op}|len` : `c6tg|${it.a ?? 270}`;
   if (t === 'c6CenGame') return it.cen === 180 ? 'c6g|180' : `c6g|${it.cen}|${it.pAt ?? 90}`;
   if (t === 'ci4Ang') return it.cen === 180 ? 'c6g|180' : `c6g|${it.cen}|${it.pAt ?? 90}`;   /* والمحيطية على القطر حقيقةٌ واحدة أينما كان رأسها */   /* الشكل نفسه أياً كان المسؤول عنه */
   if (t === 'ci4Sector') return `c6s|${it.kind}|${it.ang}|${it.C ?? ''}|${it.A ?? ''}|${it.r ?? ''}`;
@@ -715,7 +715,11 @@ export function d240(lessons, code, MAKERS) {
     c9RotShow: () => ['c9p|3,1|rot90', 'c9p|3,1|rot180', 'c9p|3,1|rot270'],
     c9ProtHook: () => ['c9r|40|0|5|ang'], c9ProtShow: () => ['c9r|50|0|5|ang', 'c9r|len|5'],
     /* اللعبة الحركية: ما يراه الطفل في جولاتها (خطوات الكنز بأيّ مرآةٍ بدأ) لا يُقاس بعدها (المراجع A لدفعة ألعاب U9، 6) */
-    motion: s => (s.items || []).flatMap(it => { if (it.t !== 'c9Trs') return []; const V = ([x, y]) => [-x, y], H = ([x, y]) => [x, -y], eq = (a, b) => a[0] === b[0] && a[1] === b[1], out = [];
+    motion: s => (s.items || []).flatMap(it => {   /* خطوات الجولة كلٌّ بمفتاح بندها (المراجع A لدفعة U6/U5، 6): ربع الكنز، ورأس القائمة، والمعادلة ونقطة القطع */
+      if (it.t === 'c5Hunt') return [`c4q|${it.x},${it.y}`, `c4p|pt|${it.x},${it.y}`];
+      if (it.t === 'c5Detect') return [`c4p|corner|${c4PP(it.a, it.b)}`];
+      if (it.t === 'c5Line') return [...(it.pt ? [] : [`c4e|${it.m},${it.i0}`]), `c4p|int|${it.m},${it.i0}`];
+      if (it.t !== 'c9Trs') return []; const V = ([x, y]) => [-x, y], H = ([x, y]) => [x, -y], eq = (a, b) => a[0] === b[0] && a[1] === b[1], out = [];
       for (const [k, f, g] of [['refV', V, H], ['refH', H, V]]) { const q = f(it.p); if (eq(q, it.goal)) out.push(`c9p|${it.p}|${k}`); else if (!eq(q, it.p) && eq(g(q), it.goal)) out.push(`c9p|${it.p}|${k}`, `c9p|${q}|${k === 'refV' ? 'refH' : 'refV'}`); } return out; }),
     c9TwoMirrorShow: () => ['c9p|3,1|refV', 'c9p|-3,1|refH', 'c9p|3,1|rot180', 'c9c|3,1|["refV","refH"]|img', 'c9c|one|rot180', 'c9c|order|["refV",["tr",3,0]]'],
     c9CityShow: () => ['c9d|[[3,1],[5,1],[5,3],[4,4],[3,3]]|refV', 'c9n|[[3,1],[5,1],[5,3],[4,4],[3,3]]|refV', 'c9d|[[4,-1],[5,-1],[5,-3],[4,-3]]|rot90', 'c9n|[[4,-1],[5,-1],[5,-3],[4,-3]]|rot90'],
@@ -1067,6 +1071,11 @@ export function d240(lessons, code, MAKERS) {
         if (hit) errors.push(`${L.id}: توأم البند «${v.q}» يعيد مسألة ${lab.get(hit[0]) || 'بند'} (${b})، والتوأم مسألة جديدة (الفحص المستقل C)`); }
       for (let x = 0; x < tw.length; x++) for (let y = x + 1; y < tw.length; y++) { const [v, mv, b] = tw[x], [w, mw, c] = tw[y]; if (b !== c) continue;
         const both = [...mv].filter(k => mw.has(k)); if (both.length) errors.push(`${L.id}: توأما «${v.q}» و«${w.q}» مسألة واحدة (${b}) في ${PN[both[0]]}: يراها الطفل مرتين، والثانية تذكّر (الفحص المستقل E)`); } } }
+  /* جولات اللعبة الحركية لا تعيد مسألةً من تمرين درسها (خطة ألعاب المرحلة 4؛ المراجع A لدفعة U6/U5، 7): مفاتيح الجولة وخطواتها مقابل بنود التمرين العادي والتحدّي */
+  for (const L of Object.values(lessons)) { const G = new Map();
+    L.flow.forEach((st, i) => { if (st.scene !== 'motion') return; for (const it of st.items || []) { const f = fact(it); if (f && !G.has(f)) G.set(f, it.q || i); } for (const f of SCENE_FACTS.motion(st)) if (f && !G.has(f)) G.set(f, i); });
+    if (!G.size) continue; const Pr = L.practice || {};
+    for (const [nm, arr] of [['التمرين العادي', Pr.normal || []], ['التحدّي', Pr.challenge || []]]) arr.forEach((v, j) => { const f = v && typeof v === 'object' ? fact(v) : null; if (f && G.has(f)) errors.push(`${L.id}: ${nm} [${j}] «${v.q}» مسألة جولةٍ في لعبة الدرس «${G.get(f)}» (${f})، واللعبة لا تعيد مسألةً من تمرين درسها (المراجع A لدفعة U6/U5، 7)`); }); }
   /* «ضع القطعة في مكانها على الخريطة» يُحفظ جوابه حلقةً بين حلقات بعينها (الفحص المستقل D: المراجعة كانت الإتقان بقطعة أخرى، بالحلقات الثلاث نفسها والجواب نفسه):
      فبند «ضع» في تقييم لا تتكرّر حلقة جوابه في بند «ضع» آخر من الوحدة، أيّاً كانت القطعة والحلقات الأخرى (الفحص المستقل E: غُيّرت حلقة واحدة
      وبقي الجواب في الحلقة نفسها على الشاشة، فيُحفظ مكاناً) */

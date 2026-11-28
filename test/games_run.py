@@ -414,22 +414,45 @@ async def c5g(b):
   st = await wk('tap', nn(st)); await tapk(True); st = await wk('axPts', nn(st)); await auto('wrong'); L = await logs()
   check('C5G', L[1:] == [['c5-hunt', False, False, 'c4SignX']], 'صائد الكنز: الربع الصحيح ثم إشارة السين المعكوسة خطأ c4SignX', L)
   st = await nxt(st); await pg.wait_for_timeout(300); hp = await pg.evaluate(helps); k3 = st['auto']['kind'] if st['auto'] else None; await auto('ok'); r = await res(); L = await logs()
-  ch = await pg.evaluate("() => document.querySelectorAll('#stage svg [data-chest]').length")
+  ch = await pg.evaluate("() => document.querySelectorAll('#stage svg [data-chest=open]').length")
   check('C5G', k3 == 'axPts' and r['res'] and r['res']['ok'] and ch == 1, 'صائد الكنز: الربع باقٍ بعد الخطأ (المستوى الثاني مشيٌ على المحورين كبند النقطة)، ثم يُفتح الكنز', [k3, hp, r['res'], ch, L])
   await run('m4.u5.d1', spec); st = await wk('tap')
   for _ in range(3): await tapk(False); st = await wk('tap', nn(st))
   await pg.wait_for_timeout(300); tq = await pg.evaluate("() => document.querySelectorAll('#stage svg [role=button]').length")
   check('C5G', tq == 2, 'صائد الكنز: الحلّ المشترك يُبقي ربعي جهة السين', tq)
+  async def tapsel(sel): await pg.evaluate("(sel) => { const t = document.querySelector(sel); if (t) t.dispatchEvent(new MouseEvent('click', { bubbles: true })); }", sel); await pg.wait_for_timeout(700)
+  async def opt(k): await pg.evaluate("(k) => { const b = document.querySelector('#stage .choices .pick[data-k=\"' + k + '\"]'); if (b) b.click(); }", k); await pg.wait_for_timeout(600)
+  async def card(lab): return await pg.evaluate("(lab) => [...document.querySelectorAll('#stage svg text')].some(t => t.textContent.includes(labelText(lab).slice(0, 8)))", lab)
+  await run('m4.u5.d1', spec); st = await wk('tap'); await tapsel('#stage svg [role=button][data-axis]'); L = await logs()
+  check('C5G', L[:1] == [['c5-hunt', False, True, 'c5NotAxis']], 'صائد الكنز: «على محور» لنقطةٍ في ربع خطأ c5NotAxis (المراجع A لدفعة U6/U5، 17)', L)
+  spec = {'t': 'c5Hunt', 'x': 0, 'y': 3, 'q': 'ht.03'}; await run('m4.u5.d1', spec); st = await wk('tap'); await tapk(False); L = await logs()
+  check('C5G', L[:1] == [['c5-hunt', False, True, 'c5AxisQuad']], 'صائد الكنز: ربعٌ لنقطةٍ على محور خطأ c5AxisQuad', L)
+  st = await wk('tap', nn(st)); await tapk(False); st = await nxt(st); await pg.wait_for_timeout(300); ar = await pg.evaluate(helps); cz = await card('c5AskZero')
+  await tapk(True); st = await wk('axPts', nn(st)); await place(0, 3); r = await res()
+  check('C5G', ar > 0 and cz and r['res'] and r['res']['ok'], 'صائد الكنز: المستوى الثاني سهم الإشارة وبطاقة الصفر، ثم «على محور» والنقطة (٠، ٣)', [ar, cz, r['res']])
+  await run('m4.u5.d1', spec); st = await wk('tap')
+  for _ in range(3): await tapk(False); st = await wk('tap', nn(st))
+  await pg.wait_for_timeout(300); tq = await pg.evaluate("() => [document.querySelectorAll('#stage svg [role=button]').length, document.querySelectorAll('#stage svg [role=button][data-axis]').length, (window.__clips || []).filter(c => /^gen\\.c5\\.together\\.axis/.test(c)).length]")
+  check('C5G', tq == [3, 1, 1], 'صائد الكنز: الحلّ المشترك لنقطة المحور يُبقي ربعي جهة الصاد و«على محور»', tq)
   # ---- الكاشف
   spec = {'t': 'c5Detect', 'a': [-2, 1], 'b': [1, 5], 'q': 'dt.01'}; await run('m4.u5.d2', spec); st = await wk('axPts'); await auto('wrong'); L = await logs()
   check('C5G', L[:1] == [['c5-detect', False, True, 'c4CornerOff']], 'الكاشف: رأسٌ ليس رأس القائمة خطأ c4CornerOff', L)
   st = await wk('axPts', nn(st)); await place(-2, 5); st = await nxt(st); k2 = st['auto']['kind'] if st['auto'] else None; await num(7); L = await logs()
   check('C5G', k2 == 'num' and L[1:] == [['c5-detect', False, False, 'coDistAdd']], 'الكاشف: الرأس الآخر صحيح، وجمع الضلعين خطأ coDistAdd', [k2, L])
   st = await nxt(st); k3 = st['auto']['kind'] if st['auto'] else None; await num(5); r = await res(); await pg.wait_for_timeout(300)
-  ru = await pg.evaluate("() => [...document.querySelectorAll('#stage svg rect')].filter(r => r.getAttribute('fill') === 'rgba(246,217,138,.85)').length")
+  ru = await pg.evaluate("() => [...document.querySelectorAll('#stage svg rect')].filter(r => r.getAttribute('fill') === 'rgba(246,217,138,.85)').length + ([...document.querySelectorAll('#stage svg text')].some(t => t.getAttribute('fill') === '#6e4a22' && t.textContent.trim() === MS('5')) ? 0 : 10)")
   check('C5G', k3 == 'num' and r['res'] and r['res']['ok'] and ru == 1, 'الكاشف: الرأس باقٍ بعد الخطأ، والوتر 5 والمسطرة تقيسه', [k3, r['res'], ru])
+  await run('m4.u5.d2', spec); st = await wk('axPts'); await auto('wrong'); st = await wk('axPts', nn(st)); await auto('wrong'); st = await nxt(st); await pg.wait_for_timeout(300)
+  hl = await pg.evaluate("() => document.querySelectorAll('#stage svg [data-help] line, #stage svg [data-help] path').length"); cv = await card('c5AskVert')
+  check('C5G', cv and 0 < hl <= 2, 'الكاشف: المستوى الثاني الأفقيّ من أ وحده وسؤال الرأسيّ (لا الخطّان، المراجع A لدفعة U6/U5، 3 ب)', [cv, hl])
+  spec = {'t': 'c5Detect', 'a': [-4, -2], 'b': [-1, 4], 'q': 'dt.02'}; await run('m4.u5.d2', spec); st = await wk('axPts'); await place(-1, -2); st = await nxt(st)
+  ks = await pg.evaluate("() => [...document.querySelectorAll('#stage .choices .pick')].map(b => b.dataset.k).sort()"); await opt('9'); st = await nxt(st); await opt('45'); st = await nxt(st); await opt('6_7'); r = await res(); L = await logs()
+  check('C5G', ks == ['45', '6_7', '9'] and [x[3] for x in L] == ['coDistAdd', 'pyNoRoot', None] and r['res'] and r['res']['ok'], 'الكاشف العشريّ: الجمع (٩) والمربّعان بلا جذر (٤٥) خطآن بوسميهما، ثم ٦٫٧ (المراجع A لدفعة U6/U5، 16)', [ks, L, r['res']])
   # ---- أين المستقيم؟
-  spec = {'t': 'c5Line', 'm': 2, 'i0': -1, 'cand': [[3, 5], [-2, 1], [2, 1]], 'q': 'ln.01'}; await run('m4.u5.d3', spec); st = await wk('axPts'); await auto('wrong'); L = await logs()
+  spec = {'t': 'c5Detect', 'a': [-2, 4], 'b': [2, -2], 'q': 'dt.03'}; await run('m4.u5.d2', spec); st = await wk('axPts'); await place(2, 4); st = await nxt(st); await pg.wait_for_timeout(300)
+  sd = await pg.evaluate("() => { const T = [...document.querySelectorAll('#stage svg text')].filter(t => [C4.pt, C4.pt2].includes(t.getAttribute('fill'))).map(t => t.textContent.trim()); return [T.includes(MS('4')), T.includes(MS('6')), T.some(x => /[−-]/.test(x))]; }")
+  check('C5G', sd == [True, True, False], 'الكاشف: الضلعان بطوليهما بلا سالب والفرقان سالبان (الطفرة: preNumV)', sd)
+  spec = {'t': 'c5Line', 'm': 2, 'i0': -1, 'cand': [[3, 5], [-2, 1], [2, 1]], 'q': 'lg.01'}; await run('m4.u5.d3', spec); st = await wk('axPts'); await auto('wrong'); L = await logs()
   check('C5G', L[:1] == [['c5-line', False, True, 'c4IntSwap']], 'المستقيم: نقطة الصادات مقلوبة خطأ c4IntSwap', L)
   st = await wk('axPts', nn(st)); await auto('ok'); st = await wk('axPts', nn(st)); await auto('wrong'); L = await logs()
   check('C5G', L[1:] == [['c5-line', False, False, 'c5SlopeSign']], 'المستقيم: الميل المعكوس في النقطة الثانية خطأ c5SlopeSign', L)
@@ -437,10 +460,24 @@ async def c5g(b):
   check('C5G', hs > 0 and not st.get('err') and st.get('auto') and st['auto']['kind'] == 'axPts', 'المستقيم: الخطأ الثاني في النقطة الثانية يرسم الميل من نقطة الصادات (المستوى الثاني)', [hs, st])
   k3 = st['auto']['kind'] if st['auto'] else None; await place(2, 3); st = await wk('tap', nn(st)); await tapk(False); L = await logs()
   check('C5G', k3 == 'axPts' and L[-1:] == [['c5-line', False, False, 'c5NotOn']], 'المستقيم: نقطةٌ ثانية أخرى على المستقيم صحيحة، ونقطةٌ ليست عليه خطأ c5NotOn', [k3, L])
-  spec = {'t': 'c5Line', 'm': 2, 'i0': -1, 'cand': [[3, 5], [-2, 1], [2, 1]], 'q': 'ln.01'}; await run('m4.u5.d3', spec); st = await wk('axPts'); await auto('ok'); st = await wk('axPts', nn(st)); await auto('ok'); st = await wk('tap', nn(st))
+  spec = {'t': 'c5Line', 'm': 2, 'i0': -1, 'cand': [[3, 5], [-2, 1], [2, 1]], 'q': 'lg.01'}; await run('m4.u5.d3', spec); st = await wk('axPts'); await auto('ok'); st = await wk('axPts', nn(st)); await auto('ok'); st = await wk('tap', nn(st))
   for _ in range(3): await tapk(False); st = await nxt(st)   # ثلاثة أخطاء في الخطوة الأخيرة ثم الحلّ المشترك
   await pg.wait_for_timeout(300); tr = await pg.evaluate("() => document.querySelectorAll('#stage svg [role=button]').length"); await tapk(True); r = await res()
   check('C5G', tr == 2 and r['res'] and r['res']['ok'], 'المستقيم: الحلّ المشترك يُبعد نقطةً ويُبقي اثنتين، ثم الصحيحة', [tr, r['res']])
+  spec = {'t': 'c5Line', 'm': 2, 'i0': -2, 'cand': [[3, 4], [-1, -3], [1, 2]], 'q': 'lg.01'}; await run('m4.u5.d3', spec); st = await wk('axPts'); await place(0, -2); st = await wk('axPts', nn(st)); await place(1, 0); st = await wk('tap', nn(st))   # مرشّحٌ خاطئ قرب نقطة القطع (كما في مسبار المراجع B): اللمسة على نقطة الطفل لا تذهب إليه
+  q = await pg.evaluate("() => window.__axAt(0, -2)"); await pg.mouse.click(q['x'], q['y']); await pg.wait_for_timeout(800); L = await logs(); st2 = await pg.evaluate(ST)
+  check('C5G', L == [] and not st2['res'] and st2['auto'] and st2['auto']['kind'] == 'tap', 'المستقيم: لمس نقطة الطفل (نقطة القطع) لا يُحسب مرشّحاً (D255، المراجع B لدفعة U6/U5، 6)', [L, st2['res']])
+  spec = {'t': 'c5Line', 'm': -2, 'i0': 2, 'cand': [[-1, 4], [4, -5], [2, -4]], 'pt': [2, -2], 'q': 'lg.03'}; await run('m4.u5.d3', spec); st = await wk('axPts')
+  ec = await pg.evaluate("() => [...document.querySelectorAll('#stage svg text')].some(t => /=/.test(t.textContent))"); await place(2, 0); st = await wk('axPts', nn(st)); await place(0, 1); st = await nxt(st); await pg.wait_for_timeout(300)
+  hb = await pg.evaluate(helps); cb = await card('c5AskBack'); await place(0, 2); st = await wk('axPts', nn(st)); await place(1, 0); st = await wk('tap', nn(st)); await tapk(True); r = await res(); L = await logs()
+  check('C5G', not ec and [x[3] for x in L] == ['c4IntSwap', 'c4IntOff', None] and L[-1][0] == 'c5-line-pt' and hb > 0 and cb and r['res'] and r['res']['ok'],
+        'المستقيم من الميل ونقطة: بلا معادلة، والخطآن بوسميهما، والمستوى الثاني خطوةٌ رجوعاً من النقطة، ثم (٠، ٢) و(١، ٠) والنقطة (المراجع A لدفعة U6/U5، 17)', [ec, L, hb, cb, r['res']])
+  spec = {'t': 'c5Line', 'm': 2, 'i0': -2, 'cand': [[3, 4], [-2, -5], [1, 2]], 'q': 'lg.01'}; await run('m4.u5.d3', spec); st = await wk('axPts')
+  for _ in range(6):
+    await auto('wrong'); st = await nxt(st)
+    if st['res'] or st['err']: break
+  st = await until(pg, lambda s: s['res'] or s['err'], 30000)
+  check('C5G', st['res'] and any(c.startswith('gen.c5.reveal.int') for c in st['clips']) and not any(c.startswith('gen.c4.reveal.pt') for c in st['clips']), 'المستقيم: الكشف بعد إخفاق الخطوة الأولى يُري نقطة القطع ويقولها (المراجع A لدفعة U6/U5، 13)', [st['res'], [c for c in st['clips'] if 'reveal' in c]])
   # ---- الدروس الثلاثة: كل جولةٍ بأربعة أخطاء ثم الكشف
   for lid in ('m4.u5.d1', 'm4.u5.d2', 'm4.u5.d3'):
     for i in await pg.evaluate("(lid) => LDATA[lid].flow.map((s, i) => s.scene === 'motion' ? i : -1).filter(i => i >= 0)", lid):
@@ -471,6 +508,10 @@ async def c6g(b):
   async def nxt(st): return await until(pg, lambda s: s['res'] or s['err'] or (s['auto'] and s['auto']['n'] != nn(st)), 20000)
   async def press(i, k):
     for _ in range(k): await pg.evaluate("(i) => { const b = document.querySelectorAll('#stage .choices.icons .pick')[i]; if (b) b.click(); }", i); await pg.wait_for_timeout(40)
+  async def opt(k): await pg.evaluate("(k) => { const b = document.querySelector('#stage .choices .pick[data-k=\"' + k + '\"]'); if (b) b.click(); }", k); await pg.wait_for_timeout(600)
+  async def tapsel(sel): await pg.evaluate("(sel) => { const t = document.querySelector(sel); if (t) t.dispatchEvent(new MouseEvent('click', { bubbles: true })); }", sel); await pg.wait_for_timeout(700)
+  async def card(lab): return await pg.evaluate("(lab) => [...document.querySelectorAll('#stage svg text')].some(t => t.textContent.includes(labelText(lab).slice(0, 8)))", lab)
+  async def tapk(ok): await pg.evaluate("(ok) => { const t = document.querySelector('#stage svg [role=button][data-ok=' + ok + ']'); if (t) t.dispatchEvent(new MouseEvent('click', { bubbles: true })); }", 'true' if ok else 'false'); await pg.wait_for_timeout(700)
   async def done(): await pg.wait_for_timeout(200); await pg.evaluate("() => { const d = document.querySelector('#stage .pick.done'); if (d) d.click(); }"); await pg.wait_for_timeout(400)
   async def num(v): await pg.evaluate("(v) => { const b = [...document.querySelectorAll('#stage .choices.nums button')].find(b => +b.dataset.k === v); if (b) b.click(); }", v); await pg.wait_for_timeout(600)
   helps = "() => document.querySelectorAll('#stage svg [data-help] *').length"
@@ -482,42 +523,79 @@ async def c6g(b):
   check('C6G', k0 == 6 and L[1:] == [['c6-chord-dist', False, False, 'c6HalfDist']], 'وتر الدائرة: من موضعه الأول، ثم نصف الوتر بُعداً خطأ c6HalfDist', [k0, L])
   st = await nxt(st); await pg.wait_for_timeout(300); hp1 = await pg.evaluate(helps); await num(12); st = await nxt(st); await pg.wait_for_timeout(300); hp = await pg.evaluate(helps); k3 = st['auto']['kind'] if st['auto'] else None; await num(9); r = await res(); L = await logs()
   check('C6G', k3 == 'num' and hp1 == 0 and hp > 0 and r['res'] and r['res']['ok'] and L[-1] == ['c6-chord-dist', True, False, None], 'وتر الدائرة: الموضع باقٍ بعد الخطأ، وأول خطأٍ في البعد سؤالٌ وثانيه المستوى الثاني منقولاً، ثم البعد', [k3, hp1, hp, r['res'], L])
+  await run('m4.u6.d1', spec); st = await wk('c6Move'); lens = []
+  for i in range(5):
+    lens.append(await pg.evaluate("() => { const k = window.__c6K(), L = Math.round(2 * Math.sqrt(15 * 15 - k * k) * 10) / 10; return [...document.querySelectorAll('#stage svg text')].some(t => t.textContent.trim() === MS(String(L))); }")); await press(0 if i < 2 else 1, 1)
+  check('C6G', all(lens), 'وتر الدائرة: الطول المكتوب على الوتر ٢√(ر² − ك²) في كل موضع (الطفرة: طولٌ ثابت)', lens)
   await run('m4.u6.d1', spec); st = await wk('c6Move')
   for _ in range(3): await press(1, 1); await done(); st = await wk('c6Move', nn(st))
   await pg.wait_for_timeout(300); tm = await pg.evaluate("() => [window.__c6K(), (window.__clips || []).filter(c => /^gen\\.c6\\.together\\.move/.test(c)).length]")
   check('C6G', tm == [8, 1], 'وتر الدائرة: الحلّ المشترك حركةٌ قبل الموضع', tm)
-  spec = {'t': 'c6ChordGame', 'r': 6, 'd0': 3, 'q': 'cg.03'}; await run('m4.u6.d1', spec); st = await wk('c6Move'); await press(0, 2); await done(); L = await logs()
+  spec = {'t': 'c6ChordGame', 'r': 5, 'd0': 3, 'q': 'cg.03'}; await run('m4.u6.d1', spec); st = await wk('c6Move'); await press(0, 2); await done(); L = await logs()
   st = await wk('c6Move', nn(st)); await press(0, 3); await done(); st = await wk('num', nn(st))
-  lk = await pg.evaluate("() => [...document.querySelectorAll('#stage svg text')].some(t => t.textContent.replace(/\\s/g, '') === MS('12'))")
-  await num(12); r = await res(); L2 = await logs()
-  check('C6G', L[:1] == [['c6-chord-diam', False, True, 'c6NotDiam']] and not lk and r['res'] and r['res']['ok'], 'وتر الدائرة: أطول وترٍ يمرّ بالمركز، ولا يُكتب طوله قبل الجواب', [L, lk, L2])
+  lk = await pg.evaluate("() => [...document.querySelectorAll('#stage svg text')].some(t => t.textContent.replace(/\\s/g, '') === MS('10'))")
+  ns = await pg.evaluate("() => [...document.querySelectorAll('#stage .choices.nums button')].map(b => +b.dataset.k).sort((a, b) => a - b)"); await num(8); st = await nxt(st); await num(10); r = await res(); L2 = await logs()
+  check('C6G', L[:1] == [['c6-chord-diam', False, True, 'c6NotDiam']] and not lk and ns == [5, 8, 10] and L2[-2][3] == 'c6DiamStart' and r['res'] and r['res']['ok'], 'وتر الدائرة: أطول وترٍ يمرّ بالمركز، ولا يُكتب طوله قبل الجواب، والوتر الذي بدأ منه (٨) خطأ c6DiamStart', [L, lk, ns, L2])
+  spec = {'t': 'c6ChordGame', 'r': 15, 'L': 24, 'd0': 6, 'q': 'cg.01'}; await run('m4.u6.d1', spec); st = await wk('c6Move'); await press(1, 1); await done(); st = await wk('c6Move', nn(st)); await press(1, 1); await done(); st = await nxt(st); await pg.wait_for_timeout(300)
+  gh = await pg.evaluate("() => [...document.querySelectorAll('#stage svg [data-help] line, #stage svg [data-help] path')].filter(e => e.getAttribute('stroke-dasharray')).length"); cc = await card('c6AskCmp')
+  check('C6G', gh >= 2 and cc, 'وتر الدائرة: المستوى الثاني وتران شبحان قبل الموضع وبعده بطوليهما (المراجع A لدفعة U6/U5، 21)', [gh, cc])
+  for _ in range(6):
+    await press(0, 1); await done(); st = await nxt(st)
+    if st['res'] or st['err']: break
+  st = await until(pg, lambda s: s['res'] or s['err'], 30000)
+  check('C6G', st['res'] and any(c.startswith('gen.c6.reveal.dist') for c in st['clips']), 'وتر الدائرة: الكشف يقول البعد باسمه (المراجع A لدفعة U6/U5، 13)', [c for c in st['clips'] if 'reveal' in c])
   # ---- المماس
-  spec = {'t': 'c6TanGame', 'mode': 'slide', 'a': 270, 'q': 'tg.01'}; await run('m4.u6.d2', spec); st = await wk('c6Move')
+  spec = {'t': 'c6TanGame', 'mode': 'slide', 'a': 270, 'q': 'tg.01'}; await run('m4.u6.d2', spec); st = await wk('c6Move'); cm = []
+  for i in range(7):
+    cm.append(await pg.evaluate("() => { const n = [...document.querySelectorAll('#stage svg circle')].filter(c => c.getAttribute('r') === '6' && c.getAttribute('fill') === C6.q).length, h = labelText('c6Common').split('N')[0].trim(), t = [...document.querySelectorAll('#stage svg text')].find(x => x.textContent.includes(h.slice(0, 6))); return t ? t.textContent.includes(MS(String(n))) : false; }")); await press(1 if i < 6 else 0, 1)
+  check('C6G', all(cm), 'المماس: «نقاط مشتركة» بعدد النقاط المرسومة في كل موضع (الطفرة: عددٌ ثابت)', cm)
+  await run('m4.u6.d2', spec); st = await wk('c6Move')
   await press(1, 2); await done(); st = await wk('c6Move', nn(st)); await press(1, 6); await done(); L = await logs()
   check('C6G', [x[3] for x in L] == ['c6Secant', 'c6Miss'], 'المماس: قاطعٌ ثم بعيدٌ عن الدائرة، كلٌّ بوسمه', L)
-  st = await wk('c6Move', nn(st)); await press(1, 4); await done(); st = await wk('num', nn(st))
-  for _ in range(3): await num(180); st = await nxt(st)   # ثلاثة أخطاء في الزاوية ثم الحلّ المشترك (السلّم بأخطاء الخطوة)
+  await run('m4.u6.d2', spec); st = await wk('c6Move'); await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }"); st = await wk('tap', nn(st)); await tapk(False); L = await logs()
+  check('C6G', L[:1] == [['c6-tan-slide', False, True, 'c6PaperSpot']], 'المماس: ركن الورقة بعيداً عن نقطة التماس خطأ c6PaperSpot', L)
+  st = await wk('tap', nn(st)); await tapk(True); st = await wk('pick', nn(st))
+  for _ in range(3): await opt('acute'); st = await nxt(st)   # ثلاثة أخطاء في الحكم ثم الحلّ المشترك (السلّم بأخطاء الخطوة)
   await pg.wait_for_timeout(300)
-  tg = await pg.evaluate("() => [document.querySelectorAll('#stage svg [data-help] *').length, (window.__clips || []).filter(c => /^gen\\.c6\\.together\\.tanAng/.test(c)).length]"); await num(90); r = await res(); L = await logs()
-  check('C6G', len(L) > 2 and L[2][3] == 'c6TanStraight' and tg[0] > 0 and tg[1] == 1 and r['res'] and r['res']['ok'], 'المماس: الزاوية المستقيمة خطأ، والحلّ المشترك يضع الزاوية القائمة، ثم 90', [L, tg, r['res']])
-  spec = {'t': 'c6TanGame', 'mode': 'pivot', 'op': 10, 'q': 'tg.03'}; await run('m4.u6.d2', spec); st = await wk('c6Move'); await press(1, 3); await done(); st = await wk('num', nn(st)); await num(8); r = await res(); L = await logs()
-  check('C6G', L == [['c6-tan-pivot', True, True, None]], 'المماس: المسطرة تدور حتى تلامس، وطول المماس 8', L)
+  tg = await pg.evaluate("() => [document.querySelectorAll('#stage svg [data-help] *').length, (window.__clips || []).filter(c => /^gen\\.c6\\.together\\.kind/.test(c)).length, [...document.querySelectorAll('#stage .choices .pick')].map(b => b.dataset.k).sort()]"); await opt('right'); r = await res(); L = await logs()
+  check('C6G', len(L) > 2 and L[2][3] == 'c6TanNotRight' and tg[0] > 0 and tg[1] == 1 and tg[2] == ['obtuse', 'right'] and r['res'] and r['res']['ok'], 'المماس: «حادّة» خطأ c6TanNotRight، والحلّ المشترك يرسم القائمة ويُسقط ما جُرِّب، ثم «قائمة» (المراجع A لدفعة U6/U5، 10)', [L, tg, r['res']])
+  spec = {'t': 'c6TanGame', 'mode': 'slide', 'a': 30, 'noAng': True, 'q': 'tg.02'}; await run('m4.u6.d2', spec); st = await wk('c6Move'); ic = await pg.evaluate("() => document.querySelectorAll('#stage .choices.icons .pick svg, #stage .choices.icons .pick i').length")
+  await pg.evaluate("() => { const a = window.__auto; if (a) a.ok(); }"); r = await res(); L = await logs()
+  check('C6G', ic == 0 and r['res'] and L[-1][0] == 'c6-tan-move', 'المماس المائل: زرّا التحريك بلا سهمٍ رأسيّ، والجولة تنتهي بالتماسّ (المراجع A لدفعة U6/U5، 22)', [ic, r['res'], L])
+  spec = {'t': 'c6TanGame', 'mode': 'pivot', 'r': 5, 'op': 13, 'q': 'tg.03'}; await run('m4.u6.d2', spec); st = await wk('c6Move'); await press(1, 3); await done(); st = await wk('num', nn(st)); await num(12); r = await res(); L = await logs()
+  check('C6G', L == [['c6-tan-pivot', True, True, None]], 'المماس: المسطرة تدور حتى تلامس، وطول المماس 12', L)
   # ---- أين المركز؟
   spec = {'t': 'c6CenGame', 'cen': 100, 'q': 'cn.01'}; await run('m4.u6.d3', spec); st = await wk('tap')
   await pg.evaluate("() => { const t = document.querySelector('#stage svg [role=button][data-ok=false]'); if (t) t.dispatchEvent(new MouseEvent('click', { bubbles: true })); }"); await pg.wait_for_timeout(900); L = await logs()
   check('C6G', L[:1] == [['c6-center', False, True, 'c6NotCenter']], 'أين المركز؟: نقطةٌ ليست المركز خطأ c6NotCenter', L)
+  st = await wk('tap', nn(st)); await tapk(False); st = await nxt(st); await pg.wait_for_timeout(300)
+  ry = await pg.evaluate("() => { const h = [...document.querySelectorAll('#stage svg [data-help]')]; const ls = h.reduce((a, g) => a + g.querySelectorAll('line, path').length, 0), ts = h.reduce((a, g) => a + [...g.querySelectorAll('text')].filter(t => /[٠-٩]/.test(t.textContent)).length, 0); return [ls >= 3, ts >= 3]; }")
+  check('C6G', ry == [True, True], 'أين المركز؟: الخطأ الثاني يرسم أشعّة النقطة الثلاثة بأطوالها (الطفرة: بلا أشعّة)', ry)
+  await run('m4.u6.d3', spec); st = await wk('tap'); await tapk(False)
   st = await wk('tap', nn(st)); await pg.evaluate("() => { const t = document.querySelector('#stage svg [role=button][data-ok=true]'); if (t) t.dispatchEvent(new MouseEvent('click', { bubbles: true })); }")
   st = await wk('num', nn(st)); await num(80); L = await logs(); st = await nxt(st); k3 = st['auto']['kind'] if st['auto'] else None
   check('C6G', L[1:] == [['c6-center', False, False, 'c6ReadOther']] and k3 == 'num', 'أين المركز؟: التدريج الآخر خطأ، والمركز باقٍ بعد الخطأ', [L, k3])
   await num(100); st = await wk('num', nn(st))
-  for _ in range(3): await num(100); st = await nxt(st)
+  for _ in range(3): await num(130); st = await nxt(st)
   L = await logs(); await pg.wait_for_timeout(300)
   tr = await pg.evaluate("() => (window.__clips || []).filter(c => /^gen\\.c6\\.together\\.read/.test(c)).length"); await num(50); r = await res(); L2 = await logs()
-  check('C6G', len(L) > 0 and L[-1][3] == 'c6InsEq' and tr == 1 and r['res'] and r['res']['ok'], 'أين المركز؟: المحيطية مثل المركزية خطأ، والحلّ المشترك في القراءة، ثم نصفها', [L, tr, L2])
+  check('C6G', len(L) > 0 and L[-1][3] == 'c6ReadOther' and tr == 1 and r['res'] and r['res']['ok'], 'أين المركز؟: التدريج الآخر في المحيطية خطأ (المشتّت الأول، المراجع A لدفعة U6/U5، 16)، والحلّ المشترك في القراءة، ثم نصف المركزية', [L, tr, L2])
   await run('m4.u6.d3', spec); st = await wk('tap')
   for _ in range(3): await pg.evaluate("() => { const t = document.querySelector('#stage svg [role=button][data-ok=false]'); if (t) t.dispatchEvent(new MouseEvent('click', { bubbles: true })); }"); st = await wk('tap', nn(st))
   await pg.wait_for_timeout(400); rm = await pg.evaluate("() => document.querySelectorAll('#stage svg [role=button][data-ok=false]').length")
   check('C6G', rm == 1, 'أين المركز؟: الحلّ المشترك يجرّب نقطةً ويُبقي اثنتين', rm)
+  spec = {'t': 'c6CenGame', 'cen': 140, 'pAt': 60, 'rot': 25, 'q': 'cn.02'}; await run('m4.u6.d3', spec); st = await wk('tap'); await tapk(True); st = await wk('num', nn(st)); await pg.wait_for_timeout(300)
+  ly = await pg.evaluate("() => { const d = [...document.querySelectorAll('#stage svg circle')].find(c => +c.getAttribute('r') === 80), p = document.querySelector('#stage svg [data-prot]'); return !!(d && p && (d.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING)); }")
+  check('C6G', ly, 'أين المركز؟: المنقلة فوق القرص المعبّأ (تُرى بتدريجها، المراجع A لدفعة U6/U5، 5)', ly)
+  await run('m4.u6.d3', spec); st = await wk('tap')
+  for _ in range(6):
+    await tapk(False); st = await nxt(st)
+    if st['res'] or st['err']: break
+  st = await until(pg, lambda s: s['res'] or s['err'], 30000)
+  rv = st; await pg.evaluate("() => hush()"); gi = await pg.evaluate("() => LDATA['m4.u6.d3'].flow.findIndex(s => s.scene === 'motion')"); await pg.evaluate("() => { LOG.attempts.length = 0; }"); await pg.evaluate(START, ['m4.u6.d3', gi, 'game']); await until(pg, lambda s: s['auto'] or s['res'], 20000); st = rv   # اللعبة بمشهدها (SCENES.motion)، لا بندٌ وحده
+  lk = await pg.evaluate("() => { const on = MOTION_ON; show('home'); const b = document.querySelector('#bubble'), L = document.querySelector('#lesson'); return [on, MOTION_ON, !!document.querySelector('#stage .mhold'), L.classList.contains('dense'), b.style.minHeight || '']; }")
+  check('C6G', lk == [True, False, False, False, ''], 'الخروج من اللعبة إلى الخريطة يُزيل حالها (المراجع B لدفعة U6/U5، 5)', lk)
+  check('C6G', st['res'] and any(c.startswith('gen.c6.reveal.cen') for c in st['clips']) and not any(c.startswith('gen.ci4.reveal.ang') for c in st['clips']), 'أين المركز؟: الكشف بعد إخفاق الخطوة الأولى يُري المركز بأشعّته (المراجع A لدفعة U6/U5، 13)', [c for c in st['clips'] if 'reveal' in c])
   # ---- الدروس الثلاثة: كل جولةٍ بأربعة أخطاء ثم الكشف
   for lid in ('m4.u6.d1', 'm4.u6.d2', 'm4.u6.d3'):
     for i in await pg.evaluate("(lid) => LDATA[lid].flow.map((s, i) => s.scene === 'motion' ? i : -1).filter(i => i >= 0)", lid):
@@ -595,13 +673,13 @@ async def c7g(b):
   lid = [c for c in M['ch'] if c[1] == 'saLidAdd']; await pick(lid[0][0] if lid else -1); L = await logs()
   check('C7G', fs == ['base1', 'lid0', 'side1'] and L0 == [['c7-wrap-open', False, True, 'saLidAdd']] and bool(lid) and L[-1] == ['c7-wrap-open', False, False, 'saLidAdd'], 'غلّف العلبة: فتحة العلبة المفتوحة وجهٌ يُلمس ولا يُغلَّف (saLidAdd)، وإضافة الغطاء في الورق خطأ saLidAdd', [fs, L0, M['ch'], L])
   # ---- ثلاثة مخاريط وأسطوانة
-  spec = {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'th.01'}; M = await pg.evaluate("(s) => ITEM.c7Thirds.make(s)", spec); await run('m4.u7.d3', spec); st = await wk('c7Pour')
+  spec = {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'fl.01'}; M = await pg.evaluate("(s) => ITEM.c7Thirds.make(s)", spec); await run('m4.u7.d3', spec); st = await wk('c7Pour')
   await press(1, 2); await done(); st = await wk('c7Pour', nn(st)); await press(1, 4); await done(); L = await logs()
   check('C7G', [x[3] for x in L] == ['c7PourShort', 'c7PourOver'], 'ثلاثة مخاريط: تعبئتان قبل الامتلاء خطأ، وأربعٌ تفيض خطأ', L)
   st = await wk('c7Pour', nn(st)); await press(1, 3); await done(); st = await wk('pick', nn(st)); bt = [c for c in M['ch'] if c[0] != M['want']][0]; await pick(bt[0])
   st = await nxt(st); await pg.wait_for_timeout(300); k4 = st['auto']['kind'] if st['auto'] else None; await pick(M['want']); r = await res(); L = await logs()
   check('C7G', L[2][3] == bt[1] and k4 == 'pick' and r['res'] and r['res']['ok'], 'ثلاثة مخاريط: ثلاث تعبئات ثم الحساب، والتعبئة باقيةٌ بعد خطأ الحساب', [L, bt, k4])
-  spec = {'t': 'c7Thirds', 'fig': 'cone', 'v': 14, 'q': 'th.03'}; await run('m4.u7.d3', spec); st = await wk('c7Pour'); await press(1, 3); await done(); st = await wk('pick', nn(st)); await pick(42); r = await res(); L = await logs()
+  spec = {'t': 'c7Thirds', 'fig': 'cone', 'v': 14, 'q': 'fl.03'}; await run('m4.u7.d3', spec); st = await wk('c7Pour'); await press(1, 3); await done(); st = await wk('pick', nn(st)); await pick(42); r = await res(); L = await logs()
   check('C7G', L == [['c7-thirds-cone', True, True, None]], 'ثلاثة مخاريط: الكبير ثلاثة أمثال الصغير صحيحٌ من أول محاولة', L)
   # ---- محوّل الخزان
   spec = {'t': 'c7Tank', 'a': 30, 'b': 20, 'c': 40, 'to': 'cm3', 'q': 'tc.01'}; M = await pg.evaluate("(s) => ITEM.c7Tank.make(s)", spec); await run('m4.u7.d4', spec); st = await wk('c7Tank')
@@ -677,8 +755,9 @@ async def helpg(b):
 # الرسم ثابتٌ بين انتظارات الجولة في اللعبة الحركية نفسها (SCENES.motion): موضعه ومقياسه حين تتبدّل الأزرار تحته
 async def holdg(b):
   """المراجع B لدفعة ألعاب U8/U7، 4: نزل 24 بكسلاً وصعد 59 على iPhone SE، و80 مع تصغيرٍ على Pixel 5، بين خطوات الجولة"""
-  for vp in ((320, 568), (393, 851), (640, 360)):
+  for vp in ((320, 568), (393, 727), (393, 851), (640, 360)):
     ctx = await b.new_context(viewport={'width': vp[0], 'height': vp[1]}); pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+    mix = vp == (393, 727)   # Pixel 5: بالأخطاء أيضاً لا بالطريق الصحيح وحده (المراجع B لدفعة U6/U5، 4)
     await pg.goto('file://' + FILE + '#fast&seed=5'); await pg.wait_for_timeout(250)
     await pg.evaluate("""([kid]) => { localStorage.clear(); localStorage.setItem('hp_kids', JSON.stringify([kid])); localStorage.setItem('hp_kid', JSON.stringify(kid.id));
       localStorage.setItem('hp_settings:' + kid.id, JSON.stringify({ sessionMax: 0, muted: true })); localStorage.setItem('hp_prog:' + kid.id, JSON.stringify({ schema: 3, unlockAll: true })); }""", [KID])
@@ -695,11 +774,22 @@ async def holdg(b):
           last = a['n']; await pg.wait_for_timeout(80)
           g = await pg.evaluate("() => { const sv = document.querySelector('#stage svg'), r = sv && sv.getBoundingClientRect(); return [window.__itemSeq || 0, r ? Math.round(r.top) : null, r ? Math.round(r.height) : null]; }")
           per.setdefault(g[0], []).append(g[1:]); n += 1
-          await pg.evaluate("() => window.__auto && window.__auto.ok()")
+          await pg.evaluate("(w) => window.__auto && (w && window.__auto.wrong ? window.__auto.wrong() : window.__auto.ok())", mix and n % 2 == 0)
         await pg.wait_for_timeout(30)
       for seq, v in per.items():
         if len(v) > 1 and (max(x[0] for x in v) - min(x[0] for x in v) > 2 or max(x[1] for x in v) - min(x[1] for x in v) > 2): bad.append([lid, seq, v[:5]])
     check('HOLDG', n > 40 and not bad, '%dx%d: الرسم في موضعه ومقياسه بين انتظارات الجولة في الألعاب الحركية (%d انتظاراً)' % (vp[0], vp[1], n), bad[:5])
+    # الفقاعة لا تنمو بلا حدّ إن بدأت اللعبة والدرس كثيف (المراجع B لدفعة U6/U5، 1)، والخروج إلى الخريطة لا يترك حال اللعبة (5)
+    gr = []
+    for lid, i0, _ in games[:4]:
+      await pg.evaluate("() => { hush(); }"); await pg.evaluate("() => { const L = document.querySelector('#lesson'); if (L) L.classList.add('dense'); }"); await pg.evaluate(START, [lid, i0, 'game'])
+      await pg.wait_for_timeout(700); h0 = await pg.evaluate("() => Math.round(document.querySelector('#bubble').getBoundingClientRect().height)"); await pg.wait_for_timeout(1800)
+      h1 = await pg.evaluate("() => Math.round(document.querySelector('#bubble').getBoundingClientRect().height)")
+      if h1 - h0 > 30 or h1 > 300: gr.append([lid, h0, h1])
+    check('HOLDG', not gr, '%dx%d: الفقاعة لا تنمو حين تبدأ اللعبة والدرس كثيف' % vp, gr)
+    await pg.evaluate("() => { hush(); }"); await pg.evaluate(START, [games[0][0], games[0][1], 'game']); await until(pg, lambda s: s['auto'] or s['res'], 20000)
+    lk = await pg.evaluate("() => { show('home'); const b = document.querySelector('#bubble'), L = document.querySelector('#lesson'); return [MOTION_ON, !!document.querySelector('#stage .mhold'), L.classList.contains('dense'), b.style.minHeight || '', L.style.alignContent || '']; }")
+    check('HOLDG', lk == [False, False, False, '', ''], '%dx%d: الخروج من اللعبة إلى الخريطة يُزيل حالها (MOTION_ON والحجز والكثيف وارتفاع الفقاعة)' % vp, lk)
     check('HOLDG', not errs, 'بلا خطأ في الصفحة (%dx%d)' % vp, errs[:2]); await ctx.close()
 
 # درجات السلّم في كل خطوة: لكل بندٍ حركي في م4 ولكل خطوةٍ s فيه، ما قبلها صحيح ثم أربعة أخطاء فيها حتى الكشف؛ وفحص TEXTOV (من auto_run) في كل انتظار وبعد الكشف
@@ -728,14 +818,14 @@ async def rungg(b):
           if wr >= 4: await pg.evaluate("() => window.__auto.ok()"); continue   # التوأم بعد الكشف يُجاب صحيحاً
           reached = True; n += 1
           for f in await pg.evaluate(TX):
-            if f.startswith('نصٌّ فوق نقطة') and not lid.startswith(('m4.u9.', 'm4.u10.')): continue
+            if f.startswith('نصٌّ فوق نقطة') and not lid.startswith(('m4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.', 'm4.u9.', 'm4.u10.')): continue
             bad.setdefault((lid, spec.get('t'), S, f[:60]), wr)
           await pg.evaluate("() => window.__auto.wrong()"); wr += 1
         await pg.wait_for_timeout(25)
       if reached and wr >= 4:
         await pg.wait_for_timeout(150)
         for f in (await pg.evaluate("() => window.__revTX") or []):
-          if f.startswith('نصٌّ فوق نقطة') and not lid.startswith(('m4.u9.', 'm4.u10.')): continue
+          if f.startswith('نصٌّ فوق نقطة') and not lid.startswith(('m4.u5.', 'm4.u6.', 'm4.u7.', 'm4.u8.', 'm4.u9.', 'm4.u10.')): continue
           bad.setdefault((lid, spec.get('t'), S, f[:60]), 'كشف')
       if not reached: break
   B = [list(k) + [v] for k, v in bad.items()]
@@ -774,7 +864,7 @@ async def g87m(b):
   v = await pg.evaluate("(s) => { const G = c7CupGeo(ITEM.c7Cup.make(s)), r = document.querySelector('#stage svg [data-jw] rect'); if (!r) return null; return [(+r.getAttribute('height') + 2) / (G.J.y1 - G.J.y0) * G.jTop, G.V]; }", spec)
   check('G87M', v and abs(v[0] - v[1]) < .02 * v[1], 'كوب الماء: الكأس بعد الصبّ بحجم الأسطوانة', v)
   # ثلاثة مخاريط: العدّ المكتوب بعد كل تعبئة = ما صُبّ (L10)
-  await run('m4.u7.d3', {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'th.01'}); st = await wk('c7Pour'); cn = []
+  await run('m4.u7.d3', {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'fl.01'}); st = await wk('c7Pour'); cn = []
   for _ in range(2):
     await pg.evaluate("() => { const b = document.querySelectorAll('#stage .choices.icons .pick')[1]; if (b) b.click(); }"); await pg.wait_for_timeout(300)
     cn.append(await pg.evaluate("() => [window.__c7N ? window.__c7N() : null, [...document.querySelectorAll('#stage svg text')].map(t => t.textContent).filter(t => / ×$/.test(t))]"))
@@ -849,10 +939,14 @@ async def x01g(b):
   t = await dbl("#stage .choices .pick[data-ok=true]"); s1 = await state()
   check('X01G', t and s1[0] == 2 and not s1[1], 'كوب الماء: لمستان على القراءة الصحيحة تقدّمان خطوةً واحدة ولا تجيبان سؤال القانون', s1)
   # ثلاثة مخاريط: «تمّ» مرّتين بعد ثلاث تعبئات
-  await pg.evaluate("() => hush()"); await run('m4.u7.d3', {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'th.01'}); st = await wk('c7Pour')
+  await pg.evaluate("() => hush()"); await run('m4.u7.d3', {'t': 'c7Thirds', 'fig': 'cone', 'V': 36, 'q': 'fl.01'}); st = await wk('c7Pour')
   for _ in range(3): await pg.evaluate("() => { const b = document.querySelectorAll('#stage .choices.icons .pick')[1]; if (b) b.click(); }"); await pg.wait_for_timeout(1300)
   t = await dbl("#stage .pick.done"); s2 = await state()
   check('X01G', t and s2[0] == 1 and not s2[1], 'ثلاثة مخاريط: «تمّ» مرّتين يقدّم خطوةً واحدة ولا يجيب سؤال الحساب', s2)
+  # صائد الكنز: لمستان على الربع الصحيح لا تضعان نقطةً في الخطوة التالية (المراجع B لدفعة U6/U5، 3)
+  await pg.evaluate("() => hush()"); await run('m4.u5.d1', {'t': 'c5Hunt', 'x': -3, 'y': 2, 'q': 'ht.01'}); st = await wk('tap')
+  t = await dbl("#stage svg [role=button][data-ok=true]"); s3 = await state(); pl = await pg.evaluate("() => window.__axPlaced || 0")
+  check('X01G', t and s3[0] == 1 and not s3[1] and pl == 0, 'صائد الكنز: لمستان على الربع تقدّمان خطوةً ولا تضعان نقطة', [s3, pl])
   check('X01G', not errs, 'بلا خطأ في الصفحة', errs[:2]); await ctx.close()
 
 async def main():

@@ -51,6 +51,7 @@ async function c4Walk(svg, Pl, x, y, o = {}) { const m = helpG(svg); let last = 
   let left = Math.abs(x) + Math.abs(y) - (o.stop || 0);
   for (let i = 1; i <= Math.abs(x) && left > 0; i++, left--) { const q = Pl.P(sx * i, 0); el('path', { d: `M${last[0]} ${last[1]} Q${(last[0] + q[0]) / 2} ${last[1] - 12} ${q[0]} ${q[1]}`, fill: 'none', stroke: css('--compass'), 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
   if (o.upTo === 'x') { if (o.dir && y) dirArrow(0, sy); return m; }
+  if (y < 0 && x && left > 0 && typeof c9Hush === 'function') { const T = Pl.P(x, 0); c9Hush(Pl, ([px, py]) => Math.abs(px - T[0]) < 12 && py > T[1] && py - T[1] < 24); }   /* المشي نازلاً من المحور يمرّ بعدده (المراجع B لدفعة U6/U5، 15) */
   for (let j = 1; j <= Math.abs(y) && left > 0; j++, left--) { const q = Pl.P(x, sy * j); el('path', { d: `M${last[0]} ${last[1]} Q${last[0] + 12} ${(last[1] + q[1]) / 2} ${q[0]} ${q[1]}`, fill: 'none', stroke: THINK_INK, 'stroke-width': 2.6 }, m); last = q; SFX.tick(); await sleep(FAST ? 2 : (o.ms || 170)); }
   return m; }
 function c4Card(svg, x, y, o = {}) { const g = el('g', { 'pointer-events': 'none' }, svg), w = o.w || 116, col = o.col || C4.pt, cx = o.cx || 180;
@@ -289,7 +290,7 @@ SCENES.c4LineShow = async c => { const L = c.lines, svg = m3Stage(262), Pl = c4P
   for (const p of pts.slice(1)) { c4Dot(svg, Pl, ...p, { pair: true, col: C4.pt2, fs: 11, below: p[1] >= Pl.m ? false : undefined }); SFX.tick(); await sleep(FAST ? 10 : 450); }
   c4Line(svg, Pl, m, b, {}); c4EqCard(svg, m, b); await c4Say(L, 1);
   const lat = preLab(svg, 286, 24, '(y = m x + b)', { col: '#7d8a90', fs: 12 });   /* الرمز اللاتيني عند أول ظهور فقط (D190) */ lat.style.opacity = 0;
-  const I = Pl.P(0, b), h = el('g', { 'pointer-events': 'none' }, svg); el('circle', { cx: I[0], cy: I[1], r: 11, fill: 'none', stroke: C4.hl, 'stroke-width': 3 }, h); preLab(h, I[0] - 14, I[1] + 5, labelText('c4B'), { col: C4.hl, fs: 17, anchor: 'end', dir: 'rtl' }); SFX.tick(); await c4Say(L, 2);
+  const I = Pl.P(0, b), h = el('g', { 'pointer-events': 'none' }, svg); el('circle', { cx: I[0], cy: I[1], r: 11, fill: 'none', stroke: C4.hl, 'stroke-width': 3 }, h); preLab(h, I[0] - 14, I[1] + 5, labelText('c4B'), { col: C4.hl, fs: 17, anchor: 'start', dir: 'rtl' }); SFX.tick(); await c4Say(L, 2);
   lat.style.opacity = 1; for (const l of L.slice(3)) await S(l); };
 /* د3: التحقق بالتعويض: (2 ، 5) على المستقيم، و(2 ، 2) ليست عليه */
 SCENES.c4CheckShow = async c => { const L = c.lines, svg = m3Stage(250), [m, b] = c.ln || [2, 1]; c4EqCard(svg, m, b, { y: 16, w: 200 });

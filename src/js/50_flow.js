@@ -5,7 +5,7 @@
 const PATH_MAT = () => !!(CUR && (PROG[CUR.id] || {}).path === 'mat');
 const lessonOf = id => LDATA[id];
 const lessonsOf = uid => (UNITS.find(u => u.id === uid) || { lessons: [] }).lessons;
-function show(id) { if (PAUSED) { hush(); resumeLesson(); $('#confetti').innerHTML = ''; } { const l = $('#lesson'); if (l) l.inert = false; } MAT_AVOID = null;   /* شاشة أخرى والدرس موقوف (الخريطة من غطاء الخروج، أو العطل): يسقط ما وقف (FLOW++ بعده) */
+function show(id) { if (MOTION_UNDO) MOTION_UNDO(); if (PAUSED) { hush(); resumeLesson(); $('#confetti').innerHTML = ''; } { const l = $('#lesson'); if (l) l.inert = false; } MAT_AVOID = null;   /* شاشة أخرى والدرس موقوف (الخريطة من غطاء الخروج، أو العطل): يسقط ما وقف (FLOW++ بعده) */
   for (const s of ['#home', '#lesson']) $(s).hidden = s !== '#' + id; for (const c of ['#exitCover']) $(c).hidden = true; if (id === 'home') { stopVoice(); REPLAY_HOOK = null; lastLine = null; } }   /* لا تُعاد في درس آخر جملةُ درس غادره الطفل (ومنها جملة فوضى) */
 const progOf = id => (PROG[id] = isObj(PROG[id]) ? PROG[id] : {});
 

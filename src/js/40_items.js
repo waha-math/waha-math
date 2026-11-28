@@ -31,7 +31,7 @@ function specText(spec) { let t = ''; try { const o = {}; for (const k of Object
 /* بنود الألعاب الحركية (D288 (2)): خطواتها في item.step (ولا بند غيرها يحملها). حين تتقدّم الخطوة فقد قُبلت لمسة الطفل: اللمسة الثانية من نقرةٍ مزدوجة لا تُجيب
    سؤال الخطوة التالية الذي لم يسمعه (X-01: كان الحارس لا يتسلّح إلا في logAttempt، فأجابت الثانية الخطوة التالية في 54 من 63 تجربة)،
    ومساعدة الخطوة المنجزة تُمحى ولا تُنقل (كانت تبقى فتشير إلى مشتّت الخطوة التالية أو تغطّي معطاها) */
-let MOTION_ON = false;
+let MOTION_ON = false, MOTION_UNDO = null;   /* MOTION_UNDO: تنظيف اللعبة الجارية، يستدعيه show() إن غادر الطفلُ اللعبةَ قبل نهايتها (gate لا ينتهي حين يتغيّر FLOW فلا يبلغ finally؛ المراجع B لدفعة U6/U5، 5) */
 function helpClear() { const sv = $('#stage svg'); if (sv) sv.querySelectorAll('[data-help]').forEach(n => n.remove()); HELP_CARRY = null; }
 function stepWatch(item) { let s = item.step; Object.defineProperty(item, 'step', { configurable: true, enumerable: true, get: () => s,
   set: v => { if (typeof v === 'number' && v > s) { try { tapAnswered(); } catch (e) {} helpClear(); } s = v; } }); }

@@ -196,3 +196,6 @@ ITEM.xf4Pick = cpItem({ H: 262, tLine: 'gen.pre.together.xf4', hint: 'gen.pre.hi
   show: async (item, ctx) => { if (ctx && ctx.Pl) { const q = ctx.Pl.P(...item.img); el('circle', { cx: q[0], cy: q[1], r: 6.5, fill: PRE.ok, stroke: '#fff', 'stroke-width': 2, 'pointer-events': 'none' }, helpG(ctx.svg)); } },
   pick: item => choosePick(shuffle(item.cands.map(p => [preKey(p), coPair(preNum(p[0]), preNum(p[1])), '<i></i>', 'gen.pre.pt.' + preKey(p)])), item.want),
   errOf: (it, k) => { const [x, y] = it.p; return k === preKey([x, -y]) || k === preKey([-x, y]) ? 'xf4Axis' : k === preKey([-x, -y]) ? 'xf4Both' : it.xf === 'rot90' && k === preKey([y, -x]) ? 'xf4Dir' : 'xf4Off'; } });
+/* مواضع يلمس الطفل أحدها (ألعاب المرحلة 4 الحركية): حلقاتٌ تُزال بعد اللمس */
+function gmSpots(svg, cand, ok, o = {}) { const T = cand.map(([k, P]) => { const t = el('g', { 'data-spot': k }, svg); el('circle', { cx: P[0], cy: P[1], r: o.r || 12, fill: 'none', stroke: o.col || PRE.ink || '#24323a', 'stroke-width': 2.4 }, t); return { g: t, k, label: labelText(o.label || 'c9Spot') }; });
+  return tapOne(T, { ok, pad: 56, bad: o.bad }).then(k => { T.forEach(t => t.g.remove()); return k; }); }

@@ -140,7 +140,7 @@ ITEM.ci4Sector = cpItem({ H: 262, tLine: 'gen.ci4.together.sector', hint: 'gen.c
     if (tries >= 3) ciEq(helpG(svg), 180, 252, `${item.ang} ÷ 360 × ${item.W} = ؟`, C6.hl, 15); return {}; },
   h2: async (item, ctx) => { const m = helpG(ctx.svg), G = item._g; if (G) { el('circle', { cx: G.O[0], cy: G.O[1], r: G.R + 7, fill: 'none', stroke: H2C[1], 'stroke-width': 3, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }, m); el('path', { d: `M${G.O[0]} ${G.O[1]} L${angP(G.O, G.a1, G.R).join(' ')} ` + angArc(G.O, G.R, G.a1, G.a2).replace(/^M[^A]*/, '') + ' Z', fill: H2C[0], opacity: .25, 'pointer-events': 'none' }, m);
       const gcd = (a, b) => b ? gcd(b, a % b) : a, st = gcd(item.ang, 360); for (let a = 0; a < 360; a += st) { const Q = angP(G.O, G.a1 + a, G.R); geoLine(m, G.O[0], G.O[1], Q[0], Q[1], { color: H2C[1], w: 2, dash: '4 4' }); } }   /* الجزء من الكلّ شرائحَ مثله (المراجع A، 10 ب) */
-    ciRule(m, 180, [252, 22], labelText('ci4AskSector'), C6.hl, 15); await sleep(FAST ? 10 : 250); },
+    ciRule(m, 180, [252], labelText('ci4AskSector'), C6.hl, 15); await sleep(FAST ? 10 : 250); },   /* تحت الدائرة: أعلاها المعطى «نصف القطر» (deepall صارماً) */
   pick: item => choosePick(shuffle(item.cands.map(v => [String(v), ciTxt(v, item.uk), '<i></i>', ciLine(v, item.uk)])), String(item.want)),
   errOf: (it, k) => +k === c6R(it.W / 2) ? (it.kind === 'area' ? 'ciAreaHalf' : 'ciArcHalf') : +k === c6R(it.W - it.want) ? (it.kind === 'area' ? 'ciAreaOther' : 'ciArcOther') : +k === c6R(it.W * it.ang / 180) ? 'ciArcDouble' : 'ciArcOff' });
 { const j0 = ITEM.ci4Sector.judge; ITEM.ci4Sector.judge = (item, k) => k === String(item.want) ? { ok: true } : j0(item, k); }   /* مفاتيح الاختيار نصوص والجواب عدد */
@@ -150,10 +150,10 @@ Object.assign(PF_PROOFS, { chordPf: { rs: ['radii', 'rhs', 'cpct'] }, inscPf: { 
 function c6Fig(g, k, o = {}) { const y0 = o.y0 ?? 0, s = o.s || 1, T = (x, y) => [180 + (x - 180) * s, y0 + y * s], O = T(180, 72), R = 64 * s;
   c6Circle(g, O, R, { w: 2.8 }); pfLab(g, O[0] + 11, O[1] - 7, 'م', { fs: 15 });
   if (k === 'chordPf') { const C = c6Chord(O, R, 34 * s); c6Seg(g, C.A, C.B, C6.ch, 3.6); c6Seg(g, O, C.A, C6.r, 3); c6Seg(g, O, C.B, C6.r, 3); c6Seg(g, O, C.M, C6.ok, 2.8, '6 4'); preRight(g, C.M, O, C.B, 9);
-    [C.A, C.B, C.M].forEach(X => pfDot(g, X)); pfLab(g, C.A[0] - 11, C.A[1] + 6, 'أ', { fs: 15 }); pfLab(g, C.B[0] + 11, C.B[1] + 6, 'ب', { fs: 15 }); pfLab(g, C.M[0], C.M[1] + 18, 'ج', { fs: 15 }); return C; }
+    [C.A, C.B, C.M].forEach(X => pfDot(g, X)); pfLab(g, C.A[0] - 11, C.A[1] + 6, 'أ', { fs: 15 }); pfLab(g, C.B[0] + 11, C.B[1] + 6, 'ب', { fs: 15 }); pfLab(g, C.M[0], C.M[1] + 22, 'ج', { fs: 15 }); return C; }
   const P = angP(O, 160, R), B = angP(O, 340, R), A = angP(O, 250, R); c6Seg(g, P, B, C6.r, 3); c6Seg(g, P, A, C6.ch, 3.2); c6Seg(g, O, A, C6.r, 3);
   pfAng(g, P, A, B, { col: C6.ch, r: 26 }); pfAng(g, A, P, O, { col: C6.ch, r: 22 }); pfAng(g, O, A, B, { col: C6.tan, r: 18 });
-  [P, A, B].forEach(X => pfDot(g, X)); pfLab(g, P[0] - 12, P[1], 'ن', { fs: 15 }); pfLab(g, A[0] - 4, A[1] + 18, 'أ', { fs: 15 }); pfLab(g, B[0] + 12, B[1] + 6, 'ب', { fs: 15 }); return { P, A, B, O }; }
+  [P, A, B].forEach(X => pfDot(g, X)); pfLab(g, P[0] - 12, P[1], 'ن', { fs: 15 }); pfLab(g, A[0] - 4, A[1] + 22, 'أ', { fs: 15 }); pfLab(g, B[0] + 12, B[1] + 6, 'ب', { fs: 15 }); return { P, A, B, O }; }
 
 /* ---------- صورة بطاقة التعليل (pfReasonPic، المفتاح ci4): k chord | diam | rad | tan | sec | insc | arc | sector ---------- */
 function c6Pic(g, P) { const O = [180, 100], R = 70;

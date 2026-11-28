@@ -125,6 +125,7 @@ async function ghostHand(svg, path, ms = 1200) {
    حين يعود السؤال إلى الفقاعة (D254 (5))، فلا يُرى الشكل الذي يُعلَّل. إن صغُر الرسم عن 85٪ من عرضه حين تظهر الخيارات، صارت الفقاعة ثلاثة أسطر تُمرَّر
    وخطّ البطاقات أصغر، كالشاشات القصيرة؛ ويزول مع المسرح التالي. يُقاس فوراً (لا في الإطار التالي) فلا يسبقه الانتظار. وبالعرض تخطيطه الخاص */
 function fitDense() { try { const s = $('#stage svg'), L = $('#lesson'); if (!s || !L || L.classList.contains('dense') || matchMedia('(orientation: landscape) and (max-height: 520px)').matches) return;
+  if (MOTION_ON && !motionShort()) return;   /* اللعبة على الشاشة الطويلة لا تدخل الكثيفَ في منتصف جولتها (المراجع B لدفعة U6/U5، 4)؛ والقصيرة كثيفةٌ من أولها */
   const r = s.getBoundingClientRect(), vb = s.viewBox.baseVal; if (!vb || !vb.width || !vb.height || !r.width) return;   /* بالمستطيل لا بـ getScreenCTM: رسمٌ انضغط إلى صفر يُرجع مقياسه 1 */
   if (Math.min(1, r.height / vb.height / (r.width / vb.width)) < .85) { L.classList.add('dense'); if (typeof bubbleMore === 'function') bubbleMore(); } } catch (e) {} }
 function choosePick(options, okKey, opt = {}) {

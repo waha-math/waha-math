@@ -34,6 +34,7 @@ if in_part a; then
 rm -f "$O/FAILED" "$O/DONE" "$O/SUMMARY.txt" "$O"/PART_* "$O"/auto_*.txt "$O"/clips/*.json "$O/mutants.txt" "$O/mutants2.txt"; rm -rf "$O/mutslices"
 node build/build.mjs > "$O/build_prod.txt" 2>&1 || { echo "فشل البناء الإنتاجي"; cat "$O/build_prod.txt"; exit 1; }
 node build/build.mjs --dev > "$O/build_dev.txt" 2>&1 || { echo "فشل بناء الفحص"; exit 1; }
+timeout 300 python3 test/dupkeys_run.py                         > "$O/dupkeys.txt" 2>&1       || echo dupkeys >> "$O/FAILED"   # مفتاحٌ مكرّر في قاموس مولّد يمحو جملةً بلا خطأ (المراجع A لدفعة U6/U5، 1)
 timeout 1800 python3 test/smoke_prod.py                         > "$O/smoke_prod.txt" 2>&1    || echo smoke_prod >> "$O/FAILED"
 timeout 1800 python3 test/flows_run.py                          > "$O/flows.txt" 2>&1         || echo flows >> "$O/FAILED"
 timeout 1800 python3 test/sort_errors.py                        > "$O/sort_errors.txt" 2>&1   || echo sort_errors >> "$O/FAILED"   # D253 (4)

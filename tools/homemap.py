@@ -238,7 +238,7 @@ HOMES['m3.u10']={'at':'m3.u11.d1','again':['m3.u11.d2','m3.u11.d3','m3.u11.d4','
      'gen.home.sameQ':'هَلْ تُكَافِئُ نِسْبَةُ {ظِلِّكَ|ظِلِّكِ} إِلَى ظِلِّهِ نِسْبَةَ {طُولِكَ|طُولِكِ} إِلَى طُولِهِ؟','gen.home.sameYes':'نَعَمْ، تَقْرِيبًا.','gen.home.sameNo':'لَا.',
      'gen.home.sh2Eq':'صَحِيحٌ: تَغَيَّرَ الظِّلَّانِ، وَبَقِيَتْ نِسْبَتُهُمَا نِسْبَةَ الطُّولَيْنِ.','gen.home.sh2Far':'النِّسْبَتَانِ مُتَبَاعِدَتَانِ هَذِهِ المَرَّةَ: قِيسَا الظِّلَّيْنِ فِي الدَّقِيقَةِ نَفْسِهَا.'}}
 HOMES.update(M4H)
-LABELS.update({'homeMl':'مل','rulMm':'مم','homeSteps':'دَرَجَةً','homeHund':'مِنْ مِئَةٍ','homeTimes':'مَرَّةً','homeShMe':'{أَنْتَ|أَنْتِ}: الظِّلُّ وَالطُّولُ','homeShPa':'مَنْ قَاسَ {مَعَكَ|مَعَكِ}','homeShShadows':'الظِّلَّانِ','homeShHeights':'الطُّولَانِ','homeSides':'أَضْلَاعٌ','homeLitres':'لِتْرَاتٌ','homeTimes':'مَرَّاتٌ','homeImgs':'صُوَرٌ'})
+LABELS.update({'homeMl':'مل','rulMm':'مم','homeSteps':'دَرَجَةً','homeHund':'مِنْ مِئَةٍ','homeShMe':'{أَنْتَ|أَنْتِ}: الظِّلُّ وَالطُّولُ','homeShPa':'مَنْ قَاسَ {مَعَكَ|مَعَكِ}','homeShShadows':'الظِّلَّانِ','homeShHeights':'الطُّولَانِ','homeSides':'أَضْلَاعٌ','homeLitres':'لِتْرَاتٌ','homeTimes':'مَرَّاتٌ','homeImgs':'صُوَرٌ'})
 def steps(u):
     H=HOMES[u]; back='gen.home.back.'+u.replace('.','')
     home={"s":"hook","scene":"homeNums","unit":u,"art":H['art'],"ask":H['ask'][0],"fields":H['fields'],"lines":[back]}

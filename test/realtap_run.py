@@ -303,7 +303,7 @@ async def run(p, dev):
             if await pg.evaluate('() => window.__maxW !== window.__maxWant'): tried['ax-miss'] = tried.get('ax-miss', 0) + 1; print('  farm width miss', st['scene'])
           xy = await pg.evaluate(DONE); await tap(*xy); await pg.wait_for_timeout(60); continue
         if k in ('axPts', 'axHunt', 'dsg'):   # S2-U5: لمسات حقيقية على تقاطعات الشبكة (الصورة)، وعلى طرفي كل محور (عدّاد المحاور)، وعلى خانات التصميم
-          await pg.wait_for_timeout(150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"
+          await pg.wait_for_timeout(500 if k == 'axPts' else 150); tried[k] = tried.get(k, 0) + 1; DONE = "() => { const e = document.querySelector('.pick.done'); const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }"   # بعد خطوةٍ لُمست للتوّ: لمسةٌ قريبة قبل 450 م.ث لمسةٌ مزدوجة يبتلعها الحارس (X-01، المراجع B لدفعة U6/U5، 3)
           if k == 'axPts':
             want = await pg.evaluate('() => window.__axWant')
             for i, (r, u) in enumerate(want):   # لمسةٌ مزاحة 0.4 خطوة عن التقاطع (لا في مركزه تماماً): الإلصاق بأقرب تقاطع (المراجع B لبوابة S3-U6/U7، 18)

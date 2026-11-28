@@ -7,15 +7,18 @@ const SCENES = {};
 /* بنود داخل الاكتشاف أو اللعبة: {items:[...], mode:'explore'|'practice', intro} */
 SCENES.items = async c => { introOnStage(c.intro); for (const it of c.items) await runItem(it, c.mode || 'explore', { scene: c.stage || 'explore' }); if (c.after) await S(c.after); };
 /* لعبةٌ حركية (D288 (2)): جولاتها بنودٌ حركية بنمط التمرين، فلكلٍّ سلّم D240 والسجلّ بـ firstTry والفانوس و«أعد الجملة» وأخطاء السائقين، ومشهدها «game» (المراجعان A وB لدفعة ألعاب U9) */
-SCENES.motion = async c => { const un = bubbleHold3(), uh = motionHold(c); MOTION_ON = true; try { introOnStage(c.intro); for (const it of c.items) await runItem(it, 'practice', { scene: 'game' }); if (c.after) await S(c.after); } finally { MOTION_ON = false; un(); uh(); } };
+SCENES.motion = async c => { const un = bubbleHold3(), uh = motionHold(c); let off = false; const undo = () => { if (off) return; off = true; MOTION_ON = false; if (MOTION_UNDO === undo) MOTION_UNDO = null; un(); uh(); };
+  MOTION_UNDO = undo; MOTION_ON = true; try { introOnStage(c.intro); for (const it of c.items) await runItem(it, 'practice', { scene: 'game' }); if (c.after) await S(c.after); } finally { undo(); } };
+/* الشاشة «القصيرة» للعبة: القصيرة والضيّقة، وما دون 800 بكسل ارتفاعاً (Pixel 5 بـ 727 كان يدخل الكثيفَ في منتصف الجولة فيتغيّر مقياس الرسم 9–14٪، المراجع B لدفعة U6/U5، 4) */
+const motionShort = () => matchMedia('(max-height: 700px), (max-width: 380px)').matches || innerHeight < 800;
 /* وما تحت الرسم محجوزٌ بأعلى ما يظهر فيه في خطوات اللعبة (MOTION_UI، ويزيد إن ظهر أعلى منه)، فلا يقفز الرسم ولا يتغيّر مقياسه بين خطوات الجولة حين تتبدّل
    الأزرار تحته (المراجع B لدفعة ألعاب U8/U7، 4: نزل 24 بكسلاً وصعد 59 على iPhone SE، و80 على Pixel 5). شريطٌ خفيّ في آخر المسرح يملأ الفرق */
 /* ما يظهر تحت الرسم في خطوات كل نوعٍ حركي: dq (زرّا الملء والتحريك و«تمّ»)، done، وpick n (خيارات)، وnums n (أعدادٌ بكلماتها) */
-const MOTION_UI = { c5Hunt: ['done'], c5Detect: ['done', 'nums', 'pick'], c5Line: ['done'], c6ChordGame: ['dq', 'nums'], c6TanGame: ['dq', 'ndeg'], c6CenGame: ['ndeg'], c7Cup: ['dq', 'pick'], c7Wrap: ['done', 'pick'], c7Thirds: ['dq', 'pick'], c7Tank: ['dq', 'pick'],
+const MOTION_UI = { c5Hunt: ['done'], c5Detect: ['done', 'nums', 'pick'], c5Line: ['done'], c6ChordGame: ['dq', 'nums'], c6TanGame: ['dq', 'nums', 'pick'], c6CenGame: ['ndeg'], c7Cup: ['dq', 'pick'], c7Wrap: ['done', 'pick'], c7Thirds: ['dq', 'pick'], c7Tank: ['dq', 'pick'],
   c8BisMake: ['pick', 'ndeg'], c8PbMake: ['pick', 'nums'], c8HypHunt: ['pick'], c9Trs: ['done'], c9Whl: ['dq'], c9DrA: ['dq', 'ndeg'] };   /* ndeg: أعدادٌ بكلمة الدرجات */
 function motionHold(c) { const st = $('#stage'), LS = $('#lesson'); if (!st || typeof MutationObserver === 'undefined') return () => {};
-  if (!matchMedia('(max-height: 700px), (max-width: 380px)').matches) { const old = LS ? LS.style.alignContent : ''; if (LS) LS.style.alignContent = 'start'; return () => { if (LS) LS.style.alignContent = old; }; }   /* الشاشة الطويلة: الدرس كلّه في الوسط فيتحرّك مع كل زرّ؛ يبدأ من أعلاها، والرسم بعرضه لا بما تحته */
-  const dense = () => { if (LS && !LS.classList.contains('dense')) { LS.classList.add('dense'); if (typeof bubbleMore === 'function') bubbleMore(); } }; dense();   /* الشاشة القصيرة: اللعبة كلها بالتخطيط الكثيف (كان يُضاف حين تضغط الأعدادُ الرسمَ وحده فتتغيّر أحجامها بين الخطوات)، والحجز يُقاس به */
+  const short = motionShort(), oldAC = LS ? LS.style.alignContent : ''; if (!short && LS) LS.style.alignContent = 'start';   /* الشاشة الطويلة: الدرس كلّه في الوسط فيتحرّك مع كل زرّ؛ يبدأ من أعلاها، والحجز تحته كالقصيرة (خيارات «قائمة/حادّة» أعلى من زرّي التحريك فضغطت الرسم 16 بكسلاً على 393×851) */
+  const dense = () => { if (short && LS && !LS.classList.contains('dense')) { LS.classList.add('dense'); if (typeof bubbleMore === 'function') bubbleMore(); } }; dense();   /* الشاشة القصيرة: اللعبة كلها بالتخطيط الكثيف (كان يُضاف حين تضغط الأعدادُ الرسمَ وحده فتتغيّر أحجامها بين الخطوات)، والحجز يُقاس به */
   let H = 0, on = true; const hide = d => { d.style.visibility = 'hidden'; d.setAttribute('aria-hidden', 'true'); st.appendChild(d); return d; };
   const box = (cls, n, html, pc) => { const d = document.createElement('div'); d.className = cls; for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.className = pc; b.innerHTML = html; d.appendChild(b); } return hide(d); };
   const meas = (k, it) => { const els = []; try { const nk = k === 'nums' || k === 'ndeg', n = Math.min(6, Math.max(nk ? 4 : 2, ((nk ? it.nums || it.cens || it.ins : it.ch || it.reads || it.lens || it.cands) || []).length || 3));
@@ -32,12 +35,15 @@ function motionHold(c) { const st = $('#stage'), LS = $('#lesson'); if (!st || t
     const below = st.getBoundingClientRect().bottom - sv.getBoundingClientRect().bottom - sp.getBoundingClientRect().height;
     if (below > H + .5) H = below; sp.style.height = Math.max(0, H - below) + 'px'; };
   const mo = new MutationObserver(fix); mo.observe(st, { childList: true }); fix(); const onR = () => fix(); window.addEventListener('resize', onR);
-  return () => { on = false; mo.disconnect(); window.removeEventListener('resize', onR); const sp = st.querySelector(':scope > .mhold'); if (sp) sp.remove(); if (LS) LS.classList.remove('dense'); }; }
+  return () => { on = false; mo.disconnect(); window.removeEventListener('resize', onR); const sp = st.querySelector(':scope > .mhold'); if (sp) sp.remove(); if (LS) { if (short) LS.classList.remove('dense'); LS.style.alignContent = oldAC; } }; }
 /* في اللعبة الحركية تتبدّل الجملة مع كل خطوة: الفقاعة بأربعة أسطر على الشاشة الطويلة (وبأطول ما ظهر فيها بعدها) (القصيرة ثابتةٌ بقاعدتها)، فلا يتحرّك المسرح تحت إصبع الطفل بين خطوة وأخرى (المراجع B لإغلاق ألعاب U9، 3) */
-function bubbleHold3() { const b = $('#bubble'), sy = $('#say'); if (!b || !sy || matchMedia('(max-height: 700px), (max-width: 380px)').matches) return () => {};
-  const cs = getComputedStyle(b), lh = parseFloat(getComputedStyle(sy).lineHeight) || 0, old = b.style.minHeight; if (!lh) return () => {};
-  const pad = cs.boxSizing === 'border-box' ? parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) : 0; let H = Math.ceil(4 * lh + pad); b.style.minHeight = H + 'px';   /* أربعة أسطر: جمل الخطوات حتى أربعة على Pixel 5 (HOLDG) */
-  let ro = null; try { const ex = pad ? 0 : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth); let raf = 0; ro = new ResizeObserver(() => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; const h = Math.ceil(b.getBoundingClientRect().height - ex); if (h > H + 1) { H = h; b.style.minHeight = H + 'px'; } }); });   /* في الإطار التالي: تغييرٌ داخل نداء ResizeObserver نفسه يرمي «ResizeObserver loop» فيُعدّ عطلاً ويُغطّى الدرس */   /* min-height لصندوق المحتوى إن لم يكن border-box */ ro.observe(b); } catch (e) {}   /* وما زاد لا ينقص بعده في اللعبة */
+function bubbleHold3() { const b = $('#bubble'), sy = $('#say'), LS = $('#lesson'); if (!b || !sy || motionShort()) return () => {};
+  const lh = parseFloat(getComputedStyle(sy).lineHeight) || 0, old = b.style.minHeight; if (!lh) return () => {};
+  const box = () => { const s = getComputedStyle(b), pb = parseFloat(s.paddingTop) + parseFloat(s.paddingBottom) + parseFloat(s.borderTopWidth) + parseFloat(s.borderBottomWidth); return { pb, ex: s.boxSizing === 'border-box' ? 0 : pb }; };
+  let Hb = Math.ceil(4 * lh + box().pb);   /* بارتفاع الصندوق كلّه (border-box): أربعة أسطر، جمل الخطوات حتى أربعة على Pixel 5 (HOLDG) */
+  const apply = () => { if (LS && LS.classList.contains('dense')) { if (b.style.minHeight) { b.style.minHeight = ''; return true; } return false; }   /* الكثيف ارتفاعه ثابتٌ بقاعدته */
+    const v = Math.max(0, Hb - box().ex) + 'px'; if (b.style.minHeight !== v) { b.style.minHeight = v; return true; } return false; };   /* min-height بنمط الصندوق الجاري: تبدّل border-box وcontent-box لا يُحسب نموّاً (كان يزيد 20 بكسلاً في كل إطار بلا حدّ، المراجع B لدفعة U6/U5، 1) */
+  apply(); let ro = null; try { let raf = 0; ro = new ResizeObserver(() => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; if (apply()) return; if (LS && LS.classList.contains('dense')) return; const h = Math.ceil(b.getBoundingClientRect().height); if (h > Hb + 1) { Hb = h; apply(); } }); });   /* في الإطار التالي: تغييرٌ داخل نداء ResizeObserver نفسه يرمي «ResizeObserver loop» فيُعدّ عطلاً ويُغطّى الدرس */   /* min-height لصندوق المحتوى إن لم يكن border-box */ ro.observe(b); } catch (e) {}   /* وما زاد لا ينقص بعده في اللعبة */
   return () => { if (ro) ro.disconnect(); b.style.minHeight = old; }; }
 /* مسار المواد (D238): يظهر في مسار «معي» وحده؛ صورة الأشياء وتعليمة وزرّ «تمّ» */
 SCENES.material = async c => {
